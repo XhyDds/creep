@@ -43,6 +43,23 @@ module Dcache_FSMmain#(
 
     //模块间信号
     
+    //lru
+    output reg  FSM_use0,FSM_use1,
+    input       FSM_wal_sel,
 
+    //data TagV dirty
+    output reg  [addr_width-1:0]FSM_Data_we,
+    output reg  [addr_width-1:0]FSM_TagV_we,
+    output reg  FSM_way_select,
+    input       FSM_Dirty,
+    output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
+
+    //return buffer
+
+    //数据选择
+    output reg  FSM_choose_way,
+    output reg  FSM_choose_return,
+    output reg  [offset_width-1:0]FSM_choose_word
+    
     );
 endmodule
