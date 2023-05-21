@@ -53,8 +53,8 @@ module Dcache#(
     output reg  dcache_mem_wr,//write-1  read-0
     output reg  [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output reg  [3:0]dcache_mem_wstrb,//字节写使能
-    input  reg  mem_dcache_addrOK,
-    input  reg  mem_dcache_dataOK
+    input       mem_dcache_addrOK,
+    input       mem_dcache_dataOK
     );
 endmodule
 

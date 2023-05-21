@@ -28,12 +28,41 @@ module Dcache_TagV#(
 (
     input       clk,
     input       [addr_width-1:0]TagV_addr_read,
-    input       [data_width-1:0]TagV_din_read,
+    input       [data_width-1:0]TagV_din_read,//用于比较
     output      [way-1:0]hit,
 
     input       [data_width-1:0]TagV_din_write,
     input       [addr_width-1:0]TagV_addr_write,
-    input       [addr_width-1:0]TagV_we,
+    input       TagV_we,
     input       TagV_way_select
     );
+wire [way-1:0]TagV_data[data_width-1:0];
+
+bram way0(
+    .clk(clk),
+
+    .addra(TagV_addr_write),//写口
+    .dina(TagV_din_write),
+    .we((TagV_way_select==1'b0)&&TagV_we),
+
+    .addrb(TagV_addr_read),
+    .doutb(TagV_data[0])
+);
+defparam way0.DATA_WIDTH=data_width,way0.ADDR_WIDTH=addr_width;
+
+bram way1(
+    .clk(clk),
+
+    .addra(TagV_addr_write),//写口
+    .dina(TagV_din_write),
+    .we((TagV_way_select==1'b1)&&TagV_we),
+
+    .addrb(TagV_addr_read),
+    .doutb(TagV_data[1])
+);
+defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
+
+for (i=0;i<way;i++) begin
+    assign hit[i]=(TagV_data[i]==TagV_din_read);
+end
 endmodule

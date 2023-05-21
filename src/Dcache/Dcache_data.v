@@ -33,7 +33,30 @@ module Dcache_Data#(
 
     input       [data_width-1:0]Data_din_write,
     input       [addr_width-1:0]Data_addr_write,
-    input       [addr_width-1:0]Data_we,
+    input       Data_we,
     input       Data_way_select
     );
+bram way0(
+    .clk(clk),
+
+    .addra(Data_addr_write),//写口
+    .dina(Data_din_write),
+    .we((Data_way_select==1'b0)&&Data_we),
+
+    .addrb(Data_addr_read),
+    .doutb(Data_dout0)
+);
+defparam way0.DATA_WIDTH=data_width,way0.ADDR_WIDTH=addr_width;
+
+bram way1(
+    .clk(clk),
+
+    .addra(Data_addr_write),//写口
+    .dina(Data_din_write),
+    .we((Data_way_select==1'b1)&&Data_we),
+
+    .addrb(Data_addr_read),
+    .doutb(Data_dout1)
+);
+defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 endmodule
