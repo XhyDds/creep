@@ -35,7 +35,7 @@ module decoder (
                         'b1000011: ;//MOD.WU
                         'b1010100: ;//BREAK
                         'b1010110: ;//SYSCALL
-                        default:  nop=1;
+                        default: nop=1;
                     endcase
                 'b0001: 
                     if(addr[21:20]=='b00&addr[17:15]=='b001)
@@ -43,7 +43,7 @@ module decoder (
                             'b00: ;//SLLI.W
                             'b01: ;//SRLI.W
                             'b10: ;//SRAI.W
-                            default:  nop=1;
+                            default: nop=1;
                         endcase
                     else nop=1;
                 'b1000: ;//SLTI
@@ -52,7 +52,7 @@ module decoder (
                 'b1101: ;//ANDI
                 'b1110: ;//ORI
                 'b1111: ;//XORI
-                default:  nop=1;
+                default: nop=1;
             endcase
         'b000001: 
             case (addr[25:24])
@@ -60,7 +60,7 @@ module decoder (
                 case (addr[9:5])
                     'b00000: ;//CSRRD
                     'b00001: ;//CSRWR
-                    default:  ;//CSRXCHG
+                    default: ;//CSRXCHG
                 endcase
                 'b10: 
                     case (addr[23:22])
