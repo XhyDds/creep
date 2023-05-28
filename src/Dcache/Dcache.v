@@ -57,4 +57,4 @@ module Dcache#(
     input       mem_dcache_dataOK
     );
 endmodule
-
+//锁存出去的data，上一个周期有stall则发上一个周期锁存的data

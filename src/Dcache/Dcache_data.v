@@ -22,7 +22,7 @@
 
 module Dcache_Data#(
     parameter   addr_width=4,
-                data_width=64,
+                data_width=128,
                 way=2
 )
 (
@@ -33,15 +33,17 @@ module Dcache_Data#(
 
     input       [data_width-1:0]Data_din_write,
     input       [addr_width-1:0]Data_addr_write,
-    input       Data_we,
-    input       Data_way_select
+    input       [way-1:0]Data_we
+    // input       Data_way_select
     );
+//对单byte操作  暂时想法为8个bram  上一次单字操作也没改 一起改
+//并且需要写优先
 bram way0(
     .clk(clk),
 
     .addra(Data_addr_write),//写口
     .dina(Data_din_write),
-    .we((Data_way_select==1'b0)&&Data_we),
+    .we(Data_we[0]),
 
     .addrb(Data_addr_read),
     .doutb(Data_dout0)
@@ -53,7 +55,7 @@ bram way1(
 
     .addra(Data_addr_write),//写口
     .dina(Data_din_write),
-    .we((Data_way_select==1'b1)&&Data_we),
+    .we(Data_we[1]),
 
     .addrb(Data_addr_read),
     .doutb(Data_dout1)

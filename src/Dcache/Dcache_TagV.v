@@ -33,8 +33,8 @@ module Dcache_TagV#(
 
     input       [data_width-1:0]TagV_din_write,
     input       [addr_width-1:0]TagV_addr_write,
-    input       TagV_we,
-    input       TagV_way_select
+    input       [way-1:0]TagV_we
+    // input       TagV_way_select
     );
 wire [way-1:0]TagV_data[data_width-1:0];
 
@@ -43,7 +43,7 @@ bram way0(
 
     .addra(TagV_addr_write),//写口
     .dina(TagV_din_write),
-    .we((TagV_way_select==1'b0)&&TagV_we),
+    .we(TagV_we[0]),
 
     .addrb(TagV_addr_read),
     .doutb(TagV_data[0])
@@ -55,14 +55,14 @@ bram way1(
 
     .addra(TagV_addr_write),//写口
     .dina(TagV_din_write),
-    .we((TagV_way_select==1'b1)&&TagV_we),
+    .we(TagV_we[1]),
 
     .addrb(TagV_addr_read),
     .doutb(TagV_data[1])
 );
 defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 
-for (i=0;i<way;i++) begin
+for (i=0;i<way;i=i+1) begin
     assign hit[i]=(TagV_data[i]==TagV_din_read);
 end
 endmodule
