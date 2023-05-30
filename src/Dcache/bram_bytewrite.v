@@ -3,7 +3,7 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/05/30 13:07:48
+// Create Date: 2023/05/30 19:18:44
 // Design Name: 
 // Module Name: bram_bytewrite
 // Project Name: 
@@ -38,10 +38,9 @@ module bram_bytewrite#(
     initial $readmemh(INIT_FILE, ram); // initialize memory
 
     always @(posedge clk) begin
-        addr_r <= raddr;
+        addr_r <= raddr == waddr ? waddr : raddr;
     end
-    assign dout = (addr_r==waddr)?din:ram[addr_r];//write first
-
+    assign dout = ram[addr_r];
     generate
         genvar i;
         for(i = 0; i < DATA_WIDTH/8; i = i+1) begin
