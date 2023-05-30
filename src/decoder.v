@@ -3,7 +3,8 @@ module decoder (
     output [31:0]control,
     output reg [4:0]rk,rj,rd,
     output reg [31:0]imm,
-    output reg [15:0]excp_arg
+    output reg [15:0]excp_arg,
+    output reg INE//指令不存在例外
 );
     localparam yu=0,huo=1,huofei=2,yihuo=3,jia=4,jian=5,zuoyi=6,youyi=7,ssyouyi=8,sxiaoyu=9,xiaoyu=10,tong1=11,tong2=12,jia4=13;
     localparam alu=0,tiao=1,cheng=4,chu=2,liwai=3,dcache=5,yuanzi=6,shizhong=7,tiaoxie=8;
@@ -11,16 +12,16 @@ module decoder (
     reg [1:0]pcsrc;//1:br, 0:writeback, 2:predecoder, 3:predictor
     reg [1:0]alusrc1;//0:reg, 1:pc
     reg [1:0]alusrc2;//0:reg, 1:imm
-    reg [3:0]type;//0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:ll.w/sc.w, 7:RDCNT
+    reg [3:0]type;//0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br
     reg [4:0]subtype;//可与aluop合并？×有同时使用
     //for exceptions, 0:cacop, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr, 11:break, 12:syscall
     //for div, 0:div.w, 1:mod.w, 2:div.wu, 3:mod.wu
     //for mul, 0:mul.w, 1:mulh.w, 2:mulh.wu
     //for dcache, 0~2:load, 3~5:store, 6~7:load, 8:ibar
     //for tiaoxie, 0:jirl, 1:bl
-    //for tiao, 0:b, 1:beq, 2:bne, 3:blt, 4:bge, 5:bltu, 6:bgeu
+    //for br, 0:b, 1:beq, 2:bne, 3:blt, 4:bge, 5:bltu, 6:bgeu
+    //fot yuanzi, 0:load, 1:store
     reg memread,memwrite,regwrite,nop;
-    reg INE;//指令地址错例外
     assign control=(INE|nop)?0:{aluop,pcsrc,alusrc1,alusrc2,type,subtype,regwrite,memwrite,memread};//顺序可调换
     always @(*) begin
         rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type=0;subtype=0;regwrite=0;memwrite=0;memread=0;INE=0;nop=0;
@@ -36,7 +37,7 @@ module decoder (
                                     else if(ir[4:0])    begin rd=ir[4:0];type=shizhong; end//RDCNTVL.W
                                     else INE=1;
                                 else 
-                                    if(!ir[9:5])    begin rd=ir[4:0];type=shizhong; end//RDCNTVH.W
+                                    if(!ir[9:5])        begin rd=ir[4:0];type=shizhong; end//RDCNTVH.W
                                     else INE=1;
                             else INE=1;
                         'b0100000: //ADD.W
@@ -198,10 +199,10 @@ module decoder (
                                         // 'b01011: ;//TLBRD
                                         // 'b01100: ;//TLBWR
                                         // 'b01101: ;//TLBFILL
-                                        'b01110: begin type=liwai;subtype=6; end//ERTN
+                                        'b01110: begin type=liwai;subtype=6; end //ERTN
                                         default: INE=1;
                                     endcase
-                                01: begin type=liwai;subtype=7;excp_arg=ir[14:0]; end//IDLE
+                                01: begin type=liwai;subtype=7;excp_arg=ir[14:0]; end //IDLE
                                 // 11: ;//INVTLB
                                 default: INE=1;
                             endcase
@@ -226,11 +227,11 @@ module decoder (
             case (ir[25:24])
                 'b00: //LL.W
                     begin
-                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type=yuanzi;regwrite=1;
+                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type=yuanzi;subtype=0;regwrite=1;memread=1;
                     end
                 'b01: //SC.W
                     begin
-                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type=yuanzi;
+                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type=yuanzi;subtype=1;memwrite=1;
                     end
                 default: INE=1;
             endcase
@@ -238,35 +239,35 @@ module decoder (
             case (ir[25:22])
                 'b0000: //LD.B
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=0;regwrite=1;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=0;regwrite=1;memread=1;
                     end
                 'b0001: //LD.H
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=1;regwrite=1;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=1;regwrite=1;memread=1;
                     end
                 'b0010: //LD.W
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=2;regwrite=1;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=2;regwrite=1;memread=1;
                     end
                 'b0100: //ST.B
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=3;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=3;memwrite=1;
                     end
                 'b0101: //ST.H
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=4;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=4;memwrite=1;
                     end
                 'b0110: //ST.W
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=5;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=5;memwrite=1;
                     end
                 'b1000: //LD.BU
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=6;regwrite=1;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=6;regwrite=1;memread=1;
                     end
                 'b1001: //LD.HU
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=7;regwrite=1;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=dcache;subtype=7;regwrite=1;memread=1;
                     end
                 'b1011: nop=1;//PRELD
                 //     begin
