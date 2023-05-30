@@ -28,10 +28,10 @@ module Dache_lru#(
     input       clk,
     input       use0,use1,
     input       [addr_width-1:0]addr,
-    output      way_sel_up
+    output      way_sel
     );
 reg [(1<<addr_width)-1:0]record;
-assign way_sel_up=record[addr];
+assign way_sel=record[addr];
 always @(posedge clk) begin
     if(use0)record[addr]<=1;//下一次用1
     else if(use1)record[addr]<=0;//下一次用0

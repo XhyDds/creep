@@ -29,10 +29,10 @@ module Dcache_FSMmain#(
     input clk,rstn,
 
     //上下游信号
-    input       pipeline_dcahe_vaild,
+    input       pipeline_dcache_vaild,
     output reg  dcache_pipeline_ready,
     input       [3:0]pipeline_dcache_wstrb,
-    input       [31:0]pipeline_dcache_opcode,
+    input       [31:0]pipeline_dcache_opcode,//好像不需要 用rbuf的即可
     input       pipeline_dcache_opflag,
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
     output      dcache_pipeline_stall,//stall form dcache
@@ -50,21 +50,25 @@ module Dcache_FSMmain#(
     //reqbuf
     output reg  FSM_rbuf_we,
     input       [31:0]FSM_rbuf_opcode,
-    input       FSM_rbuf_opflag,
+    input       FSM_rbuf_opflag,//好像不需要
     input       [31:0]FSM_rbuf_addr,
     input       FSM_rbuf_type,//0-read  1-write
+    input       [3:0]FSM_rbuf_wstrb,
 
     //lru
     output reg  FSM_use0,FSM_use1,
     input       FSM_wal_sel_lru,
 
-    //data TagV dirty
+    //data TagV
     input       [way-1:0]FSM_hit,
     output reg  [way-1:0]FSM_Data_we,
     output      [way-1:0]FSM_TagV_we,//两个相同
+    output reg  FSM_Data_replace,
     // output reg  FSM_way_select,
-    input       FSM_Dirty,
-    output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
+
+    //dirty 暂无
+    // input       FSM_Dirty,
+    // output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
 
     //Return Buffer
    
@@ -74,6 +78,9 @@ module Dcache_FSMmain#(
     output reg  [offset_width-1:0]FSM_choose_word
     
     );
+//对字节和byte的选择暂未加入
+
+
 assign dcache_pipeline_stall=dcache_pipeline_ready;
 assign FSM_TagV_we=FSM_Data_we;
 wire hit0,hit1;
@@ -96,7 +103,7 @@ end
 always @(*) begin
     case (state)
         Idle:begin
-            if(pipeline_dcahe_vaild)begin
+            if(pipeline_dcache_vaild)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
@@ -107,7 +114,7 @@ always @(*) begin
                 if(!FSM_rbuf_type)next_state=Miss_r;//0-read
                 else next_state=Miss_w;
             end
-            else if(pipeline_dcahe_vaild)begin
+            else if(pipeline_dcache_vaild)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
@@ -130,7 +137,7 @@ always @(*) begin
         Miss_w:begin
             if(!mem_dcache_addrOK)next_state=Miss_w;
             else begin
-                if(pipeline_dcahe_vaild)begin
+                if(pipeline_dcache_vaild)begin
                     if(opflag)next_state=Operation;
                     else next_state=Lookup;
                 end
@@ -138,7 +145,7 @@ always @(*) begin
             end
         end
         Replace:begin
-            if(pipeline_dcahe_vaild)begin
+            if(pipeline_dcache_vaild)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
@@ -160,11 +167,11 @@ always @(*) begin
     FSM_use0=0;
     FSM_use1=0;
     FSM_Data_we=2'd0;
-    // FSM_way_select=0;
-    FSM_Dirtytable_set0=0;
-    FSM_Dirtytable_set1=0;
+    // FSM_Dirtytable_set0=0;
+    // FSM_Dirtytable_set1=0;
     FSM_choose_way=0;
     FSM_choose_return=0;
+    FSM_Data_replace=0;
     FSM_choose_word=FSM_rbuf_addr[2+offset_width-1:2];
     case (state)
         Idle:begin
@@ -287,8 +294,10 @@ always @(*) begin
                     //nothing
                 end
                 Replace:begin//这一拍是dataOK
+                    FSM_Data_replace=1;
                     FSM_rbuf_we=1;
                     FSM_choose_return=1;//前递
+                    dcache_pipeline_ready=1;//5.30改动
                     if(FSM_wal_sel_lru==1'd0)begin
                         FSM_Data_we[0]=1;
                         FSM_use0=1;
@@ -299,8 +308,10 @@ always @(*) begin
                     end
                 end
                 Replace1:begin
+                    FSM_Data_replace=1;
                     FSM_rbuf_we=1;
                     FSM_choose_return=1;//这是必须的
+                    dcache_pipeline_ready=1;//5.30改动
                     if(FSM_wal_sel_lru==1'd0)begin
                         FSM_Data_we[0]=1;
                         FSM_use0=1;

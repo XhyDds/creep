@@ -23,42 +23,84 @@
 module Dcache_Data#(
     parameter   addr_width=4,
                 data_width=128,
+                offset_width=2,
                 way=2
 )
 (
     input       clk,
+    
     input       [addr_width-1:0]Data_addr_read,
     output      [data_width-1:0]Data_dout0,
     output      [data_width-1:0]Data_dout1,
 
     input       [data_width-1:0]Data_din_write,
+    input       [31:0]Data_din_write_32,
     input       [addr_width-1:0]Data_addr_write,
-    input       [way-1:0]Data_we
-    // input       Data_way_select
+    input       [offset_width-1:0]Data_offset,
+    input       [3:0]Data_choose_byte,
+    input       [way-1:0]Data_we,
+    input       Data_replace//为1替换，否则对单字操作
+    
     );
-//对单byte操作  暂时想法为8个bram  上一次单字操作也没改 一起改
-//并且需要写优先
-bram way0(
+reg [data_width/8-1:0]we0,we1;
+reg [data_width-1:0]Data_din;
+always @(*) begin
+    if(!Data_we[0])we0 = 0;
+    else begin
+        if(Data_replace)we0 = -1;//全部有效
+        else begin
+            we0 = Data_choose_byte << (Data_offset << 2);//左移4*Data_offset
+        end
+    end
+    if(!Data_we[1])we1 = 0;
+    else begin
+        if(Data_replace)we1 = -1;//全部有效
+        else begin
+            we1 = Data_choose_byte << (Data_offset << 2);//左移4*Data_offset
+        end
+    end
+    if(Data_replace)Data_din = Data_din_write;
+    else Data_din = Data_din_write_32 << (Data_offset << 5);//左移32*Data_offset
+end
+
+bram_bytewrite way0(
     .clk(clk),
 
-    .addra(Data_addr_write),//写口
-    .dina(Data_din_write),
-    .we(Data_we[0]),
+    .waddr(Data_addr_write),
+    .din(Data_din),
+    .we(we0),
 
-    .addrb(Data_addr_read),
-    .doutb(Data_dout0)
+    .raddr(Data_addr_read),
+    .dout(Data_dout0)
 );
 defparam way0.DATA_WIDTH=data_width,way0.ADDR_WIDTH=addr_width;
 
-bram way1(
+bram_bytewrite way1(
     .clk(clk),
 
-    .addra(Data_addr_write),//写口
-    .dina(Data_din_write),
-    .we(Data_we[1]),
+    .waddr(Data_addr_write),
+    .din(Data_din),
+    .we(we1),
 
-    .addrb(Data_addr_read),
-    .doutb(Data_dout1)
+    .raddr(Data_addr_read),
+    .dout(Data_dout1)
 );
 defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 endmodule
+
+
+// generate
+//     genvar i;
+//     for (i=0;i<data_width/8;i=i+1) begin
+//         assign we0[(i<<2)+0]=Data_choose_byte[0]&Data_offset[i]&Data_we[0];
+//         assign we0[(i<<2)+1]=Data_choose_byte[1]&Data_offset[i]&Data_we[0];
+//         assign we0[(i<<2)+2]=Data_choose_byte[2]&Data_offset[i]&Data_we[0];
+//         assign we0[(i<<2)+3]=Data_choose_byte[3]&Data_offset[i]&Data_we[0];
+//     end
+//     for (i=0;i<data_width/8;i=i+1) begin
+//         assign we1[(i<<2)+0]=Data_choose_byte[0]&Data_offset[i]&Data_we[1];
+//         assign we1[(i<<2)+1]=Data_choose_byte[1]&Data_offset[i]&Data_we[1];
+//         assign we1[(i<<2)+2]=Data_choose_byte[2]&Data_offset[i]&Data_we[1];
+//         assign we1[(i<<2)+3]=Data_choose_byte[3]&Data_offset[i]&Data_we[1];
+//     end
+// endgenerate
