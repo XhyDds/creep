@@ -3,8 +3,8 @@ module alu (
     output reg [31:0]aluresult,
     output zero
 );
-    wire type=ctr[3:0];
-    wire aluop=ctr[21:18];
+    wire [3:0]type=ctr[3:0];
+    wire [3:0]aluop=ctr[21:18];
     always @(*) begin
         aluresult=0;
         if(type==0|type==8)

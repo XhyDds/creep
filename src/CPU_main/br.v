@@ -4,8 +4,8 @@ module br (
     output reg ifbr,
     output reg [31:0]brresult
 );
-    wire type=ctr[3:0];
-    wire subtype=ctr[11:7];
+    wire [3:0]type=ctr[3:0];
+    wire [4:0]subtype=ctr[11:7];
     always @(*) begin
         ifbr=0;
         brresult=0;

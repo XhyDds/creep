@@ -15,7 +15,7 @@ module dispatcher (
     wire xiangguan=(rd0==rd1|rd0==rk1|rd0==rj1|rd1==rk0|rd1==rj0);
     wire suanshu0=(control0[3:0]==0|control0[3:0]==2|control0[3:0]==4);
     wire suanshu1=(control1[3:0]==0|control1[3:0]==2|control1[3:0]==4);
-    wire jiaohuan=control0[3:0]==5&suanshu1;//3000是alu，3004是dcache
+    wire jiaohuan=(control0[3:0]==5)&suanshu1;//3000是alu，3004是dcache
     always @(*) begin
         if(!xiangguan&suanshu0)begin//不相关且第二条指令为算术指令
             rk00=rk0;
