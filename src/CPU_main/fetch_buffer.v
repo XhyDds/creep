@@ -1,7 +1,8 @@
 module fetch_buffer (
     input clk,rstn,
     input if0,if1,
-    input [127:0]irin,
+    input [63:0]irin,
+    input flag,
     output [31:0]buffer0,buffer1
 );
     //是否需要改用循环队列？head+tail。for循环赋值对性能影响大吗？
@@ -14,8 +15,8 @@ module fetch_buffer (
     assign buffer0=buffer[1];
     assign ir[0]=irin[31:0];
     assign ir[1]=irin[63:32];
-    assign ir[2]=irin[95:64];
-    assign ir[3]=irin[127:96];
+    // assign ir[2]=irin[95:64];
+    // assign ir[3]=irin[127:96];
     assign new=(ir_reg!=irin);//是否传入的数据不变就不进入队列？
     always @(posedge clk,negedge rstn) begin
         if(!rstn) ir_reg<=0;
