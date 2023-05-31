@@ -2,7 +2,7 @@ module fetch_buffer (
     input clk,rstn,
     input if0,if1,
     input [63:0]irin,
-    input flag,
+    input flag,//flag==1表示2个有效，==0表示1个有效
     output [31:0]buffer0,buffer1
 );
     //是否需要改用循环队列？head+tail。for循环赋值对性能影响大吗？
@@ -32,14 +32,14 @@ module fetch_buffer (
         end
         case ({if0,if1,new})//if1是优先级高的通道，即pc小的一侧
         //是否会出现if0&!if1的情况？
-            000: ;
-            001: begin 
-                pointer<=pointer+4;
-                for (i=0;i<4;i=i+1)begin
+            'b000: ;
+            'b001: begin 
+                pointer<=pointer+flag+1;
+                for (i=0;i<flag+1;i=i+1)begin
                     buffer[pointer+i]<=ir[i];
                 end
             end
-            010: begin 
+            'b010: begin 
                 if(pointer>0) begin
                     pointer<=pointer-1;
                     for (i=0;i<pointer-1;i=i+1)begin
@@ -48,24 +48,24 @@ module fetch_buffer (
                     buffer[pointer-1]<=0;
                 end
             end
-            011: begin 
+            'b011: begin 
                 if(pointer>0) begin
-                    pointer<=pointer+3;
+                    pointer<=pointer+flag;
                     for (i=0;i<pointer-1;i=i+1)begin
                         buffer[i]<=buffer[i+1];
                     end
-                    for (i=0;i<4;i=i+1)begin
+                    for (i=0;i<flag+1;i=i+1)begin
                         buffer[pointer-1+i]<=ir[i];
                     end
                 end
                 else begin
-                    pointer<=pointer+4;
-                    for (i=0;i<4;i=i+1)begin
+                    pointer<=pointer+flag+1;
+                    for (i=0;i<flag+1;i=i+1)begin
                         buffer[pointer+i]<=ir[i];
                     end
                 end
             end
-            100: begin 
+            'b100: begin 
                 if(pointer>1) begin
                     pointer<=pointer-1;
                     for (i=1;i<pointer-1;i=i+1)begin
@@ -74,24 +74,24 @@ module fetch_buffer (
                     buffer[pointer-1]<=0;
                 end
             end
-            101: begin 
+            'b101: begin 
                 if(pointer>1) begin
-                    pointer<=pointer+3;
+                    pointer<=pointer+flag;
                     for (i=1;i<pointer-1;i=i+1)begin
                         buffer[i]<=buffer[i+1];
                     end
-                    for (i=0;i<4;i=i+1)begin
+                    for (i=0;i<flag+1;i=i+1)begin
                         buffer[pointer-1+i]<=ir[i];
                     end
                 end
                 else begin
-                    pointer<=pointer+4;
-                    for (i=0;i<4;i=i+1)begin
+                    pointer<=pointer+flag+1;
+                    for (i=0;i<flag+1;i=i+1)begin
                         buffer[pointer+i]<=ir[i];
                     end
                 end
             end
-            110: begin 
+            'b110: begin 
                 if(pointer>1) begin
                     pointer<=pointer-2;
                     for (i=0;i<pointer-2;i=i+1)begin
@@ -102,36 +102,36 @@ module fetch_buffer (
                 end
                 else if(pointer==1) begin
                     pointer<=pointer-1;
-                    for (i=0;i<pointer-1;i=i+1)begin
-                        buffer[i]<=buffer[i+1];
-                    end
+                    // for (i=0;i<pointer-1;i=i+1)begin
+                    //     buffer[i]<=buffer[i+1];
+                    // end
                     buffer[pointer-1]<=0;
                 end
             end
-            111: begin 
+            'b111: begin 
                 if(pointer>1) begin
-                    pointer<=pointer+2;
+                    pointer<=pointer+flag-1;
                     for (i=0;i<pointer-2;i=i+1)begin
                         buffer[i]<=buffer[i+2];
                     end
                     // buffer[pointer-1]<=0;
                     buffer[pointer-2]<=0;
-                    for (i=0;i<4;i=i+1)begin
+                    for (i=0;i<flag+1;i=i+1)begin
                         buffer[pointer-1+i]<=ir[i];
                     end
                 end
                 else if(pointer==1) begin
-                    pointer<=pointer+3;
-                    for (i=0;i<pointer-1;i=i+1)begin
-                        buffer[i]<=buffer[i+1];
-                    end
-                    for (i=0;i<4;i=i+1)begin
+                    pointer<=pointer+flag;
+                    // for (i=0;i<pointer-1;i=i+1)begin
+                    //     buffer[i]<=buffer[i+1];
+                    // end
+                    for (i=0;i<flag+1;i=i+1)begin
                         buffer[pointer-1+i]<=ir[i];
                     end
                 end
                 else begin
-                    pointer=pointer+4;
-                    for (i=0;i<4;i=i+1)begin
+                    pointer=pointer+flag+1;
+                    for (i=0;i<flag+1;i=i+1)begin
                         buffer[pointer+i]<=ir[i];
                     end
                 end
