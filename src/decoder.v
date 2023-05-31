@@ -18,11 +18,10 @@ module decoder (
     //for div, 0:div.w, 1:mod.w, 2:div.wu, 3:mod.wu
     //for mul, 0:mul.w, 1:mulh.w, 2:mulh.wu
     //for dcache, 0~2:load, 3~5:store, 6~7:load, 8:ibar
-    //for tiaoxie, 0:jirl, 1:bl
     //for br, 0:b, 1:beq, 2:bne, 3:blt, 4:bge, 5:bltu, 6:bgeu
     //fot yuanzi, 0:load, 1:store
     reg memread,memwrite,regwrite,nop;
-    assign control=(INE|nop)?0:{aluop,pcsrc,alusrc1,alusrc2,type,subtype,regwrite,memwrite,memread};//顺序可调换
+    assign control=(INE|nop)?0:{aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type};//顺序可调换
     always @(*) begin
         rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type=0;subtype=0;regwrite=0;memwrite=0;memread=0;INE=0;nop=0;
         case (ir[31:26])
@@ -286,7 +285,7 @@ module decoder (
         // 'b010010: ;
         'b010011: //JIRL
             begin 
-                imm={{4{ir[25]}},ir[25:10],2'b0};type=tiaoxie;subtype=0;regwrite=1;pcsrc=1;
+                imm={{4{ir[25]}},ir[25:10],2'b0};type=tiaoxie;regwrite=1;pcsrc=1;
                 aluop=jia4;alusrc1=1;rj=ir[9:5];rd=ir[4:0];
             end
         'b010100: //B
@@ -295,32 +294,32 @@ module decoder (
             end
         'b010101: //BL
             begin 
-                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type=tiaoxie;subtype=1;regwrite=1;pcsrc=1;
+                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type=tiaoxie;regwrite=1;pcsrc=1;
                 aluop=jia4;alusrc1=1;rd=1;
             end
         'b010110: //BEQ
             begin
-                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=1;pcsrc=1;
+                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=1;pcsrc=1;aluop=jian;
             end
         'b010111: //BNE
             begin
-                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=2;pcsrc=1;
+                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=2;pcsrc=1;aluop=jian;
             end
         'b011000: //BLT
             begin
-                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=3;pcsrc=1;
+                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=3;pcsrc=1;aluop=sxiaoyu;
             end
         'b011001: //BGE
             begin
-                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=4;pcsrc=1;
+                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=4;pcsrc=1;aluop=sxiaoyu;
             end
         'b011010: //BLTU
             begin
-                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=5;pcsrc=1;
+                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=5;pcsrc=1;aluop=xiaoyu;
             end
         'b011011: //BGEU
             begin
-                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=6;pcsrc=1;
+                imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;
             end
             default: INE=1;
         endcase

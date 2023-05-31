@@ -2,18 +2,21 @@ module fetch_buffer (
     input clk,rstn,
     input if0,if1,
     input [127:0]irin,
-    output [31:0]buffer1,buffer2
+    output [31:0]buffer0,buffer1
 );
+    //是否需要改用循环队列？head+tail。for循环赋值对性能影响大吗？
     reg [31:0]buffer[0:31];
     reg [127:0]ir_reg;
     reg [4:0]pointer;
     wire new;
     wire [31:0]ir[0:3];
+    assign buffer1=buffer[0];
+    assign buffer0=buffer[1];
     assign ir[0]=irin[31:0];
     assign ir[1]=irin[63:32];
     assign ir[2]=irin[95:64];
     assign ir[3]=irin[127:96];
-    assign new=(ir_reg!=irin);
+    assign new=(ir_reg!=irin);//是否传入的数据不变就不进入队列？
     always @(posedge clk,negedge rstn) begin
         if(!rstn) ir_reg<=0;
         else ir_reg<=irin;
@@ -27,6 +30,7 @@ module fetch_buffer (
             pointer<=0;
         end
         case ({if0,if1,new})//if1是优先级高的通道，即pc小的一侧
+        //是否会出现if0&!if1的情况？
             000: ;
             001: begin 
                 pointer<=pointer+4;
