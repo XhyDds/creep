@@ -1,10 +1,11 @@
 module decoder (
     input [31:0]ir,
+    input [1:0]PLV,
     output [31:0]control,
     output reg [4:0]rk,rj,rd,
     output reg [31:0]imm,
-    output reg [15:0]excp_arg,
-    output reg INE//指令不存在例外
+    output reg [15:0]excp_arg
+    // ,output reg INE//指令不存在例外
 );
     localparam yu=0,huo=1,huofei=2,yihuo=3,jia=4,jian=5,zuoyi=6,youyi=7,ssyouyi=8,sxiaoyu=9,xiaoyu=10,tong1=11,tong2=12,jia4=13;
     localparam alu=0,tiao=1,cheng=4,chu=2,liwai=3,dcache=5,yuanzi=6,shizhong=7,tiaoxie=8;
@@ -14,16 +15,16 @@ module decoder (
     reg [1:0]alusrc2;//0:reg, 1:imm
     reg [3:0]type;//0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br
     reg [4:0]subtype;//可与aluop合并？×有同时使用
-    //for exceptions, 0:cacop, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr, 11:break, 12:syscall
+    //for exceptions, 0:cacop, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr, 11:BRK, 12:SYS, 13:INE, 14:IPE
     //for div, 0:div.w, 1:mod.w, 2:div.wu, 3:mod.wu
     //for mul, 0:mul.w, 1:mulh.w, 2:mulh.wu
     //for dcache, 0~2:load, 3~5:store, 6~7:load, 8:ibar
     //for br, 0:b, 1:beq, 2:bne, 3:blt, 4:bge, 5:bltu, 6:bgeu
     //fot yuanzi, 0:load, 1:store
     reg memread,memwrite,regwrite,nop;
-    assign control=(INE|nop)?0:{aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type};//顺序可调换
+    assign control=nop?0:{aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type};//顺序可调换
     always @(*) begin
-        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type=0;subtype=0;regwrite=0;memwrite=0;memread=0;INE=0;nop=0;
+        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;
         case (ir[31:26])
         'b000000: 
             case (ir[25:22])
@@ -34,11 +35,11 @@ module decoder (
                                 if(!ir[10])
                                     if(ir[9:5])         begin rj=ir[9:5];type=shizhong; end//RDCNTID.W
                                     else if(ir[4:0])    begin rd=ir[4:0];type=shizhong; end//RDCNTVL.W
-                                    else INE=1;
+                                    else                begin type=liwai;subtype=13; end
                                 else 
                                     if(!ir[9:5])        begin rd=ir[4:0];type=shizhong; end//RDCNTVH.W
-                                    else INE=1;
-                            else INE=1;
+                                    else                begin type=liwai;subtype=13; end
+                            else                        begin type=liwai;subtype=13; end
                         'b0100000: //ADD.W
                             begin
                                 rk=ir[14:10];rj=ir[9:5];rd=ir[4:0];type=alu;aluop=jia;regwrite=1;
@@ -117,9 +118,9 @@ module decoder (
                             end
                         'b1010110: //SYSCALL
                             begin
-                                excp_arg=ir[14:0];type=liwai;subtype=11;
+                                excp_arg=ir[14:0];type=liwai;subtype=12;
                             end
-                        default: INE=1;
+                        default: begin type=liwai;subtype=13; end
                     endcase
                 'b0001: 
                     if(ir[21:20]=='b00&ir[17:15]=='b001)
@@ -136,9 +137,9 @@ module decoder (
                                 begin
                                     imm={27'b0,ir[14:10]};rj=ir[9:5];rd=ir[4:0];type=alu;alusrc2=1;aluop=ssyouyi;regwrite=1;
                                 end
-                            default: INE=1;
+                            default: begin type=liwai;subtype=13; end
                         endcase
-                    else INE=1;
+                    else begin type=liwai;subtype=13; end
                 'b1000: //SLTI
                     begin
                         imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=alu;alusrc2=1;aluop=sxiaoyu;regwrite=1;
@@ -163,65 +164,88 @@ module decoder (
                     begin
                         imm={20'b0,ir[21:10]};rj=ir[9:5];rd=ir[4:0];type=alu;alusrc2=1;aluop=yihuo;regwrite=1;
                     end
-                default: INE=1;
+                default: begin type=liwai;subtype=13; end
             endcase
         'b000001: 
             case (ir[25:24])
                 'b00: //CSR
-                case (ir[9:5])
-                    'b00000: //CSRRD
-                        begin
-                            excp_arg=ir[32:10];rd=ir[4:0];type=liwai;subtype=8;regwrite=1;
-                        end
-                    'b00001: //CSRWR
-                        begin
-                            excp_arg=ir[32:10];rd=ir[4:0];type=liwai;subtype=9;//regwrite?
-                        end
-                    default: //CSRXCHG
-                        begin
-                            excp_arg=ir[32:10];rd=ir[4:0];type=liwai;subtype=10;regwrite=1;
-                        end
-                endcase
+                    case (ir[9:5])
+                        'b00000: //CSRRD
+                            if(PLV==0) begin
+                                excp_arg=ir[23:10];rd=ir[4:0];type=liwai;subtype=8;regwrite=1;
+                            end
+                            else begin
+                                type=liwai;subtype=14;
+                            end
+                        'b00001: //CSRWR
+                            if(PLV==0) begin
+                                excp_arg=ir[23:10];rd=ir[4:0];type=liwai;subtype=9;//regwrite?
+                            end
+                            else begin
+                                type=liwai;subtype=14;
+                            end
+                        default: //CSRXCHG
+                            if(PLV==0) begin
+                                excp_arg=ir[23:10];rd=ir[4:0];type=liwai;subtype=10;regwrite=1;
+                            end
+                            else begin
+                                type=liwai;subtype=14;
+                            end
+                    endcase
                 'b10: 
                     case (ir[23:22])
                         'b00: //CACOP
-                            begin
+                            if(PLV==0 | ir[4:3]==2)begin
                                 imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];excp_arg=ir[4:0];type=liwai;subtype=0;
                                 //alu=jia?是否使用alu计算地址偏移？
+                            end
+                            else begin
+                                type=liwai;subtype=14;
                             end
                         'b01: 
                             if(ir[21:17]=='b00100&ir[9:0]=='b0000000000)
                             case (ir[16:15])
                                 00: 
                                     case (ir[14:10])
-                                        // 'b01010: ;//TLBSRCH
-                                        // 'b01011: ;//TLBRD
-                                        // 'b01100: ;//TLBWR
-                                        // 'b01101: ;//TLBFILL
-                                        'b01110: begin type=liwai;subtype=6; end //ERTN
-                                        default: INE=1;
+                                        // 'b01010: if(PLV==0) ; else begin type=liwai;subtype=14; end//TLBSRCH
+                                        // 'b01011: if(PLV==0) ; else begin type=liwai;subtype=14; end//TLBRD
+                                        // 'b01100: if(PLV==0) ; else begin type=liwai;subtype=14; end//TLBWR
+                                        // 'b01101: if(PLV==0) ; else begin type=liwai;subtype=14; end//TLBFILL
+                                        'b01110: 
+                                        if(PLV==0) begin  //ERTN
+                                            type=liwai;subtype=6; 
+                                        end 
+                                        else begin 
+                                            type=liwai;subtype=14; 
+                                        end
+                                        default: begin type=liwai;subtype=13; end
                                     endcase
-                                01: begin type=liwai;subtype=7;excp_arg=ir[14:0]; end //IDLE
-                                // 11: ;//INVTLB
-                                default: INE=1;
+                                01: if(PLV==0) begin  //IDLE
+                                    type=liwai;subtype=7;excp_arg=ir[14:0];
+                                end 
+                                else begin 
+                                    type=liwai;subtype=14; 
+                                end
+                                // 11: if(PLV==0) ; else begin type=liwai;subtype=14; end//INVTLB
+                                default: begin type=liwai;subtype=13; end
                             endcase
-                            else INE=1;
-                        default: INE=1;
+                            else begin type=liwai;subtype=13; end
+                        default: begin type=liwai;subtype=13; end
                     endcase
-                default: INE=1;
+                default: begin type=liwai;subtype=13; end
             endcase
         'b000101: 
             if(!ir[25]) //LU12I.W
                 begin 
                     imm={{12{ir[24]}},ir[24:5]};rd=ir[4:0];type=alu;aluop=tong2;regwrite=1;
                 end 
-            else INE=1;
+            else begin type=liwai;subtype=13; end
         'b000111: 
             if(!ir[25]) //PCADDU12I
                 begin  
                     imm={{12{ir[24]}},ir[24:5]};rd=ir[4:0];type=alu;aluop=jia;alusrc1=1;regwrite=1;
                 end 
-            else INE=1;
+            else begin type=liwai;subtype=13; end
         'b001000:
             case (ir[25:24])
                 'b00: //LL.W
@@ -232,7 +256,7 @@ module decoder (
                     begin
                         imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type=yuanzi;subtype=1;memwrite=1;
                     end
-                default: INE=1;
+                default: begin type=liwai;subtype=13; end
             endcase
         'b001010: 
             case (ir[25:22])
@@ -272,16 +296,16 @@ module decoder (
                 //     begin
                 //         imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];hint=ir[4:0];
                 //     end
-                default: INE=1;
+                default: begin type=liwai;subtype=13; end
             endcase
         'b001110: 
             if(ir[25:18]=='b0001110010)
                 case (ir[17])
                     'b0: nop=1;//DBAR
                     'b1: begin type=dcache;subtype=8; end//IBAR
-                    default: INE=1;
+                    default: begin type=liwai;subtype=13; end
                 endcase
-            else INE=1;
+            else begin type=liwai;subtype=13; end
         // 'b010010: ;
         'b010011: //JIRL
             begin 
@@ -321,7 +345,7 @@ module decoder (
             begin
                 imm={{4{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;
             end
-            default: INE=1;
+            default: begin type=liwai;subtype=13; end
         endcase
     end
 endmodule

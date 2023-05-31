@@ -2,11 +2,11 @@ module dispatcher (
     input [31:0]imm0,imm1,control0,control1,
     input [4:0]rk0,rk1,rj0,rj1,rd0,rd1,
     input [15:0]excp_arg0,excp_arg1,
-    input INE0,INE1,
+    // input INE0,INE1,
     output reg [4:0]rk00,rk11,rj00,rj11,rd00,rd11,
     output reg [31:0]imm00,imm11,control00,control11,
     output reg [15:0]excp_arg00,excp_arg11,
-    output reg INE00,INE11,
+    // output reg INE00,INE11,
     output reg if0,if1
 );
     //上方alu div mul，下方全功能
@@ -30,8 +30,8 @@ module dispatcher (
             control11=control1;
             excp_arg00=excp_arg0;
             excp_arg11=excp_arg1;
-            INE00=INE0;
-            INE11=INE1;
+            // INE00=INE0;
+            // INE11=INE1;
             if0=1;
             if1=1;
         end
@@ -48,8 +48,8 @@ module dispatcher (
             control11=control0;
             excp_arg00=excp_arg1;
             excp_arg11=excp_arg0;
-            INE00=INE1;
-            INE11=INE0;
+            // INE00=INE1;
+            // INE11=INE0;
             if0=1;
             if1=1;
         end
@@ -66,8 +66,8 @@ module dispatcher (
             control11=control1;
             excp_arg00=0;
             excp_arg11=excp_arg1;
-            INE00=0;
-            INE11=INE1;
+            // INE00=0;
+            // INE11=INE1;
             if0=0;
             if1=1;
         end

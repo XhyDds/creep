@@ -137,17 +137,37 @@ module fetch_buffer (
                             buffer[i]<=buffer[i+2];
                             bufferpc[i]<=bufferpc[i+2];
                         end
-                        for (i=0;i<flag+1;i=i+1)begin
-                            buffer[pointer-2+i]<=ir[i];
-                            bufferpc[pointer-2+i]<=pc+i;
-                        end
+                        if(flag) 
+                            begin
+                                buffer[pointer-2]<=ir[0];
+                                bufferpc[pointer-2]<=pc;
+                                buffer[pointer-1]<=ir[1];
+                                bufferpc[pointer-1]<=pc+1;
+                            end
+                        else 
+                            begin
+                                buffer[pointer-2]<=ir[0];
+                                bufferpc[pointer-2]<=pc;
+                                buffer[pointer-1]<=0;
+                                bufferpc[pointer-1]<=0;
+                            end
                     end
                     else begin
                         pointer<=pointer+flag+1;
-                        for (i=0;i<flag+1;i=i+1)begin
-                            buffer[i]<=ir[i];
-                            bufferpc[i]<=pc+i;
-                        end
+                        if(flag) 
+                            begin
+                                buffer[0]<=ir[0];
+                                bufferpc[0]<=pc;
+                                buffer[1]<=ir[1];
+                                bufferpc[1]<=pc+1;
+                            end
+                        else 
+                            begin
+                                buffer[0]<=ir[0];
+                                bufferpc[0]<=pc;
+                                buffer[1]<=0;
+                                bufferpc[1]<=0;
+                            end
                     end
                 end
                 default: ;

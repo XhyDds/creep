@@ -10,7 +10,9 @@ module alu (
         if(type==0|type==8)
         case (aluop)
             0:aluresult=alu1&alu2;
-            1:aluresult=alu1|alu2;2:aluresult=~(alu1|alu2);3:aluresult=alu1^alu2;
+            1:aluresult=alu1|alu2;
+            2:aluresult=~(alu1|alu2);
+            3:aluresult=alu1^alu2;
             4:aluresult=alu1+alu2;
             5:aluresult=alu1-alu2;6:aluresult=alu1<<alu2;
             7:aluresult=alu1>>alu2;

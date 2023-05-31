@@ -1,5 +1,5 @@
 module cpu (
-    input clk,rst_n
+    input clk,rstn
 );
     reg [31:0]npc;
     wire [1:0]pcsrc_exe1_wb;
@@ -13,7 +13,8 @@ module cpu (
     // pc_fifo_id,
     pc_if1_fifo,
     pc_if0_if1,
-    pc_reg_exe0_0,pc_reg_exe0_1,aluresult_exe0_exe1_0,aluresult_exe0_exe1_1,
+    pc_reg_exe0_0,pc_reg_exe0_1,
+    aluresult_exe0_exe1_0,aluresult_exe0_exe1_1,
     result_exe1_wb_0,result_exe1_wb_1,
     rrk_reg_exe0_0,rrj_reg_exe0_0,
     rrk_reg_exe0_1,rrj_reg_exe0_1,
@@ -21,17 +22,18 @@ module cpu (
     imm_reg_exe0_0,imm_reg_exe0_1,
     rd_exe1_wb_0,rd_exe1_wb_1,
     excp_arg_id_reg_0,excp_arg_id_reg_1,
-    rd_id_reg_0,rd_id_reg_1,
+    
     imm_id_reg_0,imm_id_reg_1,
-    excp_arg_reg_exe0_0,excp_arg_reg_exe0_1,
-    rk_reg_exe0_0,rk_reg_exe0_1,
-    rj_reg_exe0_0,rj_reg_exe0_1,
-    rd_reg_exe0_0,rd_reg_exe0_1,
-    rd_exe0_exe1_0,rd_exe0_exe1_1;
+    excp_arg_reg_exe0_0,excp_arg_reg_exe0_1;
 
     wire [31:0]wb_pc;
-    reg [4:0]rk_id_reg_0,rj_id_reg_0,rk_id_reg_1,rj_id_reg_1;
-    wire [4:0]rk_id_0,rj_id_0,rk_id_1,rj_id_1;
+    reg [4:0]rk_reg_exe0_0,rk_reg_exe0_1,
+    rj_reg_exe0_0,rj_reg_exe0_1,
+    rd_reg_exe0_0,rd_reg_exe0_1,
+    rd_id_reg_0,rd_id_reg_1,
+    rk_id_reg_0,rk_id_reg_1,
+    rj_id_reg_0,rj_id_reg_1,
+    rd_exe0_exe1_0,rd_exe0_exe1_1;
     
     
     wire [31:0]	pc0;
@@ -45,7 +47,7 @@ module cpu (
         //ports
         .pc(pc_if1_fifo),
         .clk     		( clk     		),
-        .rst_n    		( rst_n    		),
+        .rstn    		( rstn    		),
         .if0     		( if0     		),
         .if1     		( if1     		),
         .irin    		( irin    		),
@@ -62,7 +64,7 @@ module cpu (
     wire [4:0]	rd0;
     wire [31:0]	imm0;
     wire [15:0]	excp_arg0;
-    wire 	INE0;
+    // wire 	INE0;
 
     decoder u_decoder0(
         //ports
@@ -72,8 +74,8 @@ module cpu (
         .rj       		( rj0       		),
         .rd       		( rd0       		),
         .imm      		( imm0      		),
-        .excp_arg 		( excp_arg0 		),
-        .INE      		( INE0      		)
+        .excp_arg 		( excp_arg0 		)
+        // .INE      		( INE0      		)
     );
 
     wire [31:0]	control1;
@@ -82,7 +84,7 @@ module cpu (
     wire [4:0]	rd1;
     wire [31:0]	imm1;
     wire [15:0]	excp_arg1;
-    wire 	INE1;
+    // wire 	INE1;
 
     decoder u_decoder1(
         //ports
@@ -92,8 +94,8 @@ module cpu (
         .rj       		( rj1       		),
         .rd       		( rd1       		),
         .imm      		( imm1      		),
-        .excp_arg 		( excp_arg1 		),
-        .INE      		( INE1      		)
+        .excp_arg 		( excp_arg1 		)
+        // .INE      		( INE1      		)
     );
 
     wire [4:0]	rk00;
@@ -108,8 +110,8 @@ module cpu (
     wire [31:0]	control11;
     wire [15:0]	excp_arg00;
     wire [15:0]	excp_arg11;
-    wire 	INE00;
-    wire 	INE11;
+    // wire 	INE00;
+    // wire 	INE11;
 
     dispatcher u_dispatcher(
         //ports
@@ -125,8 +127,8 @@ module cpu (
         .rd1        		( rd1        		),
         .excp_arg0  		( excp_arg0  		),
         .excp_arg1  		( excp_arg1  		),
-        .INE0       		( INE0       		),
-        .INE1       		( INE1       		),
+        // .INE0       		( INE0       		),
+        // .INE1       		( INE1       		),
         .rk00       		( rk00       		),
         .rk11       		( rk11       		),
         .rj00       		( rj00       		),
@@ -139,8 +141,8 @@ module cpu (
         .control11  		( control11  		),
         .excp_arg00 		( excp_arg00 		),
         .excp_arg11 		( excp_arg11 		),
-        .INE00      		( INE00      		),
-        .INE11      		( INE11      		),
+        // .INE00      		( INE00      		),
+        // .INE11      		( INE11      		),
         .if0        		( if0        		),
         .if1        		( if1        		)
     );
@@ -183,8 +185,8 @@ module cpu (
 
     alusrc u_alusrc1_0(
         //ports
-        .a      		( pc      		),
-        .b      		( b      		),
+        .a      		( pc_id_reg_0      		),
+        .b      		( rj_id_reg_0      		),
         .alusrc 		( ctr_reg_exe0_0[15:14] 	),
         .alu    		( alu1_0    		)
     );
@@ -193,8 +195,8 @@ module cpu (
 
     alusrc u_alusrc2_0(
         //ports
-        .a      		( pc      		),
-        .b      		( b      		),
+        .a      		( imm_id_reg_0      		),
+        .b      		( rk_id_reg_0      		),
         .alusrc 		( ctr_reg_exe0_0[13:12] 	),
         .alu    		( alu2_0    		)
     );
@@ -203,8 +205,8 @@ module cpu (
 
     alusrc u_alusrc1_1(
         //ports
-        .a      		( pc      		),
-        .b      		( b      		),
+        .a      		( pc_id_reg_1      		),
+        .b      		( rj_id_reg_1      		),
         .alusrc 		( ctr_reg_exe0_1[15:14] 	),
         .alu    		( alu1_1    		)
     );
@@ -213,8 +215,8 @@ module cpu (
 
     alusrc u_alusrc2_1(
         //ports
-        .a      		( pc      		),
-        .b      		( b      		),
+        .a      		( imm_id_reg_1      		),
+        .b      		( rk_id_reg_1      		),
         .alusrc 		( ctr_reg_exe0_1[13:12] 	),
         .alu    		( alu2_1    		)
     );
@@ -331,8 +333,8 @@ module cpu (
     
 
 
-    always @(posedge clk,negedge rst_n) begin
-        if(!rst_n) pc<=0;
+    always @(posedge clk,negedge rstn) begin
+        if(!rstn) pc<=0;
         else pc<=npc;
     end
 
@@ -347,8 +349,8 @@ module cpu (
     end
 
     //IF0-IF1
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
             pc_if0_if1<=0;
         end
         else begin
@@ -357,8 +359,8 @@ module cpu (
     end
 
     //IF1-FIFO
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
             pc_if1_fifo<=0;
         end
         else begin
@@ -367,8 +369,8 @@ module cpu (
     end
 
     // //FIFO-ID
-    // always @(posedge clk or negedge rst_n) begin
-    //     if(!rst_n) begin
+    // always @(posedge clk or negedge rstn) begin
+    //     if(!rstn) begin
     //         pc_fifo_id<=0;
     //     end
     //     else begin
@@ -377,8 +379,8 @@ module cpu (
     // end
 
     //ID-REG
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
             ctr_id_reg_0 <= 0;
             ctr_id_reg_1 <= 0;
             excp_arg_id_reg_0<=0;
@@ -413,8 +415,8 @@ module cpu (
     end
 
     //REG-EXE0
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
             ctr_reg_exe0_0 <= 0;
             ctr_reg_exe0_1 <= 0;
             excp_arg_reg_exe0_0<=0;
@@ -457,8 +459,8 @@ module cpu (
     end
 
     //EXE0-EXE1
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
             ctr_exe0_exe1_0 <= 0;
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_0<=0;
@@ -505,8 +507,8 @@ module cpu (
             8: result1=aluresult_exe0_exe1_1;
         endcase
     end
-    always @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
             ctr_exe1_wb_0 <= 0;
             ctr_exe1_wb_1 <= 0;
             rd_exe1_wb_0<=0;
