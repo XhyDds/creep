@@ -110,14 +110,14 @@ Dcache_rbuf Dcache_rbuf(
 wire use0,use1;
 wire way_sel_lru;
 
-Dache_lru Dache_lru(
+Dcache_lru Dcache_lru(
     .clk(clk),
     .use0(use0),.use1(use1),
     .addr(rbuf_index),
     .way_sel(way_sel_lru)
 );
-defparam Dache_lru.addr_width = index_width;
-defparam Dache_lru.way = way;
+defparam Dcache_lru.addr_width = index_width;
+defparam Dcache_lru.way = way;
 
 //Data
 wire [way-1:0]Data_we;
