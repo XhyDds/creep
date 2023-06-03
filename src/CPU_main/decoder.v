@@ -39,6 +39,7 @@ module decoder (
                                 else 
                                     if(!ir[9:5])        begin rd=ir[4:0];type=shizhong; end//RDCNTVH.W
                                     else                begin type=liwai;subtype=13; end
+                            else    if(!ir[14:0])       begin nop=1; end//全0为nop，不是不存在例外
                             else                        begin type=liwai;subtype=13; end
                         'b0100000: //ADD.W
                             begin

@@ -12,9 +12,10 @@ module dispatcher (
     //上方alu div mul，下方全功能
     //可同时发射：不相关且有一条是算术指令
     //如果3000是alu，3004是dcache，是否可交换？
-    wire xiangguan=(rd0==rd1|rd0==rk1|rd0==rj1|rd1==rk0|rd1==rj0);
-    wire suanshu0=(control0[3:0]==0|control0[3:0]==2|control0[3:0]==4);
-    wire suanshu1=(control1[3:0]==0|control1[3:0]==2|control1[3:0]==4);
+    wire xiangguan=(/*rd0==rd1|*/rd0==rk1|rd0==rj1|rd1==rk0|rd1==rj0);
+    //同时写r1？
+    wire suanshu0=(control0[3:0]==0|control0[3:0]==1|control0[3:0]==2|control0[3:0]==4);
+    wire suanshu1=(control1[3:0]==0|control0[3:0]==1|control1[3:0]==2|control1[3:0]==4);
     wire jiaohuan=(control0[3:0]==5)&suanshu1;//3000是alu，3004是dcache
     always @(*) begin
         if(!xiangguan&suanshu0)begin//不相关且第二条指令为算术指令

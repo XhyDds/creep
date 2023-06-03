@@ -1,10 +1,12 @@
 module cpu (
-    input clk,rstn
+    input clk,rstn,
+    output [0:15]LED
 );
+    assign LED=0;
     reg [31:0]npc;
     wire [1:0]pcsrc_exe1_wb;
     wire ifpriv;
-    reg [31:0]pc,wb_data,
+    reg [31:0]pc,
     ctr_id_reg_0,ctr_id_reg_1,
     ctr_reg_exe0_0,ctr_reg_exe0_1,
     ctr_exe0_exe1_0,ctr_exe0_exe1_1,
@@ -20,22 +22,35 @@ module cpu (
     rrk_reg_exe0_1,rrj_reg_exe0_1,
     rrd_reg_exe0_0,rrd_reg_exe0_1,
     imm_reg_exe0_0,imm_reg_exe0_1,
-    rd_exe1_wb_0,rd_exe1_wb_1,
     excp_arg_id_reg_0,excp_arg_id_reg_1,
-    
     imm_id_reg_0,imm_id_reg_1,
     excp_arg_reg_exe0_0,excp_arg_reg_exe0_1;
+    reg [63:0]ir_if1_fifo;
+    reg icache_valid_if1_fifo,flag_if1_fifo;
 
     wire [31:0]wb_pc;
-    reg [4:0]rk_reg_exe0_0,rk_reg_exe0_1,
+    reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
+    rk_reg_exe0_0,rk_reg_exe0_1,
     rj_reg_exe0_0,rj_reg_exe0_1,
     rd_reg_exe0_0,rd_reg_exe0_1,
     rd_id_reg_0,rd_id_reg_1,
     rk_id_reg_0,rk_id_reg_1,
     rj_id_reg_0,rj_id_reg_1,
     rd_exe0_exe1_0,rd_exe0_exe1_1;
-    
-    
+
+    wire [63:0]	ir;
+    wire 	flag,icache_valid;
+
+    icache u_icache(
+        //ports
+        .icache_valid_reg(icache_valid),
+        .clk      		( clk      		),
+        .rstn     		( rstn     		),
+        .pc       		( pc       		),
+        .ir_reg   		( ir   		    ),
+        .flag_reg 		( flag 		    )
+    );
+
     wire [31:0]	pc0;
     wire [31:0]	pc1;
     wire [31:0]	ir0;
@@ -46,16 +61,17 @@ module cpu (
     fetch_buffer u_fetch_buffer(
         //ports
         .pc(pc_if1_fifo),
+        .icache_valid(icache_valid_if1_fifo),
         .clk     		( clk     		),
         .rstn    		( rstn    		),
         .if0     		( if0     		),
         .if1     		( if1     		),
-        .irin    		( irin    		),
-        .flag    		( flag    		),
+        .irin    		( ir_if1_fifo   ),
+        .flag    		( flag_if1_fifo ),
         .ir0 		    ( ir0 	    	),
         .ir1 		    ( ir1 	    	),
-        .pc0(pc0),
-        .pc1(pc1)
+        .pc0            ( pc0           ),
+        .pc1            ( pc1           )
     );
 
     wire [31:0]	control0;
@@ -64,10 +80,11 @@ module cpu (
     wire [4:0]	rd0;
     wire [31:0]	imm0;
     wire [15:0]	excp_arg0;
-    // wire 	INE0;
+    wire 	PLV;
 
     decoder u_decoder0(
         //ports
+        .PLV            ( PLV               ),
         .ir       		( ir0 	    	    ),
         .control  		( control0  		),
         .rk       		( rk0       		),
@@ -147,20 +164,22 @@ module cpu (
         .if1        		( if1        		)
     );
 
-    wire [31:0]	rrk0;
-    wire [31:0]	rrk1;
-    wire [31:0]	rrj0;
-    wire [31:0]	rrj1;
-    wire [31:0]	rrd0;
-    wire [31:0]	rrd1;
+    wire [31:0]	rrk0_rf;
+    wire [31:0]	rrk1_rf;
+    wire [31:0]	rrj0_rf;
+    wire [31:0]	rrj1_rf;
+    wire [31:0]	rrd0_rf;
+    wire [31:0]	rrd1_rf;
     wire [31:0]	wb_data0;
     wire [31:0]	wb_data1;
     wire [4:0]	wb_addr0;
     wire [4:0]	wb_addr1;
+    wire ifwb0,ifwb1;
 
     register_file u_register_file(
         //ports
         .clk      		( clk      		),
+        .rstn      		( rstn      		),
         .ifwb0    		( ifwb0    		),
         .ifwb1    		( ifwb1    		),
         .wb_data0 		( wb_data0 		),
@@ -173,52 +192,81 @@ module cpu (
         .rj11     		( rj_id_reg_1     		),
         .rd00     		( rd_id_reg_0     		),
         .rd11     		( rd_id_reg_1     		),
-        .rrk0     		( rrk0     		),
-        .rrk1     		( rrk1     		),
-        .rrj0     		( rrj0     		),
-        .rrj1     		( rrj1     		),
-        .rrd0     		( rrd0     		),
-        .rrd1     		( rrd1     		)
+        .rrk0     		( rrk0_rf     		),
+        .rrk1     		( rrk1_rf     		),
+        .rrj0     		( rrj0_rf     		),
+        .rrj1     		( rrj1_rf     		),
+        .rrd0     		( rrd0_rf     		),
+        .rrd1     		( rrd1_rf     		)
+    );
+
+    wire [31:0]	rrj0_forward;
+    wire [31:0]	rrj1_forward;
+    wire [31:0]	rrk0_forward;
+    wire [31:0]	rrk1_forward;
+
+    forward u_forward(
+        //ports
+        .aluresult_exe0_exe1_0 		( aluresult_exe0_exe1_0 		),
+        .aluresult_exe0_exe1_1 		( aluresult_exe0_exe1_1 		),
+        .result_exe1_wb_0      		( result_exe1_wb_0      		),
+        .result_exe1_wb_1      		( result_exe1_wb_1      		),
+        .rrj_reg_exe0_0        		( rrj_reg_exe0_0        		),
+        .rrj_reg_exe0_1        		( rrj_reg_exe0_1        		),
+        .rrk_reg_exe0_0        		( rrk_reg_exe0_0        		),
+        .rrk_reg_exe0_1        		( rrk_reg_exe0_1        		),
+        .rd_exe0_exe1_0        		( rd_exe0_exe1_0        		),
+        .rd_exe0_exe1_1        		( rd_exe0_exe1_1        		),
+        .rd_exe1_wb_0          		( rd_exe1_wb_0          		),
+        .rd_exe1_wb_1          		( rd_exe1_wb_1          		),
+        .rj0                   		( rj_reg_exe0_0               		),
+        .rj1                   		( rj_reg_exe0_1               		),
+        .rk0                   		( rk_reg_exe0_0               		),
+        .rk1                   		( rk_reg_exe0_1               		),
+        .rrj0                  		( rrj0_forward                  ),
+        .rrj1                  		( rrj1_forward                  ),
+        .rrk0                  		( rrk0_forward                  ),
+        .rrk1                  		( rrk1_forward                  )
     );
 
     wire [31:0]	alu1_0;
 
     alusrc u_alusrc1_0(
         //ports
-        .a      		( pc_id_reg_0      		),
-        .b      		( rj_id_reg_0      		),
-        .alusrc 		( ctr_reg_exe0_0[15:14] 	),
-        .alu    		( alu1_0    		)
+        .register 		( rrj0_forward 		),
+        .other    		( pc_reg_exe0_0    		),
+        .alusrc   		( ctr_reg_exe0_0[15:14]   		),
+        .alu      		( alu1_0      		)
     );
 
     wire [31:0]	alu2_0;
 
     alusrc u_alusrc2_0(
         //ports
-        .a      		( imm_id_reg_0      		),
-        .b      		( rk_id_reg_0      		),
-        .alusrc 		( ctr_reg_exe0_0[13:12] 	),
-        .alu    		( alu2_0    		)
+        .register 		( rrk0_forward 		),
+        .other    		( imm_reg_exe0_0    		),
+        .alusrc   		( ctr_reg_exe0_0[13:12]   		),
+        .alu      		( alu2_0      		)
     );
 
     wire [31:0]	alu1_1;
 
     alusrc u_alusrc1_1(
         //ports
-        .a      		( pc_id_reg_1      		),
-        .b      		( rj_id_reg_1      		),
-        .alusrc 		( ctr_reg_exe0_1[15:14] 	),
-        .alu    		( alu1_1    		)
+        .register 		( rrj1_forward 		),
+        .other    		( pc_reg_exe0_1    		),
+        .alusrc   		( ctr_reg_exe0_1[15:14]   		),
+        .alu      		( alu1_1      		)
     );
 
     wire [31:0]	alu2_1;
 
     alusrc u_alusrc2_1(
         //ports
-        .a      		( imm_id_reg_1      		),
-        .b      		( rk_id_reg_1      		),
-        .alusrc 		( ctr_reg_exe0_1[13:12] 	),
-        .alu    		( alu2_1    		)
+        .register 		( rrk1_forward 		),
+        .other    		( imm_reg_exe0_1    		),
+        .alusrc   		( ctr_reg_exe0_1[13:12]   		),
+        .alu      		( alu2_1      		)
     );
 
     wire [31:0]	aluresult0;
@@ -228,7 +276,7 @@ module cpu (
         //ports
         .alu1      		( alu1_0      		),
         .alu2      		( alu2_0      		),
-        .ctr       		( ctr       		),
+        .ctr       		( ctr_reg_exe0_0       		),
         .aluresult 		( aluresult0		),
         .zero      		( zero0     		)
     );
@@ -240,7 +288,7 @@ module cpu (
         //ports
         .alu1      		( alu1_1      		),
         .alu2      		( alu2_1      		),
-        .ctr       		( ctr       		),
+        .ctr       		( ctr_reg_exe0_1       		),
         .aluresult 		( aluresult1		),
         .zero      		( zero1     		)
     );
@@ -316,8 +364,20 @@ module cpu (
         .brresult 		( brresult1		)
     );
 
+    wire [31:0]	dcacheresult;
+
+    dcache u_dcache(
+        //ports
+        .clk      		( clk      		),
+        .rstn     		( rstn     		),
+        .addr     		( addr     		),
+        .data_reg 		( dcacheresult  )
+    );
+
     writeback u_writeback(
         //ports
+        .ifwb0    		( ifwb0    		),
+        .ifwb1    		( ifwb1    		),
         .result_exe1_wb_0 		( result_exe1_wb_0 		),
         .result_exe1_wb_1 		( result_exe1_wb_1 		),
         .ctr_exe1_wb_0    		( ctr_exe1_wb_0    		),
@@ -330,14 +390,13 @@ module cpu (
         .wb_addr1         		( wb_addr1         		)
     );
 
-    
-
-
+    //PC
     always @(posedge clk,negedge rstn) begin
         if(!rstn) pc<=0;
         else pc<=npc;
     end
 
+    //PCSrc
     always @(*) begin
         if(ifpriv) npc=wb_pc;
         else if(ifbr1) npc=aluresult_exe0_exe1_1;
@@ -361,10 +420,13 @@ module cpu (
     //IF1-FIFO
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
-            pc_if1_fifo<=0;
+            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;
         end
         else begin
             pc_if1_fifo<=pc_if0_if1;
+            ir_if1_fifo<=ir;
+            icache_valid_if1_fifo<=icache_valid;
+            flag_if1_fifo<=flag;
         end
     end
 
@@ -435,6 +497,8 @@ module cpu (
             rrj_reg_exe0_1<=0;
             rrd_reg_exe0_0<=0;
             rrd_reg_exe0_1<=0;
+            pc_reg_exe0_0<=0;
+            pc_reg_exe0_1<=0;
         end
         else begin
             ctr_reg_exe0_0 <= ctr_id_reg_0;
@@ -443,18 +507,20 @@ module cpu (
             excp_arg_reg_exe0_1<=excp_arg_id_reg_1;
             imm_reg_exe0_0<=imm_id_reg_0;
             imm_reg_exe0_1<=imm_id_reg_1;
-            rrk_reg_exe0_0<=rrk0;
-            rrk_reg_exe0_1<=rrk1;
-            rrj_reg_exe0_0<=rrj0;
-            rrj_reg_exe0_1<=rrj1;
-            rrd_reg_exe0_0<=rrd0;
-            rrd_reg_exe0_1<=rrd1;
-            rk_reg_exe0_0<=rk0;
-            rk_reg_exe0_1<=rk1;
-            rj_reg_exe0_0<=rj0;
-            rj_reg_exe0_1<=rj1;
-            rd_reg_exe0_0<=rd0;
-            rd_reg_exe0_1<=rd1;
+            rrk_reg_exe0_0<=rrk0_rf;
+            rrk_reg_exe0_1<=rrk1_rf;
+            rrj_reg_exe0_0<=rrj0_rf;
+            rrj_reg_exe0_1<=rrj1_rf;
+            rrd_reg_exe0_0<=rrd0_rf;
+            rrd_reg_exe0_1<=rrd1_rf;
+            rk_reg_exe0_0<=rk_id_reg_0;
+            rk_reg_exe0_1<=rk_id_reg_1;
+            rj_reg_exe0_0<=rj_id_reg_0;
+            rj_reg_exe0_1<=rj_id_reg_1;
+            rd_reg_exe0_0<=rd_id_reg_0;
+            rd_reg_exe0_1<=rd_id_reg_1;
+            pc_reg_exe0_0<=pc_id_reg_0;
+            pc_reg_exe0_1<=pc_id_reg_1;
         end
     end
 
@@ -469,8 +535,8 @@ module cpu (
             aluresult_exe0_exe1_1<=0;
         end
         else begin
-            ctr_exe0_exe1_0 <= ctr_id_reg_0;
-            ctr_exe0_exe1_1 <= ctr_id_reg_1;
+            ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
+            ctr_exe0_exe1_1 <= ctr_reg_exe0_1;
             rd_exe0_exe1_0<=rd_reg_exe0_0;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
             aluresult_exe0_exe1_0<=aluresult0;
@@ -488,11 +554,7 @@ module cpu (
             0: result0=aluresult_exe0_exe1_0;
             1: ;
             2: result0=divresult0;
-            // 3: result0=privresult0;
             4: result0=mulresult0;
-            // 5: result0=dcacheresult0;
-            // 6: result0=dcacheresult0;
-            7: ;
             8: result0=aluresult_exe0_exe1_0;
         endcase
         case (ctr_exe0_exe1_1[3:0])
@@ -501,8 +563,8 @@ module cpu (
             2: result1=divresult1;
             // 3: result1=privresult1;
             4: result1=mulresult1;
-            // 5: result1=dcacheresult1;
-            // 6: result1=dcacheresult1;
+            5: result1=dcacheresult;
+            6: result1=dcacheresult;
             7: ;
             8: result1=aluresult_exe0_exe1_1;
         endcase
@@ -517,10 +579,10 @@ module cpu (
             result_exe1_wb_1<=0;
         end
         else begin
-            ctr_exe1_wb_0 <= ctr_id_reg_0;
-            ctr_exe1_wb_1 <= ctr_id_reg_1;
-            rd_exe1_wb_0<=rd_reg_exe0_0;
-            rd_exe1_wb_1<=rd_reg_exe0_1;
+            ctr_exe1_wb_0 <= ctr_exe0_exe1_0;
+            ctr_exe1_wb_1 <= ctr_exe0_exe1_1;
+            rd_exe1_wb_0<=rd_exe0_exe1_0;
+            rd_exe1_wb_1<=rd_exe0_exe1_1;
             result_exe1_wb_0<=result0;
             result_exe1_wb_1<=result1;
         end
