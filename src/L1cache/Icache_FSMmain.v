@@ -19,7 +19,8 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
+// `define test
+`define normal
 module Icache_FSMmain#(
     parameter   index_width=4,
                 offset_width=2,
@@ -38,7 +39,9 @@ module Icache_FSMmain#(
 
     output reg  icache_mem_req,
     output reg  [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
-    input       mem_icache_addrOK,//发送的地址和数据都被接收
+    `ifdef normal
+        input       mem_icache_addrOK,//发送的地址和数据都被接收
+    `endif normal
     input       mem_icache_dataOK,//返回的数据有效
 
     //模块间信号
@@ -114,17 +117,28 @@ always @(*) begin
         Operation:begin
             next_state=Idle;
         end
-        Miss_r:begin
-            if(!mem_icache_addrOK)next_state=Miss_r;
-            else next_state=Miss_r_waitdata;
-        end
-        Miss_r_waitdata:begin
-            if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
-            else begin//数据可信赖，内存准备写
-                if(fStall_outside)next_state=Replace1;
-                else next_state=Replace;
+        `ifdef normal
+            Miss_r:begin
+                if(!mem_icache_addrOK)next_state=Miss_r;
+                else next_state=Miss_r_waitdata;
             end
-        end
+            Miss_r_waitdata:begin
+                if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
+                else begin//数据可信赖，内存准备写
+                    if(fStall_outside)next_state=Replace1;
+                    else next_state=Replace;
+                end
+            end
+        `endif normal
+        `ifdef test
+            Miss_r:begin
+                if(!mem_icache_dataOK)next_state=Miss_r;
+                else begin//数据可信赖，内存准备写
+                    if(fStall_outside)next_state=Replace1;
+                    else next_state=Replace;
+                end
+            end
+        `endif test
         Replace:begin
             if(pipeline_icache_vaild)begin
                 if(opflag)next_state=Operation;
