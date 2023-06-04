@@ -19,8 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-// `define test
-`define normal
+
 module Icache_FSMmain#(
     parameter   index_width=4,
                 offset_width=2,
@@ -39,9 +38,7 @@ module Icache_FSMmain#(
 
     output reg  icache_mem_req,
     output reg  [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
-    `ifdef normal
-        input       mem_icache_addrOK,//发送的地址和数据都被接收
-    `endif normal
+    input       mem_icache_addrOK,//发送的地址和数据都被接收
     input       mem_icache_dataOK,//返回的数据有效
 
     //模块间信号
@@ -67,6 +64,7 @@ module Icache_FSMmain#(
     // output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
    
     //数据选择
+    output reg  FSM_send_nop,
     output reg  FSM_choose_way,
     output reg  FSM_choose_return,
     output reg  [offset_width-1:0]FSM_choose_word
@@ -90,7 +88,7 @@ assign opflag=pipeline_icache_opflag;
 
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Replace=5'd4,Replace1=5'd5,Operation=5'd6;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Replace=5'd4,Replace1=5'd5,Operation=5'd6,Flush=5'd7;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -106,9 +104,18 @@ always @(*) begin
         end
         Lookup:begin
             if((!hit0)&&(!hit1))begin
-                next_state=Miss_r;
+                if(flush_outside)next_state=Flush;
+                else next_state=Miss_r;
             end
             else if(pipeline_icache_vaild)begin
+                if(flush_outside)next_state=Flush;
+                else if(opflag)next_state=Operation;
+                else next_state=Lookup;
+            end
+            else next_state=Idle;
+        end
+        Flush:begin
+            if(pipeline_icache_vaild)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
@@ -117,28 +124,17 @@ always @(*) begin
         Operation:begin
             next_state=Idle;
         end
-        `ifdef normal
-            Miss_r:begin
-                if(!mem_icache_addrOK)next_state=Miss_r;
-                else next_state=Miss_r_waitdata;
+        Miss_r:begin
+            if(!mem_icache_addrOK)next_state=Miss_r;
+            else next_state=Miss_r_waitdata;
+        end
+        Miss_r_waitdata:begin
+            if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
+            else begin//数据可信赖，内存准备写
+                if(fStall_outside)next_state=Replace1;
+                else next_state=Replace;
             end
-            Miss_r_waitdata:begin
-                if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
-                else begin//数据可信赖，内存准备写
-                    if(fStall_outside)next_state=Replace1;
-                    else next_state=Replace;
-                end
-            end
-        `endif normal
-        `ifdef test
-            Miss_r:begin
-                if(!mem_icache_dataOK)next_state=Miss_r;
-                else begin//数据可信赖，内存准备写
-                    if(fStall_outside)next_state=Replace1;
-                    else next_state=Replace;
-                end
-            end
-        `endif test
+        end
         Replace:begin
             if(pipeline_icache_vaild)begin
                 if(opflag)next_state=Operation;
@@ -165,6 +161,7 @@ always @(*) begin
     FSM_choose_way=0;
     FSM_choose_return=0;
     FSM_choose_word=FSM_rbuf_addr[2+offset_width-1:2];
+    FSM_send_nop=0;
     case (state)
         Idle:begin
             case (next_state)
@@ -210,10 +207,18 @@ always @(*) begin
                         FSM_use1=1;
                     end
                 end
+                Flush:begin
+                    icache_pipeline_ready=1;
+                    FSM_send_nop=1;
+                end
                 default:begin
                     
                 end
             endcase
+        end
+        Flush:begin
+            icache_pipeline_ready=1;
+            FSM_send_nop=1;
         end
         Operation:begin
             case (next_state)

@@ -23,7 +23,7 @@
 module bram #(
     parameter DATA_WIDTH = 32,
               ADDR_WIDTH = 8,
-              INIT_FILE = ""
+              INIT_FILE = "C:\Users\lenovo\Desktop\data_init.coe"
 )
 (
     input clk,                    // Clock
@@ -36,7 +36,12 @@ module bram #(
     reg [ADDR_WIDTH-1:0] addr_r;  // Address Register
     reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
-    initial $readmemh(INIT_FILE, ram); // initialize memory
+    integer i;
+    initial begin
+        for (i = 0; i < (1 << ADDR_WIDTH); i = i + 1) begin
+            ram[i] = 0;
+        end
+    end
 
     assign dout = (addr_r==waddr)?din:ram[addr_r];//write first
 

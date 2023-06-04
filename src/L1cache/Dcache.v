@@ -20,6 +20,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
+//6.4 Tag会有bug valid写的行为不对 并且可以考虑offset=0
+
 module Dcache#(
     parameter   index_width=4,
                 offset_width=2,
@@ -46,9 +48,9 @@ module Dcache#(
     input       [31:0]pipeline_dcache_opcode,//cache操作
     input       pipeline_dcache_opflag,//0-正常访存 1-cache操作    
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
-    output      dcache_pipeline_stall,//stall from dcache     不知道可不可以用ready代替，先留着
+    output      dcache_pipeline_stall,//stall form dcache     不知道可不可以用ready代替，先留着
 
-    //mem port
+    //mem prot
     output      [31:0]addr_dcache_mem,
     output      [31:0]dout_dcache_mem,
     input       [32*(2<<offset_width)-1:0]din_mem_dcache,

@@ -22,7 +22,7 @@
 
 module Icache_TagV#(
     parameter   addr_width=4,
-                data_width=1+25,
+                data_width=25,
                 way=2
 )
 (
@@ -37,6 +37,25 @@ module Icache_TagV#(
     // input       TagV_way_select
     );
 wire [data_width-1:0]TagV_data[way-1:0];
+
+reg [addr_width-1:0]valid0; 
+reg [addr_width-1:0]valid1;
+
+// always @(posedge clk,negedge rstn) begin
+//     if(!rstn)begin
+//         valid0<=0;
+//         valid1<=0;
+//     end
+//     else begin
+//         if(TagV_we[0])valid0[TagV_addr_write]<=1;
+//         if(TagV_we[1])valid1[TagV_addr_write]<=1;
+//     end
+// end
+
+always @(posedge clk) begin
+    if(TagV_we[0])valid0[TagV_addr_write]<=1;
+    if(TagV_we[1])valid1[TagV_addr_write]<=1;
+end
 
 bram way0(
     .clk(clk),
@@ -62,10 +81,14 @@ bram way1(
 );
 defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 
-generate
-    genvar i;
-    for (i=0;i<way;i=i+1) begin
-        assign hit[i]=(TagV_data[i]==TagV_din_compare);
-    end
-endgenerate
+// generate
+//     genvar i;
+//     for (i=0;i<way;i=i+1) begin
+//         assign hit[i]=(TagV_data[i]==TagV_din_compare)&&(TagV_we[i]==1'b1);
+//     end
+// endgenerate
+
+assign hit[0]=(TagV_data[0]==TagV_din_compare)&&(valid0[TagV_addr_write]);//这个地址就是rbuf的地址
+assign hit[1]=(TagV_data[1]==TagV_din_compare)&&(valid1[TagV_addr_write]);
+
 endmodule
