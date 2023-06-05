@@ -20,8 +20,9 @@ module divider#(//din1/din2
     reg [2:0] ns,cs;reg [WIDTH:0]temp;
     reg [WIDTH-1:0] remainder,nremainder,quotient,nquotient,din2_reg,ndin2_reg;
     reg din1s,din2s;
-    reg [5:0] counter,ncounter;wire [4:0] n1,n2;
-    assign exe=(pipeline_divider_type==Tdiv)&&(!pipeline_divider_stall);
+    reg [5:0] counter,ncounter;wire [4:0] n1,n2;wire stall;
+    assign stall=pipeline_divider_stall;
+    assign exe=(pipeline_divider_type==Tdiv)&&(!stall);
     assign divider_pipeline_stall=busy,din1=pipeline_divider_din1;
     assign din2=pipeline_divider_din2,divider_pipeline_dout=dout;
     assign flush=pipeline_divider_flush,mode=pipeline_divider_subtype;
@@ -134,7 +135,10 @@ module divider#(//din1/din2
             end
         Waitout:
             begin
-            ns=Wait;
+            if(stall)
+                ns=Waitout;
+            else
+                ns=Wait;
             busy=0;
             end
         
