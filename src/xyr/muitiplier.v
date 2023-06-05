@@ -2,16 +2,17 @@ module muitiplier(
     input clk,rstn,
     input pipeline_muitiplier_flush,
     input pipeline_muitiplier_stall,
-    input [1:0]pipeline_muitiplier_mode,
+    //input [3:0] pipeline_muitiplier_type,
+    input [4:0] pipeline_muitiplier_subtype,
     input [31:0] pipeline_muitiplier_din1,
     input [31:0] pipeline_muitiplier_din2,
     output [31:0] muitiplier_pipeline_dout
 );
     localparam MULW=0,MULHW=1,MULHWU=2;
-    wire stall,flush;wire [1:0] mode;wire [31:0] din1,din2;reg [31:0] dout;
-    reg [63:0]result;reg [31:0] ac,ad,bc,bd,a_b,c_d,abs,cds;reg [1:0] mode_reg;
+    wire stall,flush;wire [4:0] mode;reg [4:0] mode_reg;wire [31:0] din1,din2;reg [31:0] dout;
+    reg [63:0]result;reg [31:0] ac,ad,bc,bd,a_b,c_d,abs,cds;
     assign stall=pipeline_muitiplier_stall,flush=pipeline_muitiplier_flush;
-    assign mode=pipeline_muitiplier_mode,din1=pipeline_muitiplier_din1;
+    assign mode=pipeline_muitiplier_subtype,din1=pipeline_muitiplier_din1;
     assign din2=pipeline_muitiplier_din2,muitiplier_pipeline_dout=dout;
     always@(posedge(clk),negedge(rstn))
     begin

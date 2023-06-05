@@ -2,28 +2,29 @@ module divider#(//din1/din2
     parameter WIDTH=32
 )(
     input clk,rstn,
-    input pipeline_divider_exe,
+    input [3:0] pipeline_divider_type,
+    input [4:0] pipeline_divider_subtype,
     input pipeline_divider_stall,
     input pipeline_divider_flush,
-    input [1:0] pipeline_divider_mode,
     input [WIDTH-1:0] pipeline_divider_din1,
     input [WIDTH-1:0] pipeline_divider_din2,
     output divider_pipeline_stall,
     output [WIDTH-1:0] divider_pipeline_dout
     
 );
-    localparam Wait=0,Aline=1,Div=2,Stdo=3;
+    localparam Tdiv=2;
+    localparam Wait=0,Aline=1,Div=2,Waitout=3;
     localparam DIVW=0,MODW=1,DIVWU=2,MODWU=3;
     wire exe,flush;reg busy;wire [WIDTH-1:0] din1,din2;
-    reg [WIDTH-1:0] dout;wire [1:0] mode;reg [2:0] ns,cs;
-    reg [1:0]mode_reg,nmode;reg [WIDTH:0]temp;
+    reg [WIDTH-1:0] dout;wire [4:0] mode;reg [4:0]mode_reg,nmode;
+    reg [2:0] ns,cs;reg [WIDTH:0]temp;
     reg [WIDTH-1:0] remainder,nremainder,quotient,nquotient,din2_reg,ndin2_reg;
     reg din1s,din2s;
     reg [5:0] counter,ncounter;wire [4:0] n1,n2;
-    assign exe=pipeline_divider_exe&(~pipeline_divider_stall);
+    assign exe=(pipeline_divider_type==Tdiv)&&(!pipeline_divider_stall);
     assign divider_pipeline_stall=busy,din1=pipeline_divider_din1;
     assign din2=pipeline_divider_din2,divider_pipeline_dout=dout;
-    assign flush=pipeline_divider_flush,mode=pipeline_divider_mode;
+    assign flush=pipeline_divider_flush,mode=pipeline_divider_subtype;
     aliner alin1(.din(remainder),.n(n1));
     aliner alin2(.din(din2_reg),.n(n2));
     always@(posedge(clk),negedge(rstn))
@@ -107,7 +108,7 @@ module divider#(//din1/din2
             begin
             if(counter[5])
                 begin
-                ns=Wait;
+                ns=Waitout;
                 if(din1s&&(mode_reg==DIVW||mode_reg==MODW))
                     nremainder=0-remainder;
                 if(din1s^din2s&&(mode_reg==DIVW||mode_reg==MODW))
@@ -131,6 +132,12 @@ module divider#(//din1/din2
                     end
                 end
             end
+        Waitout:
+            begin
+            ns=Wait;
+            busy=0;
+            end
+        
         
     endcase
     end
