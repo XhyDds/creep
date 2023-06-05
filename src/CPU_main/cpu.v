@@ -3,11 +3,8 @@ module cpu (
     output [0:15]LED
 );
     assign LED=0;
-    reg [31:0]npc;
-    wire [1:0]pcsrc_exe1_wb;
-    wire ifpriv;
-    reg [31:0]pc,
-    ctr_id_reg_0,ctr_id_reg_1,
+    reg [31:0]pc,npc,
+    ctr_id_reg_0,ctr_id_reg_1,ctr_id_reg_1_ALE,
     ctr_reg_exe0_0,ctr_reg_exe0_1,
     ctr_exe0_exe1_0,ctr_exe0_exe1_1,
     ctr_exe1_wb_0,ctr_exe1_wb_1,
@@ -26,9 +23,6 @@ module cpu (
     imm_id_reg_0,imm_id_reg_1,
     excp_arg_reg_exe0_0,excp_arg_reg_exe0_1;
     reg [63:0]ir_if1_fifo;
-    reg icache_valid_if1_fifo,flag_if1_fifo;
-
-    wire [31:0]wb_pc;
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
     rk_reg_exe0_0,rk_reg_exe0_1,
     rj_reg_exe0_0,rj_reg_exe0_1,
@@ -37,6 +31,51 @@ module cpu (
     rk_id_reg_0,rk_id_reg_1,
     rj_id_reg_0,rj_id_reg_1,
     rd_exe0_exe1_0,rd_exe0_exe1_1;
+    reg icache_valid_if1_fifo,flag_if1_fifo;
+    
+    //PRIV
+    wire ifpriv=0;
+    wire [31:0]wb_pc;
+
+
+    // wire [31:0]	test1;
+    // wire [31:0]	test2;
+    // wire [31:0]	test3;
+    // wire [63:0]	dout_icache_pipeline;
+    // wire 	flag_icache_pipeline;
+    // wire 	icache_pipeline_ready;
+    // wire 	icache_pipeline_stall;
+    // wire [31:0]	addr_icache_mem;
+    // wire 	icache_mem_req;
+    // wire [1:0]	icache_mem_size;
+
+    // Icache #(
+    //     .index_width  		( 4 		),
+    //     .offset_width 		( 2 		),
+    //     .way          		( 2 		))
+    // u_Icache(
+    //     //ports
+    //     .clk                    		( clk                    		),
+    //     .rstn                   		( rstn                   		),
+    //     .test1                  		( test1                  		),
+    //     .test2                  		( test2                  		),
+    //     .test3                  		( test3                  		),
+    //     .addr_pipeline_icache   		( addr_pipeline_icache   		),
+    //     .dout_icache_pipeline   		( dout_icache_pipeline   		),
+    //     .flag_icache_pipeline   		( flag_icache_pipeline   		),
+    //     .pipeline_icache_vaild  		( pipeline_icache_vaild  		),
+    //     .icache_pipeline_ready  		( icache_pipeline_ready  		),
+    //     .pipeline_icache_opcode 		( pipeline_icache_opcode 		),
+    //     .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
+    //     .pipeline_icache_ctrl   		( pipeline_icache_ctrl   		),
+    //     .icache_pipeline_stall  		( icache_pipeline_stall  		),
+    //     .addr_icache_mem        		( addr_icache_mem        		),
+    //     .din_mem_icache         		( din_mem_icache         		),
+    //     .icache_mem_req         		( icache_mem_req         		),
+    //     .icache_mem_size        		( icache_mem_size        		),
+    //     .mem_icache_addrOK      		( mem_icache_addrOK      		),
+    //     .mem_icache_dataOK      		( mem_icache_dataOK      		)
+    // );
 
     wire [63:0]	ir;
     wire 	flag,icache_valid;
@@ -46,7 +85,7 @@ module cpu (
         .icache_valid_reg(icache_valid),
         .clk      		( clk      		),
         .rstn     		( rstn     		),
-        .pc       		( pc       		),
+        .pc       		( pc[1:0]?0:pc  ),
         .ir_reg   		( ir   		    ),
         .flag_reg 		( flag 		    )
     );
@@ -80,11 +119,12 @@ module cpu (
     wire [4:0]	rd0;
     wire [31:0]	imm0;
     wire [15:0]	excp_arg0;
-    wire 	PLV;
+    wire [1:0]PLV=0;
 
     decoder u_decoder0(
         //ports
         .PLV            ( PLV               ),
+        .pc             ( pc0               ),
         .ir       		( ir0 	    	    ),
         .control  		( control0  		),
         .rk       		( rk0       		),
@@ -92,7 +132,6 @@ module cpu (
         .rd       		( rd0       		),
         .imm      		( imm0      		),
         .excp_arg 		( excp_arg0 		)
-        // .INE      		( INE0      		)
     );
 
     wire [31:0]	control1;
@@ -101,10 +140,11 @@ module cpu (
     wire [4:0]	rd1;
     wire [31:0]	imm1;
     wire [15:0]	excp_arg1;
-    // wire 	INE1;
 
     decoder u_decoder1(
         //ports
+        .PLV            ( PLV               ),
+        .pc             ( pc1               ),
         .ir       		( ir1        	    ),
         .control  		( control1  		),
         .rk       		( rk1       		),
@@ -112,7 +152,6 @@ module cpu (
         .rd       		( rd1       		),
         .imm      		( imm1      		),
         .excp_arg 		( excp_arg1 		)
-        // .INE      		( INE1      		)
     );
 
     wire [4:0]	rk00;
@@ -127,11 +166,15 @@ module cpu (
     wire [31:0]	control11;
     wire [15:0]	excp_arg00;
     wire [15:0]	excp_arg11;
-    // wire 	INE00;
-    // wire 	INE11;
+    wire [32:1]pc00;
+    wire [32:1]pc11;
 
     dispatcher u_dispatcher(
         //ports
+        .clk     		    ( clk     		),
+        .rstn    		    ( rstn    		),
+        .pc0(pc0),
+        .pc1(pc1),
         .imm0       		( imm0       		),
         .imm1       		( imm1       		),
         .control0   		( control0   		),
@@ -144,8 +187,6 @@ module cpu (
         .rd1        		( rd1        		),
         .excp_arg0  		( excp_arg0  		),
         .excp_arg1  		( excp_arg1  		),
-        // .INE0       		( INE0       		),
-        // .INE1       		( INE1       		),
         .rk00       		( rk00       		),
         .rk11       		( rk11       		),
         .rj00       		( rj00       		),
@@ -154,12 +195,12 @@ module cpu (
         .rd11       		( rd11       		),
         .imm00      		( imm00      		),
         .imm11      		( imm11      		),
+        .pc00(pc00),
+        .pc11(pc11),
         .control00  		( control00  		),
         .control11  		( control11  		),
         .excp_arg00 		( excp_arg00 		),
         .excp_arg11 		( excp_arg11 		),
-        // .INE00      		( INE00      		),
-        // .INE11      		( INE11      		),
         .if0        		( if0        		),
         .if1        		( if1        		)
     );
@@ -297,20 +338,24 @@ module cpu (
 
     mul u_mul0(
         //ports
-        .rj        		( rrj_reg_exe0_0        		),
-        .rk        		( rrk_reg_exe0_0        		),
+        .clk      		( clk      		),
+        .rstn      		( rstn      		),
+        .rrj        		( rrj0_forward        		),
+        .rrk        		( rrk0_forward        		),
         .ctr       		( ctr_reg_exe0_0       		),
-        .mulresult 		( mulresult0		)
+        .mulresult_reg 		( mulresult0		)
     );
 
     wire [31:0]	mulresult1;
 
     mul u_mul1(
         //ports
-        .rj        		( rrj_reg_exe0_1        		),
-        .rk        		( rrk_reg_exe0_1        		),
+        .clk      		( clk      		),
+        .rstn      		( rstn      		),
+        .rrj        		( rrj1_forward        		),
+        .rrk        		( rrk1_forward        		),
         .ctr       		( ctr_reg_exe0_1       		),
-        .mulresult 		( mulresult1 		)
+        .mulresult_reg 		( mulresult1 		)
     );
 
 
@@ -318,8 +363,8 @@ module cpu (
 
     div u_div0(
         //ports
-        .rj        		( rrj_reg_exe0_0        		),
-        .rk        		( rrk_reg_exe0_0        		),
+        .rrj        		( rrj0_forward        		),
+        .rrk        		( rrk0_forward        		),
         .ctr       		( ctr_reg_exe0_0       		),
         .divresult 		( divresult0 		)
     );
@@ -328,8 +373,8 @@ module cpu (
 
     div u_div1(
         //ports
-        .rj        		( rrj_reg_exe0_1       		),
-        .rk        		( rrk_reg_exe0_1       		),
+        .rrj        		( rrj1_forward       		),
+        .rrk        		( rrk1_forward       		),
         .ctr       		( ctr_reg_exe0_1       		),
         .divresult 		( divresult1 		)
     );
@@ -370,7 +415,7 @@ module cpu (
         //ports
         .clk      		( clk      		),
         .rstn     		( rstn     		),
-        .addr     		( addr     		),
+        .addr     		( rrj1_forward+imm_reg_exe0_1 ),
         .data_reg 		( dcacheresult  )
     );
 
@@ -399,8 +444,8 @@ module cpu (
     //PCSrc
     always @(*) begin
         if(ifpriv) npc=wb_pc;
-        else if(ifbr1) npc=aluresult_exe0_exe1_1;
-        else if(ifbr0) npc=aluresult_exe0_exe1_0;
+        else if(ifbr1) npc=brresult0;
+        else if(ifbr0) npc=brresult1;
         else if(pc[2]) npc=pc+4;
         else npc=pc+8;
         //0000 0004 0008 000C 0010
@@ -471,12 +516,36 @@ module cpu (
             rj_id_reg_1<=rj11;
             rd_id_reg_0<=rd00;
             rd_id_reg_1<=rd11;
-            pc_id_reg_0<=pc0;
-            pc_id_reg_1<=pc1;
+            pc_id_reg_0<=pc00;
+            pc_id_reg_1<=pc11;
         end
     end
 
     //REG-EXE0
+    localparam liwaiALE = {5'd17,3'b0,4'd3},liwaiADM={5'd16,3'b0,4'd3};
+    wire [1:0]addr_2=rrj1_rf[1:0]+imm_id_reg_1[1:0];
+    always @(*) begin//检测访存地址是否对齐，否则将访存指令变为例外指令
+        //ADEM?
+        ctr_id_reg_1_ALE=ctr_id_reg_1;
+        if(ctr_id_reg_1[3:0]==5)
+            case (ctr_id_reg_1[11:7])
+                1: begin
+                    if(addr_2[0]) ctr_id_reg_1_ALE=liwaiALE;
+                end
+                2: begin
+                    if(addr_2[1:0]) ctr_id_reg_1_ALE=liwaiALE;
+                end
+                4: begin
+                    if(addr_2[0]) ctr_id_reg_1_ALE=liwaiALE;
+                end
+                5: begin
+                    if(addr_2[1:0]) ctr_id_reg_1_ALE=liwaiALE;
+                end
+                7: begin
+                    if(addr_2[0]) ctr_id_reg_1_ALE=liwaiALE;
+                end
+            endcase
+    end
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             ctr_reg_exe0_0 <= 0;
@@ -502,7 +571,7 @@ module cpu (
         end
         else begin
             ctr_reg_exe0_0 <= ctr_id_reg_0;
-            ctr_reg_exe0_1 <= ctr_id_reg_1;
+            ctr_reg_exe0_1 <= ctr_id_reg_1_ALE;
             excp_arg_reg_exe0_0<=excp_arg_id_reg_0;
             excp_arg_reg_exe0_1<=excp_arg_id_reg_1;
             imm_reg_exe0_0<=imm_id_reg_0;

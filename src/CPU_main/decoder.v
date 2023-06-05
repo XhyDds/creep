@@ -1,11 +1,11 @@
 module decoder (
     input [31:0]ir,
+    input [31:0]pc,
     input [1:0]PLV,
     output [31:0]control,
     output reg [4:0]rk,rj,rd,
     output reg [31:0]imm,
     output reg [15:0]excp_arg
-    // ,output reg INE//指令不存在例外
 );
     localparam yu=0,huo=1,huofei=2,yihuo=3,jia=4,jian=5,zuoyi=6,youyi=7,ssyouyi=8,sxiaoyu=9,xiaoyu=10,tong1=11,tong2=12,jia4=13;
     localparam alu=0,tiao=1,cheng=4,chu=2,liwai=3,dcache=5,yuanzi=6,shizhong=7,tiaoxie=8;
@@ -15,7 +15,7 @@ module decoder (
     reg [1:0]alusrc2;//0:reg, 1:imm
     reg [3:0]type;//0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br
     reg [4:0]subtype;//可与aluop合并？×有同时使用
-    //for exceptions, 0:cacop, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr, 11:BRK, 12:SYS, 13:INE, 14:IPE
+    //for exceptions, 0:cacop, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr, 11:BRK, 12:SYS, 13:INE, 14:IPE, 15:ADEF, 16:ADEM, 17:ALE
     //for div, 0:div.w, 1:mod.w, 2:div.wu, 3:mod.wu
     //for mul, 0:mul.w, 1:mulh.w, 2:mulh.wu
     //for dcache, 0~2:load, 3~5:store, 6~7:load, 8:ibar
@@ -25,7 +25,9 @@ module decoder (
     assign control=nop?0:{aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type};//顺序可调换
     always @(*) begin
         rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;
-        case (ir[31:26])
+        if(pc[1:0]) begin type=liwai;subtype=15; end //ADEF
+        //else if(pc>2000|pc<1000) begin type=liwai;subtype=16; end //ADEM
+        else case (ir[31:26])
         'b000000: 
             case (ir[25:22])
                 'b0000: 
