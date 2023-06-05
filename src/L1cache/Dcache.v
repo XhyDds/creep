@@ -20,6 +20,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
+//6.4 Tag会有bug valid写的行为不对 并且可以考虑offset=0
+//6.5xhy:不可考虑offset=0 line必须多字 适合的解决方法是：完全的写直达，即写指令跳过l1cache直接写入l2cache，宜添加写缓冲区以实现无停顿的写操作。
+
 module Dcache#(
     parameter   index_width=4,
                 offset_width=2,
@@ -46,12 +49,12 @@ module Dcache#(
     input       [31:0]pipeline_dcache_opcode,//cache操作
     input       pipeline_dcache_opflag,//0-正常访存 1-cache操作    
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
-    output      dcache_pipeline_stall,//stall from dcache     不知道可不可以用ready代替，先留着
+    output      dcache_pipeline_stall,//stall form dcache     不知道可不可以用ready代替，先留着
 
-    //mem port
+    //mem prot
     output      [31:0]addr_dcache_mem,
     output      [31:0]dout_dcache_mem,
-    input       [32*(2<<offset_width)-1:0]din_mem_dcache,
+    input       [32*(2<<offset_width)-1:0]din_mem_dcache,   //6.5xhy:应当是 1<<offset_width，由于不确定其他地方是否还有，不做修改
 
     output      dcache_mem_req,
     output      dcache_mem_wr,//0-read 1-write

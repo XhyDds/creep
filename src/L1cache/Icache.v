@@ -19,7 +19,9 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
+// 6.4 Icache待完成任务：
+// 1.tag的有效位
+// 2.对于flush响应  外部寄存器flush优先级最高
 module Icache#(
     parameter   index_width=4,
                 offset_width=2,
@@ -146,6 +148,7 @@ wire [offset_width-1:0]choose_word;
 reg [63:0]data_out;
 reg data_flag;
 reg [32*(2<<offset_width)-1:0]data_line;
+wire send_nop;
 
 always @(*) begin
     if (choose_return) data_line = din_mem_icache;
@@ -184,14 +187,14 @@ always @(posedge clk) begin
     data_flag_reg <= data_flag;
     stall_reg <= rbuf_stall;
 end
-assign dout_icache_pipeline = (stall_reg) ? data_out_reg : data_out;
-assign flag_icache_flag = (stall_reg) ? data_flag_reg : data_flag;
+assign dout_icache_pipeline = send_nop ? 64'h1234ABCD00000013 : (stall_reg) ? data_out_reg : data_out;
+assign flag_icache_pipeline = send_nop ? 1'b0 : (stall_reg) ? data_flag_reg : data_flag;
 
 //Mem
 assign addr_icache_mem = rbuf_addr;
 
 //FSM
-Icache_FSMmain Icache_FSMmain1(
+Icache_FSMmain Icache_FSMmain(
 
     .clk(clk),.rstn(rstn),
 
@@ -228,10 +231,11 @@ Icache_FSMmain Icache_FSMmain1(
     //data choose
     .FSM_choose_way(choose_way),
     .FSM_choose_return(choose_return),
-    .FSM_choose_word(choose_word)
+    .FSM_choose_word(choose_word),
+    .FSM_send_nop(send_nop)
 );
-defparam Icache_FSMmain1.index_width = index_width;
-defparam Icache_FSMmain1.offset_width = offset_width;
-defparam Icache_FSMmain1.way = way;
+defparam Icache_FSMmain.index_width = index_width;
+defparam Icache_FSMmain.offset_width = offset_width;
+defparam Icache_FSMmain.way = way;
 endmodule
 

@@ -22,8 +22,8 @@
 
 module bram_bytewrite#(
     parameter DATA_WIDTH = 32,
-              ADDR_WIDTH = 8,
-              INIT_FILE = ""
+              ADDR_WIDTH = 8
+            //   INIT_FILE = ""
 )(
     input                   clk,   // Clock
     input [ADDR_WIDTH-1:0]  raddr, // read Address
@@ -35,7 +35,13 @@ module bram_bytewrite#(
     reg [ADDR_WIDTH-1:0] addr_r;  // Address Register
     reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
-    initial $readmemh(INIT_FILE, ram); // initialize memory
+    // initial $readmemh(INIT_FILE, ram); // initialize memory
+    integer j;
+    initial begin
+        for (j = 0; j < (1 << ADDR_WIDTH); j = j + 1) begin
+            ram[j] = 0;
+        end
+    end
 
     always @(posedge clk) begin
         addr_r <= raddr == waddr ? waddr : raddr;
