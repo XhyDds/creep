@@ -3,6 +3,7 @@
 ///与正常版本不同，该版本需要L1cache适配以下设置：
 ///1. 搭载ReturnBuffer和WriteBuffer，设置size=2,len=3,配置last信号
 ///2. 取消addrOK的影响，写操作阻塞（没有写缓冲区）
+///3. 目前并不需要WriteBuffer，因为一次最多写入一个byte。
 module axi_arbiter(
     input               clk,
     input               rstn,
