@@ -21,8 +21,10 @@
 
 
 //6.4 Tag会有bug valid写的行为不对 并且可以考虑offset=0
-//6.5xhy:不可考虑offset=0 line必须多字 适合的解决方法是：完全的写直达，即写指令跳过l1cache直接写入l2cache，宜添加写缓冲区以实现无停顿的写操作。
+//6.5xhy:不可考虑offset=0 line必须多字 适合的解决方法是：完全的写直达，即写指令未命中时跳过l1cache直接写入l2cache，（命中时需要修改cache），宜添加写缓冲区以实现无停顿的写操作。
 
+// `define test
+`define normal
 module Dcache#(
     parameter   index_width=4,
                 offset_width=2,
@@ -60,7 +62,9 @@ module Dcache#(
     output      dcache_mem_wr,//0-read 1-write
     output      [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output      [3:0]dcache_mem_wstrb,//字节写使能
-    input       mem_dcache_addrOK,
+    `ifdef normal
+        input       mem_dcache_addrOK,
+    `endif normal
     input       mem_dcache_dataOK
     );
 assign test1=0;
@@ -211,7 +215,9 @@ Dcache_FSMmain Dcache_FSMmain1(
     .dcache_mem_wr(dcache_mem_wr),
     .dcache_mem_size(dcache_mem_size),
     .dcache_mem_wstrb(dcache_mem_wstrb),
-    .mem_dcache_addrOK(mem_dcache_addrOK),
+    `ifdef normal
+        .mem_dcache_addrOK(mem_dcache_addrOK),
+    `endif normal
     .mem_dcache_dataOK(mem_dcache_dataOK),
 
     //request buffer
