@@ -1,6 +1,6 @@
 module fetch_buffer (
     input [31:0]pc,
-    input clk,rstn,
+    input clk,rstn,flush,
     input if0,if1,icache_valid,
     input [63:0]irin,
     input flag,//flag==1表示2个有效，==0表示1个有效
@@ -28,7 +28,7 @@ module fetch_buffer (
     // end
     always @(posedge clk,negedge rstn) begin:fetch_buffer
         integer i;
-        if(!rstn) 
+        if(!rstn|flush) 
             begin
                 pointer<=0;
                 for (i=0;i<16;i=i+1) begin
@@ -36,7 +36,7 @@ module fetch_buffer (
                         bufferpc[i]<=0;
                 end
             end
-        else 
+        else if(!stall)
             case ({if0,if1,icache_valid})//if1是优先级高的通道，即pc小的一侧
             //是否会出现if0&!if1的情况？
                 'b000: ;

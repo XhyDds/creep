@@ -1,5 +1,5 @@
 module dispatcher (
-    input clk,rstn,
+    input clk,rstn,flush,
     input [31:0]imm0,imm1,control0,control1,pc0,pc1,
     input [4:0]rk0,rk1,rj0,rj1,rd0,rd1,
     input [15:0]excp_arg0,excp_arg1,
@@ -29,13 +29,13 @@ module dispatcher (
     wire stall0=(muldecache0_reg&(rd0_reg==rk0|rd0_reg==rj0))|(muldecache1_reg&(rd1_reg==rk0|rd1_reg==rj0));
 
     always @(posedge clk or negedge rstn) begin
-        if(!rstn) begin
+        if(!rstn|flush) begin
             muldecache0_reg <= 0;
             muldecache1_reg <= 0;
             rd0_reg <= 0;
             rd1_reg <= 0;
         end
-        else begin
+        else if(!stall)begin
             muldecache0_reg <= if0 ? muldecache0:0;
             rd0_reg <= rd0; 
             muldecache1_reg <= if1 ? muldecache1:0;

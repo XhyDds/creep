@@ -1,5 +1,5 @@
 module register_file (
-    input clk,rstn,ifwb0,ifwb1,
+    input clk,rstn,ifwb0,ifwb1,stall0,stall1,
     input [31:0]wb_data0,wb_data1,
     input [4:0]rk00,rk11,rj00,rj11,rd00,rd11,wb_addr0,wb_addr1,
     output reg [31:0]rrk0,rrk1,rrj0,rrj1,rrd0,rrd1
@@ -15,8 +15,8 @@ module register_file (
             rrk0<=0;rrk1<=0;rrj0<=0;rrj1<=0;rrd0<=0;rrd1<=0;
         end
         else begin
-            if(ifwb0) rf[wb_addr0]<=wb_data0;
-            if(ifwb1) begin
+            if(ifwb0&!stall0) rf[wb_addr0]<=wb_data0;
+            if(ifwb1&!stall1) begin
                 if(wb_addr0!=wb_addr1) rf[wb_addr1]<=wb_data1;
             end
         end
