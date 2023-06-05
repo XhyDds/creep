@@ -32,51 +32,75 @@ module ReturnBuffer #(
 
     reg [WORD_NUM:0] _word;
 
+    //状态机
     always @(*) begin
         case (state)
             IDLE: begin
                 if(rready) begin
-                    next_state <= RECEIVE;
-
-                    _word[31:0] <= rdata;
+                    next_state = RECEIVE;
                 end
                 else begin
-                    next_state <= IDLE;
-
-                    _word <= 0;
+                    next_state = IDLE;
                 end
             end
             RECEIVE: begin
                 if(rlast) begin
-                    next_state <= SEND;
-
-                    _word <= {_word[(1<<offset_width)*32-33:0],rdata};
+                    next_state = SEND;
                 end
                 else begin
-                    next_state <= RECEIVE;
-
-                    if(rready) begin
-                        _word <= {_word[(1<<offset_width)*32-33:0],rdata};
-                    end
-                    else ;
+                    next_state = RECEIVE;
                 end
             end
             SEND: begin
                 if(cache_mem_req) begin
-                    next_state <= OK;
-
-                    _word<=0;
+                    next_state = OK;
                 end
                 else begin
-                    next_state <= IDLE;
+                    next_state = IDLE;
                 end
             end
             default:begin
-                next_state <= IDLE;
-
-                _word<=0;
+                next_state = IDLE;
             end 
         endcase
+    end
+
+    always @(posedge clk) begin
+        if(!rstn) begin
+            _word<=0;
+        end
+        else begin 
+            case (state)
+                IDLE: begin
+                    if(rready) begin
+                        _word[31:0] <= rdata;
+                    end
+                    else begin
+                        _word <= 0;
+                    end
+                end
+                RECEIVE: begin
+                    if(rlast) begin
+                        _word <= {_word[(1<<offset_width)*32-33:0],rdata};
+                    end
+                    else begin
+                        if(rready) begin
+                            _word <= {_word[(1<<offset_width)*32-33:0],rdata};
+                        end
+                        else ;
+                    end
+                end
+                SEND: begin
+                    if(cache_mem_req) begin
+                        _word<=0;
+                    end
+                    else ;
+                end
+                default:begin
+                    _word<=0;
+                end 
+            endcase
+        end
     end
 
     always @(*) begin

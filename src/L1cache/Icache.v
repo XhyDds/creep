@@ -22,6 +22,9 @@
 // 6.4 Icache待完成任务：
 // 1.tag的有效位
 // 2.对于flush响应  外部寄存器flush优先级最高
+
+// `define test
+`define normal
 module Icache#(
     parameter   index_width=4,
                 offset_width=2,
@@ -51,7 +54,9 @@ module Icache#(
 
     output      icache_mem_req,
     output      [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
-    input       mem_icache_addrOK,
+    `ifdef normal
+        input       mem_icache_addrOK,
+    `endif normal
     input       mem_icache_dataOK
     );
 assign test1=0;
@@ -209,7 +214,9 @@ Icache_FSMmain Icache_FSMmain(
     //icache  mem
     .icache_mem_req(icache_mem_req),
     .icache_mem_size(icache_mem_size),
-    .mem_icache_addrOK(mem_icache_addrOK),
+    `ifdef normal
+        .mem_icache_addrOK(mem_icache_addrOK),
+    `endif normal
     .mem_icache_dataOK(mem_icache_dataOK),
 
     //request buffer
