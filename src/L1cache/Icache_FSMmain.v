@@ -40,7 +40,7 @@ module Icache_FSMmain#(
     output reg  icache_mem_req,
     output reg  [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
     `ifdef normal
-        input       mem_icache_addrOK,//发送的地址和数据都被接收
+        input   mem_icache_addrOK,//发送的地址和数据都被接收
     `endif normal
     input       mem_icache_dataOK,//返回的数据有效
 

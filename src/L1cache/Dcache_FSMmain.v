@@ -44,7 +44,7 @@ module Dcache_FSMmain#(
     output reg  [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output reg  [3:0]dcache_mem_wstrb,//字节写使能
     `ifdef normal
-        input       mem_dcache_addrOK,//发送的地址和数据都被接收
+        input   mem_dcache_addrOK,//发送的地址和数据都被接收
     `endif normal
     input       mem_dcache_dataOK,//返回的数据有效
 
