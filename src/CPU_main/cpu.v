@@ -21,7 +21,7 @@ module cpu (
     imm_reg_exe0_0,imm_reg_exe0_1,
     imm_id_reg_0,imm_id_reg_1;
 
-    reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_ALE,
+    reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,
     excp_arg_id_reg_0,excp_arg_id_reg_1;
     // excp_arg_reg_exe0_0,
 
@@ -74,56 +74,17 @@ module cpu (
     assign stall_exe1_wb_0 =    stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe1_wb_1 =    stall_priv|stall_div0|stall_div1|stall_dcache;
 
-    // wire [31:0]	test1;
-    // wire [31:0]	test2;
-    // wire [31:0]	test3;
-    // wire [63:0]	dout_icache_pipeline;
-    // wire 	flag_icache_pipeline;
-    // wire 	icache_pipeline_ready;
-    // wire 	icache_pipeline_stall;
-    // wire [31:0]	addr_icache_mem;
-    // wire 	icache_mem_req;
-    // wire [1:0]	icache_mem_size;
-
-    // Icache #(
-    //     .index_width  		( 4 		),
-    //     .offset_width 		( 2 		),
-    //     .way          		( 2 		))
-    // u_Icache(
-    //     //ports
-    //     .clk                    		( clk                    		),
-    //     .rstn                   		( rstn                   		),
-    //     .test1                  		( test1                  		),
-    //     .test2                  		( test2                  		),
-    //     .test3                  		( test3                  		),
-    //     .addr_pipeline_icache   		( addr_pipeline_icache   		),
-    //     .dout_icache_pipeline   		( dout_icache_pipeline   		),
-    //     .flag_icache_pipeline   		( flag_icache_pipeline   		),
-    //     .pipeline_icache_vaild  		( pipeline_icache_vaild  		),
-    //     .icache_pipeline_ready  		( icache_pipeline_ready  		),
-    //     .pipeline_icache_opcode 		( pipeline_icache_opcode 		),
-    //     .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
-    //     .pipeline_icache_ctrl   		( pipeline_icache_ctrl   		),
-    //     .icache_pipeline_stall  		( icache_pipeline_stall  		),
-    //     .addr_icache_mem        		( addr_icache_mem        		),
-    //     .din_mem_icache         		( din_mem_icache         		),
-    //     .icache_mem_req         		( icache_mem_req         		),
-    //     .icache_mem_size        		( icache_mem_size        		),
-    //     .mem_icache_addrOK      		( mem_icache_addrOK      		),
-    //     .mem_icache_dataOK      		( mem_icache_dataOK      		)
-    // );
-
     wire [63:0]	ir;
     wire 	flag,icache_valid;
 
-    icache u_icache(
+    icache_testonly u_icache_testonly(
         //ports
         .flush(flush_if0_if1),
         .stall(stall_if0_if1),
         .icache_valid_reg(icache_valid),
         .clk      		( clk      		),
         .rstn     		( rstn     		),
-        .pc       		( pc[1:0]?0:pc  ),
+        .pc       		( |pc[1:0]?0:pc  ),
         .ir_reg   		( ir   		    ),
         .flag_reg 		( flag 		    )
     );
@@ -163,7 +124,7 @@ module cpu (
 
     decoder u_decoder0(
         //ports
-        .PLV            ( PLV               ),
+        // .PLV            ( PLV               ),
         .pc             ( pc0               ),
         .ir       		( ir0 	    	    ),
         .control  		( control0  		),
@@ -183,7 +144,7 @@ module cpu (
 
     decoder u_decoder1(
         //ports
-        .PLV            ( PLV               ),
+        // .PLV            ( PLV               ),
         .pc             ( pc1               ),
         .ir       		( ir1        	    ),
         .control  		( control1  		),
@@ -334,7 +295,7 @@ module cpu (
         .register2 		( 0 		),
         .register3 		( 0 		),
         .register1    	( pc_reg_exe0_0    		),
-        .alusrc   		( ctr_reg_exe0_0[15:14]   		),
+        .alusrc_   		( ctr_reg_exe0_0[15:14]   		),
         .alu      		( alu1_0      		)
     );
 
@@ -346,7 +307,7 @@ module cpu (
         .register2 		( rrd0_forward 		),
         .register3 		( 4 		),
         .register1    	( imm_reg_exe0_0    		),
-        .alusrc   		( ctr_reg_exe0_0[13:12]   		),
+        .alusrc_   		( ctr_reg_exe0_0[13:12]   		),
         .alu      		( alu2_0      		)
     );
 
@@ -358,7 +319,7 @@ module cpu (
         .register2 		( 0 		),
         .register3 		( 0 		),
         .register1    	( pc_reg_exe0_1    		),
-        .alusrc   		( ctr_reg_exe0_1_ALE[15:14]   		),
+        .alusrc_   		( ctr_reg_exe0_1_ALE[15:14]   		),
         .alu      		( alu1_1      		)
     );
 
@@ -370,7 +331,7 @@ module cpu (
         .register2 		( rrd1_forward 		),
         .register3 		( 4 		),
         .register1    	( imm_reg_exe0_1    		),
-        .alusrc   		( ctr_reg_exe0_1_ALE[13:12]   		),
+        .alusrc_   		( ctr_reg_exe0_1_ALE[13:12]   		),
         .alu      		( alu2_1      		)
     );
 
@@ -469,7 +430,7 @@ module cpu (
 
     wire [31:0]	dcacheresult;
 
-    dcache u_dcache(
+    dcache_testonly u_dcache_testonly(
         //ports
         .clk      		( clk      		),
         .rstn     		( rstn     		),
@@ -633,25 +594,25 @@ module cpu (
     end
 
     //EXE0-EXE1
-    localparam liwai = 3,excp_argALE='b001001,excp_argADM='b1_001000,excp_arg='b0_001000;
+    localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//检测访存地址是否对齐，否则将访存指令变为例外指令
-        //ADEM?
+    always @(*) begin//检测访存地址是否对齐，特权指令是否内核态，否则将访存指令变为例外指令
         ctr_reg_exe0_1_ALE=ctr_reg_exe0_1;
-        excp_arg_reg_exe0_1_ALE=excp_arg_reg_exe0_1;
-        if(ctr_reg_exe0_1[3:0]==5)
+        excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
+        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end
+        else if(ctr_reg_exe0_1[3:0]==5)
             case (ctr_reg_exe0_1[11:7])
-                1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                2: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                4: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                5: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                7: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                2: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                4: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                5: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                7: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
             endcase
         else if(ctr_reg_exe0_1[3:0]==6)
             case (ctr_id_reg_1[11:7])//fot yuanzi, 0:load, 1:store
-                0: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                1: if(llbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                0: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                1: if(llbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
             endcase
     end
     always @(posedge clk or negedge rstn) begin

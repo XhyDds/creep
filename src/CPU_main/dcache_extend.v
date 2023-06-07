@@ -3,7 +3,7 @@ module dcache_extend (
     input [1:0]addr_pipeline_dcache_reg,
     output reg [31:0]dout_dcache_pipeline_extend
 );
-    wire [3:0]type1=ctr_exe0_exe1_1[3:0];
+    wire [3:0]type_=ctr_exe0_exe1_1[3:0];
     wire [4:0]subtype=ctr_exe0_exe1_1[11:7];
     wire [15:0]dout16=addr_pipeline_dcache_reg[1]?dout_dcache_pipeline[15:0]:dout_dcache_pipeline[31:16];
     reg [7:0]dout8;
@@ -19,7 +19,7 @@ module dcache_extend (
 
     always @(*) begin
         dout_dcache_pipeline_extend=0;
-        if(type1==5)
+        if(type_==5)
             case (subtype)
                 0: dout_dcache_pipeline_extend=dout_dcache_pipeline;
                 1: dout_dcache_pipeline_extend={{16{dout16[15]}},dout16};
@@ -27,7 +27,7 @@ module dcache_extend (
                 6: dout_dcache_pipeline_extend={16'b0,dout16};
                 7: dout_dcache_pipeline_extend={24'b0,dout8};
             endcase
-        else if(type1==6)
+        else if(type_==6)
             case (subtype)
                 0: dout_dcache_pipeline_extend={{16{dout16[15]}},dout16};
                 1: dout_dcache_pipeline_extend={{24{dout16[15]}},dout8};

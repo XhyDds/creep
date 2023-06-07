@@ -1,4 +1,4 @@
-module icache (
+module icache_testonly (
     input      clk,rstn,flush,stall,
     output reg icache_valid_reg,
     input      [31:0]pc,
@@ -84,4 +84,4 @@ module icache (
     //         default: begin ir='b0000001010_000000000001_00000_00000_0000001010_000000000001_00000_00000;flag=0;icache_valid<=1;end
     //     endcase
     // end
-endmodule //icache
+endmodule //icache_testonly

@@ -10,7 +10,7 @@ module fetch_buffer (
     //是否需要改用循环队列？head+tail。for循环赋值对性能影响大吗？
     reg [31:0]buffer[0:15];//是否会溢出？
     reg [31:0]bufferpc[0:15];
-    reg [4:0]pointer;//0~31
+    reg [3:0]pointer;//0~31
     // reg icache_valid=1;
     wire [31:0]ir[0:1];
     assign ir0=buffer[1];
@@ -43,18 +43,18 @@ module fetch_buffer (
             //是否会出现if0&!if1的情况？
                 'b000: ;
                 'b001: begin 
-                    pointer<=pointer+flag+1;
-                    for (i=0;i<flag+1;i=i+1)begin
-                        buffer[pointer+i]<=ir[i];
-                        bufferpc[pointer+i]<=pc+(i<<2);
+                    pointer<=pointer+{3'b0,flag}+4'b1;
+                    for (i=0;i<1+{31'b0,flag};i=i+1)begin
+                        buffer[pointer+i[3:0]]=ir[i];
+                        bufferpc[pointer+i[3:0]]=pc+(i<<2);
                     end
                 end
                 'b010: begin 
                     if(pointer>0) begin
                         pointer<=pointer-1;
-                        for (i=0;i<pointer-1;i=i+1)begin
-                            buffer[i]<=buffer[i+1];
-                            bufferpc[i]<=bufferpc[i+1];
+                        for (i=0;i<{28'b0,pointer}-1;i=i+1)begin
+                            buffer[i]=buffer[i+1];
+                            bufferpc[i]=bufferpc[i+1];
                         end
                         buffer[pointer-1]<=0;
                         bufferpc[pointer-1]<=0;
@@ -62,30 +62,30 @@ module fetch_buffer (
                 end
                 'b011: begin 
                     if(pointer>0) begin
-                        pointer<=pointer+flag;
-                        for (i=0;i<pointer-1;i=i+1)begin
-                            buffer[i]<=buffer[i+1];
-                            bufferpc[i]<=bufferpc[i+1];
+                        pointer<=pointer+{3'b0,flag};
+                        for (i=0;i<{28'b0,pointer}-1;i=i+1)begin
+                            buffer[i]=buffer[i+1];
+                            bufferpc[i]=bufferpc[i+1];
                         end
-                        for (i=0;i<flag+1;i=i+1)begin
-                            buffer[pointer-1+i]<=ir[i];
-                            bufferpc[pointer-1+i]<=pc+(i<<2);
+                        for (i=0;i<{31'b0,flag}+1;i=i+1)begin
+                            buffer[pointer-1+i[3:0]]=ir[i];
+                            bufferpc[pointer-1+i[3:0]]=pc+(i<<2);
                         end
                     end
                     else begin
-                        pointer<=pointer+flag+1;
-                        for (i=0;i<flag+1;i=i+1)begin
-                            buffer[pointer+i]<=ir[i];
-                            bufferpc[pointer+i]<=pc+(i<<2);
+                        pointer<=pointer+{3'b0,flag}+4'b1;
+                        for (i=0;i<{31'b0,flag}+1;i=i+1)begin
+                            buffer[pointer+i[3:0]]=ir[i];
+                            bufferpc[pointer+i[3:0]]=pc+(i<<2);
                         end
                     end
                 end
                 'b100: begin 
                     if(pointer>1) begin
                         pointer<=pointer-1;
-                        for (i=1;i<pointer-1;i=i+1)begin
-                            buffer[i]<=buffer[i+1];
-                            bufferpc[i]<=bufferpc[i+1];
+                        for (i=1;i<{28'b0,pointer}-1;i=i+1)begin
+                            buffer[i]=buffer[i+1];
+                            bufferpc[i]=bufferpc[i+1];
                         end
                         buffer[pointer-1]<=0;
                         bufferpc[pointer-1]<=0;
@@ -93,30 +93,30 @@ module fetch_buffer (
                 end
                 'b101: begin 
                     if(pointer>1) begin
-                        pointer<=pointer+flag;
-                        for (i=1;i<pointer-1;i=i+1)begin
-                            buffer[i]<=buffer[i+1];
-                            bufferpc[i]<=bufferpc[i+1];
+                        pointer<=pointer+{3'b0,flag};
+                        for (i=1;i<{28'b0,pointer}-1;i=i+1)begin
+                            buffer[i]=buffer[i+1];
+                            bufferpc[i]=bufferpc[i+1];
                         end
-                        for (i=0;i<flag+1;i=i+1)begin
-                            buffer[pointer-1+i]<=ir[i];
-                            bufferpc[pointer-1+i]<=pc+(i<<2);
+                        for (i=0;i<{31'b0,flag}+1;i=i+1)begin
+                            buffer[pointer-1+i[3:0]]=ir[i];
+                            bufferpc[pointer-1+i[3:0]]=pc+(i<<2);
                         end
                     end
                     else begin
-                        pointer<=pointer+flag+1;
-                        for (i=0;i<flag+1;i=i+1)begin
-                            buffer[pointer+i]<=ir[i];
-                            bufferpc[pointer+i]<=pc+(i<<2);
+                        pointer<=pointer+{3'b0,flag}+1;
+                        for (i=0;i<{31'b0,flag}+1;i=i+1)begin
+                            buffer[pointer+i[3:0]]=ir[i];
+                            bufferpc[pointer+i[3:0]]=pc+(i<<2);
                         end
                     end
                 end
                 'b110: begin 
                     if(pointer>1) begin
                         pointer<=pointer-2;
-                        for (i=0;i<pointer-2;i=i+1)begin
-                            buffer[i]<=buffer[i+2];
-                            bufferpc[i]<=bufferpc[i+2];
+                        for (i=0;i<{28'b0,pointer}-2;i=i+1)begin
+                            buffer[i]=buffer[i+2];
+                            bufferpc[i]=bufferpc[i+2];
                         end
                         buffer[pointer-1]<=0;
                         buffer[pointer-2]<=0;
@@ -134,10 +134,10 @@ module fetch_buffer (
                 end
                 'b111: begin 
                     if(pointer>1) begin
-                        pointer<=pointer+flag-1;
-                        for (i=0;i<pointer-2;i=i+1)begin
-                            buffer[i]<=buffer[i+2];
-                            bufferpc[i]<=bufferpc[i+2];
+                        pointer<=pointer+{3'b0,flag}-4'b1;
+                        for (i=0;i<{28'b0,pointer}-2;i=i+1)begin
+                            buffer[i]=buffer[i+2];
+                            bufferpc[i]=bufferpc[i+2];
                         end
                         if(flag) 
                             begin
@@ -155,7 +155,7 @@ module fetch_buffer (
                             end
                     end
                     else begin
-                        pointer<=flag+1;
+                        pointer<={3'b0,flag}+4'b1;
                         if(flag) 
                             begin
                                 buffer[0]<=ir[0];
