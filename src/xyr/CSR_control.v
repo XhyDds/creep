@@ -15,6 +15,7 @@ module CSR_control(
     output [31:0] CSR_pipeline_dout,
     input [3:0] pipeline_CSR_exceptionTLB,//最高位表示是否有效,高优先级
     input [31:0] pipeline_CSR_TLBpc,//
+    input [31:0] pipeline_CSR_evaddr,
     //input [15:0] pipeline_CSR_exception2,
     input [8:0]pipeline_CSR_ESTAT,//最高位为核间中断
     output CSR_pipeline_clk_stall
@@ -24,14 +25,17 @@ module CSR_control(
     reg [8:0] CRMD;reg [2:0] PRMD;wire [31:0] EUEN;reg [12:0] ECFG_LIE;
     reg [1:0] ESTAT_IS;wire TI_INTE;reg [21:16]ESTAT_Ecode;reg [30:22]ESTAT_EsubCode;
     reg[31:0] ERA;reg [31:0] BADV;reg [31:6] EENTRY;wire [31:0] CPUID;
-    reg [31:0] SAVE0,SAVE1,SAVE2,SAVE3;reg  LLBCTL_ROLLB,LLBCTL_KLO;reg [TLB_n-1:0] TLBIDX_Index;
+    reg [31:0] SAVE0,SAVE1,SAVE2,SAVE3;reg  LLBCTL_ROLLB,LLBCTL_KLO;wire LLBCTL_WCLLB;
+    reg [TLB_n-1:0] TLBIDX_Index;
     reg [29:24] TLBIDX_PS;reg TLBIDX_NE;reg [31:13] TLBEHI;reg [6:0]TLBELO0_VDPLVMATG;
     reg [TLB_PALEN-5:8]TLBELO0_PPN;reg [6:0]TLBELO1_VDPLVMATG;reg [TLB_PALEN-5:8]TLBELO1_PPN;
     reg [9:0] ASID_ASID;wire [23:16] ASID_ASIDBITS;reg [31:12] PGDL;reg [31:12]PGDH;
     wire [31:12]PDG;reg [31:6]TLBRENTRY;reg DMW0_PLV0;reg DMW0_PLV3;reg [5:4] DMW0_MAT;
     reg [27:25] DMW0_PSEG;reg [31:29] DMW0_VSEG;reg DMW1_PLV0;reg DMW1_PLV3;reg [5:4] DMW1_MAT;
     reg [27:25] DMW1_PSEG;reg [31:29] DMW1_VSEG;reg [31:0]TID;reg [TIMER_n-1:0]TCFG;
-    reg [TIMER_n-1:0]TAVL;wire TICLR;
+    reg [TIMER_n-1:0]TVAL;wire TICLR;
+    assign EUEN=0,CPUID=0,ASID_ASIDBITS=10,PGD=BADV[31]?PGDH:PGDL,TICLR=0,LLBCTL_WCLLB=0;
+    
     
     localparam PRIV=3,LLW=6,LOAD=0;
     localparam ERTN=6,IDLE=7,INTE=13,CSRRD=8,CSRWR=9,CSRXCHG=10;
@@ -45,6 +49,7 @@ module CSR_control(
     wire [8:0] ESTATin;reg busy,flushout;wire stallin,flushin;
     wire exe;wire [3:0] expTLB;reg clk_stall;reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
+    reg [31:0] evaddr;
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_stall=busy,CSR_pipeline_flush=flushout;
     assign exe=pipeline_CSR_type==PRIV||expTLB[3]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
@@ -73,6 +78,7 @@ module CSR_control(
     ecode=pipeline_CSR_excp_arg[5:0];
     esubcode=pipeline_CSR_excp_arg[14:6];
     mode=pipeline_CSR_subtype;
+    evaddr=pipeline_CSR_evaddr;
     if(inte)
         begin
         mode=INTE;
@@ -94,6 +100,8 @@ module CSR_control(
         begin
         outpc=ERA;
         end
+    if(ecode==ADE&&esubcode==ADEF)
+        evaddr=inpc;
     case(cs)
         Wait:
             begin
@@ -126,36 +134,69 @@ module CSR_control(
         'h1:
             dout={29'b0,PRMD};
         'h2:
-            dout=0;
+            dout=EUEN;
         'h4:
             dout={19'b0,ECFG_LIE[12:11],1'b0,ECFG_LIE[9:0]};
         'h5:
             dout={1'b0,ESTAT_EsubCode,ESTAT_Ecode,3'b0,ESTATin[8],TI_INTE,1'b0,ESTATin[7:0],ESTAT_IS};
         'h6:
+            dout=ERA;
         'h7:
+            dout=BADV;
         'hc:
+            dout={EENTRY,6'b0};
         'h10:
+            begin
+            dout[TLB_n-1:0]=TLBIDX_Index;
+            dout[29:24]=TLBIDX_PS;
+            dout[31]=TLBIDX_NE;
+            end
         'h11:
+            dout={TLBEHI,13'b0};
         'h12:
-        'h13:  
+            begin
+            dout[6:0]=TLBELO0_VDPLVMATG;
+            dout[TLB_PALEN-5:8]=TLBELO0_PPN;
+            end
+        'h13:
+            begin
+            dout[6:0]=TLBELO1_VDPLVMATG;
+            dout[TLB_PALEN-5:8]=TLBELO1_PPN;
+            end  
         'h18:
+            dout={8'b0,ASID_ASIDBITS,6'b0,ASID_ASID};
         'h19:
+            dout={PGDL,12'b0};
         'h1a:
+            dout={PGDH,12'b0};
         'h20:
+            dout={PGD,12'b0};
         'h30:
+            dout=SAVE0;
         'h31:
+            dout=SAVE1;
         'h32:
+            dout=SAVE2;
         'h33:
+            dout=SAVE3;
         'h40:
+            dout=TID;
         'h41:
+            dout[TIMER_n-1:0]=TCFG;
         'h42:
+            dout[TIMER_n-1:0]=TVAL;
         'h44:
+            dout={31'b0,TICLR};
         'h60:
+            dout={29'b0,LLBCTL_KLO,LLBCTL_WCLLB,LLBCTL_ROLLB};
         'h88:
+            dout={TLBRENTRY,6'b0};
         'h98:
-        'h180;
+            dout=0;
+        'h180:
+            dout={DMW0_VSEG,1'b0,DMW0_PSEG,19'b0,DMW0_MAT,DMW0_PLV3,2'b0,DMW0_PLV0};
         'h181:
-        
+            dout={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     endcase
     
     end
@@ -176,9 +217,9 @@ module CSR_control(
                         begin
                         clk_stall<=1;
                         end   
-                    else if(expTLB[3])
-                        begin
-                        end
+//                    else if(expTLB[3])
+//                        begin
+//                        end
                     else
                         begin
                         case(mode)
@@ -197,18 +238,57 @@ module CSR_control(
                                 PRMD<=CRMD[2:0];
                                 CRMD[2:0]<=0;
                                 ERA<=inpc;
+                                clk_stall<=0;
                                 if(ecode==TLBR)
                                     begin
                                     CRMD[4:3]<=2'b01;
                                     end
-                                
+                                BADV<=evaddr;
                                 end
                             LLW:
                                 begin
                                 LLBCTL_ROLLB<=1;
                                 end
-                            
-                                
+                            CSRWR,CSRXCHG:
+                               case(csr_num)
+                                   'h0:
+                                       begin
+                                       end
+                                   'h1:
+                                       dout={29'b0,PRMD};
+                                   'h2:
+                                       dout=0;
+                                   'h4:
+                                       dout={19'b0,ECFG_LIE[12:11],1'b0,ECFG_LIE[9:0]};
+                                   'h5:
+                                       dout={1'b0,ESTAT_EsubCode,ESTAT_Ecode,3'b0,ESTATin[8],TI_INTE,1'b0,ESTATin[7:0],ESTAT_IS};
+                                   'h6:
+                                        dout=
+                                   'h7:
+                                   'hc:
+                                   'h10:
+                                   'h11:
+                                   'h12:
+                                   'h13:  
+                                   'h18:
+                                   'h19:
+                                   'h1a:
+                                   'h20:
+                                   'h30:
+                                   'h31:
+                                   'h32:
+                                   'h33:
+                                   'h40:
+                                   'h41:
+                                   'h42:
+                                   'h44:
+                                   'h60:
+                                   'h88:
+                                   'h98:
+                                   'h180;
+                                   'h181:
+                                   
+                               endcase 
                         endcase
                         end
                     end
