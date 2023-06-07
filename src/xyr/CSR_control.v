@@ -5,13 +5,16 @@ module CSR_control(
     output CSR_pipeline_stall,
     output CSR_pipeline_flush,
     output [31:0] CSR_pipeline_outpc,
+    input [31:0] CSR_pipeline_inpc,//
     input [3:0]pipeline_CSR_type,
     input [4:0]pipeline_CSR_subtype,
-    input [15:0] pipeline_CSR_csr_num,
+    //input [14:0] pipeline_CSR_excp_subcode,//
+    input [15:0] pipeline_CSR_excp_arg,
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
     input [3:0] pipeline_CSR_exceptionTLB,//最高位表示是否有效,高优先级
+    input [31:0] pipeline_CSR_TLBpc,//
     //input [15:0] pipeline_CSR_exception2,
     input [8:0]pipeline_CSR_ESTAT,//最高位为核间中断
     output CSR_pipeline_clk_stall
@@ -31,21 +34,25 @@ module CSR_control(
     reg [TIMER_n-1:0]TAVL;wire TICLR;
     
     localparam PRIV=3,LLW=6,LOAD=0;
-    localparam ERTN=6,IDLE=7,BRK=11,SYS=12,INTER=13,CSRRD=8,CSRWR=9,CSRXCHG=10,IPE=14;
+    localparam ERTN=6,IDLE=7,INTE=13,CSRRD=8,CSRWR=9,CSRXCHG=10;
+    localparam INT='H0,PIL='H1,PIS='H2,PIF='H3,PME='H4,PPI='H7,
+    ADE='H8,ALE='H9,SYS='HB,BRK='HC,INE='HD,IPE='HE,FPD='HF,
+    FPE='H12,TLBR='H3F;
+    localparam ADEF='H0,ADEM='H1;
     localparam Wait=0;
     reg [4:0]ns,cs;
     reg [4:0] mode;wire [31:0] din;reg [31:0]dout,mask;
     wire [8:0] ESTATin;reg busy,flushout;wire stallin,flushin;
     wire exe;wire [3:0] expTLB;reg clk_stall;reg [31:0] outpc;
-    wire inte;wire [15:0] csr_num;
+    wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_stall=busy,CSR_pipeline_flush=flushout;
     assign exe=pipeline_CSR_type==PRIV||expTLB[3]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout;
     assign expTLB=pipeline_CSR_exceptionTLB,CSR_pipeline_clk_stall=clk_stall;
     assign CSR_pipeline_outpc=outpc,ESTATin=pipeline_CSR_ESTAT;
-    assign csr_num=pipeline_CSR_csr_num;
-    assign inte={ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]}?1:0;
+    assign csr_num=pipeline_CSR_excp_arg;
+    assign inte={ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]}?CRMD[2]:0;
     always@(posedge(clk),negedge(rstn))
     begin
     if(!rstn||flushin)
@@ -60,12 +67,59 @@ module CSR_control(
     always@(*)
     begin
     busy=1;flushout=0;
-    outpc=ERA;dout=0;
+    outpc={EENTRY,6'b0};dout=0;
     mask=~0;
+    inpc=CSR_pipeline_inpc;
+    ecode=pipeline_CSR_excp_arg[5:0];
+    esubcode=pipeline_CSR_excp_arg[14:6];
+    mode=pipeline_CSR_subtype;
     if(inte)
-        mode=INTER;
-    else
-        mode=pipeline_CSR_subtype;
+        begin
+        mode=INTE;
+        ecode=INT;
+        esubcode=0;
+        end 
+    else if(expTLB[3])
+        begin
+        mode=INTE;//?
+        inpc=pipeline_CSR_TLBpc; 
+        //ecode=;
+        //esubcode=;
+        end
+    if(ecode==TLBR)
+        begin
+        outpc={TLBRENTRY,6'b0};
+        end
+    else if(ecode==ERTN)
+        begin
+        outpc=ERA;
+        end
+    case(cs)
+        Wait:
+            begin
+            if((!stallin && !flushin && exe)||inte)
+                begin 
+                case(mode)
+                    ERTN:
+                        begin
+                        flushout=1; 
+                        end
+                    CSRXCHG:
+                        mask=pipeline_CSR_mask;
+                    INTE:
+                       begin
+                       flushout=1; 
+                       end
+                endcase
+                end
+            else
+                begin
+                busy=0;
+                ns=Wait;
+                end
+            end
+    endcase
+    
     case(csr_num)
         'h0:
             dout={23'b0,CRMD};
@@ -76,6 +130,7 @@ module CSR_control(
         'h4:
             dout={19'b0,ECFG_LIE[12:11],1'b0,ECFG_LIE[9:0]};
         'h5:
+            dout={1'b0,ESTAT_EsubCode,ESTAT_Ecode,3'b0,ESTATin[8],TI_INTE,1'b0,ESTATin[7:0],ESTAT_IS};
         'h6:
         'h7:
         'hc:
@@ -102,39 +157,7 @@ module CSR_control(
         'h181:
         
     endcase
-    case(cs)
-        Wait:
-          begin
-          if(!stallin && !flushin && exe)
-              begin
-              if(expTLB[3])
-                  begin
-                  end
-              else
-                begin
-                case(mode)
-                    ERTN:
-                        begin
-                        flushout=1;
-                        outpc=ERA;
-                        end  
-                    CSRRD,CSRWR,CSRXCHG:
-                        begin
-                        if(mode==CSRXCHG)
-                            mask=pipeline_CSR_mask;
-                        
-                        end
-                    
-                endcase
-                end
-              end
-          else
-              begin
-              ns=Wait;
-              busy=0;
-              end
-          end
-    endcase
+    
     end
     always@(posedge(clk),negedge(rstn))
     begin
@@ -152,11 +175,7 @@ module CSR_control(
                     if(mode==IDLE && !clk_stall)
                         begin
                         clk_stall<=1;
-                        end
-                    else if(mode==LLW)
-                        begin
-                        LLBCTL_ROLLB<=1;
-                        end
+                        end   
                     else if(expTLB[3])
                         begin
                         end
@@ -173,11 +192,20 @@ module CSR_control(
                                 if(!LLBCTL_KLO)
                                     LLBCTL_ROLLB<=0;  
                                 end
-                            BRK:
+                            INTE:
                                 begin
+                                PRMD<=CRMD[2:0];
+                                CRMD[2:0]<=0;
+                                ERA<=inpc;
+                                if(ecode==TLBR)
+                                    begin
+                                    CRMD[4:3]<=2'b01;
+                                    end
+                                
                                 end
-                            SYS:
+                            LLW:
                                 begin
+                                LLBCTL_ROLLB<=1;
                                 end
                             
                                 
