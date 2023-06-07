@@ -62,7 +62,7 @@ module divider#(//din1/din2
     ncounter=counter;
     nmode=mode_reg;
     ndin2_reg=din2_reg;
-    temp=remainder-(din2_reg<<counter);
+    temp=remainder-({1'b0, din2_reg}<<counter);
     ns=Wait;
     busy=1;dout=0;
     if(mode==DIVW||mode==DIVWU)
@@ -73,7 +73,7 @@ module divider#(//din1/din2
         Wait:
             if(exe)
                 begin
-                if(din2)
+                if(|din2)
                     ns=Aline;
                 else
                     ns=Wait; 
@@ -84,9 +84,9 @@ module divider#(//din1/din2
                 else
                     nremainder=din1;
                 if((mode==DIVW||mode==MODW)&&din2[WIDTH-1])
-                    ndin2_reg<=0-din2;
+                    ndin2_reg=0-din2;
                 else
-                    ndin2_reg<=din2;
+                    ndin2_reg=din2;
                 end
             else
                 begin

@@ -175,5 +175,4 @@ module fetch_buffer (
                 default: ;
             endcase
     end
-
 endmodule

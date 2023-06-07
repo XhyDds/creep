@@ -1,6 +1,6 @@
 module cpu (
     input clk,rstn,
-    output [0:15]LED
+    output [15:0]LED
 );
     assign LED=0;
     reg [31:0]pc,npc,
@@ -19,10 +19,12 @@ module cpu (
     rrk_reg_exe0_1,rrj_reg_exe0_1,
     rrd_reg_exe0_0,rrd_reg_exe0_1,
     imm_reg_exe0_0,imm_reg_exe0_1,
-    excp_arg_id_reg_0,excp_arg_id_reg_1,excp_arg_reg_exe0_1_ALE,
-    imm_id_reg_0,imm_id_reg_1,
+    imm_id_reg_0,imm_id_reg_1;
+
+    reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_ALE,
+    excp_arg_id_reg_0,excp_arg_id_reg_1;
     // excp_arg_reg_exe0_0,
-    excp_arg_reg_exe0_1;
+
     reg [63:0]ir_if1_fifo;
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
     rk_reg_exe0_0,rk_reg_exe0_1,
@@ -35,15 +37,15 @@ module cpu (
     reg icache_valid_if1_fifo,flag_if1_fifo;
     
     //PRIV
-    wire ifbr_priv=0;
-    wire ifbr0,ifbr1;
+    wire ifbr_priv=0,llbit=0;
     wire [1:0]PLV=0;
-    wire [31:0]priv_pc;
-    wire stall_div0=0,stall_div1=0,stall_priv=0,stall_dcache=0,stall_icache=0;//dcache_valid-ready?
-    wire stall_fetch_buffer;
-    wire flush_priv=0;
+    wire [31:0]priv_pc,privresult1;
+    wire flush_priv=0,stall_priv=0;
     // wire stall_priv_break=0;
 
+    wire ifbr0,ifbr1;
+    wire stall_div0=0,stall_div1=0,stall_dcache=0,stall_icache=0;//dcache_valid-ready?
+    wire stall_fetch_buffer;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1;
 
@@ -446,8 +448,6 @@ module cpu (
     br u_br0(
         //ports
         .ctr      		( ctr_reg_exe0_0      		),
-        .rrj      		( rrj0_forward      		),
-        .rrd      		( rrd0_forward      		),
         .pc       		( pc_reg_exe0_0       		),
         .imm      		( imm_reg_exe0_0      		),
         .zero     		( zero0     		),
@@ -460,8 +460,6 @@ module cpu (
     br u_br1(
         //ports
         .ctr      		( ctr_reg_exe0_1_ALE      		),
-        .rrj      		( rrj1_forward      		),
-        .rrd      		( rrd1_forward      		),
         .pc       		( pc_reg_exe0_1       		),
         .imm      		( imm_reg_exe0_1      		),
         .zero     		( zero1     		),
@@ -635,7 +633,7 @@ module cpu (
     end
 
     //EXE0-EXE1
-    localparam liwaiALE = {5'd17,3'b0,4'd3},liwaiADM={5'd16,3'b0,4'd3},excp_argALE='b001001,excp_argADM='b1_001000;
+    localparam liwai = 3,excp_argALE='b001001,excp_argADM='b1_001000,excp_arg='b0_001000;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
     always @(*) begin//检测访存地址是否对齐，否则将访存指令变为例外指令
@@ -644,16 +642,16 @@ module cpu (
         excp_arg_reg_exe0_1_ALE=excp_arg_reg_exe0_1;
         if(ctr_reg_exe0_1[3:0]==5)
             case (ctr_reg_exe0_1[11:7])
-                1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                2: if(addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                4: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                5: if(addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                7: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                2: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                4: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                5: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                7: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
             endcase
         else if(ctr_reg_exe0_1[3:0]==6)
             case (ctr_id_reg_1[11:7])//fot yuanzi, 0:load, 1:store
-                0: if(addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
-                1: if(addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                0: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                1: if(llbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_ALE=excp_argALE; end
             endcase
     end
     always @(posedge clk or negedge rstn) begin
@@ -698,7 +696,7 @@ module cpu (
             0: result1=aluresult_exe0_exe1_1;
             1: ;
             2: result1=divresult1;
-            // 3: result1=privresult1;
+            3: result1=privresult1;
             4: result1=mulresult1;
             5: result1=dcacheresult;
             6: result1=dcacheresult;
@@ -744,5 +742,4 @@ module cpu (
             result_exe1_wb_1<=result1;
         end
     end
-
 endmodule
