@@ -1,15 +1,16 @@
 module fetch_buffer (
     input [31:0]pc,
-    input clk,rstn,flush,
+    input clk,rstn,flush,stall,
     input if0,if1,icache_valid,
     input [63:0]irin,
     input flag,//flag==1表示2个有效，==0表示1个有效
-    output [31:0]ir0,ir1,pc0,pc1
+    output [31:0]ir0,ir1,pc0,pc1,
+    output stall_fetch_buffer
 );
     //是否需要改用循环队列？head+tail。for循环赋值对性能影响大吗？
     reg [31:0]buffer[0:15];//是否会溢出？
     reg [31:0]bufferpc[0:15];
-    reg [3:0]pointer;//0123 0-15
+    reg [4:0]pointer;//0~31
     // reg icache_valid=1;
     wire [31:0]ir[0:1];
     assign ir0=buffer[1];
@@ -18,6 +19,7 @@ module fetch_buffer (
     assign ir[0]=irin[63:32];
     assign pc0=bufferpc[1];
     assign pc1=bufferpc[0];
+    assign stall_fetch_buffer=(pointer>=15);
     // reg [127:0]ir_reg;
     // assign ir[2]=irin[95:64];
     // assign ir[3]=irin[127:96];
