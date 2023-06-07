@@ -4,7 +4,7 @@ module cpu (
 );
     assign LED=0;
     reg [31:0]pc,npc,
-    ctr_id_reg_0,ctr_id_reg_1,ctr_id_reg_1_ALE,
+    ctr_id_reg_0,ctr_id_reg_1,ctr_reg_exe0_1_ALE,
     ctr_reg_exe0_0,ctr_reg_exe0_1,
     ctr_exe0_exe1_0,ctr_exe0_exe1_1,
     ctr_exe1_wb_0,ctr_exe1_wb_1,
@@ -19,9 +19,10 @@ module cpu (
     rrk_reg_exe0_1,rrj_reg_exe0_1,
     rrd_reg_exe0_0,rrd_reg_exe0_1,
     imm_reg_exe0_0,imm_reg_exe0_1,
-    excp_arg_id_reg_0,excp_arg_id_reg_1,
+    excp_arg_id_reg_0,excp_arg_id_reg_1,excp_arg_reg_exe0_1_ALE,
     imm_id_reg_0,imm_id_reg_1,
-    excp_arg_reg_exe0_0,excp_arg_reg_exe0_1;
+    // excp_arg_reg_exe0_0,
+    excp_arg_reg_exe0_1;
     reg [63:0]ir_if1_fifo;
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
     rk_reg_exe0_0,rk_reg_exe0_1,
@@ -35,31 +36,32 @@ module cpu (
     
     //PRIV
     wire ifbr_priv=0;
+    wire ifbr0,ifbr1;
     wire [1:0]PLV=0;
     wire [31:0]priv_pc;
-    wire stall_div0,stall_div1,stall_priv,stall_dcache,stall_icache;//dcache_valid-ready?
-    wire flush_br0,flush_br1,flush_priv;
-    wire stall_priv_break;
+    wire stall_div0=0,stall_div1=0,stall_priv=0,stall_dcache=0,stall_icache=0;//dcache_valid-ready?
+    wire stall_fetch_buffer;
+    wire flush_priv=0;
+    // wire stall_priv_break=0;
 
-    wire flush_pc,flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
+    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1;
 
-    assign flush_pc =           flush_priv|flush_br1|flush_br0;
-    assign flush_if0_if1 =      flush_priv|flush_br1|flush_br0;
-    assign flush_if1_fifo =     flush_priv|flush_br1|flush_br0;
-    assign flush_fifo_id =      flush_priv|flush_br1|flush_br0;
-    assign flush_id_reg0 =      flush_priv|flush_br1|flush_br0;
-    assign flush_id_reg1 =      flush_priv|flush_br1|flush_br0;
-    assign flush_reg_exe0_0 =   flush_priv|flush_br1|flush_br0;
-    assign flush_reg_exe0_1 =   flush_priv|flush_br1;
-    assign flush_exe0_exe1_0 =  0;
+    assign flush_if0_if1 =      flush_priv|ifbr1|ifbr0;
+    assign flush_if1_fifo =     flush_priv|ifbr1|ifbr0;
+    assign flush_fifo_id =      flush_priv|ifbr1|ifbr0;
+    assign flush_id_reg0 =      flush_priv|ifbr1|ifbr0;
+    assign flush_id_reg1 =      flush_priv|ifbr1|ifbr0;
+    assign flush_reg_exe0_0 =   flush_priv|ifbr1|ifbr0;
+    assign flush_reg_exe0_1 =   flush_priv|ifbr1|ifbr0;
+    assign flush_exe0_exe1_0 =  flush_priv|ifbr1;
     assign flush_exe0_exe1_1 =  0;
     assign flush_exe1_wb_0 =    0;
     assign flush_exe1_wb_1 =    0;
 
-    assign stall_pc =           stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_if0_if1 =      stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_if1_fifo =     stall_priv|stall_div0|stall_div1|stall_dcache;
+    assign stall_pc =           stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_if0_if1 =      stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_if1_fifo =     stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_fifo_id =      stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_id_reg0 =      stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_id_reg1 =      stall_priv|stall_div0|stall_div1|stall_dcache;
@@ -114,6 +116,8 @@ module cpu (
 
     icache u_icache(
         //ports
+        .flush(flush_if0_if1),
+        .stall(stall_if0_if1),
         .icache_valid_reg(icache_valid),
         .clk      		( clk      		),
         .rstn     		( rstn     		),
@@ -132,8 +136,8 @@ module cpu (
     fetch_buffer u_fetch_buffer(
         //ports
         .pc(pc_if1_fifo),
-        .flush(flush_fifo_id),
-        .stall(stall_fifo_id),
+        .flush(flush_if0_if1),
+        .stall(stall_if0_if1),
         .icache_valid(icache_valid_if1_fifo),
         .clk     		( clk     		),
         .rstn    		( rstn    		),
@@ -144,7 +148,8 @@ module cpu (
         .ir0 		    ( ir0 	    	),
         .ir1 		    ( ir1 	    	),
         .pc0            ( pc0           ),
-        .pc1            ( pc1           )
+        .pc1            ( pc1           ),
+        .stall_fetch_buffer(stall_fetch_buffer)
     );
 
     wire [31:0]	control0;
@@ -264,12 +269,12 @@ module cpu (
         .wb_addr0 		( wb_addr0 		),
         .wb_data1 		( wb_data1 		),
         .wb_addr1 		( wb_addr1 		),
-        .rk00     		( rk_id_reg_0     		),
-        .rk11     		( rk_id_reg_1     		),
-        .rj00     		( rj_id_reg_0     		),
-        .rj11     		( rj_id_reg_1     		),
-        .rd00     		( rd_id_reg_0     		),
-        .rd11     		( rd_id_reg_1     		),
+        .rk0     		( rk_id_reg_0     		),
+        .rk1     		( rk_id_reg_1     		),
+        .rj0     		( rj_id_reg_0     		),
+        .rj1     		( rj_id_reg_1     		),
+        .rd0     		( rd_id_reg_0     		),
+        .rd1     		( rd_id_reg_1     		),
         .rrk0     		( rrk0_rf     		),
         .rrk1     		( rrk1_rf     		),
         .rrj0     		( rrj0_rf     		),
@@ -282,9 +287,15 @@ module cpu (
     wire [31:0]	rrj1_forward;
     wire [31:0]	rrk0_forward;
     wire [31:0]	rrk1_forward;
+    wire [31:0]	rrd0_forward;
+    wire [31:0]	rrd1_forward;
 
     forward u_forward(
         //ports
+        .ctr_exe1_wb_0(ctr_exe1_wb_0),
+        .ctr_exe1_wb_1(ctr_exe1_wb_1),
+        .ctr_exe0_exe1_0(ctr_exe0_exe1_0),
+        .ctr_exe0_exe1_1(ctr_exe0_exe1_1),
         .aluresult_exe0_exe1_0 		( aluresult_exe0_exe1_0 		),
         .aluresult_exe0_exe1_1 		( aluresult_exe0_exe1_1 		),
         .result_exe1_wb_0      		( result_exe1_wb_0      		),
@@ -295,24 +306,32 @@ module cpu (
         .rrk_reg_exe0_1        		( rrk_reg_exe0_1        		),
         .rd_exe0_exe1_0        		( rd_exe0_exe1_0        		),
         .rd_exe0_exe1_1        		( rd_exe0_exe1_1        		),
+        .rrd_reg_exe0_0        		( rrd_reg_exe0_0        		),
+        .rrd_reg_exe0_1        		( rrd_reg_exe0_1        		),
         .rd_exe1_wb_0          		( rd_exe1_wb_0          		),
         .rd_exe1_wb_1          		( rd_exe1_wb_1          		),
         .rj0                   		( rj_reg_exe0_0               		),
         .rj1                   		( rj_reg_exe0_1               		),
         .rk0                   		( rk_reg_exe0_0               		),
         .rk1                   		( rk_reg_exe0_1               		),
+        .rd0(rd_reg_exe0_0),
+        .rd1(rd_reg_exe0_1),
         .rrj0                  		( rrj0_forward                  ),
         .rrj1                  		( rrj1_forward                  ),
         .rrk0                  		( rrk0_forward                  ),
-        .rrk1                  		( rrk1_forward                  )
+        .rrk1                  		( rrk1_forward                  ),
+        .rrd0(rrd0_forward),
+        .rrd1(rrd1_forward)
     );
 
     wire [31:0]	alu1_0;
 
     alusrc u_alusrc1_0(
         //ports
-        .register 		( rrj0_forward 		),
-        .other    		( pc_reg_exe0_0    		),
+        .register0 		( rrj0_forward 		),
+        .register2 		( 0 		),
+        .register3 		( 0 		),
+        .register1    	( pc_reg_exe0_0    		),
         .alusrc   		( ctr_reg_exe0_0[15:14]   		),
         .alu      		( alu1_0      		)
     );
@@ -321,8 +340,10 @@ module cpu (
 
     alusrc u_alusrc2_0(
         //ports
-        .register 		( rrk0_forward 		),
-        .other    		( imm_reg_exe0_0    		),
+        .register0 		( rrk0_forward 		),
+        .register2 		( rrd0_forward 		),
+        .register3 		( 4 		),
+        .register1    	( imm_reg_exe0_0    		),
         .alusrc   		( ctr_reg_exe0_0[13:12]   		),
         .alu      		( alu2_0      		)
     );
@@ -331,9 +352,11 @@ module cpu (
 
     alusrc u_alusrc1_1(
         //ports
-        .register 		( rrj1_forward 		),
-        .other    		( pc_reg_exe0_1    		),
-        .alusrc   		( ctr_reg_exe0_1[15:14]   		),
+        .register0 		( rrj1_forward 		),
+        .register2 		( 0 		),
+        .register3 		( 0 		),
+        .register1    	( pc_reg_exe0_1    		),
+        .alusrc   		( ctr_reg_exe0_1_ALE[15:14]   		),
         .alu      		( alu1_1      		)
     );
 
@@ -341,9 +364,11 @@ module cpu (
 
     alusrc u_alusrc2_1(
         //ports
-        .register 		( rrk1_forward 		),
-        .other    		( imm_reg_exe0_1    		),
-        .alusrc   		( ctr_reg_exe0_1[13:12]   		),
+        .register0 		( rrk1_forward 		),
+        .register2 		( rrd1_forward 		),
+        .register3 		( 4 		),
+        .register1    	( imm_reg_exe0_1    		),
+        .alusrc   		( ctr_reg_exe0_1_ALE[13:12]   		),
         .alu      		( alu2_1      		)
     );
 
@@ -366,7 +391,7 @@ module cpu (
         //ports
         .alu1      		( alu1_1      		),
         .alu2      		( alu2_1      		),
-        .ctr       		( ctr_reg_exe0_1       		),
+        .ctr       		( ctr_reg_exe0_1_ALE       		),
         .aluresult 		( aluresult1		),
         .zero      		( zero1     		)
     );
@@ -391,7 +416,7 @@ module cpu (
         .rstn      		( rstn      		),
         .rrj        		( rrj1_forward        		),
         .rrk        		( rrk1_forward        		),
-        .ctr       		( ctr_reg_exe0_1       		),
+        .ctr       		( ctr_reg_exe0_1_ALE       		),
         .mulresult_reg 		( mulresult1 		)
     );
 
@@ -412,18 +437,17 @@ module cpu (
         //ports
         .rrj        		( rrj1_forward       		),
         .rrk        		( rrk1_forward       		),
-        .ctr       		( ctr_reg_exe0_1       		),
+        .ctr       		( ctr_reg_exe0_1_ALE       		),
         .divresult 		( divresult1 		)
     );
 
-    wire 	ifbr0;
     wire [31:0]	brresult0;
 
     br u_br0(
         //ports
         .ctr      		( ctr_reg_exe0_0      		),
-        .rrj      		( rrj_reg_exe0_0      		),
-        .rrd      		( rrd_reg_exe0_0      		),
+        .rrj      		( rrj0_forward      		),
+        .rrd      		( rrd0_forward      		),
         .pc       		( pc_reg_exe0_0       		),
         .imm      		( imm_reg_exe0_0      		),
         .zero     		( zero0     		),
@@ -431,14 +455,13 @@ module cpu (
         .brresult 		( brresult0 	)
     );
 
-    wire 	ifbr1;
     wire [31:0]	brresult1;
 
     br u_br1(
         //ports
-        .ctr      		( ctr_reg_exe0_1      		),
-        .rrj      		( rrj_reg_exe0_1      		),
-        .rrd      		( rrd_reg_exe0_1      		),
+        .ctr      		( ctr_reg_exe0_1_ALE      		),
+        .rrj      		( rrj1_forward      		),
+        .rrd      		( rrd1_forward      		),
         .pc       		( pc_reg_exe0_1       		),
         .imm      		( imm_reg_exe0_1      		),
         .zero     		( zero1     		),
@@ -475,15 +498,15 @@ module cpu (
     //PC
     always @(*) begin
         if(ifbr_priv) npc=priv_pc;
-        else if(ifbr1) npc=brresult0;
-        else if(ifbr0) npc=brresult1;
+        else if(ifbr1) npc=brresult1;
+        else if(ifbr0) npc=brresult0;
         else if(pc[2]) npc=pc+4;
         else npc=pc+8;
         //0000 0004 0008 000C 0010
         //0000 0100 1000 1100 10000
     end    
     always @(posedge clk,negedge rstn) begin
-        if(!rstn|flush_pc) pc<=0;
+        if(!rstn) pc<=0;
         else if(!stall_pc) pc<=npc;
     end
 
@@ -557,35 +580,10 @@ module cpu (
     end
 
     //REG-EXE0
-    localparam liwaiALE = {5'd17,3'b0,4'd3},liwaiADM={5'd16,3'b0,4'd3};
-    wire [1:0]addr_2=rrj1_rf[1:0]+imm_id_reg_1[1:0];
-    always @(*) begin//检测访存地址是否对齐，否则将访存指令变为例外指令
-        //ADEM?
-        ctr_id_reg_1_ALE=ctr_id_reg_1;
-        if(ctr_id_reg_1[3:0]==5)
-            case (ctr_id_reg_1[11:7])
-                1: begin
-                    if(addr_2[0]) ctr_id_reg_1_ALE=liwaiALE;
-                end
-                2: begin
-                    if(addr_2[1:0]) ctr_id_reg_1_ALE=liwaiALE;
-                end
-                4: begin
-                    if(addr_2[0]) ctr_id_reg_1_ALE=liwaiALE;
-                end
-                5: begin
-                    if(addr_2[1:0]) ctr_id_reg_1_ALE=liwaiALE;
-                end
-                7: begin
-                    if(addr_2[0]) ctr_id_reg_1_ALE=liwaiALE;
-                end
-            endcase
-    end
-
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_reg_exe0_0) begin
             ctr_reg_exe0_0 <= 0;
-            excp_arg_reg_exe0_0<=0;
+            // excp_arg_reg_exe0_0<=0;
             imm_reg_exe0_0<=0;
             rk_reg_exe0_0<=0;
             rj_reg_exe0_0<=0;
@@ -597,7 +595,7 @@ module cpu (
         end
         else if(!stall_reg_exe0_0)begin
             ctr_reg_exe0_0 <= ctr_id_reg_0;
-            excp_arg_reg_exe0_0<=excp_arg_id_reg_0;
+            // excp_arg_reg_exe0_0<=excp_arg_id_reg_0;
             imm_reg_exe0_0<=imm_id_reg_0;
             rrk_reg_exe0_0<=rrk0_rf;
             rrj_reg_exe0_0<=rrj0_rf;
@@ -623,7 +621,7 @@ module cpu (
             pc_reg_exe0_1<=0;
         end
         else if(!stall_reg_exe0_1)begin
-            ctr_reg_exe0_1 <= ctr_id_reg_1_ALE;
+            ctr_reg_exe0_1 <= ctr_id_reg_1;
             excp_arg_reg_exe0_1<=excp_arg_id_reg_1;
             imm_reg_exe0_1<=imm_id_reg_1;
             rrk_reg_exe0_1<=rrk1_rf;
@@ -637,34 +635,49 @@ module cpu (
     end
 
     //EXE0-EXE1
+    localparam liwaiALE = {5'd17,3'b0,4'd3},liwaiADM={5'd16,3'b0,4'd3},excp_argALE='b001001,excp_argADM='b1_001000;
+    wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
+
+    always @(*) begin//检测访存地址是否对齐，否则将访存指令变为例外指令
+        //ADEM?
+        ctr_reg_exe0_1_ALE=ctr_reg_exe0_1;
+        excp_arg_reg_exe0_1_ALE=excp_arg_reg_exe0_1;
+        if(ctr_reg_exe0_1[3:0]==5)
+            case (ctr_reg_exe0_1[11:7])
+                1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                2: if(addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                4: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                5: if(addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                7: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+            endcase
+        else if(ctr_reg_exe0_1[3:0]==6)
+            case (ctr_id_reg_1[11:7])//fot yuanzi, 0:load, 1:store
+                0: if(addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+                1: if(addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwaiALE;excp_arg_reg_exe0_1_ALE=excp_argALE; end
+            endcase
+    end
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_exe0_exe1_0) begin
             ctr_exe0_exe1_0 <= 0;
-            rd_exe0_exe1_0<=0;
-            aluresult_exe0_exe1_0<=0;
+            rd_exe0_exe1_0 <= 0;
+            aluresult_exe0_exe1_0 <= 0;
         end
         else if(!stall_exe0_exe1_0)begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
-            rd_exe0_exe1_0<=rd_reg_exe0_0;
-            aluresult_exe0_exe1_0<=aluresult0;
+            rd_exe0_exe1_0 <= rd_reg_exe0_0;
+            aluresult_exe0_exe1_0 <= aluresult0;
         end
     end
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_exe0_exe1_1) begin
-            ctr_exe0_exe1_0 <= 0;
             ctr_exe0_exe1_1 <= 0;
-            rd_exe0_exe1_0<=0;
             rd_exe0_exe1_1<=0;
-            aluresult_exe0_exe1_0<=0;
             aluresult_exe0_exe1_1<=0;
         end
         else if(!stall_exe0_exe1_1)begin
-            ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
-            ctr_exe0_exe1_1 <= ctr_reg_exe0_1;
-            rd_exe0_exe1_0<=rd_reg_exe0_0;
+            ctr_exe0_exe1_1 <= ctr_reg_exe0_1_ALE;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
-            aluresult_exe0_exe1_0<=aluresult0;
             aluresult_exe0_exe1_1<=aluresult1;
         end
     end
