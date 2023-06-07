@@ -3,11 +3,11 @@ module alu (
     output reg [31:0]aluresult,
     output zero
 );
-    wire [3:0]type=ctr[3:0];
+    wire [3:0]type1=ctr[3:0];
     wire [3:0]aluop=ctr[21:18];
     always @(*) begin
         aluresult=0;
-        if(type==0|type==8|type==1)
+        if(type1==0|type1==8|type1==1)
         case (aluop)
             0:aluresult=alu1&alu2;
             1:aluresult=alu1|alu2;
