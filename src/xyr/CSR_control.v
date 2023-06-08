@@ -18,12 +18,17 @@ module CSR_control(
     input [31:0] pipeline_CSR_evaddr,
     //input [15:0] pipeline_CSR_exception2,
     input [8:0]pipeline_CSR_ESTAT,//最高位为核间中断
-    output CSR_pipeline_clk_stall
+    output CSR_pipeline_clk_stall,
+    output [8:0]CSR_pipeline_CRMD,
+    output CSR_pipeline_LLBit,
+    output [9:0]CSR_pipeline_ASID,
+    output [31:0]CSR_pipeline_DMW0,
+    output [31:0]CSR_pipeline_DMW1
     //output CSR_TLB
 );
     localparam TLB_n=10,TLB_PALEN=35,TIMER_n=20;
     reg [8:0] CRMD;reg [2:0] PRMD;reg EUEN;reg [12:0] ECFG_LIE;
-    reg [1:0] ESTAT_IS;wire TI_INTE;reg [21:16]ESTAT_Ecode;reg [30:22]ESTAT_EsubCode;
+    reg [1:0] ESTAT_IS;reg TI_INTE;reg [21:16]ESTAT_Ecode;reg [30:22]ESTAT_EsubCode;
     reg[31:0] ERA;reg [31:0] BADV;reg [31:6] EENTRY;wire [31:0] CPUID;
     reg [31:0] SAVE0,SAVE1,SAVE2,SAVE3;reg  LLBCTL_ROLLB,LLBCTL_KLO;wire LLBCTL_WCLLB;
     reg [TLB_n-1:0] TLBIDX_Index;
@@ -35,10 +40,13 @@ module CSR_control(
     reg [27:25] DMW1_PSEG;reg [31:29] DMW1_VSEG;reg [31:0]TID;reg [TIMER_n-1:0]TCFG;
     reg [TIMER_n-1:0]TVAL;wire TICLR;
     assign CPUID=0,ASID_ASIDBITS=10,PGD=BADV[31]?PGDH:PGDL,TICLR=0,LLBCTL_WCLLB=0;
-    
+    assign CSR_pipeline_CRMD=CRMD,CSR_pipeline_LLBit=LLBCTL_ROLLB;
+    assign CSR_pipeline_ASID=ASID_ASID;
+    assign CSR_pipeline_DMW0={DMW0_VSEG,1'b0,DMW0_PSEG,19'b0,DMW0_MAT,DMW0_PLV3,2'b0,DMW0_PLV0};
+    assign CSR_pipeline_DMW1={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     
     localparam PRIV=3,LLW=6,LOAD=0;
-    localparam ERTN=6,IDLE=7,INTE=13,CSRRD=8,CSRWR=9,CSRXCHG=10;
+    localparam ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10;
     localparam INT='H0,PIL='H1,PIS='H2,PIF='H3,PME='H4,PPI='H7,
     ADE='H8,ALE='H9,SYS='HB,BRK='HC,INE='HD,IPE='HE,FPD='HF,
     FPE='H12,TLBR='H3F;
@@ -49,7 +57,7 @@ module CSR_control(
     wire [8:0] ESTATin;reg busy,flushout;wire stallin,flushin;
     wire exe;wire [3:0] expTLB;reg clk_stall;reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
-    reg [31:0] evaddr;wire [31:0]dwcsr;
+    reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_stall=busy,CSR_pipeline_flush=flushout;
     assign exe=pipeline_CSR_type==PRIV||expTLB[3]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
@@ -69,9 +77,30 @@ module CSR_control(
         ns<=cs;
         end
     end
+    always@(posedge(clk),negedge(rstn))
+    begin
+    if(!rstn)
+        begin
+        TI_INTE<=0;
+        TVAL<=0;
+        end
+    else
+        begin
+        if(TI_cl)
+            TI_INTE<=0;
+        else if(TVAL==1)
+            begin
+            TI_INTE<=1;
+            end
+        if(TVAL==0&&TCFG[1])
+            TVAL<={TCFG[TIMER_n-1:2],2'b0};
+        else if(TCFG[0]&&TVAL!=0)
+            TVAL<=TVAL-1;
+        end
+    end
     always@(*)
     begin
-    busy=1;flushout=0;
+    busy=1;flushout=1;
     outpc={EENTRY,6'b0};dout=0;
     mask=~0;
     inpc=pipeline_CSR_inpc;
@@ -79,6 +108,7 @@ module CSR_control(
     esubcode=pipeline_CSR_excp_arg[14:6];
     mode=pipeline_CSR_subtype;
     evaddr=pipeline_CSR_evaddr;
+    TI_cl=0;
     if(inte)
         begin
         mode=INTE;
@@ -105,6 +135,7 @@ module CSR_control(
     case(cs)
         Wait:
             begin
+            busy=0;
             if((!stallin && !flushin && exe)||inte)
                 begin 
                 case(mode)
@@ -113,16 +144,23 @@ module CSR_control(
                         flushout=1; 
                         end
                     CSRXCHG:
+                        begin
                         mask=pipeline_CSR_mask;
+                        if(csr_num=='h44&&dwcsr[0])
+                            TI_cl=1;
+                        end
                     INTE:
                        begin
                        flushout=1; 
-                       end
+                       end 
+                    CSRWR:
+                         if(csr_num=='h44&&dwcsr[0])
+                            TI_cl=1;          
                 endcase
                 end
             else
                 begin
-                busy=0;
+                flushout=0;
                 ns=Wait;
                 end
             end
@@ -283,13 +321,32 @@ module CSR_control(
                                     'hc:
                                         EENTRY<=dwcsr[31:6];
                                     'h10:
+                                        begin
+                                        TLBIDX_Index<=dwcsr[TLB_n-1:0];
+                                        TLBIDX_PS<=dwcsr[29:24];
+                                        TLBIDX_NE<=dwcsr[31];
+                                        end
                                     'h11:
+                                        TLBEHI<=dwcsr[31:13];
                                     'h12:
-                                    'h13:  
+                                        begin
+                                        TLBELO0_VDPLVMATG<=dwcsr[6:0];
+                                        TLBELO0_PPN<=dwcsr[TLB_PALEN-5:8];
+                                        end
+                                    'h13:
+                                        begin
+                                        TLBELO1_VDPLVMATG<=dwcsr[6:0];
+                                        TLBELO1_PPN<=dwcsr[TLB_PALEN-5:8];
+                                        end  
                                     'h18:
+                                        begin
+                                        ASID_ASID<=dwcsr[9:0];
+                                        end
                                     'h19:
+                                        PGDL<=dwcsr[31:12];
                                     'h1a:
-                                    'h1b:
+                                        PGDH<=dwcsr[31:12];
+                                    //'h1b:
                                     //'h20:
                                         
                                     'h30:
@@ -301,9 +358,11 @@ module CSR_control(
                                     'h33:
                                         SAVE3<=dwcsr;
                                     'h40:
+                                        TID<=dwcsr;
                                     'h41:
-                                    'h42:
-                                    'h44:
+                                        TCFG<=dwcsr[TIMER_n-1:0];
+                                    //'h42:
+                                    //'h44:    
                                     'h60:
                                         begin
                                         if(dwcsr[1])
@@ -311,10 +370,24 @@ module CSR_control(
                                         LLBCTL_KLO<=dwcsr[2];
                                         end
                                     'h88:
-                                    'h98:
-                                    'h180;
+                                        TLBRENTRY<=dwcsr[31:6];
+                                    //'h98:  
+                                    'h180:
+                                        begin
+                                        DMW0_PLV0<=dwcsr[0];
+                                        DMW0_PLV3<=dwcsr[3];
+                                        DMW0_MAT<=dwcsr[5:4];
+                                        DMW0_PSEG<=dwcsr[27:25];
+                                        DMW0_VSEG<=dwcsr[31:29];
+                                        end
                                     'h181:
-                                    
+                                        begin
+                                        DMW1_PLV0<=dwcsr[0];
+                                        DMW1_PLV3<=dwcsr[3];
+                                        DMW1_MAT<=dwcsr[5:4];
+                                        DMW1_PSEG<=dwcsr[27:25];
+                                        DMW1_VSEG<=dwcsr[31:29];
+                                        end
                                 endcase 
                         endcase
                         end
