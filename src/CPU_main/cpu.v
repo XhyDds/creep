@@ -77,9 +77,9 @@ module cpu (
     assign stall_exe1_wb_1 =    stall_priv|stall_div0|stall_div1|stall_dcache;
 
     //ICache
-    wire [31:0]	test1;
-    wire [31:0]	test2;
-    wire [31:0]	test3;
+    wire [31:0]	test1_icache;
+    wire [31:0]	test2_icache;
+    wire [31:0]	test3_icache;
 
     wire [63:0]	dout_icache_pipeline;
     wire 	flag_icache_pipeline;
@@ -97,9 +97,9 @@ module cpu (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .test1                  		( test1                  		),
-        .test2                  		( test2                  		),
-        .test3                  		( test3                  		),
+        .test1                  		( test1_icache           		),
+        .test2                  		( test2_icache           		),
+        .test3                  		( test3_icache           		),
 
         .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
@@ -518,9 +518,9 @@ module cpu (
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		)
     );
 
-    wire [31:0]	test1;
-    wire [31:0]	test2;
-    wire [31:0]	test3;
+    wire [31:0]	test1_dcache;
+    wire [31:0]	test2_dcache;
+    wire [31:0]	test3_dcache;
 
     wire [31:0]	dout_dcache_pipeline;
     wire 	dcache_pipeline_ready;//无用？
@@ -541,9 +541,9 @@ module cpu (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .test1                  		( test1                  		),
-        .test2                  		( test2                  		),
-        .test3                  		( test3                  		),
+        .test1                  		( test1_dcache           		),
+        .test2                  		( test2_dcache           		),
+        .test3                  		( test3_dcache           		),
 
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
