@@ -15,19 +15,17 @@ module decoder (
     reg [1:0]alusrc2;//0:reg, 1:imm
     reg [3:0]type_;//0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:llbit, 7:RDCNT, 8:alu+br
     reg [4:0]subtype;//可与aluop合并？×有同时使用
-    //for exceptions, 0:cacop, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr, 11:BRK, 12:SYS, 13:INE, 14:IPE, 15:ADEF, 16:ADEM, 17:ALE
-
-    //!!! 0:exception, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr
+    //for exceptions, 0:exception, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr
 
     //for div, 0:div.w, 1:mod.w, 2:div.wu, 3:mod.wu
     //for mul, 0:mul.w, 1:mulh.w, 2:mulh.wu
-    //for dcache, 0~2:load, 3~5:store, 6~7:load, 8:ibar
+    //for dcache, 0~2:load, 3~5:store, 6~7:load, 8:ibar, 9:cacop
     //for br, 0:b, 1:beq, 2:bne, 3:blt, 4:bge, 5:bltu, 6:bgeu
     //fot yuanzi, 0:load, 1:store
     reg memread,memwrite,regwrite,nop,priv;
     assign control=nop?0:{9'b0,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_};//顺序可调换
     always @(*) begin
-        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;
+        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;
         if(|pc[1:0]) begin type_=liwai;subtype=0;excp_arg='b0_001000; end //ADEF
         else if(pc[31]) begin type_=liwai;subtype=0;excp_arg='b1_001000; end //ADEM
         else case (ir[31:26])
@@ -195,7 +193,7 @@ module decoder (
                     case (ir[23:22])
                         'b00: //CACOP
                             begin
-                                imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];excp_arg={11'b0,ir[4:0]};type_=dcache;subtype=0;priv=(ir[4:3]!=2);
+                                imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];excp_arg={11'b0,ir[4:0]};type_=dcache;subtype=9;priv=(ir[4:3]!=2);
                             end
                         'b01: 
                             if(ir[21:17]=='b00100&ir[9:0]=='b0000000000)
