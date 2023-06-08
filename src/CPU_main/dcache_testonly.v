@@ -1,4 +1,4 @@
-module dcache (
+module dcache_testonly (
     input      clk,rstn,
     input      [31:0]addr,
     output reg [31:0]data_reg
@@ -9,4 +9,4 @@ module dcache (
         else data_reg<=data;
     end
     assign data = addr+'b1000_0000_0000_0000_0000_0000_0000_0000;
-endmodule //dcache
+endmodule //dcache_testonly
