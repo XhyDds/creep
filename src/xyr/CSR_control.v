@@ -5,7 +5,7 @@ module CSR_control(
     output CSR_pipeline_stall,
     output CSR_pipeline_flush,
     output [31:0] CSR_pipeline_outpc,
-    input [31:0] CSR_pipeline_inpc,//
+    input [31:0] pipeline_CSR_inpc,//
     input [3:0]pipeline_CSR_type,
     input [4:0]pipeline_CSR_subtype,
     //input [14:0] pipeline_CSR_excp_subcode,//
@@ -22,7 +22,7 @@ module CSR_control(
     //output CSR_TLB
 );
     localparam TLB_n=10,TLB_PALEN=35,TIMER_n=20;
-    reg [8:0] CRMD;reg [2:0] PRMD;wire [31:0] EUEN;reg [12:0] ECFG_LIE;
+    reg [8:0] CRMD;reg [2:0] PRMD;reg EUEN;reg [12:0] ECFG_LIE;
     reg [1:0] ESTAT_IS;wire TI_INTE;reg [21:16]ESTAT_Ecode;reg [30:22]ESTAT_EsubCode;
     reg[31:0] ERA;reg [31:0] BADV;reg [31:6] EENTRY;wire [31:0] CPUID;
     reg [31:0] SAVE0,SAVE1,SAVE2,SAVE3;reg  LLBCTL_ROLLB,LLBCTL_KLO;wire LLBCTL_WCLLB;
@@ -34,7 +34,7 @@ module CSR_control(
     reg [27:25] DMW0_PSEG;reg [31:29] DMW0_VSEG;reg DMW1_PLV0;reg DMW1_PLV3;reg [5:4] DMW1_MAT;
     reg [27:25] DMW1_PSEG;reg [31:29] DMW1_VSEG;reg [31:0]TID;reg [TIMER_n-1:0]TCFG;
     reg [TIMER_n-1:0]TVAL;wire TICLR;
-    assign EUEN=0,CPUID=0,ASID_ASIDBITS=10,PGD=BADV[31]?PGDH:PGDL,TICLR=0,LLBCTL_WCLLB=0;
+    assign CPUID=0,ASID_ASIDBITS=10,PGD=BADV[31]?PGDH:PGDL,TICLR=0,LLBCTL_WCLLB=0;
     
     
     localparam PRIV=3,LLW=6,LOAD=0;
@@ -49,7 +49,7 @@ module CSR_control(
     wire [8:0] ESTATin;reg busy,flushout;wire stallin,flushin;
     wire exe;wire [3:0] expTLB;reg clk_stall;reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
-    reg [31:0] evaddr;
+    reg [31:0] evaddr;wire [31:0]dwcsr;
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_stall=busy,CSR_pipeline_flush=flushout;
     assign exe=pipeline_CSR_type==PRIV||expTLB[3]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
@@ -74,7 +74,7 @@ module CSR_control(
     busy=1;flushout=0;
     outpc={EENTRY,6'b0};dout=0;
     mask=~0;
-    inpc=CSR_pipeline_inpc;
+    inpc=pipeline_CSR_inpc;
     ecode=pipeline_CSR_excp_arg[5:0];
     esubcode=pipeline_CSR_excp_arg[14:6];
     mode=pipeline_CSR_subtype;
@@ -92,13 +92,13 @@ module CSR_control(
         //ecode=;
         //esubcode=;
         end
-    if(ecode==TLBR)
-        begin
-        outpc={TLBRENTRY,6'b0};
-        end
-    else if(ecode==ERTN)
+    if(mode==ERTN)
         begin
         outpc=ERA;
+        end
+    else if(ecode==TLBR)
+        begin
+        outpc={TLBRENTRY,6'b0};
         end
     if(ecode==ADE&&esubcode==ADEF)
         evaddr=inpc;
@@ -134,7 +134,7 @@ module CSR_control(
         'h1:
             dout={29'b0,PRMD};
         'h2:
-            dout=EUEN;
+            dout={31'b0,EUEN};
         'h4:
             dout={19'b0,ECFG_LIE[12:11],1'b0,ECFG_LIE[9:0]};
         'h5:
@@ -169,8 +169,10 @@ module CSR_control(
             dout={PGDL,12'b0};
         'h1a:
             dout={PGDH,12'b0};
-        'h20:
+        'h1b:
             dout={PGD,12'b0};
+        'h20:
+            dout=CPUID;
         'h30:
             dout=SAVE0;
         'h31:
@@ -200,6 +202,7 @@ module CSR_control(
     endcase
     
     end
+    assign dwcsr=(dout&(~mask))|(din&mask);
     always@(posedge(clk),negedge(rstn))
     begin
     if(!rstn)
@@ -225,7 +228,7 @@ module CSR_control(
                         case(mode)
                             ERTN:
                                 begin
-                                if(ESTAT_Ecode=='h3f)
+                                if(ESTAT_Ecode==TLBR)
                                     CRMD[4:0]<={2'b10,PRMD};
                                 else
                                     CRMD[4:0]<={2'b01,PRMD};
@@ -243,6 +246,8 @@ module CSR_control(
                                     begin
                                     CRMD[4:3]<=2'b01;
                                     end
+                                ESTAT_Ecode<=ecode;
+                                ESTAT_EsubCode<=esubcode;
                                 BADV<=evaddr;
                                 end
                             LLW:
@@ -251,44 +256,66 @@ module CSR_control(
                                 end
                             CSRWR,CSRXCHG:
                                case(csr_num)
-                                   'h0:
-                                       begin
-                                       end
-                                   'h1:
-                                       dout={29'b0,PRMD};
-                                   'h2:
-                                       dout=0;
-                                   'h4:
-                                       dout={19'b0,ECFG_LIE[12:11],1'b0,ECFG_LIE[9:0]};
-                                   'h5:
-                                       dout={1'b0,ESTAT_EsubCode,ESTAT_Ecode,3'b0,ESTATin[8],TI_INTE,1'b0,ESTATin[7:0],ESTAT_IS};
-                                   'h6:
-                                        dout=
-                                   'h7:
-                                   'hc:
-                                   'h10:
-                                   'h11:
-                                   'h12:
-                                   'h13:  
-                                   'h18:
-                                   'h19:
-                                   'h1a:
-                                   'h20:
-                                   'h30:
-                                   'h31:
-                                   'h32:
-                                   'h33:
-                                   'h40:
-                                   'h41:
-                                   'h42:
-                                   'h44:
-                                   'h60:
-                                   'h88:
-                                   'h98:
-                                   'h180;
-                                   'h181:
-                                   
-                               endcase 
+                                    'h0:
+                                        begin
+                                        CRMD[2:0]<=dwcsr[2:0];
+                                        CRMD[8:5]<=dwcsr[8:5];
+                                        if(dwcsr[4]^dwcsr[3])
+                                            CRMD[4:3]<=dwcsr[4:3];
+                                        end
+                                    'h1:
+                                        PRMD<=dwcsr[2:0];
+                                    'h2:
+                                        EUEN<=dwcsr[0];
+                                    'h4:
+                                        begin
+                                        ECFG_LIE[12:11]<=dwcsr[12:11];
+                                        ECFG_LIE[9:0]<=dwcsr[9:0];
+                                        end
+                                    'h5:
+                                        begin
+                                        ESTAT_IS<=dwcsr[1:0];
+                                        end
+                                    'h6:
+                                         ERA<=dwcsr;
+                                    'h7:
+                                        BADV<=dwcsr;
+                                    'hc:
+                                        EENTRY<=dwcsr[31:6];
+                                    'h10:
+                                    'h11:
+                                    'h12:
+                                    'h13:  
+                                    'h18:
+                                    'h19:
+                                    'h1a:
+                                    'h1b:
+                                    //'h20:
+                                        
+                                    'h30:
+                                        SAVE0<=dwcsr;
+                                    'h31:
+                                        SAVE1<=dwcsr;
+                                    'h32:
+                                        SAVE2<=dwcsr;
+                                    'h33:
+                                        SAVE3<=dwcsr;
+                                    'h40:
+                                    'h41:
+                                    'h42:
+                                    'h44:
+                                    'h60:
+                                        begin
+                                        if(dwcsr[1])
+                                            LLBCTL_ROLLB<=0;
+                                        LLBCTL_KLO<=dwcsr[2];
+                                        end
+                                    'h88:
+                                    'h98:
+                                    'h180;
+                                    'h181:
+                                    
+                                endcase 
                         endcase
                         end
                     end
