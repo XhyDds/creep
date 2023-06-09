@@ -5,19 +5,18 @@ module CSR_control(
     output CSR_pipeline_stall,
     output CSR_pipeline_flush,
     output [31:0] CSR_pipeline_outpc,
-    input [31:0] pipeline_CSR_inpc,//
+    input [31:0] pipeline_CSR_inpc0,//
     input [3:0]pipeline_CSR_type,
     input [4:0]pipeline_CSR_subtype,
-    //input [14:0] pipeline_CSR_excp_subcode,//
-    input [15:0] pipeline_CSR_excp_arg,
+    input [15:0] pipeline_CSR_excp_arg0,
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [3:0] pipeline_CSR_exceptionTLB,//×î¸ßÎ»±íÊ¾ÊÇ·ñÓÐÐ§,¸ßÓÅÏÈ¼¶
-    input [31:0] pipeline_CSR_TLBpc,//
-    input [31:0] pipeline_CSR_evaddr,
-    //input [15:0] pipeline_CSR_exception2,
-    input [8:0]pipeline_CSR_ESTAT,//×î¸ßÎ»ÎªºË¼äÖÐ¶Ï
+    input [15:0] pipeline_CSR_excp_arg1,//ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ê¾ï¿½Ç·ï¿½ï¿½ï¿½Ð§,ï¿½ï¿½ï¿½ï¿½ï¿½È¼ï¿½ï¿½ï¿½dcacheï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ecodeï¿½ï¿½esubcoed
+    input [31:0] pipeline_CSR_inpc1,//dcacheï¿½ï¿½ï¿½ï¿½pc
+    input [31:0] pipeline_CSR_evaddr0,//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
+    input [31:0] pipeline_CSR_evaddr1,//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½dcacheï¿½Ã´ï¿½ï¿½ï¿½ï¿½
+    input [8:0]pipeline_CSR_ESTAT,//ï¿½ï¿½ï¿½Î»Îªï¿½Ë¼ï¿½ï¿½Ð¶ï¿½
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -55,16 +54,16 @@ module CSR_control(
     reg [4:0]ns,cs;
     reg [4:0] mode;wire [31:0] din;reg [31:0]dout,mask;
     wire [8:0] ESTATin;reg busy,flushout;wire stallin,flushin;
-    wire exe;wire [3:0] expTLB;reg clk_stall;reg [31:0] outpc;
+    wire exe;wire [15:0] excp_arg1;reg clk_stall;reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
     reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_stall=busy,CSR_pipeline_flush=flushout;
-    assign exe=pipeline_CSR_type==PRIV||expTLB[3]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
+    assign exe=pipeline_CSR_type==PRIV||excp_arg1[15]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout;
-    assign expTLB=pipeline_CSR_exceptionTLB,CSR_pipeline_clk_stall=clk_stall;
+    assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;
     assign CSR_pipeline_outpc=outpc,ESTATin=pipeline_CSR_ESTAT;
-    assign csr_num=pipeline_CSR_excp_arg;
+    assign csr_num=pipeline_CSR_excp_arg0;
     assign inte={ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]}?CRMD[2]:0;
     always@(posedge(clk),negedge(rstn))
     begin
@@ -83,6 +82,7 @@ module CSR_control(
         begin
         TI_INTE<=0;
         TVAL<=0;
+        TCFG<=0;
         end
     else
         begin
@@ -101,13 +101,13 @@ module CSR_control(
     always@(*)
     begin
     busy=1;flushout=1;
-    outpc={EENTRY,6'b0};dout=0;
+    outpc=inpc+4;dout=0;
     mask=~0;
-    inpc=pipeline_CSR_inpc;
-    ecode=pipeline_CSR_excp_arg[5:0];
-    esubcode=pipeline_CSR_excp_arg[14:6];
+    inpc=pipeline_CSR_inpc0;
+    ecode=pipeline_CSR_excp_arg0[5:0];
+    esubcode=pipeline_CSR_excp_arg0[14:6];
     mode=pipeline_CSR_subtype;
-    evaddr=pipeline_CSR_evaddr;
+    evaddr=pipeline_CSR_evaddr0;
     TI_cl=0;
     if(inte)
         begin
@@ -115,12 +115,13 @@ module CSR_control(
         ecode=INT;
         esubcode=0;
         end 
-    else if(expTLB[3])
+    else if(excp_arg1[15])
         begin
-        mode=INTE;//?
-        inpc=pipeline_CSR_TLBpc; 
-        //ecode=;
-        //esubcode=;
+        mode=INTE;
+        inpc=pipeline_CSR_inpc1; 
+        ecode=pipeline_CSR_excp_arg1[5:0];
+        esubcode=pipeline_CSR_excp_arg1[14:6];
+        evaddr=pipeline_CSR_evaddr1;
         end
     if(mode==ERTN)
         begin
@@ -141,7 +142,8 @@ module CSR_control(
                 case(mode)
                     ERTN:
                         begin
-                        flushout=1; 
+                        flushout=1;
+                        outpc=ERA;
                         end
                     CSRXCHG:
                         begin
@@ -152,6 +154,12 @@ module CSR_control(
                     INTE:
                        begin
                        flushout=1; 
+                       if(ecode==TLBR)
+                            begin
+                            outpc={TLBRENTRY,6'b0};
+                            end
+                       else
+                            outpc={EENTRY,6'b0};
                        end 
                     CSRWR:
                          if(csr_num=='h44&&dwcsr[0])
@@ -246,6 +254,17 @@ module CSR_control(
     if(!rstn)
         begin
         clk_stall<=0;
+        CRMD<=9'b0000_0100_0;PRMD<=0;EUEN<=0;ECFG_LIE<=0;
+        ESTAT_IS<=0;ESTAT_Ecode<=0;ESTAT_EsubCode<=0;
+        ERA<=0;BADV<=0;EENTRY<=0;
+        SAVE0<=0;SAVE1<=0;SAVE2<=0;SAVE3<=0;LLBCTL_ROLLB<=0;LLBCTL_KLO<=0;
+        TLBIDX_Index<=0;
+        TLBIDX_PS<=0;TLBIDX_NE<=0;TLBEHI<=0;TLBELO0_VDPLVMATG<=0;
+        TLBELO0_PPN<=0;TLBELO1_VDPLVMATG<=0;TLBELO1_PPN<=0;
+        ASID_ASID<=0;PGDL<=0;PGDH<=0;
+        TLBRENTRY<=0;DMW0_PLV0<=0;DMW0_PLV3<=0;DMW0_MAT<=0;
+        DMW0_PSEG<=0;DMW0_VSEG<=0;DMW1_PLV0<=0;DMW1_PLV3<=0;DMW1_MAT<=0;
+        DMW1_PSEG<=0;DMW1_VSEG<=0;TID<=0;
         end
     else
         begin
@@ -258,9 +277,6 @@ module CSR_control(
                         begin
                         clk_stall<=1;
                         end   
-//                    else if(expTLB[3])
-//                        begin
-//                        end
                     else
                         begin
                         case(mode)
