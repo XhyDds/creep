@@ -222,6 +222,7 @@ always @(*) begin
                     end
                 end
                 Flush:begin
+                    FSM_rbuf_we=1;
                     icache_pipeline_ready=1;
                     FSM_send_nop=1;
                 end

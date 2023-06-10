@@ -43,7 +43,8 @@ module bram #(
         end
     end
 
-    assign dout = (addr_r==waddr)?din:ram[addr_r];//write first
+    // assign dout = (addr_r==waddr&&we)?din:ram[addr_r];//write first
+    assign dout = ram[addr_r];
 
     always @(posedge clk) begin
         addr_r <= raddr;

@@ -38,8 +38,8 @@ module Dcache_TagV#(
     );
 wire [data_width-1:0]TagV_data[way-1:0];
 
-reg [addr_width-1:0]valid0; 
-reg [addr_width-1:0]valid1;
+reg [(1<<addr_width)-1:0]valid0; 
+reg [(1<<addr_width)-1:0]valid1;
 
 // always @(posedge clk,negedge rstn) begin
 //     if(!rstn)begin

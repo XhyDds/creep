@@ -50,7 +50,7 @@ module Icache#(
 
     //mem prot
     output      [31:0]addr_icache_mem,
-    input       [32*(2<<offset_width)-1:0]din_mem_icache,
+    input       [32*(1<<offset_width)-1:0]din_mem_icache,
 
     output      icache_mem_req,
     output      [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
@@ -101,7 +101,7 @@ wire use0,use1;
 wire way_sel_lru;
 
 Icache_lru Icache_lru(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .use0(use0),.use1(use1),
     .addr(rbuf_index),
     .way_sel(way_sel_lru)
@@ -111,7 +111,7 @@ defparam Icache_lru.way = way;
 
 //Data
 wire [way-1:0]Data_we;
-wire [(2<<index_width)*32-1:0]data0,data1;
+wire [(1<<index_width)*32-1:0]data0,data1;
 wire Data_replace;
 Icache_Data Icache_Data(
     .clk(clk),
@@ -125,12 +125,12 @@ Icache_Data Icache_Data(
     .Data_we(Data_we)
 );
 defparam Icache_Data.addr_width = index_width;
-defparam Icache_Data.data_width = (2<<index_width)*32;//单个line的长度
+defparam Icache_Data.data_width = (1<<index_width)*32;//单个line的长度
 defparam Icache_Data.offset_width = offset_width;
 defparam Icache_Data.way = way;
 
 //Tag
-wire [way-1:0]Tag_we,hit;
+wire [way-1:0]TagV_we,hit;
 Icache_TagV Icache_TagV(
     .clk(clk),
 
@@ -152,7 +152,7 @@ wire choose_way,choose_return;
 wire [offset_width-1:0]choose_word;
 reg [63:0]data_out;
 reg data_flag;
-reg [32*(2<<offset_width)-1:0]data_line;
+reg [32*(1<<offset_width)-1:0]data_line;
 wire send_nop;
 
 always @(*) begin
@@ -196,7 +196,9 @@ assign dout_icache_pipeline = send_nop ? 64'h1234ABCD00000013 : (stall_reg) ? da
 assign flag_icache_pipeline = send_nop ? 1'b0 : (stall_reg) ? data_flag_reg : data_flag;
 
 //Mem
-assign addr_icache_mem = rbuf_addr;
+wire [1+offset_width:0]temp;
+assign temp=0;
+assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
 
 //FSM
 Icache_FSMmain Icache_FSMmain(
@@ -233,7 +235,7 @@ Icache_FSMmain Icache_FSMmain(
     //Data and TagV
     .FSM_hit(hit),
     .FSM_Data_we(Data_we),
-    .FSM_TagV_we(Tag_we),
+    .FSM_TagV_we(TagV_we),
 
     //data choose
     .FSM_choose_way(choose_way),

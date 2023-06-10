@@ -56,7 +56,7 @@ module Dcache#(
     //mem prot
     output      [31:0]addr_dcache_mem,
     output      [31:0]dout_dcache_mem,
-    input       [32*(2<<offset_width)-1:0]din_mem_dcache,   //6.5xhy:应当是 1<<offset_width，由于不确定其他地方是否还有，不做修改
+    input       [32*(1<<offset_width)-1:0]din_mem_dcache,   //6.5xhy:应当是 1<<offset_width，由于不确定其他地方是否还有，不做修改
 
     output      dcache_mem_req,
     output      dcache_mem_wr,//0-read 1-write
@@ -118,7 +118,7 @@ wire use0,use1;
 wire way_sel_lru;
 
 Dcache_lru Dcache_lru(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .use0(use0),.use1(use1),
     .addr(rbuf_index),
     .way_sel(way_sel_lru)
@@ -128,7 +128,7 @@ defparam Dcache_lru.way = way;
 
 //Data
 wire [way-1:0]Data_we;
-wire [(2<<index_width)*32-1:0]data0,data1;
+wire [(1<<index_width)*32-1:0]data0,data1;
 wire Data_replace;
 Dcache_Data Dcache_Data(
     .clk(clk),
@@ -146,12 +146,12 @@ Dcache_Data Dcache_Data(
     .Data_replace(Data_replace)
 );
 defparam Dcache_Data.addr_width = index_width;
-defparam Dcache_Data.data_width = (2<<index_width)*32;//单个line的长度
+defparam Dcache_Data.data_width = (1<<index_width)*32;//单个line的长度
 defparam Dcache_Data.offset_width = offset_width;
 defparam Dcache_Data.way = way;
 
 //Tag
-wire [way-1:0]Tag_we,hit;
+wire [way-1:0]TagV_we,hit;
 Dcache_TagV Dcache_TagV(
     .clk(clk),
 
@@ -172,7 +172,7 @@ defparam Dcache_TagV.way = way;
 wire choose_way,choose_return;
 wire [offset_width-1:0]choose_word;
 reg [31:0]data_out;
-reg [32*(2<<offset_width)-1:0]data_line;
+reg [32*(1<<offset_width)-1:0]data_line;
 assign dout_dcache_pipeline = data_out;
 always @(*) begin
     if (choose_return) data_line = din_mem_dcache;
@@ -192,7 +192,9 @@ always @(*) begin
 end
 
 //Mem
-assign addr_dcache_mem = rbuf_addr;
+wire [1+offset_width:0]temp;
+assign temp=0;
+assign addr_dcache_mem = {rbuf_addr[31:2+offset_width],temp};
 assign dout_dcache_mem = rbuf_data;
 
 
@@ -237,7 +239,7 @@ Dcache_FSMmain Dcache_FSMmain1(
     .FSM_hit(hit),
     .FSM_Data_we(Data_we),
     .FSM_Data_replace(Data_replace),//为1时替换整行，否则对word操作
-    .FSM_TagV_we(Tag_we),
+    .FSM_TagV_we(TagV_we),
 
     //data choose
     .FSM_choose_way(choose_way),
