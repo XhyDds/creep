@@ -11,7 +11,7 @@
 /// 不需要last，因为与l2之间一次性传输（同理，不需要len，size直接传过去）
 /// 不需要多个传输周期，因为一次传输且串行，只要单一状态即可。
 module arbiter #(
-    parameter offset_width = 2;
+    parameter offset_width = 2
 )(
     input           clk,
     input           rstn,
@@ -146,7 +146,7 @@ module arbiter #(
         endcase
     end
 endmodule
-`endif VERSION1
+`endif
 
 
 `ifdef VERSION2
@@ -309,4 +309,4 @@ module arbiter #(
         
     end
 endmodule
-`endif VERSION2
+`endif

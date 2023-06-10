@@ -49,21 +49,21 @@ begin
     rstn=1;pc=0;if0=0;if1=0;irin=0;flag=0;
     #0.1 rstn=0;
     #0.1 rstn=1;
-    #0.3 irin='h1111111122222222;flag=1;if0=1;if1=1;pc='h11111111;
-    #1 irin='h3333333344444444;flag=0;if0=0;if1=1;pc='h33333333;
-    #1 irin='h5555555566666666;flag=0;if0=0;if1=0;pc='h55555555;
-    #1 irin='h7777777788888888;flag=1;if0=1;if1=0;pc='h77777777;
-    #1 irin='h1111111122222222;flag=1;if0=1;if1=1;pc='h11111111;
-    #1 irin='h3333333344444444;flag=0;if0=0;if1=1;pc='h33333333;
-    #1 irin='h5555555566666666;flag=0;if0=0;if1=0;pc='h55555555;
-    #1 irin='h7777777788888888;flag=1;if0=1;if1=0;pc='h77777777;
-    #1 irin='hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
-    #1 irin='hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
-    #1 irin='hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
-    #1 irin='hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
-    #1 irin='hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
-    #1 irin='hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
-    #1 irin='hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
+    #0.3 irin=64'h1111111122222222;flag=1;if0=1;if1=1;pc='h11111111;
+    #1 irin=64'h3333333344444444;flag=0;if0=0;if1=1;pc='h33333333;
+    #1 irin=64'h5555555566666666;flag=0;if0=0;if1=0;pc='h55555555;
+    #1 irin=64'h7777777788888888;flag=1;if0=1;if1=0;pc='h77777777;
+    #1 irin=64'h1111111122222222;flag=1;if0=1;if1=1;pc='h11111111;
+    #1 irin=64'h3333333344444444;flag=0;if0=0;if1=1;pc='h33333333;
+    #1 irin=64'h5555555566666666;flag=0;if0=0;if1=0;pc='h55555555;
+    #1 irin=64'h7777777788888888;flag=1;if0=1;if1=0;pc='h77777777;
+    #1 irin=64'hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
+    #1 irin=64'hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
+    #1 irin=64'hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
+    #1 irin=64'hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
+    #1 irin=64'hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
+    #1 irin=64'hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
+    #1 irin=64'hFFFFFFFFFFFFFFFF;pc=0;flag=0;if0=1;if1=1;
     #1
     $finish;
 end

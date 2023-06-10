@@ -1,7 +1,7 @@
 
 //供l1使用，适用于icache和dcache
 module ReturnBuffer #(
-    parameter   offset_width=2,
+    parameter   offset_width=2
 )(
     input               clk,
     input               rstn,
@@ -13,9 +13,9 @@ module ReturnBuffer #(
     //arbiter 
     input reg           rready,   //r: arbiter->i:dataOK
     input[31:0]         rdata,
-    input reg           rlast,
+    input reg           rlast
 );
-    localparam  WORD_NUM = 1 << WORD_OFFSET_WIDTH-1,              // words per block(set)
+    localparam  WORD_NUM = (1 << offset_width)*32-1,              // words per block(set)
                 WORD_SIZE = 2;                                  // word offset width
 
 
@@ -73,7 +73,7 @@ module ReturnBuffer #(
             case (state)
                 IDLE: begin
                     if(rready) begin
-                        _word[31:0] <= rdata;
+                        _word <= {_word[(1<<offset_width)*32-33:0],rdata};
                     end
                     else begin
                         _word <= 0;
