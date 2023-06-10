@@ -18,7 +18,7 @@ module L2cache#(
     //Dcache port
     input       [31:0]addr_dcache_l2cache,
     input       [31:0]data_l2cache_dcache,
-    output      [32*(1<<L1offset_width)-1:0]dout_l2cache_icache,
+    output      [32*(1<<L1offset_width)-1:0]dout_l2cache_dcache,
     input       dcache_l2cache_req,
     input       dcache_l2cache_wr,
     output      l2cache_dcache_addrOK,
@@ -26,6 +26,10 @@ module L2cache#(
 
     //mem port
     output      [31:0]addr_l2cache_mem,
+    input       [32*(1<<L1offset_width)-1:0]din_mem_l2cache,
+
+
+
 )
 
 endmodule
