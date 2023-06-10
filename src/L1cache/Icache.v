@@ -40,7 +40,7 @@ module Icache#(
     output      [63:0]dout_icache_pipeline,//双发射 [31:0]是给定地址处的指令
     output      flag_icache_pipeline,//0-后一条指令（[64:32]）无效 1-有效
 
-    input       pipeline_icache_vaild,
+    input       pipeline_icache_valid,
     output      icache_pipeline_ready,
     
     input       [31:0]pipeline_icache_opcode,//cache操作
@@ -206,7 +206,7 @@ Icache_FSMmain Icache_FSMmain(
     .clk(clk),.rstn(rstn),
 
     //pipeline  icache
-    .pipeline_icache_vaild(pipeline_icache_vaild),
+    .pipeline_icache_valid(pipeline_icache_valid),
     .icache_pipeline_ready(icache_pipeline_ready),
     .pipeline_icache_opcode(pipeline_icache_opcode),
     .pipeline_icache_opflag(pipeline_icache_opflag),

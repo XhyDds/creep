@@ -1358,7 +1358,7 @@ end
 
     wire mem_icache_dataOK, mem_dcache_dataOK;
     wire icache_mem_req, dcache_mem_req;
-    wire dout_mem_icache, dout_mem_dcache;
+    wire [127:0] dout_mem_icache, dout_mem_dcache;
 
 Icache #(
   .index_width          (INDEX_WIDTH),
@@ -1382,16 +1382,16 @@ icache_dut (
     // .i_rlast  (i_rlast ),
     // .i_rsize  (i_rsize ),
     // .i_rlen   (i_rlen)
-    .addr_pipeline_valid    (i_raddr_pipe),
+    .addr_pipeline_icache    (i_raddr_pipe),
     .dout_icache_pipeline   (i_rdata_pipe),
-    .flag_icache_pipeline   (0),
+    .flag_icache_pipeline   (),
     .pipeline_icache_valid  (i_rvalid_pipe),
     .icache_pipeline_ready  (i_rready_pipe),
 
     .pipeline_icache_opcode (0),
-    .pipeline_icache_opflag (0),
+    .pipeline_icache_opflag (1'b0),
     .pipeline_icache_ctrl   (0),
-    .icache_pipeline_stall  (0),
+    .icache_pipeline_stall  (),
     
     //l1-axi
     .addr_icache_mem        (i_raddr),
@@ -1416,14 +1416,13 @@ icache_returnbuf(
     .rready             (i_rready),
     .rdata              (i_rdata),
     .rlast              (i_rlast)
-)
+);
 
-    wire    wr_type,
-            dcache_mem_req,
-            dcache_mem_size,
-            dcache_pipeline_ready,
-            type_pipeline_dcache,
-            addr_dcache_mem;
+    wire    wr_type;
+    wire    [2:0]dcache_mem_size;
+    wire    dcache_pipeline_ready;
+    wire    type_pipeline_dcache;
+    wire    [31:0]addr_dcache_mem;
 
     assign d_raddr=addr_dcache_mem;
     assign d_waddr=addr_dcache_mem;
@@ -1487,20 +1486,20 @@ dcache_dut (
 
     .pipeline_dcache_wstrb  (d_wstrb_pipe),
     .pipeline_dcache_opcode (0),
-    .pipeline_dcache_opflag (0),
+    .pipeline_dcache_opflag (1'b0),
     .pipeline_dcache_ctrl   (0),
-    .dcache_pipeline_stall  (0),
+    .dcache_pipeline_stall  (),
 
     .addr_dcache_mem        (addr_dcache_mem),
     .dout_dcache_mem        (d_wdata),
-    .din_mem_dcache         (d_rdata),
+    .din_mem_dcache         (dout_mem_dcache),
 
     .dcache_mem_req         (dcache_mem_req),
     .dcache_mem_wr          (wr_type),
     .dcache_mem_size        (dcache_mem_size),
     .dcache_mem_wstrb       (d_wstrb),
     // .mem_dcache_addrOK      (),
-    .mem_dcache_dataOK      (mem_cache_dataOK)
+    .mem_dcache_dataOK      (mem_dcache_dataOK)
 );
 
 ReturnBuffer#(
@@ -1515,7 +1514,7 @@ dcache_returnbuf(
     .rready             (d_rready),
     .rdata              (d_rdata),
     .rlast              (d_rlast)
-)
+);
 
 
 axi_arbiter axi_arbiter_dut (

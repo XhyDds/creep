@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/05/19 19:06:47
+// Create Date: 2023/05/19 20:17:30
 // Design Name: 
-// Module Name: Dcache
+// Module Name: Dcache_FSMmain
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -19,235 +19,361 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
-//6.4 Tag会有bug valid写的行为不对 并且可以考虑offset=0
-//6.5xhy:不可考虑offset=0 line必须多字 适合的解决方法是：完全的写直达，即写指令未命中时跳过l1cache直接写入l2cache，（命中时需要修改cache），宜添加写缓冲区以实现无停顿的写操作。
-
-`define test
-// `define normal
-module Dcache#(
+// `define test
+`define normal
+module Dcache_FSMmain#(
     parameter   index_width=4,
                 offset_width=2,
                 way=2
 )
-//写直达 非写分配 暂定延迟一周期出
-//读 无论byte还是字都返回一个字，外部解决存入一个byte
-//写 根据外部生成的wstrb决定 一个字则生成4'b1111，单byte存入则生成一位的1即可，并且传入的byte放在字对应的八位处，以字传入
-//也支持同时修改多个byte
-(  
-    input       clk,rstn,
-    output      [31:0]test1,test2,test3,
+(
+    input clk,rstn,
 
-    //pipeline port
-    input       [31:0]addr_pipeline_dcache,
-    input       [31:0]din_pipeline_dcache,
-    output      [31:0]dout_dcache_pipeline,
-    input       type_pipeline_dcache,//0-read 1-write
-
-    input       pipeline_dcache_vaild,
-    output      dcache_pipeline_ready,
-    
-    input       [3:0]pipeline_dcache_wstrb,//字节处理位
-    input       [31:0]pipeline_dcache_opcode,//cache操作
-    input       pipeline_dcache_opflag,//0-正常访存 1-cache操作    
+    //上下游信号
+    input       pipeline_dcache_valid,
+    output reg  dcache_pipeline_ready,
+    input       [3:0]pipeline_dcache_wstrb,
+    input       [31:0]pipeline_dcache_opcode,//好像不需要 用rbuf的即可
+    input       pipeline_dcache_opflag,
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
-    output      dcache_pipeline_stall,//stall form dcache     不知道可不可以用ready代替，先留着
-
-    //mem prot
-    output      [31:0]addr_dcache_mem,
-    output      [31:0]dout_dcache_mem,
-    input       [32*(1<<offset_width)-1:0]din_mem_dcache,   //6.5xhy:应当是 1<<offset_width，由于不确定其他地方是否还有，不做修改
-
-    output      dcache_mem_req,
-    output      dcache_mem_wr,//0-read 1-write
-    output      [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
-    output      [3:0]dcache_mem_wstrb,//字节写使能
+    output      dcache_pipeline_stall,//stall form dcache
+    // output reg  [31:0]dcache_mem_addr,
+    // output reg  [31:0]dcache_mem_data,
+    output reg  dcache_mem_req,
+    output reg  dcache_mem_wr,//write-1  read-0
+    output reg  [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
+    output reg  [3:0]dcache_mem_wstrb,//字节写使能
     `ifdef normal
-        input       mem_dcache_addrOK,
-    `endif
-    input       mem_dcache_dataOK
+        input   mem_dcache_addrOK,//发送的地址和数据都被接收
+    `endif 
+    input       mem_dcache_dataOK,//返回的数据有效
+
+    //模块间信号
+    
+    //reqbuf
+    output reg  FSM_rbuf_we,
+    input       [31:0]FSM_rbuf_opcode,
+    input       FSM_rbuf_opflag,//好像不需要
+    input       [31:0]FSM_rbuf_addr,
+    input       FSM_rbuf_type,//0-read  1-write
+    input       [3:0]FSM_rbuf_wstrb,
+
+    //lru
+    output reg  FSM_use0,FSM_use1,
+    input       FSM_wal_sel_lru,
+
+    //data TagV
+    input       [way-1:0]FSM_hit,
+    output reg  [way-1:0]FSM_Data_we,
+    output      [way-1:0]FSM_TagV_we,//两个相同
+    output reg  FSM_Data_replace,
+    // output reg  FSM_way_select,
+
+    //dirty 暂无
+    // input       FSM_Dirty,
+    // output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
+
+    //Return Buffer
+   
+    //数据选择
+    output reg  FSM_choose_way,
+    output reg  FSM_choose_return,
+    output reg  [offset_width-1:0]FSM_choose_word
+    
     );
-assign test1=0;
-assign test2=0;
-assign test3=0;
+//对字节和byte的选择暂未加入
 
-wire [offset_width-1:0]offset;
-wire [index_width-1:0]index;
-wire [32-offset_width-index_width-2-1:0]tag;
-assign offset = addr_pipeline_dcache[offset_width+1:2];
-assign index = addr_pipeline_dcache[offset_width+index_width+1:offset_width+2];
-assign tag = addr_pipeline_dcache[31:offset_width+index_width+2];
 
-//rquest buffer
-wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode;
-wire rbuf_opflag,rbuf_type,rbuf_we;
-wire [3:0]rbuf_wstrb;
-wire [offset_width-1:0]rbuf_offset;
-wire [index_width-1:0]rbuf_index;
-wire [32-offset_width-index_width-2-1:0]rbuf_tag;
-assign rbuf_offset = rbuf_addr[offset_width+1:2];
-assign rbuf_index = rbuf_addr[offset_width+index_width+1:offset_width+2];
-assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
-wire fStall_outside=pipeline_dcache_ctrl[0];//dcache好像不需要stall？？
+assign dcache_pipeline_stall=dcache_pipeline_ready;
+assign FSM_TagV_we=FSM_Data_we;
+wire hit0,hit1;
+assign hit0=FSM_hit[0];
+assign hit1=FSM_hit[1];
+wire fStall_outside=0;//注意编号        好像不需要响应stall？？
+wire opflag;
+assign opflag=pipeline_dcache_opflag;
+// wire opflag_rbuf;
+// assign opflag_rbuf=FSM_rbuf_opflag;
 
-Dcache_rbuf Dcache_rbuf(
-    .clk(clk),.rstn(rstn),
-    .rbuf_we(rbuf_we),//dcache好像不需要stall？？
 
-    .addr(addr_pipeline_dcache),
-    .rbuf_addr(rbuf_addr),
-
-    .data(din_pipeline_dcache),
-    .rbuf_data(rbuf_data),
-
-    .opcode(pipeline_dcache_opcode),
-    .rbuf_opcode(rbuf_opcode),
-
-    .opflag(pipeline_dcache_opflag),
-    .rbuf_opflag(rbuf_opflag),
-    
-    .type_(type_pipeline_dcache),
-    .rbuf_type(rbuf_type),
-        
-    .wstrb(pipeline_dcache_wstrb),
-    .rbuf_wstrb(rbuf_wstrb)
-);
-
-//LRU
-wire use0,use1;
-wire way_sel_lru;
-
-Dcache_lru Dcache_lru(
-    .clk(clk),.rstn(rstn),
-    .use0(use0),.use1(use1),
-    .addr(rbuf_index),
-    .way_sel(way_sel_lru)
-);
-defparam Dcache_lru.addr_width = index_width;
-defparam Dcache_lru.way = way;
-
-//Data
-wire [way-1:0]Data_we;
-wire [(1<<index_width)*32-1:0]data0,data1;
-wire Data_replace;
-Dcache_Data Dcache_Data(
-    .clk(clk),
-    
-    .Data_addr_read(index),
-    .Data_dout0(data0),
-    .Data_dout1(data1),
-
-    .Data_din_write(din_mem_dcache),//一整行
-    .Data_din_write_32(rbuf_data),
-    .Data_addr_write(rbuf_index),
-    .Data_offset(rbuf_offset),
-    .Data_choose_byte(rbuf_wstrb),
-    .Data_we(Data_we),
-    .Data_replace(Data_replace)
-);
-defparam Dcache_Data.addr_width = index_width;
-defparam Dcache_Data.data_width = (1<<index_width)*32;//单个line的长度
-defparam Dcache_Data.offset_width = offset_width;
-defparam Dcache_Data.way = way;
-
-//Tag
-wire [way-1:0]TagV_we,hit;
-Dcache_TagV Dcache_TagV(
-    .clk(clk),
-
-    .TagV_addr_read(index),
-    .TagV_din_compare(rbuf_tag),
-    .hit(hit),
-    
-    .TagV_din_write(rbuf_tag),
-    .TagV_addr_write(rbuf_index),
-    .TagV_we(TagV_we)
-);
-defparam Dcache_TagV.addr_width = index_width;
-defparam Dcache_TagV.data_width = 32-2-index_width-offset_width;
-defparam Dcache_TagV.way = way;
-
-//data choose
-//不需要stall所以不需要锁存？？
-wire choose_way,choose_return;
-wire [offset_width-1:0]choose_word;
-reg [31:0]data_out;
-reg [32*(1<<offset_width)-1:0]data_line;
-assign dout_dcache_pipeline = data_out;
-always @(*) begin
-    if (choose_return) data_line = din_mem_dcache;
-    else begin
-        if (!choose_way) data_line = data0;
-        else data_line = data1;
-    end
+reg [4:0]state;
+reg [4:0]next_state;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Replace=5'd5,Replace1=5'd6,Operation=5'd7;
+always @(posedge clk,negedge rstn) begin
+    if(!rstn)state<=0;
+    else state<=next_state;
 end
 always @(*) begin
-    case (choose_word[1:0])
-        2'b00: data_out = data_line[31:0];
-        2'b01: data_out = data_line[63:32];
-        2'b10: data_out = data_line[95:64];
-        2'b11: data_out = data_line[127:96];
-        default: data_out = 32'h1234ABCD;
+    case (state)
+        Idle:begin
+            if(pipeline_dcache_valid)begin
+                if(opflag)next_state=Operation;
+                else next_state=Lookup;
+            end
+            else next_state=Idle;
+        end
+        Lookup:begin
+            if((!hit0)&&(!hit1))begin
+                if(!FSM_rbuf_type)next_state=Miss_r;//0-read
+                else next_state=Miss_w;
+            end
+            else if(pipeline_dcache_valid)begin
+                if(opflag)next_state=Operation;
+                else next_state=Lookup;
+            end
+            else next_state=Idle;
+        end
+        Operation:begin
+            next_state=Idle;
+        end
+        `ifdef normal
+            Miss_r:begin
+                if(!mem_dcache_addrOK)next_state=Miss_r;
+                else next_state=Miss_r_waitdata;
+            end
+            Miss_r_waitdata:begin
+                if(!mem_dcache_dataOK)next_state=Miss_r_waitdata;
+                else begin//数据可信赖，内存准备写
+                    if(fStall_outside)next_state=Replace1;
+                    else next_state=Replace;
+                end
+            end
+        `endif
+        `ifdef test
+            Miss_r:begin
+                if(!mem_dcache_dataOK)next_state=Miss_r;
+                else begin//数据可信赖，内存准备写
+                    if(fStall_outside)next_state=Replace1;
+                    else next_state=Replace;
+                end
+            end
+        `endif
+        Miss_w:begin
+            `ifdef normal
+                if(!mem_dcache_addrOK)next_state=Miss_w;
+            `endif
+            `ifdef test
+                if(!mem_dcache_dataOK)next_state=Miss_w;
+            `endif
+            else begin
+                if(pipeline_dcache_valid)begin
+                    if(opflag)next_state=Operation;
+                    else next_state=Lookup;
+                end
+                else next_state=Idle;
+            end
+        end
+        Replace:begin
+            if(pipeline_dcache_valid)begin
+                if(opflag)next_state=Operation;
+                else next_state=Lookup;
+            end
+            else next_state=Idle;
+        end
+        Replace1:begin
+            next_state=Replace;
+        end
+        default:next_state=Idle;
     endcase
 end
+always @(*) begin
+    dcache_pipeline_ready=0;
+    dcache_mem_req=0;
+    dcache_mem_wr=0;
+    dcache_mem_size=2'd0;
+    dcache_mem_wstrb=4'd0;
+    FSM_rbuf_we=0;
+    FSM_use0=0;
+    FSM_use1=0;
+    FSM_Data_we=2'd0;
+    // FSM_Dirtytable_set0=0;
+    // FSM_Dirtytable_set1=0;
+    FSM_choose_way=0;
+    FSM_choose_return=0;
+    FSM_Data_replace=0;
+    FSM_choose_word=FSM_rbuf_addr[2+offset_width-1:2];
+    case (state)
+        Idle:begin
+            case (next_state)
+                Lookup:begin
+                    dcache_pipeline_ready=1;
+                    FSM_rbuf_we=1;
+                end
+                Idle:begin
+                    dcache_pipeline_ready=1;
+                end
+                default:begin
+                    
+                end
+            endcase
+        end
+        Lookup:begin
+            case (next_state)
+                Miss_r:begin
+                    dcache_mem_req=1;
+                    dcache_mem_wr=0;
+                    dcache_mem_size=2'd2;
+                    dcache_mem_wstrb=4'b0000;
+                end
+                Miss_w:begin
+                    dcache_mem_req=1;
+                    dcache_mem_wr=1;
+                    dcache_mem_size=2'd2;
+                    dcache_mem_wstrb=4'b1111;
 
-//Mem
-wire [1+offset_width:0]temp;
-assign temp=0;
-assign addr_dcache_mem = {rbuf_addr[31:2+offset_width],temp};
-assign dout_dcache_mem = rbuf_data;
-
-
-//FSM
-Dcache_FSMmain Dcache_FSMmain1(
-
-    .clk(clk),.rstn(rstn),
-
-    //pipeline  dcache
-    .pipeline_dcache_vaild(pipeline_dcache_vaild),
-    .dcache_pipeline_ready(dcache_pipeline_ready),
-    .pipeline_dcache_wstrb(pipeline_dcache_wstrb),
-    .pipeline_dcache_opcode(pipeline_dcache_opcode),
-    .pipeline_dcache_opflag(pipeline_dcache_opflag),
-    .pipeline_dcache_ctrl(pipeline_dcache_ctrl),
-    .dcache_pipeline_stall(dcache_pipeline_stall),
-
-    //dcache  mem
-    .dcache_mem_req(dcache_mem_req),
-    .dcache_mem_wr(dcache_mem_wr),
-    .dcache_mem_size(dcache_mem_size),
-    .dcache_mem_wstrb(dcache_mem_wstrb),
-    `ifdef normal
-        .mem_dcache_addrOK(mem_dcache_addrOK),
-    `endif
-    .mem_dcache_dataOK(mem_dcache_dataOK),
-
-    //request buffer
-    .FSM_rbuf_we(rbuf_we),
-    .FSM_rbuf_opcode(rbuf_opcode),
-    .FSM_rbuf_opflag(rbuf_opflag),
-    .FSM_rbuf_addr(rbuf_addr),
-    .FSM_rbuf_type(rbuf_type),
-    .FSM_rbuf_wstrb(rbuf_wstrb),
-    
-    //lru
-    .FSM_use0(use0),
-    .FSM_use1(use1),
-    .FSM_wal_sel_lru(way_sel_lru),
-
-    //Data and TagV
-    .FSM_hit(hit),
-    .FSM_Data_we(Data_we),
-    .FSM_Data_replace(Data_replace),//为1时替换整行，否则对word操作
-    .FSM_TagV_we(TagV_we),
-
-    //data choose
-    .FSM_choose_way(choose_way),
-    .FSM_choose_return(choose_return),
-    .FSM_choose_word(choose_word)
-);
-defparam Dcache_FSMmain1.index_width = index_width;
-defparam Dcache_FSMmain1.offset_width = offset_width;
-defparam Dcache_FSMmain1.way = way;
+                    // //写Miss的时候同时写入主存和cache
+                    // if(FSM_wal_sel_lru==1'd0)begin
+                    //     FSM_Data_we[0]=1;
+                    //     FSM_use0=1;
+                    // end
+                    // else if(FSM_wal_sel_lru==1'd1)begin
+                    //     FSM_Data_we[1]=1;
+                    //     FSM_use1=1;
+                    // end
+                end
+                Lookup:begin//命中
+                    //接着流
+                    dcache_pipeline_ready=1;
+                    FSM_rbuf_we=1;
+                    if(!FSM_rbuf_type)begin//读
+                        if(hit0)begin
+                            FSM_choose_way=0;
+                            FSM_use0=1;
+                        end
+                        else if(hit1)begin
+                            FSM_choose_way=1;
+                            FSM_use1=1;
+                        end
+                    end
+                    else begin//写
+                        if(hit0)begin
+                            FSM_Data_we[0]=1;//这个Data的使能和Tag是相同的
+                            FSM_use0=1;
+                        end
+                        else if(hit1)begin
+                            FSM_Data_we[1]=1;
+                            FSM_use1=1;
+                        end
+                    end
+                end
+                Idle:begin
+                    dcache_pipeline_ready=1;
+                    if(!FSM_rbuf_type)begin//读
+                        if(hit0)begin
+                            FSM_choose_way=0;
+                            FSM_use0=1;
+                        end
+                        else if(hit1)begin
+                            FSM_choose_way=1;
+                            FSM_use1=1;
+                        end
+                    end
+                    else begin//写
+                        if(hit0)begin
+                            FSM_Data_we[0]=1;//这个Data的使能和Tag是相同的
+                            FSM_use0=1;
+                        end
+                        else if(hit1)begin
+                            FSM_Data_we[1]=1;
+                            FSM_use1=1;
+                        end
+                    end
+                end
+                default:begin
+                    
+                end
+            endcase
+        end
+        Operation:begin
+            case (next_state)
+                default:begin
+                    
+                end
+            endcase
+        end
+        Miss_r:begin
+            case (next_state)
+                Miss_r:begin
+                    dcache_mem_req=1;
+                    dcache_mem_wr=0;
+                    dcache_mem_size=2'd2;
+                    dcache_mem_wstrb=4'b0000;
+                end
+                Miss_r_waitdata:begin
+                    //nothing
+                end
+                default:begin
+                    
+                end
+            endcase
+        end
+        Miss_r_waitdata:begin
+            case (next_state)
+                Miss_r_waitdata:begin
+                    //nothing
+                end
+                Replace:begin//这一拍是dataOK
+                    FSM_Data_replace=1;
+                    FSM_rbuf_we=1;
+                    FSM_choose_return=1;//前递
+                    dcache_pipeline_ready=1;//5.30改动
+                    if(FSM_wal_sel_lru==1'd0)begin
+                        FSM_Data_we[0]=1;
+                        FSM_use0=1;
+                    end
+                    else if(FSM_wal_sel_lru==1'd1)begin
+                        FSM_Data_we[1]=1;
+                        FSM_use1=1;
+                    end
+                end
+                Replace1:begin
+                    FSM_Data_replace=1;
+                    FSM_rbuf_we=1;
+                    FSM_choose_return=1;//这是必须的
+                    dcache_pipeline_ready=1;//5.30改动
+                    if(FSM_wal_sel_lru==1'd0)begin
+                        FSM_Data_we[0]=1;
+                        FSM_use0=1;
+                    end
+                    else if(FSM_wal_sel_lru==1'd1)begin
+                        FSM_Data_we[1]=1;
+                        FSM_use1=1;
+                    end
+                end
+                default:begin
+                    
+                end
+            endcase
+        end
+        Miss_w:begin
+            case (next_state)
+                Miss_w:begin
+                    dcache_mem_req=1;
+                    dcache_mem_wr=1;
+                    dcache_mem_size=2'd2;
+                    dcache_mem_wstrb=4'b1111;
+                end
+                Lookup:begin
+                    dcache_pipeline_ready=1;
+                    FSM_rbuf_we=1;
+                end
+                Idle:begin
+                    dcache_pipeline_ready=1;
+                end
+                default:begin
+                    
+                end
+            endcase
+        end
+        Replace:begin
+            //nothing 此拍空出 但是可以优化一个周期 之后再说
+        end
+        Replace1:begin//考虑fStall情况  让外面多流一拍
+            dcache_pipeline_ready=1;
+        end
+        default:begin
+                    
+        end 
+    endcase
+end
 endmodule
-//锁存出去的data，上一个周期有stall则发上一个周期锁存的data
