@@ -9,7 +9,7 @@ module ReturnBuffer #(
     //cache
     input               cache_mem_req,
     output reg          mem_cache_dataOK,
-    output reg          [(1<<offset_width)*32-1:0]din_mem_cache,
+    output reg          [(1<<offset_width)*32-1:0]dout_mem_cache,
     //arbiter 
     input reg           rready,   //r: arbiter->i:dataOK
     input[31:0]         rdata,
@@ -31,6 +31,7 @@ module ReturnBuffer #(
     end
 
     reg [WORD_NUM:0] _word;
+    assign dout_mem_cache = _word;
 
     //状态机
     always @(*) begin

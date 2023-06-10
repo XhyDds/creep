@@ -23,8 +23,8 @@
 //6.4 Tag会有bug valid写的行为不对 并且可以考虑offset=0
 //6.5xhy:不可考虑offset=0 line必须多字 适合的解决方法是：完全的写直达，即写指令未命中时跳过l1cache直接写入l2cache，（命中时需要修改cache），宜添加写缓冲区以实现无停顿的写操作。
 
-// `define test
-`define normal
+`define test
+// `define normal
 module Dcache#(
     parameter   index_width=4,
                 offset_width=2,

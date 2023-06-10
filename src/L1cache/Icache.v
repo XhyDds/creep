@@ -23,8 +23,8 @@
 // 1.tag的有效位
 // 2.对于flush响应  外部寄存器flush优先级最高
 
-// `define test
-`define normal
+`define test
+// `define normal
 module Icache#(
     parameter   index_width=4,
                 offset_width=2,
