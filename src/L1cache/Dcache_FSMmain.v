@@ -45,7 +45,7 @@ module Dcache_FSMmain#(
     output reg  [3:0]dcache_mem_wstrb,//字节写使能
     `ifdef normal
         input   mem_dcache_addrOK,//发送的地址和数据都被接收
-    `endif normal
+    `endif 
     input       mem_dcache_dataOK,//返回的数据有效
 
     //模块间信号
@@ -138,7 +138,7 @@ always @(*) begin
                     else next_state=Replace;
                 end
             end
-        `endif normal
+        `endif
         `ifdef test
             Miss_r:begin
                 if(!mem_dcache_dataOK)next_state=Miss_r;
@@ -147,14 +147,14 @@ always @(*) begin
                     else next_state=Replace;
                 end
             end
-        `endif test
+        `endif
         Miss_w:begin
             `ifdef normal
                 if(!mem_dcache_addrOK)next_state=Miss_w;
-            `endif normal
+            `endif
             `ifdef test
                 if(!mem_dcache_dataOK)next_state=Miss_w;
-            `endif test
+            `endif
             else begin
                 if(pipeline_dcache_vaild)begin
                     if(opflag)next_state=Operation;

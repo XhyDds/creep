@@ -56,7 +56,7 @@ module Icache#(
     output      [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
     `ifdef normal
         input       mem_icache_addrOK,
-    `endif normal
+    `endif
     input       mem_icache_dataOK
     );
 assign test1=0;
@@ -218,7 +218,7 @@ Icache_FSMmain Icache_FSMmain(
     .icache_mem_size(icache_mem_size),
     `ifdef normal
         .mem_icache_addrOK(mem_icache_addrOK),
-    `endif normal
+    `endif
     .mem_icache_dataOK(mem_icache_dataOK),
 
     //request buffer

@@ -64,7 +64,7 @@ module Dcache#(
     output      [3:0]dcache_mem_wstrb,//字节写使能
     `ifdef normal
         input       mem_dcache_addrOK,
-    `endif normal
+    `endif
     input       mem_dcache_dataOK
     );
 assign test1=0;
@@ -106,7 +106,7 @@ Dcache_rbuf Dcache_rbuf(
     .opflag(pipeline_dcache_opflag),
     .rbuf_opflag(rbuf_opflag),
     
-    .type(type_pipeline_dcache),
+    .type_(type_pipeline_dcache),
     .rbuf_type(rbuf_type),
         
     .wstrb(pipeline_dcache_wstrb),
@@ -219,7 +219,7 @@ Dcache_FSMmain Dcache_FSMmain1(
     .dcache_mem_wstrb(dcache_mem_wstrb),
     `ifdef normal
         .mem_dcache_addrOK(mem_dcache_addrOK),
-    `endif normal
+    `endif
     .mem_dcache_dataOK(mem_dcache_dataOK),
 
     //request buffer
