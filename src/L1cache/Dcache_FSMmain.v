@@ -221,15 +221,15 @@ always @(*) begin
                     dcache_mem_size=2'd2;
                     dcache_mem_wstrb=4'b1111;
 
-                    //写Miss的时候同时写入主存和cache
-                    if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we[0]=1;
-                        FSM_use0=1;
-                    end
-                    else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we[1]=1;
-                        FSM_use1=1;
-                    end
+                    // //写Miss的时候同时写入主存和cache
+                    // if(FSM_wal_sel_lru==1'd0)begin
+                    //     FSM_Data_we[0]=1;
+                    //     FSM_use0=1;
+                    // end
+                    // else if(FSM_wal_sel_lru==1'd1)begin
+                    //     FSM_Data_we[1]=1;
+                    //     FSM_use1=1;
+                    // end
                 end
                 Lookup:begin//命中
                     //接着流

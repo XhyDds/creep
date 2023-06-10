@@ -99,7 +99,28 @@ B-->|握手wdrvalid|C(写响应)
 C-->|握手wdrready|B
 ```
 
+#### GENERAL
+**请求响应分离**
+```mermaid
+graph LR
+A(IDLE_REQ)-->|req|B(HANDLE)
+B-->|addrOK|E(WAIT)
+E-->|ready|A
+E-->|ready&req|B
 
+C(IDLE_RES)-->|valid|D(HANDLE)
+D-->|dataOK|C
+```
+valid=1:WAIT
+ready=1:IDLE_RES
+若不停顿，全流程4个周期
+**不分离**
+```mermaid
+graph LR
+A(IDLE)-->|req|B(HANDLE)
+B-->|addrOK|A
+```
+若不停顿，全流程3个周期
 ## 类SRAM接口
 ### 设计预案
 #### Dcache
