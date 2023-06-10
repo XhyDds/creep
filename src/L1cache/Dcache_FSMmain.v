@@ -30,7 +30,7 @@ module Dcache_FSMmain#(
     input clk,rstn,
 
     //上下游信号
-    input       pipeline_dcache_vaild,
+    input       pipeline_dcache_valid,
     output reg  dcache_pipeline_ready,
     input       [3:0]pipeline_dcache_wstrb,
     input       [31:0]pipeline_dcache_opcode,//好像不需要 用rbuf的即可
@@ -106,7 +106,7 @@ end
 always @(*) begin
     case (state)
         Idle:begin
-            if(pipeline_dcache_vaild)begin
+            if(pipeline_dcache_valid)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
@@ -117,7 +117,7 @@ always @(*) begin
                 if(!FSM_rbuf_type)next_state=Miss_r;//0-read
                 else next_state=Miss_w;
             end
-            else if(pipeline_dcache_vaild)begin
+            else if(pipeline_dcache_valid)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
@@ -156,7 +156,7 @@ always @(*) begin
                 if(!mem_dcache_dataOK)next_state=Miss_w;
             `endif
             else begin
-                if(pipeline_dcache_vaild)begin
+                if(pipeline_dcache_valid)begin
                     if(opflag)next_state=Operation;
                     else next_state=Lookup;
                 end
@@ -164,7 +164,7 @@ always @(*) begin
             end
         end
         Replace:begin
-            if(pipeline_dcache_vaild)begin
+            if(pipeline_dcache_valid)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
