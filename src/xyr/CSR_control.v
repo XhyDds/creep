@@ -12,11 +12,11 @@ module CSR_control(
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//���λ��ʾ�Ƿ���Ч,�����ȼ���dcache������ecode��esubcoed
-    input [31:0] pipeline_CSR_inpc1,//dcache����pc
-    input [31:0] pipeline_CSR_evaddr0,//�������ַ
-    input [31:0] pipeline_CSR_evaddr1,//�������ַ��dcache�ô����
-    input [8:0]pipeline_CSR_ESTAT,//���λΪ�˼��ж�
+    input [15:0] pipeline_CSR_excp_arg1,//最高位为是否有效，剩余部分分别为esubcode与ecode
+    input [31:0] pipeline_CSR_inpc1,//ex2段pc
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地址，ex1段
+    input [31:0] pipeline_CSR_evaddr1,
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中断
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,

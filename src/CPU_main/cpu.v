@@ -20,11 +20,11 @@ module cpu (
     rrk_reg_exe0_1,rrj_reg_exe0_1,
     rrd_reg_exe0_0,rrd_reg_exe0_1,
     imm_reg_exe0_0,imm_reg_exe0_1,
-    imm_id_reg_0,imm_id_reg_1;
-
+    imm_id_reg_0,imm_id_reg_1,
+    addr_pipeline_dcache_reg;
+    
     reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,
     excp_arg_id_reg_0,excp_arg_id_reg_1;
-    // excp_arg_reg_exe0_0,
 
     reg [63:0]ir_if1_fifo;
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
@@ -37,13 +37,17 @@ module cpu (
     rd_exe0_exe1_0,rd_exe0_exe1_1;
     reg icache_valid_if1_fifo,flag_if1_fifo;
     
+    //TLB
+    wire [31:0]excp_arg_exe0_exe1_1_excp=0;
+    wire tlbexcp=0,tlbcode=0,tlbsubcode=0;
+
     //PRIV
-    wire ifbr_priv=0,llbit=0;
-    wire [1:0]PLV=0;
-    wire [31:0]priv_pc;
-    wire [31:0]privresult1=0;
-    wire flush_priv=0,stall_priv=0;
-    // wire stall_priv_break=0;
+    wire ifbr_priv,LLbit;
+    wire [1:0]PLV;
+    wire [31:0]pc_priv;
+    wire [31:0]privresult1;
+    wire flush_priv,stall_priv;
+    wire stall_priv_idle;
 
     wire ifbr0,ifbr1,ifibar0,ifibar1;
     wire stall_div0,stall_div1,stall_fetch_buffer;
@@ -509,7 +513,7 @@ module cpu (
         .brresult 		( brresult1		)
     );
 
-    // wire [31:0]	addr_pipeline_dcache;
+    wire [31:0]	addr_pipeline_dcache;
     // wire [31:0]	din_pipeline_dcache;
     // wire 	type_pipeline_dcache;
     // wire 	pipeline_dcache_vaild;
@@ -532,6 +536,44 @@ module cpu (
     //     .pipeline_dcache_opcode 		( pipeline_dcache_opcode 		),
     //     .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		)
     // );
+
+    wire [8:0]	CRMD;
+    wire [9:0]	ASID;
+    wire [31:0]	DMW0;
+    wire [31:0]	DMW1;
+    assign PLV=CRMD[1:0];
+
+    CSR_control u_CSR_control(
+        //ports
+        .clk                    		( clk                    		),
+        .rstn                   		( rstn                   		),
+        .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
+        .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
+        .CSR_pipeline_stall     		( stall_priv     		        ),
+        .CSR_pipeline_flush     		( flush_priv     		        ),
+        .CSR_pipeline_outpc     		( pc_priv     		            ),
+        .pipeline_CSR_type      		( ctr_reg_exe0_1_ALE[3:0]     	),
+        .pipeline_CSR_subtype   		( ctr_reg_exe0_1_ALE[11:7]     	),
+        .pipeline_CSR_din       		( rrd1_forward       		    ),
+        .pipeline_CSR_mask      		( rrj1_forward      		    ),
+        .CSR_pipeline_dout      		( privresult1      		        ),
+
+        .pipeline_CSR_inpc0     		( pc_reg_exe0_1     		    ),
+        .pipeline_CSR_excp_arg0 		( excp_arg_reg_exe0_1_excp      ),
+        .pipeline_CSR_evaddr0   		( addr_pipeline_dcache          ),
+
+        .pipeline_CSR_inpc1     		( pc_exe0_exe1_1     		    ),
+        .pipeline_CSR_excp_arg1 		( excp_arg_exe0_exe1_1_excp     ),
+        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_reg		),
+
+        .pipeline_CSR_ESTAT     		( 0     		),
+        .CSR_pipeline_clk_stall 		( stall_priv_idle 		        ),
+        .CSR_pipeline_CRMD      		( CRMD      		),
+        .CSR_pipeline_LLBit     		( LLbit     		),
+        .CSR_pipeline_ASID      		( ASID      		),
+        .CSR_pipeline_DMW0      		( DMW0      		),
+        .CSR_pipeline_DMW1      		( DMW1      		)
+    );
 
     // wire [31:0]	test1_dcache;
     // wire [31:0]	test2_dcache;
@@ -583,14 +625,24 @@ module cpu (
     //     .mem_dcache_dataOK      		( mem_dcache_dataOK      		)
     // );
 
-    wire [31:0]	dout_dcache_pipeline;
+    // wire [31:0]	dcacheresult;
+
+    // dcache_extend u_dcache_extend(
+    //     //ports
+    //     .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1             		),
+    //     .dout_dcache_pipeline        		( dout_dcache_pipeline        		),
+    //     .addr_pipeline_dcache    		( addr_pipeline_dcache    		),
+    //     .dout_dcache_pipeline_extend 		( dcacheresult 		)
+    // );
+
+    wire [31:0]	dcacheresult;
 
     dcache_testonly u_dcache_testonly(
         //ports
         .clk      		( clk      		),
         .rstn     		( rstn     		),
         .addr     		( rrj1_forward+imm_reg_exe0_1 ),
-        .data_reg 		( dout_dcache_pipeline  )
+        .data_reg 		( dcacheresult  )
     );
 
     writeback u_writeback(
@@ -611,7 +663,7 @@ module cpu (
 
     //PC
     always @(*) begin
-        if(ifbr_priv) npc=priv_pc;
+        if(ifbr_priv) npc=pc_priv;
         else if(ifbr1) npc=brresult1;
         else if(ifbr0) npc=brresult0;
         else if(pc[2]) npc=pc+4;
@@ -767,7 +819,7 @@ module cpu (
         else if(ctr_reg_exe0_1[3:0]==6)
             case (ctr_id_reg_1[11:7])//fot yuanzi, 0:load, 1:store
                 0: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
-                1: if(llbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                1: if(LLbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
             endcase
     end
     always @(posedge clk or negedge rstn) begin
@@ -775,11 +827,13 @@ module cpu (
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
             aluresult_exe0_exe1_0 <= 0;
+            addr_pipeline_dcache_reg<=0;
         end
         else if(!stall_exe0_exe1_0)begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
             rd_exe0_exe1_0 <= rd_reg_exe0_0;
             aluresult_exe0_exe1_0 <= aluresult0;
+            addr_pipeline_dcache_reg<=addr_pipeline_dcache;
         end
     end
 
@@ -814,8 +868,8 @@ module cpu (
             2: result1=divresult1;
             3: result1=privresult1;
             4: result1=mulresult1;
-            5: result1=dout_dcache_pipeline;
-            6: result1=dout_dcache_pipeline;
+            5: result1=dcacheresult;
+            6: result1=dcacheresult;
             7: ;
             8: result1=aluresult_exe0_exe1_1;
         endcase

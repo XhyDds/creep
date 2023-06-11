@@ -1,15 +1,15 @@
 module dcache_extend (
     input [31:0]ctr_exe0_exe1_1,dout_dcache_pipeline,
-    input [1:0]addr_pipeline_dcache_reg,
+    input [1:0]addr_pipeline_dcache,
     output reg [31:0]dout_dcache_pipeline_extend
 );
     wire [3:0]type_=ctr_exe0_exe1_1[3:0];
     wire [4:0]subtype=ctr_exe0_exe1_1[11:7];
-    wire [15:0]dout16=addr_pipeline_dcache_reg[1]?dout_dcache_pipeline[15:0]:dout_dcache_pipeline[31:16];
+    wire [15:0]dout16=addr_pipeline_dcache[1]?dout_dcache_pipeline[15:0]:dout_dcache_pipeline[31:16];
     reg [7:0]dout8;
     always @(*) begin
         dout8=0;
-        case (addr_pipeline_dcache_reg[1:0])
+        case (addr_pipeline_dcache[1:0])
             'b00: dout8=dout_dcache_pipeline[31:24];
             'b01: dout8=dout_dcache_pipeline[23:16];
             'b10: dout8=dout_dcache_pipeline[15:8];
