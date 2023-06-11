@@ -8,5 +8,5 @@ module dcache_testonly (
         if(!rstn) data_reg<=0;
         else data_reg<=data;
     end
-    assign data = addr+'b1000_0000_0000_0000_0000_0000_0000_0000;
+    assign data = addr+'b0000_0000_0000_0000_0000_0000_1000_0000;
 endmodule //dcache_testonly

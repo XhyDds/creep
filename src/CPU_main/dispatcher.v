@@ -16,16 +16,16 @@ module dispatcher (
     reg [4:0]rd0_reg,rd1_reg;
     reg muldecache0_reg,muldecache1_reg;
     wire [3:0]type0=control0[3:0];
-    wire [3:0]type_=control1[3:0];
+    wire [3:0]type1=control1[3:0];
     //0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br
-    wire xiangguan=(rd1==rk0|rd1==rj0)&(type_!=1)&(|rd1);
+    wire xiangguan=(rd1==rk0|rd1==rj0)&(type1!=1)&(|rd1);
     // wire xiangguan=(/*rd0==rd1|rd0==rk1|rd0==rj1|*/rd0==rk1|rd0==rj1|rd1==rk0|rd1==rj0);
-    wire suanshubr0=(type0==0|type0==1|type0==2|type0==4|type0==8);
-    wire suanshu1=(type_==0|type_==2|type_==4);
-    // wire suanshubr1=(suanshu1|type_==1|type_==8);
+    wire suanshubr0=(type0==0|type0==1|type0==2|type0==4|type0==8|type0==9);
+    // wire suanshu1=(type1==0|type1==2|type1==4);
+    // wire suanshubr1=(suanshu1|type1==1|type1==8);
     // wire jiaohuan=(type0==5)&suanshu1;//3000是alu，3004是dcache
     wire muldecache0=(type0==4|type0==5);
-    wire muldecache1=(type_==4|type_==5);
+    wire muldecache1=(type1==4|type1==5);
     wire stall1=(muldecache0_reg&(rd0_reg==rk1|rd0_reg==rj1))|(muldecache1_reg&(rd1_reg==rk1|rd1_reg==rj1));
     wire stall0=(muldecache0_reg&(rd0_reg==rk0|rd0_reg==rj0))|(muldecache1_reg&(rd1_reg==rk0|rd1_reg==rj0));
 

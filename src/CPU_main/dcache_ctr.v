@@ -1,5 +1,6 @@
 module dcache_ctr (
-    input        [31:0]rrj1_forward,imm_reg_exe0_1,ctr_reg_exe0_1,rd_reg_exe0_1,excp_arg_reg_exe0_1_excp,
+    input        [31:0]rrj1_forward,imm_reg_exe0_1,ctr_reg_exe0_1,rd_reg_exe0_1,
+    input        [15:0]excp_arg_reg_exe0_1_excp,
     // output  ALE,
     output  reg  [31:0]addr_pipeline_dcache,
     output  reg  [31:0]din_pipeline_dcache,
@@ -104,11 +105,7 @@ module dcache_ctr (
                 8: begin 
                     // pipeline_dcache_vaild=1;
                     pipeline_dcache_opflag=1;
-                end
-                9: begin 
-                    // pipeline_dcache_vaild=1;
-                    pipeline_dcache_opflag=1;
-                    pipeline_dcache_opcode=excp_arg_reg_exe0_1_excp;
+                    pipeline_dcache_opcode={16'b0,excp_arg_reg_exe0_1_excp};
                 end
             endcase
         else if(type_==6)

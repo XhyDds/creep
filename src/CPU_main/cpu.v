@@ -1,5 +1,6 @@
 module cpu (
     input clk,rstn,
+    // input  [7:0] intrpt,
     output [15:0]LED
 );
     assign LED=0;
@@ -39,24 +40,25 @@ module cpu (
     //PRIV
     wire ifbr_priv=0,llbit=0;
     wire [1:0]PLV=0;
-    wire [31:0]priv_pc,privresult1;
+    wire [31:0]priv_pc;
+    wire [31:0]privresult1=0;
     wire flush_priv=0,stall_priv=0;
     // wire stall_priv_break=0;
 
-    wire ifbr0,ifbr1;
-    wire stall_div0=0,stall_div1=0,stall_dcache=0,stall_icache=0;//dcache_valid-ready?
-    wire stall_fetch_buffer;
+    wire ifbr0,ifbr1,ifibar0,ifibar1;
+    wire stall_div0,stall_div1,stall_fetch_buffer;
+    wire stall_dcache=0,stall_icache=0;//dcache_valid-ready?
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
 
-    assign flush_if0_if1 =      flush_priv|ifbr1|ifbr0;
-    assign flush_if1_fifo =     flush_priv|ifbr1|ifbr0;
-    assign flush_fifo_id =      flush_priv|ifbr1|ifbr0;
-    assign flush_id_reg0 =      flush_priv|ifbr1|ifbr0;
-    assign flush_id_reg1 =      flush_priv|ifbr1|ifbr0;
-    assign flush_reg_exe0_0 =   flush_priv|ifbr1|ifbr0;
-    assign flush_reg_exe0_1 =   flush_priv|ifbr1|ifbr0;
-    assign flush_exe0_exe1_0 =  flush_priv|ifbr1;
+    assign flush_if0_if1 =      flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_if1_fifo =     flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_fifo_id =      flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_id_reg0 =      flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_id_reg1 =      flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_reg_exe0_0 =   flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_reg_exe0_1 =   flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_exe0_exe1_0 =  flush_priv|ifibar1|ifbr1;
     assign flush_exe0_exe1_1 =  0;
     assign flush_exe1_wb_0 =    0;
     assign flush_exe1_wb_1 =    0;
@@ -76,63 +78,64 @@ module cpu (
     assign stall_exe1_wb_0 =    stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe1_wb_1 =    stall_priv|stall_div0|stall_div1|stall_dcache;
 
-    //ICache
-    wire [31:0]	test1_icache;
-    wire [31:0]	test2_icache;
-    wire [31:0]	test3_icache;
-
-    wire [63:0]	dout_icache_pipeline;
-    wire 	flag_icache_pipeline;
-    wire 	icache_pipeline_ready;
-
-    wire [31:0]	addr_icache_mem;
-    wire 	icache_mem_req;
-    wire [1:0]	icache_mem_size;
-
-    Icache #(
-        .index_width  		( 4 		),
-        .offset_width 		( 2 		),
-        .way          		( 2 		))
-    u_Icache(
-        //ports
-        .clk                    		( clk                    		),
-        .rstn                   		( rstn                   		),
-        .test1                  		( test1_icache           		),
-        .test2                  		( test2_icache           		),
-        .test3                  		( test3_icache           		),
-
-        .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
-        .dout_icache_pipeline   		( dout_icache_pipeline   		),//
-        .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_vaild  		( 1  		),
-        .icache_pipeline_ready  		( icache_pipeline_ready  		),//
-        .pipeline_icache_opcode 		( 0 		),
-        .pipeline_icache_opflag 		( 0 		),
-        .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
-        .icache_pipeline_stall  		( stall_icache  		),//
-
-        .addr_icache_mem        		( addr_icache_mem        		),
-        .din_mem_icache         		( din_mem_icache         		),
-        .icache_mem_req         		( icache_mem_req         		),
-        .icache_mem_size        		( icache_mem_size        		),
-        .mem_icache_addrOK      		( mem_icache_addrOK      		),
-        .mem_icache_dataOK      		( mem_icache_dataOK      		)
-    );
+    // //ICache
+    // wire [31:0]	test1_icache;
+    // wire [31:0]	test2_icache;
+    // wire [31:0]	test3_icache;
 
     // wire [63:0]	dout_icache_pipeline;
-    // wire 	flag_icache_pipeline,icache_pipeline_ready;
+    // wire 	flag_icache_pipeline;
+    // wire 	icache_pipeline_ready;
 
-    // icache_testonly u_icache_testonly(
+    // wire [31:0]	addr_icache_mem;
+    // wire 	icache_mem_req;
+    // wire [1:0]	icache_mem_size;
+
+    // Icache #(
+    //     .index_width  		( 4 		),
+    //     .offset_width 		( 2 		),
+    //     .way          		( 2 		))
+    // u_Icache(
     //     //ports
-    //     .flush(flush_if0_if1),
-    //     .stall(stall_if0_if1),
-    //     .icache_valid_reg(icache_pipeline_ready),
-    //     .clk      		( clk      		),
-    //     .rstn     		( rstn     		),
-    //     .pc       		( |pc[1:0]?0:pc  ),
-    //     .ir_reg   		( dout_icache_pipeline   		    ),
-    //     .flag_reg 		( flag_icache_pipeline 		    )
+    //     .clk                    		( clk                    		),
+    //     .rstn                   		( rstn                   		),
+    //     .test1                  		( test1_icache           		),
+    //     .test2                  		( test2_icache           		),
+    //     .test3                  		( test3_icache           		),
+
+    //     // .ifibar(ifibar0|ifibar1),
+    //     .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
+    //     .dout_icache_pipeline   		( dout_icache_pipeline   		),//
+    //     .flag_icache_pipeline   		( flag_icache_pipeline   		),//
+    //     .pipeline_icache_vaild  		( 1  		),
+    //     .icache_pipeline_ready  		( icache_pipeline_ready  		),//
+    //     .pipeline_icache_opcode 		( 0 		),
+    //     .pipeline_icache_opflag 		( 0 		),
+    //     .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
+    //     .icache_pipeline_stall  		( stall_icache  		),//
+
+    //     .addr_icache_mem        		( addr_icache_mem        		),
+    //     .din_mem_icache         		( din_mem_icache         		),
+    //     .icache_mem_req         		( icache_mem_req         		),
+    //     .icache_mem_size        		( icache_mem_size        		),
+    //     .mem_icache_addrOK      		( mem_icache_addrOK      		),
+    //     .mem_icache_dataOK      		( mem_icache_dataOK      		)
     // );
+
+    wire [63:0]	dout_icache_pipeline;
+    wire 	flag_icache_pipeline,icache_pipeline_ready;
+
+    icache_testonly u_icache_testonly(
+        //ports
+        .flush(flush_if0_if1),
+        .stall(stall_if0_if1),
+        .icache_valid_reg(icache_pipeline_ready),
+        .clk      		( clk      		),
+        .rstn     		( rstn     		),
+        .pc       		( |pc[1:0]?0:pc  ),
+        .ir_reg   		( dout_icache_pipeline   		    ),
+        .flag_reg 		( flag_icache_pipeline 		    )
+    );
 
     wire [31:0]	pc0;
     wire [31:0]	pc1;
@@ -470,6 +473,18 @@ module cpu (
         .divider_pipeline_dout    		( divresult1    		)
     );
 
+    ibar u_ibar0(
+        //ports
+        .ctr        	( ctr_reg_exe0_0        		),
+        .ifibar 		( ifibar0 		)
+    );
+
+    ibar u_ibar1(
+        //ports
+        .ctr        	( ctr_reg_exe0_1_ALE        		),
+        .ifibar 		( ifibar1 		)
+    );
+
     wire [31:0]	brresult0;
 
     br u_br0(
@@ -494,89 +509,89 @@ module cpu (
         .brresult 		( brresult1		)
     );
 
-    wire [31:0]	addr_pipeline_dcache;
-    wire [31:0]	din_pipeline_dcache;
-    wire 	type_pipeline_dcache;
-    wire 	pipeline_dcache_vaild;
-    wire [3:0]	pipeline_dcache_wstrb;
-    wire [31:0]	pipeline_dcache_opcode;
-    wire 	pipeline_dcache_opflag;
+    // wire [31:0]	addr_pipeline_dcache;
+    // wire [31:0]	din_pipeline_dcache;
+    // wire 	type_pipeline_dcache;
+    // wire 	pipeline_dcache_vaild;
+    // wire [3:0]	pipeline_dcache_wstrb;
+    // wire [31:0]	pipeline_dcache_opcode;
+    // wire 	pipeline_dcache_opflag;
 
-    dcache_ctr u_dcache_ctr(
-        //ports
-        .excp_arg_reg_exe0_1_excp       ( excp_arg_reg_exe0_1_excp      ),
-        .rrj1_forward         		    ( rrj1_forward         		    ),
-        .imm_reg_exe0_1         		( imm_reg_exe0_1         		),
-        .ctr_reg_exe0_1         		( ctr_reg_exe0_1         		),
-        .rd_reg_exe0_1          		( rd_reg_exe0_1          		),
-        .addr_pipeline_dcache   		( addr_pipeline_dcache   		),
-        .din_pipeline_dcache    		( din_pipeline_dcache    		),
-        .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_vaild  		( pipeline_dcache_vaild  		),
-        .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
-        .pipeline_dcache_opcode 		( pipeline_dcache_opcode 		),
-        .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		)
-    );
+    // dcache_ctr u_dcache_ctr(
+    //     //ports
+    //     .excp_arg_reg_exe0_1_excp       ( excp_arg_reg_exe0_1_excp      ),
+    //     .rrj1_forward         		    ( rrj1_forward         		    ),
+    //     .imm_reg_exe0_1         		( imm_reg_exe0_1         		),
+    //     .ctr_reg_exe0_1         		( ctr_reg_exe0_1         		),
+    //     .rd_reg_exe0_1          		( rd_reg_exe0_1          		),
+    //     .addr_pipeline_dcache   		( addr_pipeline_dcache   		),
+    //     .din_pipeline_dcache    		( din_pipeline_dcache    		),
+    //     .type_pipeline_dcache   		( type_pipeline_dcache   		),
+    //     .pipeline_dcache_vaild  		( pipeline_dcache_vaild  		),
+    //     .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
+    //     .pipeline_dcache_opcode 		( pipeline_dcache_opcode 		),
+    //     .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		)
+    // );
 
-    wire [31:0]	test1_dcache;
-    wire [31:0]	test2_dcache;
-    wire [31:0]	test3_dcache;
-
-    wire [31:0]	dout_dcache_pipeline;
-    wire 	dcache_pipeline_ready;//无用？
-    // wire 	dcache_pipeline_stall;
-
-    wire [31:0]	addr_dcache_mem;
-    wire [31:0]	dout_dcache_mem;
-    wire 	dcache_mem_req;
-    wire 	dcache_mem_wr;
-    wire [1:0]	dcache_mem_size;
-    wire [3:0]	dcache_mem_wstrb;
-
-    Dcache #(
-        .index_width  		( 4 		),
-        .offset_width 		( 2 		),
-        .way          		( 2 		))
-    u_Dcache(
-        //ports
-        .clk                    		( clk                    		),
-        .rstn                   		( rstn                   		),
-        .test1                  		( test1_dcache           		),
-        .test2                  		( test2_dcache           		),
-        .test3                  		( test3_dcache           		),
-
-        .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
-        .din_pipeline_dcache    		( din_pipeline_dcache    		),
-        .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
-        .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_vaild  		( pipeline_dcache_vaild  		),
-        .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
-        .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
-        .pipeline_dcache_opcode 		( pipeline_dcache_opcode 		),
-        .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
-        .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1,stall_to_dcache}),
-        .dcache_pipeline_stall  		( stall_dacache  		        ),
-
-        .addr_dcache_mem        		( addr_dcache_mem        		),
-        .dout_dcache_mem        		( dout_dcache_mem        		),
-        .din_mem_dcache         		( din_mem_dcache         		),
-        .dcache_mem_req         		( dcache_mem_req         		),
-        .dcache_mem_wr          		( dcache_mem_wr          		),
-        .dcache_mem_size        		( dcache_mem_size        		),
-        .dcache_mem_wstrb       		( dcache_mem_wstrb       		),
-        .mem_dcache_addrOK      		( mem_dcache_addrOK      		),
-        .mem_dcache_dataOK      		( mem_dcache_dataOK      		)
-    );
+    // wire [31:0]	test1_dcache;
+    // wire [31:0]	test2_dcache;
+    // wire [31:0]	test3_dcache;
 
     // wire [31:0]	dout_dcache_pipeline;
+    // wire 	dcache_pipeline_ready;//无用？
+    // // wire 	dcache_pipeline_stall;
 
-    // dcache_testonly u_dcache_testonly(
+    // wire [31:0]	addr_dcache_mem;
+    // wire [31:0]	dout_dcache_mem;
+    // wire 	dcache_mem_req;
+    // wire 	dcache_mem_wr;
+    // wire [1:0]	dcache_mem_size;
+    // wire [3:0]	dcache_mem_wstrb;
+
+    // Dcache #(
+    //     .index_width  		( 4 		),
+    //     .offset_width 		( 2 		),
+    //     .way          		( 2 		))
+    // u_Dcache(
     //     //ports
-    //     .clk      		( clk      		),
-    //     .rstn     		( rstn     		),
-    //     .addr     		( rrj1_forward+imm_reg_exe0_1 ),
-    //     .data_reg 		( dout_dcache_pipeline  )
+    //     .clk                    		( clk                    		),
+    //     .rstn                   		( rstn                   		),
+    //     .test1                  		( test1_dcache           		),
+    //     .test2                  		( test2_dcache           		),
+    //     .test3                  		( test3_dcache           		),
+
+    //     .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
+    //     .din_pipeline_dcache    		( din_pipeline_dcache    		),
+    //     .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
+    //     .type_pipeline_dcache   		( type_pipeline_dcache   		),
+    //     .pipeline_dcache_vaild  		( pipeline_dcache_vaild  		),
+    //     .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
+    //     .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
+    //     .pipeline_dcache_opcode 		( pipeline_dcache_opcode 		),
+    //     .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
+    //     .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1,stall_to_dcache}),
+    //     .dcache_pipeline_stall  		( stall_dcache  		        ),
+
+    //     .addr_dcache_mem        		( addr_dcache_mem        		),
+    //     .dout_dcache_mem        		( dout_dcache_mem        		),
+    //     .din_mem_dcache         		( din_mem_dcache         		),
+    //     .dcache_mem_req         		( dcache_mem_req         		),
+    //     .dcache_mem_wr          		( dcache_mem_wr          		),
+    //     .dcache_mem_size        		( dcache_mem_size        		),
+    //     .dcache_mem_wstrb       		( dcache_mem_wstrb       		),
+    //     .mem_dcache_addrOK      		( mem_dcache_addrOK      		),
+    //     .mem_dcache_dataOK      		( mem_dcache_dataOK      		)
     // );
+
+    wire [31:0]	dout_dcache_pipeline;
+
+    dcache_testonly u_dcache_testonly(
+        //ports
+        .clk      		( clk      		),
+        .rstn     		( rstn     		),
+        .addr     		( rrj1_forward+imm_reg_exe0_1 ),
+        .data_reg 		( dout_dcache_pipeline  )
+    );
 
     writeback u_writeback(
         //ports
