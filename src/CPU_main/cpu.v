@@ -1,9 +1,77 @@
 module cpu (
-    input clk,rstn,
-    // input  [7:0] intrpt,
-    output [15:0]LED
+    input           aclk,
+    input           aresetn,
+    input    [ 7:0] intrpt, 
+
+    //AXI interface 
+    //read reqest
+    output   [ 3:0] arid,
+    output   [31:0] araddr,
+    output   [ 7:0] arlen,
+    output   [ 2:0] arsize,
+    output   [ 1:0] arburst,
+    output   [ 1:0] arlock,
+    output   [ 3:0] arcache,
+    output   [ 2:0] arprot,
+    output          arvalid,
+    input           arready,
+    //read back
+    input    [ 3:0] rid,
+    input    [31:0] rdata,
+    input    [ 1:0] rresp,
+    input           rlast,
+    input           rvalid,
+    output          rready,
+    //write request
+    output   [ 3:0] awid,
+    output   [31:0] awaddr,
+    output   [ 7:0] awlen,
+    output   [ 2:0] awsize,
+    output   [ 1:0] awburst,
+    output   [ 1:0] awlock,
+    output   [ 3:0] awcache,
+    output   [ 2:0] awprot,
+    output          awvalid,
+    input           awready,
+    //write data
+    output   [ 3:0] wid,
+    output   [31:0] wdata,
+    output   [ 3:0] wstrb,
+    output          wlast,
+    output          wvalid,
+    input           wready,
+    //write back
+    input    [ 3:0] bid,
+    input    [ 1:0] bresp,
+    input           bvalid,
+    output          bready,
+
+    //debug info
+    output [31:0] debug0_wb_pc,
+    output [ 3:0] debug0_wb_rf_wen,
+    output [ 4:0] debug0_wb_rf_wnum,
+    output [31:0] debug0_wb_rf_wdata,
+    output [31:0] debug0_wb_inst,
+
+    output [31:0] debug1_wb_pc,
+    output [ 3:0] debug1_wb_rf_wen,
+    output [ 4:0] debug1_wb_rf_wnum,
+    output [31:0] debug1_wb_rf_wdata,
+    output [31:0] debug1_wb_inst
 );
-    assign LED=0;
+    wire clk=aclk;
+    wire rstn=aresetn;
+    assign debug0_wb_pc=pc_exe1_wb_0;
+    assign debug1_wb_pc=pc_exe1_wb_1;
+    assign debug0_wb_rf_wen={4{ifwb0}};
+    assign debug1_wb_rf_wen={4{ifwb1}};
+    assign debug0_wb_rf_wnum=wb_addr0;
+    assign debug1_wb_rf_wnum=wb_addr1;
+    assign debug0_wb_rf_wdata=wb_data0;
+    assign debug1_wb_rf_wdata=wb_data1;
+    assign debug0_wb_inst=imm_exe1_wb_0;
+    assign debug1_wb_inst=imm_exe1_wb_1;
+
     reg [31:0]pc,npc,
     ctr_id_reg_0,ctr_id_reg_1,ctr_reg_exe0_1_ALE,
     ctr_reg_exe0_0,ctr_reg_exe0_1,
@@ -14,6 +82,8 @@ module cpu (
     pc_if1_fifo,
     pc_if0_if1,
     pc_reg_exe0_0,pc_reg_exe0_1,
+    pc_exe0_exe1_0,pc_exe0_exe1_1,
+    pc_exe1_wb_0,pc_exe1_wb_1,
     aluresult_exe0_exe1_0,aluresult_exe0_exe1_1,
     result_exe1_wb_0,result_exe1_wb_1,
     rrk_reg_exe0_0,rrj_reg_exe0_0,
@@ -21,6 +91,8 @@ module cpu (
     rrd_reg_exe0_0,rrd_reg_exe0_1,
     imm_reg_exe0_0,imm_reg_exe0_1,
     imm_id_reg_0,imm_id_reg_1,
+    imm_exe0_exe1_0,imm_exe0_exe1_1,
+    imm_exe1_wb_0,imm_exe1_wb_1,
     addr_pipeline_dcache_reg;
     
     reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,
@@ -147,13 +219,13 @@ module cpu (
     wire [31:0]	ir1;
     wire 	if0;
     wire 	if1;
-
+    
     fetch_buffer u_fetch_buffer(
         //ports
-        .pc(pc_if1_fifo),
-        .flush(flush_if0_if1),
-        .stall(stall_if0_if1),
-        .icache_valid   (icache_valid_if1_fifo),
+        .pc             ( pc_if1_fifo   ),
+        .flush          ( flush_if0_if1 ),
+        .stall          ( stall_if0_if1 ),
+        .icache_valid   ( icache_valid_if1_fifo),
         .clk     		( clk     		),
         .rstn    		( rstn    		),
         .if0     		( if0     		),
@@ -807,7 +879,7 @@ module cpu (
     always @(*) begin//检测访存地址是否对齐，特权指令是否内核态，否则将访存指令变为例外指令
         ctr_reg_exe0_1_ALE=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
-        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end
+        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越界
         else if(ctr_reg_exe0_1[3:0]==5)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -822,18 +894,21 @@ module cpu (
                 1: if(LLbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
             endcase
     end
+
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_exe0_exe1_0) begin
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
             aluresult_exe0_exe1_0 <= 0;
-            addr_pipeline_dcache_reg<=0;
+            pc_exe0_exe1_0<=0;
+            imm_exe0_exe1_0<=0;
         end
         else if(!stall_exe0_exe1_0)begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
             rd_exe0_exe1_0 <= rd_reg_exe0_0;
             aluresult_exe0_exe1_0 <= aluresult0;
-            addr_pipeline_dcache_reg<=addr_pipeline_dcache;
+            pc_exe0_exe1_0<=pc_reg_exe0_0;
+            imm_exe0_exe1_0<=imm_reg_exe0_0;
         end
     end
 
@@ -842,11 +917,17 @@ module cpu (
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
             aluresult_exe0_exe1_1<=0;
+            pc_exe0_exe1_1<=0;
+            imm_exe0_exe1_1<=0;
+            addr_pipeline_dcache_reg<=0;
         end
         else if(!stall_exe0_exe1_1)begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_ALE;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
             aluresult_exe0_exe1_1<=aluresult1;
+            pc_exe0_exe1_1<=pc_reg_exe0_1;
+            imm_exe0_exe1_1<=imm_reg_exe0_1;
+            addr_pipeline_dcache_reg<=addr_pipeline_dcache;
         end
     end
 
@@ -878,38 +959,35 @@ module cpu (
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_exe1_wb_0) begin
             ctr_exe1_wb_0 <= 0;
-            ctr_exe1_wb_1 <= 0;
             rd_exe1_wb_0<=0;
-            rd_exe1_wb_1<=0;
             result_exe1_wb_0<=0;
-            result_exe1_wb_1<=0;
+            pc_exe1_wb_0<=0;
+            imm_exe1_wb_0<=0;
         end
         else if(!stall_exe1_wb_0)begin
             ctr_exe1_wb_0 <= ctr_exe0_exe1_0;
-            ctr_exe1_wb_1 <= ctr_exe0_exe1_1;
             rd_exe1_wb_0<=rd_exe0_exe1_0;
-            rd_exe1_wb_1<=rd_exe0_exe1_1;
             result_exe1_wb_0<=result0;
-            result_exe1_wb_1<=result1;
+            pc_exe1_wb_0<=pc_exe0_exe1_0;
+            imm_exe1_wb_0<=imm_exe0_exe1_0;
         end
     end
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_exe1_wb_1) begin
-            ctr_exe1_wb_0 <= 0;
             ctr_exe1_wb_1 <= 0;
-            rd_exe1_wb_0<=0;
             rd_exe1_wb_1<=0;
-            result_exe1_wb_0<=0;
             result_exe1_wb_1<=0;
+            pc_exe1_wb_1<=0;
+            imm_exe1_wb_1<=0;
         end
         else if(!stall_exe1_wb_1)begin
-            ctr_exe1_wb_0 <= ctr_exe0_exe1_0;
             ctr_exe1_wb_1 <= ctr_exe0_exe1_1;
-            rd_exe1_wb_0<=rd_exe0_exe1_0;
             rd_exe1_wb_1<=rd_exe0_exe1_1;
-            result_exe1_wb_0<=result0;
             result_exe1_wb_1<=result1;
+            pc_exe1_wb_1<=pc_exe0_exe1_1;
+            imm_exe1_wb_1<=imm_exe0_exe1_1;
         end
     end
+
 endmodule
