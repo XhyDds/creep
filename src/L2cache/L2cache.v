@@ -7,6 +7,7 @@ module L2cache#(
                 way=4
 )(
     //四路 写回写分配
+    //Icache可见前两路 Dcache可见后两路 PLRU公用
     input       clk,rstn,
 
     //Icache port
@@ -106,6 +107,8 @@ L2cache_rbuf L2cache_rbuf(
     .rbuf_wstrb(rbuf_wstrb)
 );
 
+assign l2cache_mem_wstrb = rbuf_wstrb;
+
 //PLRU
 wire use0,use1,use2,use3;
 wire [1:0]way_sel_lru;
@@ -147,6 +150,7 @@ defparam Dcache_Data.way = way;
 
 //Tag
 wire [way-1:0]TagV_we,hit;
+assign TagV_we = Data_we;
 L2cache_TagV L2cache_TagV(
     .clk(clk),
 
@@ -192,12 +196,57 @@ always @(*) begin
 end
 
 //Mem
-assign addr_l2cache_mem = rbuf_addr;
-assign dout_l2cache_mem = rbuf_data;//????
+assign addr_l2cache_mem = {rbuf_addr[31:offset_width+2],(offset_width+2){1'b0}};//对齐
+assign dout_l2cache_mem = dout_l2cache_l1cache;//????
 
 //FSM
 L2cache_FSMmain L2cache_FSMmain(
-    .clk(clk),.rstn(rstn)
-);
+    .clk(clk),.rstn(rstn),
 
+    //req for L1(pipe)
+    .from(from),
+    .l2cache_opflag(l2cache_opflag),
+    .l2cache_icache_addrOK(l2cache_icache_addrOK),
+    .l2cache_icache_dataOK(l2cache_icache_dataOK),
+    .l2cache_dcache_addrOK(l2cache_dcache_addrOK),
+    .l2cache_dcache_dataOK(l2cache_dcache_dataOK),
+
+    //req for Mem
+    .l2cache_mem_req(l2cache_mem_req),
+    .l2cache_mem_wr(l2cache_mem_wr),
+    .mem_l2cache_addrOK(mem_l2cache_addrOK),
+    .mem_l2cache_dataOK(mem_l2cache_dataOK),
+
+    //request buffer
+    .FSM_rbuf_we(rbuf_we),
+    .FSM_rbuf_from(rbuf_from),
+    .FSM_rbuf_opcode(rbuf_opcode),
+    // .FSM_rbuf_opflag(rbuf_opflag),
+
+    //PLRU
+    .FSM_use0(use0),
+    .FSM_use0(use1),
+    .FSM_use0(use2),
+    .FSM_use0(use3),
+    .FSM_wal_sel_lru(way_sel_lru),
+
+    //Data and TagV
+    .FSM_hit(hit),
+    .FSM_Data_we(Data_we),
+    .FSM_Data_replace(Data_replace),//为1时替换整行，否则对word操作
+
+    //Dirtytable
+    .FSM_Dirtytable_way_select(Dirtytable_way_select),
+    .FSM_Dirtytable_set0(Dirtytable_set0),
+    .FSM_Dirtytable_set1(Dirtytable_set1),
+    .FSM_Dirty(Dirty),
+
+    //Data Choose
+    .FSM_choose_way(choose_way),
+    .FSM_choose_return(choose_return)
+    
+);
+defparam Dcache_FSMmain.index_width = index_width;
+defparam Dcache_FSMmain.offset_width = offset_width;
+defparam Dcache_FSMmain.way = way;
 endmodule
