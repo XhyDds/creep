@@ -34,7 +34,6 @@ module L2cache_TagV#(
     input       [data_width-1:0]TagV_din_write,
     input       [addr_width-1:0]TagV_addr_write,
     input       [way-1:0]TagV_we
-    // input       TagV_way_select
     );
 wire [data_width-1:0]TagV_data[way-1:0];
 
@@ -42,7 +41,6 @@ reg [(1<<addr_width)-1:0]valid0;
 reg [(1<<addr_width)-1:0]valid1;
 reg [(1<<addr_width)-1:0]valid2; 
 reg [(1<<addr_width)-1:0]valid3;
-
 
 always @(posedge clk) begin
     if(TagV_we[0])valid0[TagV_addr_write]<=1;

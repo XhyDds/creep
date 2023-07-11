@@ -23,7 +23,7 @@
 module L2cache_Data#(
     parameter   addr_width=4,
                 data_width=512,
-                offset_width=4,
+                offset_width=2,
                 way=4
 )
 (
@@ -56,27 +56,27 @@ always @(*) begin
     end
     if(!Data_we[1])we1 = 0;
     else begin
-        if(Data_replace)we1 = -1;//全部有效
+        if(Data_replace)we1 = -1;
         else begin
-            we1 = Data_choose_byte << (Data_offset << 2);//左移4*Data_offset
+            we1 = Data_choose_byte << (Data_offset << 2);
         end
     end
     if(!Data_we[2])we2 = 0;
     else begin
-        if(Data_replace)we2 = -1;//全部有效
+        if(Data_replace)we2 = -1;
         else begin
-            we2 = Data_choose_byte << (Data_offset << 2);//左移4*Data_offset
+            we2 = Data_choose_byte << (Data_offset << 2);
         end
     end
     if(!Data_we[3])we3 = 0;
     else begin
-        if(Data_replace)we3 = -1;//全部有效
+        if(Data_replace)we3 = -1;
         else begin
-            we3 = Data_choose_byte << (Data_offset << 2);//左移4*Data_offset
+            we3 = Data_choose_byte << (Data_offset << 2);
         end
     end
     if(Data_replace)Data_din = Data_din_write;
-    else Data_din = Data_din_write_32 << (Data_offset << 5);//左移32*Data_offset
+    else Data_din = Data_din_write_32 << (Data_offset << 5);
 end
 
 bram_bytewrite way0(
