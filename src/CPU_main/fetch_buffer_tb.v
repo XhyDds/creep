@@ -29,7 +29,7 @@ begin
     #(PERIOD*2) rstn  =  1;
 end
 
-fetch_buffer  u_fetch_buffer (
+fetch_buffer_v2  u_fetch_buffer_v2 (
     .pc                      ( pc    [31:0] ),
     .clk                     ( clk          ),
     .rstn                    ( rstn         ),
@@ -37,6 +37,9 @@ fetch_buffer  u_fetch_buffer (
     .if1                     ( if1          ),
     .irin                    ( irin  [63:0] ),
     .flag                    ( flag         ),
+    .flush(1'b0),
+    .stall(1'b0),
+    .icache_valid(1'b1),
 
     .ir0                     ( ir0   [31:0] ),
     .ir1                     ( ir1   [31:0] ),
@@ -49,7 +52,7 @@ begin
     rstn=1;pc=0;if0=0;if1=0;irin=0;flag=0;
     #0.1 rstn=0;
     #0.1 rstn=1;
-    #0.3 irin=64'h1111111122222222;flag=1;if0=1;if1=1;pc='h11111111;
+    #0.1 irin=64'h1111111122222222;flag=1;if0=1;if1=1;pc='h11111111;
     #1 irin=64'h3333333344444444;flag=0;if0=0;if1=1;pc='h33333333;
     #1 irin=64'h5555555566666666;flag=0;if0=0;if1=0;pc='h55555555;
     #1 irin=64'h7777777788888888;flag=1;if0=1;if1=0;pc='h77777777;

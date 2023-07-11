@@ -223,7 +223,7 @@ module cpu (
     wire 	if0;
     wire 	if1;
     
-    fetch_buffer u_fetch_buffer(
+    fetch_buffer_v2 u_fetch_buffer(
         //ports
         .pc             ( pc_if1_fifo   ),
         .flush          ( flush_if0_if1 ),
@@ -704,10 +704,10 @@ module cpu (
 
     dcache_extend u_dcache_extend(
         //ports
-        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1             		),
-        .dout_dcache_pipeline        		( dout_dcache_pipeline        		),
-        .addr_pipeline_dcache    		    ( addr_pipeline_dcache    		    ),
-        .dout_dcache_pipeline_extend 		( dcacheresult 		                )
+        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        .dout_dcache_pipeline        		( dout_dcache_pipeline ),
+        .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
+        .dout_dcache_pipeline_extend 		( dcacheresult 		   )
     );
 
     // wire [31:0]	dcacheresult;

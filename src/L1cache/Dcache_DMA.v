@@ -52,7 +52,7 @@ module Dcache_DMA#(
     output      [31:0]dout_dcache_mem,
     input       [32*(2<<offset_width)-1:0]din_mem_dcache,
 
-    output      dcache_mem_req,
+    output  reg dcache_mem_req,
     output      dcache_mem_wr,//0-read 1-write
     output      [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output      [3:0]dcache_mem_wstrb,//字节写使能
