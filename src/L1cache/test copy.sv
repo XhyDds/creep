@@ -1526,7 +1526,7 @@ axi_arbiter axi_arbiter_dut (
     .i_rdata  (i_rdata ),
     .i_rlast  (i_rlast ),
     .i_rsize  (i_rsize ),
-    .i_rlen   (i_rlen ),
+    .i_rlen   (1 ),
     .d_rvalid (d_rvalid ),
     .d_rready (d_rready ),
     .d_raddr  (d_raddr ),
