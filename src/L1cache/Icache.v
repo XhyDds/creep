@@ -22,9 +22,6 @@
 // 6.4 Icache待完成任务：
 // 1.tag的有效位
 // 2.对于flush响应  外部寄存器flush优先级最高
-
-`define test
-// `define normal
 module Icache#(
     parameter   index_width=4,
                 offset_width=2,
@@ -54,9 +51,7 @@ module Icache#(
 
     output      icache_mem_req,
     output      [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
-    `ifdef normal
-        input       mem_icache_addrOK,
-    `endif
+    input       mem_icache_addrOK,
     input       mem_icache_dataOK
     );
 assign test1=0;
@@ -111,8 +106,7 @@ defparam Icache_lru.way = way;
 
 //Data
 wire [way-1:0]Data_we;
-wire [(1<<index_width)*32-1:0]data0,data1;
-wire Data_replace;
+wire [(1<<offset_width)*32-1:0]data0,data1;
 Icache_Data Icache_Data(
     .clk(clk),
     
@@ -125,14 +119,14 @@ Icache_Data Icache_Data(
     .Data_we(Data_we)
 );
 defparam Icache_Data.addr_width = index_width;
-defparam Icache_Data.data_width = (1<<index_width)*32;//单个line的长度
+defparam Icache_Data.data_width = (1<<offset_width)*32;//单个line的长度
 defparam Icache_Data.offset_width = offset_width;
 defparam Icache_Data.way = way;
 
 //Tag
 wire [way-1:0]TagV_we,hit;
 Icache_TagV Icache_TagV(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .TagV_addr_read(index),
     .TagV_din_compare(rbuf_tag),
@@ -216,9 +210,7 @@ Icache_FSMmain Icache_FSMmain(
     //icache  mem
     .icache_mem_req(icache_mem_req),
     .icache_mem_size(icache_mem_size),
-    `ifdef normal
-        .mem_icache_addrOK(mem_icache_addrOK),
-    `endif
+    .mem_icache_addrOK(mem_icache_addrOK),
     .mem_icache_dataOK(mem_icache_dataOK),
 
     //request buffer

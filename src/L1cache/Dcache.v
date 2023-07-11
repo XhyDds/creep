@@ -21,10 +21,7 @@
 
 
 //6.4 Tag会有bug valid写的行为不对 并且可以考虑offset=0
-//6.5xhy:不可考虑offset=0 line必须多字 适合的解决方法是：完全的写直达，即写指令未命中时跳过l1cache直接写入l2cache，（命中时需要修改cache），宜添加写缓冲区以实现无停顿的写操作。
 
-`define test
-// `define normal
 module Dcache#(
     parameter   index_width=4,
                 offset_width=2,
@@ -56,15 +53,13 @@ module Dcache#(
     //mem prot
     output      [31:0]addr_dcache_mem,
     output      [31:0]dout_dcache_mem,
-    input       [32*(1<<offset_width)-1:0]din_mem_dcache,   //6.5xhy:应当是 1<<offset_width，由于不确定其他地方是否还有，不做修改
+    input       [32*(2<<offset_width)-1:0]din_mem_dcache,
 
     output      dcache_mem_req,
     output      dcache_mem_wr,//0-read 1-write
     output      [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output      [3:0]dcache_mem_wstrb,//字节写使能
-    `ifdef normal
-        input       mem_dcache_addrOK,
-    `endif
+    input       mem_dcache_addrOK,
     input       mem_dcache_dataOK
     );
 assign test1=0;
@@ -106,7 +101,7 @@ Dcache_rbuf Dcache_rbuf(
     .opflag(pipeline_dcache_opflag),
     .rbuf_opflag(rbuf_opflag),
     
-    .type_(type_pipeline_dcache),
+    .type(type_pipeline_dcache),
     .rbuf_type(rbuf_type),
         
     .wstrb(pipeline_dcache_wstrb),
@@ -118,7 +113,7 @@ wire use0,use1;
 wire way_sel_lru;
 
 Dcache_lru Dcache_lru(
-    .clk(clk),.rstn(rstn),
+    .clk(clk),
     .use0(use0),.use1(use1),
     .addr(rbuf_index),
     .way_sel(way_sel_lru)
@@ -128,7 +123,7 @@ defparam Dcache_lru.way = way;
 
 //Data
 wire [way-1:0]Data_we;
-wire [(1<<index_width)*32-1:0]data0,data1;
+wire [(2<<index_width)*32-1:0]data0,data1;
 wire Data_replace;
 Dcache_Data Dcache_Data(
     .clk(clk),
@@ -146,7 +141,7 @@ Dcache_Data Dcache_Data(
     .Data_replace(Data_replace)
 );
 defparam Dcache_Data.addr_width = index_width;
-defparam Dcache_Data.data_width = (1<<index_width)*32;//单个line的长度
+defparam Dcache_Data.data_width = (2<<index_width)*32;//单个line的长度
 defparam Dcache_Data.offset_width = offset_width;
 defparam Dcache_Data.way = way;
 
@@ -172,7 +167,7 @@ defparam Dcache_TagV.way = way;
 wire choose_way,choose_return;
 wire [offset_width-1:0]choose_word;
 reg [31:0]data_out;
-reg [32*(1<<offset_width)-1:0]data_line;
+reg [32*(2<<offset_width)-1:0]data_line;
 assign dout_dcache_pipeline = data_out;
 always @(*) begin
     if (choose_return) data_line = din_mem_dcache;
@@ -192,9 +187,7 @@ always @(*) begin
 end
 
 //Mem
-wire [1+offset_width:0]temp;
-assign temp=0;
-assign addr_dcache_mem = {rbuf_addr[31:2+offset_width],temp};
+assign addr_dcache_mem = rbuf_addr;
 assign dout_dcache_mem = rbuf_data;
 
 
@@ -217,9 +210,7 @@ Dcache_FSMmain Dcache_FSMmain1(
     .dcache_mem_wr(dcache_mem_wr),
     .dcache_mem_size(dcache_mem_size),
     .dcache_mem_wstrb(dcache_mem_wstrb),
-    `ifdef normal
-        .mem_dcache_addrOK(mem_dcache_addrOK),
-    `endif
+    .mem_dcache_addrOK(mem_dcache_addrOK),
     .mem_dcache_dataOK(mem_dcache_dataOK),
 
     //request buffer

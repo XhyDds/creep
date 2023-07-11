@@ -35,7 +35,7 @@ module Icache_Data#(
 
     input       [data_width-1:0]Data_din_write,
     input       [addr_width-1:0]Data_addr_write,
-    input       [way-1:0]Data_we
+    input       [1:0]Data_we
     
     );
 bram way0(

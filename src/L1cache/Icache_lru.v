@@ -33,7 +33,9 @@ module Icache_lru#(
 reg [(1<<addr_width)-1:0]record;
 assign way_sel=record[addr];
 always @(posedge clk,negedge rstn) begin
-    if(!rstn)record<=0;
+    if(!rstn)begin
+        record<=0;
+    end
     else begin
         if(use0)record[addr]<=1;//下一次用1
         else if(use1)record[addr]<=0;//下一次用0

@@ -44,7 +44,8 @@ module bram_bytewrite#(
     end
 
     always @(posedge clk) begin
-        addr_r <= raddr == waddr ? waddr : raddr;
+        // addr_r <= raddr == waddr ? waddr : raddr;????
+        addr_r <= raddr;
     end
     assign dout = ram[addr_r];
     generate

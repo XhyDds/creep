@@ -19,8 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-// `define test
-`define normal
+
 module Dcache_FSMmain#(
     parameter   index_width=4,
                 offset_width=2,
@@ -43,9 +42,7 @@ module Dcache_FSMmain#(
     output reg  dcache_mem_wr,//write-1  read-0
     output reg  [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output reg  [3:0]dcache_mem_wstrb,//字节写使能
-    `ifdef normal
-        input   mem_dcache_addrOK,//发送的地址和数据都被接收
-    `endif 
+    input       mem_dcache_addrOK,//发送的地址和数据都被接收
     input       mem_dcache_dataOK,//返回的数据有效
 
     //模块间信号
@@ -126,35 +123,19 @@ always @(*) begin
         Operation:begin
             next_state=Idle;
         end
-        `ifdef normal
-            Miss_r:begin
-                if(!mem_dcache_addrOK)next_state=Miss_r;
-                else next_state=Miss_r_waitdata;
+        Miss_r:begin
+            if(!mem_dcache_addrOK)next_state=Miss_r;
+            else next_state=Miss_r_waitdata;
+        end
+        Miss_r_waitdata:begin
+            if(!mem_dcache_dataOK)next_state=Miss_r_waitdata;
+            else begin//数据可信赖，内存准备写
+                if(fStall_outside)next_state=Replace1;
+                else next_state=Replace;
             end
-            Miss_r_waitdata:begin
-                if(!mem_dcache_dataOK)next_state=Miss_r_waitdata;
-                else begin//数据可信赖，内存准备写
-                    if(fStall_outside)next_state=Replace1;
-                    else next_state=Replace;
-                end
-            end
-        `endif
-        `ifdef test
-            Miss_r:begin
-                if(!mem_dcache_dataOK)next_state=Miss_r;
-                else begin//数据可信赖，内存准备写
-                    if(fStall_outside)next_state=Replace1;
-                    else next_state=Replace;
-                end
-            end
-        `endif
+        end
         Miss_w:begin
-            `ifdef normal
-                if(!mem_dcache_addrOK)next_state=Miss_w;
-            `endif
-            `ifdef test
-                if(!mem_dcache_dataOK)next_state=Miss_w;
-            `endif
+            if(!mem_dcache_addrOK)next_state=Miss_w;
             else begin
                 if(pipeline_dcache_vaild)begin
                     if(opflag)next_state=Operation;
@@ -221,7 +202,8 @@ always @(*) begin
                     dcache_mem_size=2'd2;
                     dcache_mem_wstrb=4'b1111;
 
-                    // //写Miss的时候同时写入主存和cache
+                    //写Miss的时候同时写入主存和cache   //7.13：需要先调块？？好像又不用了 不写cache了直接写主存
+
                     // if(FSM_wal_sel_lru==1'd0)begin
                     //     FSM_Data_we[0]=1;
                     //     FSM_use0=1;

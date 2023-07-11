@@ -19,8 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-// `define test
-`define normal
+
 module Icache_FSMmain#(
     parameter   index_width=4,
                 offset_width=2,
@@ -39,9 +38,7 @@ module Icache_FSMmain#(
 
     output reg  icache_mem_req,
     output reg  [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
-    `ifdef normal
-        input   mem_icache_addrOK,//发送的地址和数据都被接收
-    `endif
+    input       mem_icache_addrOK,//发送的地址和数据都被接收
     input       mem_icache_dataOK,//返回的数据有效
 
     //模块间信号
@@ -127,28 +124,17 @@ always @(*) begin
         Operation:begin
             next_state=Idle;
         end
-        `ifdef normal
-            Miss_r:begin
-                if(!mem_icache_addrOK)next_state=Miss_r;
-                else next_state=Miss_r_waitdata;
+        Miss_r:begin
+            if(!mem_icache_addrOK)next_state=Miss_r;
+            else next_state=Miss_r_waitdata;
+        end
+        Miss_r_waitdata:begin
+            if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
+            else begin//数据可信赖，内存准备写
+                if(fStall_outside)next_state=Replace1;
+                else next_state=Replace;
             end
-            Miss_r_waitdata:begin
-                if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
-                else begin//数据可信赖，内存准备写
-                    if(fStall_outside)next_state=Replace1;
-                    else next_state=Replace;
-                end
-            end
-        `endif
-        `ifdef test
-            Miss_r:begin
-                if(!mem_icache_dataOK)next_state=Miss_r;
-                else begin//数据可信赖，内存准备写
-                    if(fStall_outside)next_state=Replace1;
-                    else next_state=Replace;
-                end
-            end
-        `endif
+        end
         Replace:begin
             if(pipeline_icache_vaild)begin
                 if(opflag)next_state=Operation;
@@ -222,7 +208,6 @@ always @(*) begin
                     end
                 end
                 Flush:begin
-                    FSM_rbuf_we=1;
                     icache_pipeline_ready=1;
                     FSM_send_nop=1;
                 end
@@ -234,6 +219,7 @@ always @(*) begin
         Flush:begin
             icache_pipeline_ready=1;
             FSM_send_nop=1;
+            FSM_rbuf_we=1;
         end
         Operation:begin
             case (next_state)
@@ -266,11 +252,11 @@ always @(*) begin
                     FSM_choose_return=1;//前递
                     icache_pipeline_ready=1;
                     if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we[0]=1;
+                        FSM_Data_we=2'b01;
                         FSM_use0=1;
                     end
                     else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we[1]=1;
+                        FSM_Data_we=2'b10;
                         FSM_use1=1;
                     end
                 end
@@ -279,11 +265,11 @@ always @(*) begin
                     FSM_choose_return=1;//这是必须的
                     icache_pipeline_ready=1;
                     if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we[0]=1;
+                        FSM_Data_we=2'b01;
                         FSM_use0=1;
                     end
                     else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we[1]=1;
+                        FSM_Data_we=2'b10;
                         FSM_use1=1;
                     end
                 end

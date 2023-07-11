@@ -26,7 +26,7 @@ module Icache_TagV#(
                 way=2
 )
 (
-    input       clk,
+    input       clk,rstn,
     input       [addr_width-1:0]TagV_addr_read,
     input       [data_width-1:0]TagV_din_compare,//用于比较
     output      [way-1:0]hit,
@@ -38,8 +38,8 @@ module Icache_TagV#(
     );
 wire [data_width-1:0]TagV_data[way-1:0];
 
-reg [addr_width-1:0]valid0; 
-reg [addr_width-1:0]valid1;
+reg [(1<<addr_width)-1:0]valid0; 
+reg [(1<<addr_width)-1:0]valid1;
 
 // always @(posedge clk,negedge rstn) begin
 //     if(!rstn)begin
@@ -52,9 +52,15 @@ reg [addr_width-1:0]valid1;
 //     end
 // end
 
-always @(posedge clk) begin
-    if(TagV_we[0])valid0[TagV_addr_write]<=1;
-    if(TagV_we[1])valid1[TagV_addr_write]<=1;
+always @(posedge clk,negedge rstn) begin
+    if(!rstn)begin
+        valid0<=0;
+        valid1<=0;
+    end
+    else begin
+        if(TagV_we[0])valid0[TagV_addr_write]<=1;
+        if(TagV_we[1])valid1[TagV_addr_write]<=1;
+    end
 end
 
 bram way0(
