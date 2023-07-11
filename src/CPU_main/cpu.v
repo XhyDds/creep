@@ -216,6 +216,26 @@ module cpu (
     //     .flag_reg 		( flag_icache_pipeline 		    )
     // );
 
+    wire    i_rready;
+    wire    i_rvalid;
+    wire    [31:0] i_rdata;
+    wire    i_rlast;
+
+    ReturnBuffer#(
+        .offset_width(WORD_OFFSET_WIDTH)
+    )
+    icache_returnbuf(
+        .clk                (clk),
+        .rstn               (rstn),
+        .cache_mem_req      (icache_mem_req),
+        .mem_cache_dataOK   (mem_icache_dataOK),
+        .dout_mem_cache     (din_mem_icache),
+        .rready             (i_rready),
+        .rdata              (i_rdata),
+        .rlast              (i_rlast)
+    );
+
+
     wire [31:0]	pc0;
     wire [31:0]	pc1;
     wire [31:0]	ir0;
@@ -747,13 +767,13 @@ module cpu (
         .rstn     		( rstn     		),
 
         //ICache
-        .i_rvalid 		( icache_mem_req 		),//input       
-        .i_rready 		( mem_icache_dataOK 		),//output reg  
+        .i_rvalid 		( i_rvalid 		),//input       
+        .i_rready 		( i_rready 		),//output reg  
         .i_raddr  		( addr_icache_mem  		),//input [31:0]
-        .i_rdata  		( din_mem_icache  		),//output[31:0]//大小不一致！！
-        // .i_rlast  		(   		),//output reg  
+        .i_rdata  		( i_rdata  		),//output[31:0]//大小不一致！！
+        .i_rlast  		( i_rlast  		),//output reg  
         .i_rsize  		( {0,icache_mem_size}  		),//input [2:0] 
-        .i_rlen   		( 0   		),//input [7:0] 
+        .i_rlen   		( 1   		),//input [7:0] 
 
         //Dcache
         .d_rvalid 		( dcache_mem_req & ~dcache_mem_wr 		),//input       
