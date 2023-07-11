@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module L2cache_replace#(
+module L2cache_replace#(//PLRU
     parameter   addr_width=4,
                 way=4
 )
@@ -28,12 +28,35 @@ module L2cache_replace#(
     input       clk,
     input       use0,use1,ues2,ues3,
     input       [addr_width-1:0]addr,
-    output      [1:0]way_sel
+    output reg  [1:0]way_sel
     );
-// reg [(1<<addr_width)-1:0]record;
-// assign way_sel=record[addr];
-// always @(posedge clk) begin
-//     if(use0)record[addr]<=1;//下一次用1
-//     else if(use1)record[addr]<=0;//下一次用0
-// end   
+reg [(1<<addr_width)-1:0]record[2:0];
+always @(*) begin
+    if(!record[addr][0])begin
+        if(!record[addr][1])way_sel = 2'd0;
+        else way_sel = 2'd1;
+    end
+    else begin
+        if(!record[addr][2])way_sel = 2'd2;
+        else way_sel = 2'd3;
+    end
+end
+always @(posedge clk) begin
+    if(use0)begin
+        record[addr][0] <= 1'b1;
+        record[addr][1] <= 1'b1;
+    end
+    else if(use1)begin
+        record[addr][0] <= 1'b1;
+        record[addr][1] <= 1'b0;
+    end
+    else if(use2)begin
+        record[addr][0] <= 1'b0;
+        record[addr][2] <= 1'b1;
+    end
+    else if(use3)begin
+        record[addr][0] <= 1'b0;
+        record[addr][2] <= 1'b0;
+    end
+end
 endmodule

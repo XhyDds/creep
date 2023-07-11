@@ -19,11 +19,11 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
+//写回写分配
 module L2cache_FSMmain#(
-    parameter   index_width=4,
+    parameter   index_width=8,
                 offset_width=2,
-                way=2
+                way=4
 )
 (
     input clk,rstn,
@@ -46,7 +46,7 @@ module L2cache_FSMmain#(
     input       mem_L2cache_dataOK,//返回的数据有效
 
     //模块间信号
-    
+
     //reqbuf
     output reg  FSM_rbuf_we,
     input       [31:0]FSM_rbuf_opcode,
@@ -66,9 +66,10 @@ module L2cache_FSMmain#(
     output reg  FSM_Data_replace,
     // output reg  FSM_way_select,
 
-    //dirty 暂无
-    // input       FSM_Dirty,
-    // output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
+
+    input       FSM_Dirty,
+    
+    output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
 
     //Return Buffer
    
