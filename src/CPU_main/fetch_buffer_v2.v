@@ -39,10 +39,30 @@ module fetch_buffer_v2 (
                 if(icache_valid)
                     if (flag) 
                         begin
-                            for (i=0;i<13;i=i+1) begin
-                                buffer[i]<=buffer[i+2];
-                                bufferpc[i]<=bufferpc[i+2];
-                            end
+                            buffer[1]<=buffer[3];
+                            bufferpc[1]<=bufferpc[3];
+                            buffer[2]<=buffer[4];
+                            bufferpc[2]<=bufferpc[4];
+                            buffer[3]<=buffer[3+2];
+                            bufferpc[3]<=bufferpc[3+2];
+                            buffer[4]<=buffer[4+2];
+                            bufferpc[4]<=bufferpc[4+2];
+                            buffer[5]<=buffer[5+2];
+                            bufferpc[5]<=bufferpc[5+2];
+                            buffer[6]<=buffer[6+2];
+                            bufferpc[6]<=bufferpc[6+2];
+                            buffer[7]<=buffer[7+2];
+                            bufferpc[7]<=bufferpc[7+2];
+                            buffer[8]<=buffer[8+2];
+                            bufferpc[8]<=bufferpc[8+2];
+                            buffer[9]<=buffer[9+2];
+                            bufferpc[9]<=bufferpc[9+2];
+                            buffer[10]<=buffer[10+2];
+                            bufferpc[10]<=bufferpc[10+2];
+                            buffer[11]<=buffer[11+2];
+                            bufferpc[11]<=bufferpc[11+2];
+                            buffer[12]<=buffer[12+2];
+                            bufferpc[12]<=bufferpc[12+2];
                             buffer[13]<=ir[0];
                             bufferpc[13]<=pc;
                             buffer[14]<=ir[1];
@@ -50,10 +70,30 @@ module fetch_buffer_v2 (
                         end
                     else 
                         begin
-                            for (i=0;i<14;i=i+1) begin
-                                buffer[i]<=buffer[i+1];
-                                bufferpc[i]<=bufferpc[i+1];
-                            end
+                            buffer[1]<=buffer[3];
+                            bufferpc[1]<=bufferpc[3];
+                            buffer[2]<=buffer[4];
+                            bufferpc[2]<=bufferpc[4];
+                            buffer[3]<=buffer[3+1];
+                            bufferpc[3]<=bufferpc[3+1];
+                            buffer[4]<=buffer[4+1];
+                            bufferpc[4]<=bufferpc[4+1];
+                            buffer[5]<=buffer[5+1];
+                            bufferpc[5]<=bufferpc[5+1];
+                            buffer[6]<=buffer[6+1];
+                            bufferpc[6]<=bufferpc[6+1];
+                            buffer[7]<=buffer[7+1];
+                            bufferpc[7]<=bufferpc[7+1];
+                            buffer[8]<=buffer[8+1];
+                            bufferpc[8]<=bufferpc[8+1];
+                            buffer[9]<=buffer[9+1];
+                            bufferpc[9]<=bufferpc[9+1];
+                            buffer[10]<=buffer[10+1];
+                            bufferpc[10]<=bufferpc[10+1];
+                            buffer[11]<=buffer[11+1];
+                            bufferpc[11]<=bufferpc[11+1];
+                            buffer[12]<=buffer[12+1];
+                            bufferpc[12]<=bufferpc[12+1];
                             buffer[14]<=ir[0];
                             bufferpc[14]<=pc;
                         end

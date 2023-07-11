@@ -1,4 +1,4 @@
-module cpu (
+module core_top (
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -46,7 +46,13 @@ module cpu (
     input           bvalid,
     output          bready,
 
-    //debug info
+    //debug
+    input           break_point,
+    input           infor_flag,
+    input  [ 4:0]   reg_num,
+    output          ws_valid,
+    output [31:0]   rf_rdata,
+
     output [31:0] debug0_wb_pc,
     output [ 3:0] debug0_wb_rf_wen,
     output [ 4:0] debug0_wb_rf_wnum,
@@ -61,17 +67,7 @@ module cpu (
 );
     wire clk=aclk;
     wire rstn=aresetn;
-    assign debug0_wb_pc=pc_exe1_wb_0;
-    assign debug1_wb_pc=pc_exe1_wb_1;
-    assign debug0_wb_rf_wen={4{ifwb0}};
-    assign debug1_wb_rf_wen={4{ifwb1}};
-    assign debug0_wb_rf_wnum=wb_addr0;
-    assign debug1_wb_rf_wnum=wb_addr1;
-    assign debug0_wb_rf_wdata=wb_data0;
-    assign debug1_wb_rf_wdata=wb_data1;
-    assign debug0_wb_inst=imm_exe1_wb_0;
-    assign debug1_wb_inst=imm_exe1_wb_1;
-    parameter offset_width = 0;
+    parameter offset_width = 2;
 
     reg [31:0]pc,npc,
     ctr_id_reg_0,ctr_id_reg_1,ctr_reg_exe0_1_ALE,
@@ -97,6 +93,7 @@ module cpu (
     
     reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,
     excp_arg_id_reg_0,excp_arg_id_reg_1;
+    reg [15:0]excp_arg_exe0_exe1_1_excp=0;
 
     reg [63:0]ir_if1_fifo;
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
@@ -110,7 +107,6 @@ module cpu (
     reg icache_valid_if1_fifo,flag_if1_fifo;
     
     //TLB
-    wire [31:0]excp_arg_exe0_exe1_1_excp=0;
     wire tlbexcp=0,tlbcode=0,tlbsubcode=0;
 
     //PRIV
@@ -123,7 +119,7 @@ module cpu (
 
     wire ifbr0,ifbr1,ifibar0,ifibar1;
     wire stall_div0,stall_div1,stall_fetch_buffer;
-    wire stall_dcache=0,stall_icache=0;//dcache_valid-ready?
+    wire stall_dcache,stall_icache;//dcache_valid-ready?
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
 
@@ -684,6 +680,9 @@ module cpu (
     wire [1:0]	dcache_mem_size;
     wire [3:0]	dcache_mem_wstrb;
     wire mem_dcache_dataOK;
+    wire [31:0] din_mem_dcache;
+    wire mem_dcache_addrOK;
+    wire mem_dcache_dataOK;
 
     Dcache_DMA #(
         .index_width  		( 4 		),
@@ -706,7 +705,7 @@ module cpu (
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_opcode 		( pipeline_dcache_opcode 		),
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
-        .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1,stall_to_dcache}),
+        .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
 
         .addr_dcache_mem        		( addr_dcache_mem        		),
@@ -1082,4 +1081,23 @@ module cpu (
         end
     end
 
+    assign debug0_wb_pc=pc_exe1_wb_0;
+    assign debug1_wb_pc=pc_exe1_wb_1;
+    assign debug0_wb_rf_wen={4{ifwb0}};
+    assign debug1_wb_rf_wen={4{ifwb1}};
+    assign debug0_wb_rf_wnum=wb_addr0;
+    assign debug1_wb_rf_wnum=wb_addr1;
+    assign debug0_wb_rf_wdata=wb_data0;
+    assign debug1_wb_rf_wdata=wb_data1;
+    assign debug0_wb_inst=imm_exe1_wb_0;
+    assign debug1_wb_inst=imm_exe1_wb_1;
+    assign arid=0;
+    assign arlock=0;
+    assign arcache=0;
+    assign arprot=0;
+    assign awid=0;
+    assign awlock=0;
+    assign awcache=0;
+    assign awprot=0;
+    assign wid=0;
 endmodule
