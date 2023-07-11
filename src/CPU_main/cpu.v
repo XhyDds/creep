@@ -759,7 +759,8 @@ module cpu (
     //AXI
     wire 	d_rready;
     wire 	d_wready;
-    assign  mem_dcache_dataOK = d_rready | d_wready;
+    assign  mem_dcache_addrOK = dcache_mem_wr?1:d_wready;
+    assign  mem_dcache_dataOK=d_rready;
 
     axi_arbiter u_axi_arbiter(
         //ports
@@ -793,8 +794,8 @@ module cpu (
         .d_wsize  		( {0,dcache_mem_size}  		),//input [2:0] 
         .d_wlen   		( 0   		),//input [7:0] 
 
-        .d_bvalid 		( dcache_mem_req & dcache_mem_wr 		),//output reg 写响应 和写数据一样吗？
-        .d_bready 		( dcache_mem_req 		),//input       
+        .d_bvalid 		(  		),//output reg 写响应 和写数据一样吗？
+        .d_bready 		( 1 		),//input       
         
         //AXI
         .araddr   		( araddr   		),
