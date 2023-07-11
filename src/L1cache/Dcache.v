@@ -41,7 +41,7 @@ module Dcache#(
     output      [31:0]dout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
 
-    input       pipeline_dcache_vaild,
+    input       pipeline_dcache_valid,
     output      dcache_pipeline_ready,
     
     input       [3:0]pipeline_dcache_wstrb,//字节处理位
@@ -197,7 +197,7 @@ Dcache_FSMmain Dcache_FSMmain1(
     .clk(clk),.rstn(rstn),
 
     //pipeline  dcache
-    .pipeline_dcache_vaild(pipeline_dcache_vaild),
+    .pipeline_dcache_valid(pipeline_dcache_valid),
     .dcache_pipeline_ready(dcache_pipeline_ready),
     .pipeline_dcache_wstrb(pipeline_dcache_wstrb),
     .pipeline_dcache_opcode(pipeline_dcache_opcode),

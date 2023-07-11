@@ -9,11 +9,11 @@ module ReturnBuffer #(
     //cache
     input               cache_mem_req,
     output reg          mem_cache_dataOK,
-    output reg          [(1<<offset_width)*32-1:0]dout_mem_cache,
+    output              [(1<<offset_width)*32-1:0]dout_mem_cache,
     //arbiter 
-    input reg           rready,   //r: arbiter->i:dataOK
+    input               rready,   //r: arbiter->i:dataOK
     input[31:0]         rdata,
-    input reg           rlast
+    input               rlast
 );
     localparam  WORD_NUM = (1 << offset_width)*32-1,              // words per block(set)
                 WORD_SIZE = 2;                                  // word offset width

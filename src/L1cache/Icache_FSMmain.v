@@ -29,7 +29,7 @@ module Icache_FSMmain#(
     input clk,rstn,
 
     //上下游信号
-    input       pipeline_icache_vaild,
+    input       pipeline_icache_valid,
     output reg  icache_pipeline_ready,
     input       [31:0]pipeline_icache_opcode,//好像不需要 用rbuf的即可
     input       pipeline_icache_opflag,
@@ -96,7 +96,7 @@ end
 always @(*) begin
     case (state)
         Idle:begin
-            if(pipeline_icache_vaild)begin
+            if(pipeline_icache_valid)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
@@ -107,7 +107,7 @@ always @(*) begin
                 if(flush_outside)next_state=Flush;
                 else next_state=Miss_r;
             end
-            else if(pipeline_icache_vaild)begin
+            else if(pipeline_icache_valid)begin
                 if(flush_outside)next_state=Flush;
                 else if(opflag)next_state=Operation;
                 else next_state=Lookup;
@@ -115,7 +115,7 @@ always @(*) begin
             else next_state=Idle;
         end
         Flush:begin
-            if(pipeline_icache_vaild)begin
+            if(pipeline_icache_valid)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
@@ -136,7 +136,7 @@ always @(*) begin
             end
         end
         Replace:begin
-            if(pipeline_icache_vaild)begin
+            if(pipeline_icache_valid)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
