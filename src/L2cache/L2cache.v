@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module L2cache#(
-    parameter   index_width=8,
+    parameter   index_width=2,
                 offset_width=2,
                 L1offset_width=2,//两者相等
                 way=4
@@ -18,8 +18,8 @@ module L2cache#(
     output      l2cache_icache_dataOK,
 
     //op port
-    input       l2cache_opflag;
-    input       [31:0]l2cache_opcode;
+    input       l2cache_opflag,
+    input       [31:0]l2cache_opcode,
     //Dcache port
     input       [31:0]addr_dcache_l2cache,
     input       [31:0]din_dcache_l2cache,//L1写直达
@@ -31,14 +31,17 @@ module L2cache#(
     output      l2cache_dcache_dataOK,
 
     //mem port(AXI bridge)
-    output      [31:0]addr_l2cache_mem,
+    output      [31:0]addr_l2cache_mem_r,
+    output      [31:0]addr_l2cache_mem_w,
     input       [32*(1<<offset_width)-1:0]din_mem_l2cache,
     output      [32*(1<<offset_width)-1:0]dout_l2cache_mem,
-    output      l2cache_mem_req,
-    output      l2cache_mem_wr,//0-read 1-write
+    output      l2cache_mem_req_r,
+    output      l2cache_mem_req_w,
+    output      l2cache_mem_rdy,
     output      [1:0]l2cache_mem_size,
     output      [3:0]l2cache_mem_wstrb,
-    input       mem_l2cache_addrOK, 
+    input       mem_l2cache_addrOK_r,
+    input       mem_l2cache_addrOK_w, 
     input       mem_l2cache_dataOK
 );
 assign l2cache_mem_size = 2'd2;
@@ -57,7 +60,7 @@ always @(*) begin
     else if(icache_l2cache_req)from = 2'd1;
     else from = 2'd0;
 end
-assign addr_l1cache_l2cache = form[1] ? addr_dcache_l2cache : addr_icache_l2cache;
+assign addr_l1cache_l2cache = from[1] ? addr_dcache_l2cache : addr_icache_l2cache;
 assign din_l1cache_l2cache = din_dcache_l2cache;
 assign dout_l2cache_icache = dout_l2cache_l1cache;
 assign dout_l2cache_dcache = dout_l2cache_l1cache;
@@ -110,17 +113,20 @@ L2cache_rbuf L2cache_rbuf(
 assign l2cache_mem_wstrb = rbuf_wstrb;
 
 //PLRU
-wire use0,use1,use2,use3;
-wire [1:0]way_sel_lru;
-
-L2cache_lru L2cache_lru(
+wire [way-1:0]use1;
+wire [way-1:0]valid;
+wire [1:0]way_sel_d;
+wire way_sel_i;
+L2cache_replace L2cache_replace(
     .clk(clk),
-    .use0(use0),.use1(use1),.use2(use2),.use3(use3),
+    .use1(use1),
+    .valid(valid),
     .addr(rbuf_index),
-    .way_sel(way_sel_lru)
+    .way_sel_d(way_sel_d),
+    .way_sel_i(way_sel_i)
 );
-defparam Dcache_lru.addr_width = index_width;
-defparam Dcache_lru.way = way;
+defparam L2cache_replace.addr_width = index_width;
+defparam L2cache_replace.way = way;
 
 //Data
 wire [way-1:0]Data_we;
@@ -143,13 +149,15 @@ L2cache_Data L2cache_Data(
     .Data_we(Data_we),
     .Data_replace(Data_replace)
 );
-defparam Dcache_Data.addr_width = index_width;
-defparam Dcache_Data.data_width = (2<<index_width)*32;//单个line的长度
-defparam Dcache_Data.offset_width = offset_width;
-defparam Dcache_Data.way = way;
+defparam L2cache_Data.addr_width = index_width;
+defparam L2cache_Data.data_width = (2<<index_width)*32;//单个line的长度
+defparam L2cache_Data.offset_width = offset_width;
+defparam L2cache_Data.way = way;
 
 //Tag
 wire [way-1:0]TagV_we,hit;
+wire [1:0]TagV_way_select;
+wire [32-2-index_width-offset_width-1:0]TagV_dout;
 assign TagV_we = Data_we;
 L2cache_TagV L2cache_TagV(
     .clk(clk),
@@ -157,14 +165,17 @@ L2cache_TagV L2cache_TagV(
     .TagV_addr_read(index),
     .TagV_din_compare(rbuf_tag),
     .hit(hit),
+    .valid(valid),
+    .TagV_way_select(TagV_way_select),
+    .TagV_dout(TagV_dout),
     
     .TagV_din_write(rbuf_tag),
     .TagV_addr_write(rbuf_index),
     .TagV_we(TagV_we)
 );
-defparam Dcache_TagV.addr_width = index_width;
-defparam Dcache_TagV.data_width = 32-2-index_width-offset_width;
-defparam Dcache_TagV.way = way;
+defparam L2cache_TagV.addr_width = index_width;
+defparam L2cache_TagV.data_width = 32-2-index_width-offset_width;
+defparam L2cache_TagV.way = way;
 
 //Dirtytable
 wire Dirty,Dirtytable_set0,Dirtytable_set1;
@@ -178,6 +189,7 @@ L2cache_Dirtytable L2cache_Dirtytable(
     .Dirtytable_set1(Dirtytable_set1),
     .Dirty(Dirty)
 );
+defparam L2cache_Dirtytable.addr_width = index_width;
 
 //data choose
 wire [1:0]choose_way;
@@ -196,8 +208,9 @@ always @(*) begin
 end
 
 //Mem
-assign addr_l2cache_mem = {rbuf_addr[31:offset_width+2],(offset_width+2){1'b0}};//对齐
-assign dout_l2cache_mem = dout_l2cache_l1cache;//????
+assign addr_l2cache_mem_r = {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
+assign addr_l2cache_mem_w = {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
+assign dout_l2cache_mem = dout_l2cache_l1cache;//
 
 //FSM
 L2cache_FSMmain L2cache_FSMmain(
@@ -212,9 +225,11 @@ L2cache_FSMmain L2cache_FSMmain(
     .l2cache_dcache_dataOK(l2cache_dcache_dataOK),
 
     //req for Mem
-    .l2cache_mem_req(l2cache_mem_req),
-    .l2cache_mem_wr(l2cache_mem_wr),
-    .mem_l2cache_addrOK(mem_l2cache_addrOK),
+    .l2cache_mem_req_w(l2cache_mem_req_w),
+    .l2cache_mem_req_r(l2cache_mem_req_r),
+    .l2cache_mem_rdy(l2cache_mem_rdy),
+    .mem_l2cache_addrOK_r(mem_l2cache_addrOK_r),
+    .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),
     .mem_l2cache_dataOK(mem_l2cache_dataOK),
 
     //request buffer
@@ -224,16 +239,15 @@ L2cache_FSMmain L2cache_FSMmain(
     // .FSM_rbuf_opflag(rbuf_opflag),
 
     //PLRU
-    .FSM_use0(use0),
-    .FSM_use0(use1),
-    .FSM_use0(use2),
-    .FSM_use0(use3),
-    .FSM_wal_sel_lru(way_sel_lru),
+    .FSM_use(use1),
+    .FSM_way_sel_d(way_sel_d),
+    .FSM_way_sel_i(way_sel_i),
 
     //Data and TagV
     .FSM_hit(hit),
     .FSM_Data_we(Data_we),
     .FSM_Data_replace(Data_replace),//为1时替换整行，否则对word操作
+    .FSM_TagV_way_select(TagV_way_select),
 
     //Dirtytable
     .FSM_Dirtytable_way_select(Dirtytable_way_select),
@@ -246,7 +260,7 @@ L2cache_FSMmain L2cache_FSMmain(
     .FSM_choose_return(choose_return)
     
 );
-defparam Dcache_FSMmain.index_width = index_width;
-defparam Dcache_FSMmain.offset_width = offset_width;
-defparam Dcache_FSMmain.way = way;
+defparam L2cache_FSMmain.index_width = index_width;
+defparam L2cache_FSMmain.offset_width = offset_width;
+defparam L2cache_FSMmain.way = way;
 endmodule

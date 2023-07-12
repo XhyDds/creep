@@ -32,7 +32,7 @@ module L2cache_rbuf#(
     input [3:0]wstrb,
     output reg [3:0]rbuf_wstrb,
     input [1:0]from,//0-No 1-I 2-Dr 3-Dw
-    output [1:0]rbuf_from
+    output reg[1:0]rbuf_from
     );
 always @(posedge clk,negedge rstn) begin
     if(!rstn)begin

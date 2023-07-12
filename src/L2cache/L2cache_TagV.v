@@ -29,7 +29,10 @@ module L2cache_TagV#(
     input       clk,
     input       [addr_width-1:0]TagV_addr_read,
     input       [data_width-1:0]TagV_din_compare,//用于比较
+    input       [1:0]TagV_way_select,
+    output      [data_width-1:0]TagV_dout,
     output      [way-1:0]hit,
+    output      [way-1:0]valid,
 
     input       [data_width-1:0]TagV_din_write,
     input       [addr_width-1:0]TagV_addr_write,
@@ -41,6 +44,8 @@ reg [(1<<addr_width)-1:0]valid0;
 reg [(1<<addr_width)-1:0]valid1;
 reg [(1<<addr_width)-1:0]valid2; 
 reg [(1<<addr_width)-1:0]valid3;
+assign valid={valid3[TagV_addr_write],valid2[TagV_addr_write],valid1[TagV_addr_write],valid0[TagV_addr_write]};
+assign TagV_dout=TagV_data[TagV_way_select];
 
 always @(posedge clk) begin
     if(TagV_we[0])valid0[TagV_addr_write]<=1;
