@@ -736,7 +736,8 @@ module core_top (
         .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
         .dout_dcache_pipeline        		( dout_dcache_pipeline ),
         .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
-        .dout_dcache_pipeline_extend 		( dcacheresult 		   )
+        .dout_dcache_pipeline_extend 		( dcacheresult 		   ),
+        .din_pipeline_dcache                ( din_pipeline_dcache )
     );
 
     // wire [31:0]	dcacheresult;

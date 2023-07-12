@@ -1,5 +1,5 @@
 module dcache_extend (
-    input [31:0]ctr_exe0_exe1_1,dout_dcache_pipeline,
+    input [31:0]ctr_exe0_exe1_1,dout_dcache_pipeline,din_pipeline_dcache,
     input [1:0]addr_pipeline_dcache,
     output reg [31:0]dout_dcache_pipeline_extend
 );
@@ -24,6 +24,9 @@ module dcache_extend (
                 0: dout_dcache_pipeline_extend=dout_dcache_pipeline;
                 1: dout_dcache_pipeline_extend={{16{dout16[15]}},dout16};
                 2: dout_dcache_pipeline_extend={{24{dout16[15]}},dout8};
+                3: dout_dcache_pipeline_extend=din_pipeline_dcache;
+                4: dout_dcache_pipeline_extend=din_pipeline_dcache;
+                5: dout_dcache_pipeline_extend=din_pipeline_dcache;
                 6: dout_dcache_pipeline_extend={16'b0,dout16};
                 7: dout_dcache_pipeline_extend={24'b0,dout8};
             endcase
