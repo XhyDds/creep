@@ -223,13 +223,13 @@ module decoder (
         'b000101: 
             if(!ir[25]) //LU12I.W
                 begin 
-                    imm={{12{ir[24]}},ir[24:5]};rd=ir[4:0];type_=alu;aluop=tong2;regwrite=1;
+                    imm={ir[24:5],12'b0};rd=ir[4:0];type_=alu;aluop=tong2;regwrite=1;alusrc2=1;
                 end 
             else begin type_=liwai;subtype=0;excp_arg='b001101; end
         'b000111: 
             if(!ir[25]) //PCADDU12I
                 begin  
-                    imm={{12{ir[24]}},ir[24:5]};rd=ir[4:0];type_=alu;aluop=jia;alusrc1=1;regwrite=1;
+                    imm={ir[24:5],12'b0};rd=ir[4:0];type_=alu;aluop=jia;alusrc1=1;regwrite=1;alusrc2=1;
                 end 
             else begin type_=liwai;subtype=0;excp_arg='b001101; end
         'b001000:

@@ -67,7 +67,7 @@ module core_top (
 );
     wire clk=aclk;
     wire rstn=aresetn;
-    parameter offset_width = 2;
+    parameter offset_width = 1;
 
     reg [31:0]pc,npc,
     ctr_id_reg_0,ctr_id_reg_1,ctr_reg_exe0_1_ALE,
@@ -137,20 +137,20 @@ module core_top (
     assign flush_exe1_wb_0 =    0;
     assign flush_exe1_wb_1 =    0;
 
-    assign stall_pc =           stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_if0_if1 =      stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_to_icache =    stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死锁
-    assign stall_if1_fifo =     stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_fifo_id =      stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_id_reg0 =      stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_id_reg1 =      stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_reg_exe0_0 =   stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_reg_exe0_1 =   stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_exe0_exe1_0 =  stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_exe0_exe1_1 =  stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_to_dcache =    stall_priv|stall_div0|stall_div1|stall_icache;//暂时不死锁
-    assign stall_exe1_wb_0 =    stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_exe1_wb_1 =    stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死锁
+    assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_fifo_id =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_id_reg0 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_id_reg1 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_reg_exe0_0 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_reg_exe0_1 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_exe0_exe1_0 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_exe0_exe1_1 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1|stall_icache;//暂时不死锁
+    assign stall_exe1_wb_0 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
+    assign stall_exe1_wb_1 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
 
     //ICache Return Buffer
     wire        mem_icache_addrOK;
@@ -769,7 +769,6 @@ module core_top (
     wire 	d_rready;
     wire 	d_wready;
     wire    d_rlast;
-    wire    d_wlast;
     wire    d_bvalid;
     assign  mem_dcache_addrOK = dcache_mem_wr?1:d_wready;
     assign  mem_dcache_dataOK = d_rready;
@@ -802,7 +801,7 @@ module core_top (
         .d_waddr  		( addr_dcache_mem  		),//input [31:0]
         .d_wdata  		( dout_dcache_mem  		),//input [31:0]
         .d_wstrb  		( dcache_mem_wstrb  		),//input [3:0] 字节选通位
-        .d_wlast  		( d_wlast  		),//input       
+        .d_wlast  		( 1'b1  		),//input       
         .d_wsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         .d_wlen   		( 8'b0   		),//input [7:0] 
 
@@ -842,7 +841,7 @@ module core_top (
         if(ifbr_priv) npc=pc_priv;
         else if(ifbr1) npc=brresult1;
         else if(ifbr0) npc=brresult0;
-        else if(pc[2]) npc=pc+4;
+        // else if(pc[2]) npc=pc+4;//DMA ONLY
         else npc=pc+8;
         //0000 0004 0008 000C 0010
         //0000 0100 1000 1100 10000
@@ -1189,16 +1188,16 @@ module core_top (
         end
     end
 
-    assign debug0_wb_pc=pc_exe1_wb_0;
-    assign debug1_wb_pc=pc_exe1_wb_1;
-    assign debug0_wb_rf_wen={4{ifwb0}};
-    assign debug1_wb_rf_wen={4{ifwb1}};
-    assign debug0_wb_rf_wnum=wb_addr0;
-    assign debug1_wb_rf_wnum=wb_addr1;
-    assign debug0_wb_rf_wdata=wb_data0;
-    assign debug1_wb_rf_wdata=wb_data1;
-    assign debug0_wb_inst=ir_exe1_wb_0;
-    assign debug1_wb_inst=ir_exe1_wb_1;
+    assign debug1_wb_pc=pc_exe1_wb_0;
+    assign debug0_wb_pc=pc_exe1_wb_1;
+    assign debug1_wb_rf_wen={4{ifwb0}};
+    assign debug0_wb_rf_wen={4{ifwb1}};
+    assign debug1_wb_rf_wnum=wb_addr0;
+    assign debug0_wb_rf_wnum=wb_addr1;
+    assign debug1_wb_rf_wdata=wb_data0;
+    assign debug0_wb_rf_wdata=wb_data1;
+    assign debug1_wb_inst=ir_exe1_wb_0;
+    assign debug0_wb_inst=ir_exe1_wb_1;
     assign arid=0;
     assign arlock=0;
     assign arcache=0;
