@@ -1,0 +1,11 @@
+prefix=/opt/loongarch32r-linux-gnusf-2022-05-20
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: mpfr
+URL: https://www.mpfr.org/
+Description: C library for multiple-precision floating-point computations
+Version: 4.0.2
+Libs: -L${libdir} -lmpfr -lgmp
+Cflags: -I${includedir}

@@ -1,0 +1,29 @@
+This is libgomp.info, produced by makeinfo version 4.13 from
+/opt/loongarch32r-linux-gnusf-2022-05-20/gcc-8.3.0/src/libgomp/libgomp.texi.
+
+The current documentation is licensed under the same terms as the
+Debian packaging.
+
+INFO-DIR-SECTION Programming
+START-INFO-DIR-ENTRY
+* libgomp: (libgomp).                  The GNU Compiler Collection (libgomp).
+END-INFO-DIR-ENTRY
+
+
+
+File: libgomp.info,  Node: Top,  Up: (dir)
+
+Introduction
+************
+
+The official GNU compilers' documentation is released under the terms
+of the GNU Free Documentation License with cover texts. This has been
+considered non free by the Debian Project. Thus you will find it in the
+non-free section of the Debian archive.
+
+
+
+Tag Table:
+Node: Top373
+
+End Tag Table

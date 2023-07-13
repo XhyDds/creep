@@ -1,0 +1,29 @@
+This is doc/gcc.info, produced by makeinfo version 4.13 from
+/opt/loongarch32r-linux-gnusf-2022-05-20/gcc-8.3.0/src/gcc/doc/gcc.texi.
+
+The current documentation is licensed under the same terms as the
+Debian packaging.
+
+INFO-DIR-SECTION Programming
+START-INFO-DIR-ENTRY
+* gcc: (gcc).                  The GNU Compiler Collection (gcc).
+END-INFO-DIR-ENTRY
+
+
+
+File: gcc.info,  Node: Top,  Up: (dir)
+
+Introduction
+************
+
+The official GNU compilers' documentation is released under the terms
+of the GNU Free Documentation License with cover texts. This has been
+considered non free by the Debian Project. Thus you will find it in the
+non-free section of the Debian archive.
+
+
+
+Tag Table:
+Node: Top357
+
+End Tag Table
