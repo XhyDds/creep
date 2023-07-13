@@ -74,7 +74,7 @@ module ReturnBuffer #(
             case (state)
                 IDLE: begin
                     if(rready) begin
-                        _word <= {_word[(1<<offset_width)*32-33:0],rdata};
+                        _word <= {rdata,_word[(1<<offset_width)*32-1:32]};
                     end
                     else begin
                         _word <= 0;
@@ -82,11 +82,11 @@ module ReturnBuffer #(
                 end
                 RECEIVE: begin
                     if(rlast) begin
-                        _word <= {_word[(1<<offset_width)*32-33:0],rdata};
+                        _word <= {rdata,_word[(1<<offset_width)*32-1:32]};
                     end
                     else begin
                         if(rready) begin
-                            _word <= {_word[(1<<offset_width)*32-33:0],rdata};
+                            _word <= {rdata,_word[(1<<offset_width)*32-1:32]};
                         end
                         else ;
                     end
