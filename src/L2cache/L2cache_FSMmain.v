@@ -249,12 +249,16 @@ always @(*) begin
                     l2cache_icache_dataOK = 1;
                     FSM_use[FSM_way_sel_i] = 1;
                     FSM_Data_we[FSM_way_sel_i] = 1;
+                    FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
+                    FSM_Dirtytable_set0 = 1;
                 end
                 else if(FSM_rbuf_from == 2'b10)begin//d-r
                     FSM_rbuf_we = 1;
                     l2cache_dcache_dataOK = 1;
                     FSM_use[FSM_way_sel_d] = 1;
                     FSM_Data_we[FSM_way_sel_d] = 1;
+                    FSM_Dirtytable_way_select = FSM_way_sel_d;
+                    FSM_Dirtytable_set0 = 1;
                 end
                 else begin//d-w
                     // FSM_use[FSM_way_sel_d] = 1;//还不能发use给lru单元
@@ -266,6 +270,8 @@ always @(*) begin
             if(next_state != Idle)FSM_rbuf_we = 1;
             FSM_Data_we[FSM_way_sel_d] = 1;
             FSM_use[FSM_way_sel_d] = 1;
+            FSM_Dirtytable_way_select = FSM_way_sel_d;
+            FSM_Dirtytable_set1 = 1;
         end
         default:begin
             
