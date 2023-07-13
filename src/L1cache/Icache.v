@@ -201,7 +201,7 @@ Icache_FSMmain Icache_FSMmain(
 
     //pipeline  icache
     .pipeline_icache_valid(pipeline_icache_valid),
-    .icache_pipeline_ready(icache_pipeline_ready),
+    .icache_pipeline_ready1(icache_pipeline_ready),
     .pipeline_icache_opcode(pipeline_icache_opcode),
     .pipeline_icache_opflag(pipeline_icache_opflag),
     .pipeline_icache_ctrl(pipeline_icache_ctrl),
