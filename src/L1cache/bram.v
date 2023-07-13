@@ -22,8 +22,8 @@
 
 module bram #(
     parameter DATA_WIDTH = 32,
-              ADDR_WIDTH = 8,
-              INIT_FILE = "C:\Users\lenovo\Desktop\data_init.coe"
+            //   INIT_FILE = "C:\Users\lenovo\Desktop\data_init.coe"
+              ADDR_WIDTH = 8
 )
 (
     input clk,                    // Clock

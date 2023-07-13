@@ -101,7 +101,7 @@ Dcache_rbuf Dcache_rbuf(
     .opflag(pipeline_dcache_opflag),
     .rbuf_opflag(rbuf_opflag),
     
-    .type(type_pipeline_dcache),
+    .type1(type_pipeline_dcache),
     .rbuf_type(rbuf_type),
         
     .wstrb(pipeline_dcache_wstrb),
