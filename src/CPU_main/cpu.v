@@ -875,12 +875,13 @@ module core_top (
     );
 
     //PC
+    wire ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush;
     always @(*) begin
         if(ifbr_priv) npc=pc_priv;
         else if(ifbr1) npc=brresult1;
         else if(ifbr0) npc=brresult0;
         // else if(pc[2]) npc=pc+4;//DMA ONLY
-        else npc=pc+8;
+        else if(!ifflush_if1_fifo)npc=pc+8;
         //0000 0004 0008 000C 0010
         //0000 0100 1000 1100 10000
     end    
@@ -909,7 +910,6 @@ module core_top (
         else if(stall_icache) begin if(flush_if0_if1) fflush <= 1; end
         else fflush <= 0;
     end
-    wire ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush;
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_if1_fifo|ifflush_if1_fifo) begin
