@@ -189,7 +189,7 @@ module core_top (
     wire [31:0]	addr_icache_mem;
     wire [1:0]	icache_mem_size;
 
-    Icache_DMA #(
+    Icache #(
         .index_width  		( 4 		),
         .offset_width 		( 2 		),
         .way          		( 2 		))
@@ -880,8 +880,9 @@ module core_top (
         if(ifbr_priv) npc=pc_priv;
         else if(ifbr1) npc=brresult1;
         else if(ifbr0) npc=brresult0;
-        // else if(pc[2]) npc=pc+4;//DMA ONLY
-        else if(!ifflush_if1_fifo)npc=pc+8;
+        else if(pc[2]) npc=pc+4;//DMA ONLY
+        // else if(!ifflush_if1_fifo)npc=pc+8;
+        else npc=pc+8;//Icache
         //0000 0004 0008 000C 0010
         //0000 0100 1000 1100 10000
     end    
@@ -890,15 +891,15 @@ module core_top (
         else if(!stall_pc|ifbr0|ifbr1) pc<=npc;
     end
 
-    // //IF0-IF1
-    // always @(posedge clk or negedge rstn) begin
-    //     if(!rstn|flush_if0_if1) begin
-    //         pc_if0_if1<=0;
-    //     end
-    //     else if(!stall_if0_if1)begin
-    //         pc_if0_if1<=pc;
-    //     end
-    // end
+    //IF0-IF1
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn|flush_if0_if1) begin
+            pc_if0_if1<=0;
+        end
+        else if(!stall_if0_if1)begin
+            pc_if0_if1<=pc;
+        end
+    end
 
     //IF1-FIFO
     //flush套壳
@@ -917,7 +918,7 @@ module core_top (
         end
         else if(stall_if1_fifo);
         else begin
-            pc_if1_fifo<=pc;
+            pc_if1_fifo<=pc_if0_if1;//DMA
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_ready;
             flag_if1_fifo<=flag_icache_pipeline;
