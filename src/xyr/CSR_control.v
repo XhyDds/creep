@@ -12,11 +12,11 @@ module CSR_control(
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//最高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�?高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地址，ex1段
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?，ex1�?
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中断
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -73,7 +73,7 @@ module CSR_control(
         end
     else if(!stallin || busy)
         begin
-        ns<=cs;
+        cs<=ns;
         end
     end
     always@(posedge(clk),negedge(rstn))
@@ -82,7 +82,7 @@ module CSR_control(
         begin
         TI_INTE<=0;
         TVAL<=0;
-        TCFG<=0;
+        //TCFG<=0;
         end
     else
         begin
@@ -108,6 +108,7 @@ module CSR_control(
     esubcode=pipeline_CSR_excp_arg0[14:6];
     mode=pipeline_CSR_subtype;
     evaddr=pipeline_CSR_evaddr0;
+    ns=Wait;
     TI_cl=0;
     if(inte)
         begin
@@ -147,6 +148,7 @@ module CSR_control(
                         end
                     CSRXCHG:
                         begin
+                        flushout=1;                        
                         mask=pipeline_CSR_mask;
                         if(csr_num=='h44&&dwcsr[0])
                             TI_cl=1;
@@ -163,7 +165,9 @@ module CSR_control(
                        end 
                     CSRWR:
                          if(csr_num=='h44&&dwcsr[0])
-                            TI_cl=1;          
+                            TI_cl=1;  
+                    CSRRD:
+                           flushout=0;     
                 endcase
                 end
             else
@@ -264,7 +268,7 @@ module CSR_control(
         ASID_ASID<=0;PGDL<=0;PGDH<=0;
         TLBRENTRY<=0;DMW0_PLV0<=0;DMW0_PLV3<=0;DMW0_MAT<=0;
         DMW0_PSEG<=0;DMW0_VSEG<=0;DMW1_PLV0<=0;DMW1_PLV3<=0;DMW1_MAT<=0;
-        DMW1_PSEG<=0;DMW1_VSEG<=0;TID<=0;
+        DMW1_PSEG<=0;DMW1_VSEG<=0;TID<=0;TCFG<=0;
         end
     else
         begin
