@@ -26,7 +26,7 @@
 // - get:获取队首
 
 
-module Queue #(
+module WriteBuffer #(
     length=5,
     addr_width=32,
     data_width=32,
