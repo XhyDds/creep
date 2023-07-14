@@ -108,7 +108,8 @@ always @(*) begin
             else next_state=Idle;
         end
         Lookup:begin
-            if((!hit0)&&(!hit1))begin
+            if(fStall_outside)next_state = Lookup;
+            else if((!hit0)&&(!hit1))begin
                 if(flush_outside)next_state=Flush;
                 else next_state=Miss_r;
             end
