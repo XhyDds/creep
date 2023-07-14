@@ -30,7 +30,7 @@ module Icache_FSMmain#(
 
     //上下游信号
     input       pipeline_icache_valid,
-    output reg  icache_pipeline_ready,
+    output      icache_pipeline_ready1,
     input       [31:0]pipeline_icache_opcode,//好像不需要 用rbuf的即可
     input       pipeline_icache_opflag,
     input       [31:0]pipeline_icache_ctrl,//stall flush branch ...
@@ -72,8 +72,8 @@ module Icache_FSMmain#(
     );
 //对字节和byte的选择暂未加入
 
-
-assign icache_pipeline_stall=icache_pipeline_ready;
+reg icache_pipeline_ready;
+assign icache_pipeline_stall= ~ icache_pipeline_ready;
 assign FSM_TagV_we=FSM_Data_we;
 wire hit0,hit1;
 assign hit0=FSM_hit[0];
@@ -85,10 +85,15 @@ assign opflag=pipeline_icache_opflag;
 // wire opflag_rbuf;
 // assign opflag_rbuf=FSM_rbuf_opflag;
 
+reg rstn_reg;
+always @(posedge clk) begin
+    rstn_reg <= rstn;
+end
+assign icache_pipeline_ready1=icache_pipeline_ready&rstn_reg;
 
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Replace=5'd4,Replace1=5'd5,Operation=5'd6,Flush=5'd7;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Replace=5'd5,Operation=5'd6,Flush=5'd7;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -131,8 +136,14 @@ always @(*) begin
         Miss_r_waitdata:begin
             if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
             else begin//数据可信赖，内存准备写
-                if(fStall_outside)next_state=Replace1;
-                else next_state=Replace;
+                if(fStall_outside)next_state=Replace;
+                else begin
+                    if(pipeline_icache_valid)begin
+                        if(opflag)next_state=Operation;
+                        else next_state=Lookup;
+                    end
+                    else next_state=Idle;
+                end
             end
         end
         Replace:begin
@@ -141,9 +152,6 @@ always @(*) begin
                 else next_state=Lookup;
             end
             else next_state=Idle;
-        end
-        Replace1:begin
-            next_state=Replace;
         end
         default:next_state=Idle;
     endcase
@@ -247,7 +255,7 @@ always @(*) begin
                 Miss_r_waitdata:begin
                     //nothing
                 end
-                Replace:begin//这一拍是dataOK
+                Lookup:begin//这一拍是dataOK
                     FSM_rbuf_we=1;
                     FSM_choose_return=1;//前递
                     icache_pipeline_ready=1;
@@ -260,7 +268,33 @@ always @(*) begin
                         FSM_use1=1;
                     end
                 end
-                Replace1:begin
+                Idle:begin
+                    FSM_rbuf_we=1;
+                    FSM_choose_return=1;//前递
+                    icache_pipeline_ready=1;
+                    if(FSM_wal_sel_lru==1'd0)begin
+                        FSM_Data_we=2'b01;
+                        FSM_use0=1;
+                    end
+                    else if(FSM_wal_sel_lru==1'd1)begin
+                        FSM_Data_we=2'b10;
+                        FSM_use1=1;
+                    end
+                end
+                Operation:begin
+                    FSM_rbuf_we=1;
+                    FSM_choose_return=1;//前递
+                    // icache_pipeline_ready=1;//???
+                    if(FSM_wal_sel_lru==1'd0)begin
+                        FSM_Data_we=2'b01;
+                        FSM_use0=1;
+                    end
+                    else if(FSM_wal_sel_lru==1'd1)begin
+                        FSM_Data_we=2'b10;
+                        FSM_use1=1;
+                    end
+                end
+                Replace:begin
                     FSM_rbuf_we=1;
                     FSM_choose_return=1;//这是必须的
                     icache_pipeline_ready=1;
@@ -278,10 +312,7 @@ always @(*) begin
                 end
             endcase
         end
-        Replace:begin
-            //nothing 此拍空出 但是可以优化一个周期 之后再说
-        end
-        Replace1:begin//考虑fStall情况  让外面多流一拍
+        Replace:begin//考虑fStall情况  让外面多流一拍
             icache_pipeline_ready=1;
         end
         default:begin

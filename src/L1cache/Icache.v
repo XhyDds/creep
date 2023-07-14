@@ -35,6 +35,7 @@ module Icache#(
     //pipeline port
     input       [31:0]addr_pipeline_icache,
     output      [63:0]dout_icache_pipeline,//双发射 [31:0]是给定地址处的指令
+    output      [31:0]pc_icache_pipeline,
     output      flag_icache_pipeline,//0-后一条指令（[63:32]）无效 1-有效
 
     input       pipeline_icache_valid,
@@ -90,6 +91,7 @@ Icache_rbuf Icache_rbuf(
     .opflag(pipeline_icache_opflag),
     .rbuf_opflag(rbuf_opflag)
 );
+assign pc_icache_pipeline = rbuf_addr;
 
 //LRU
 wire use0,use1;
@@ -201,7 +203,7 @@ Icache_FSMmain Icache_FSMmain(
 
     //pipeline  icache
     .pipeline_icache_valid(pipeline_icache_valid),
-    .icache_pipeline_ready(icache_pipeline_ready),
+    .icache_pipeline_ready1(icache_pipeline_ready),
     .pipeline_icache_opcode(pipeline_icache_opcode),
     .pipeline_icache_opflag(pipeline_icache_opflag),
     .pipeline_icache_ctrl(pipeline_icache_ctrl),

@@ -34,7 +34,7 @@ module Icache_DMA#(
     output      [63:0]dout_icache_pipeline,//双发射 [31:0]是给定地址处的指令
     output      flag_icache_pipeline,//0-后一条指令（[64:32]）无效 1-有效
 
-    input       pipeline_icache_vaild,
+    input       pipeline_icache_valid,
     output reg  icache_pipeline_ready,
     
     input       [31:0]pipeline_icache_opcode,//cache操作
@@ -66,7 +66,7 @@ end
 always @(*) begin
     case (state)
         Idle:begin
-            if(pipeline_icache_vaild)next_state = req;
+            if(pipeline_icache_valid)next_state = req;
             else next_state = Idle;
         end 
         req:begin

@@ -7,20 +7,21 @@ module decoder (
     output reg [31:0]imm,
     output reg [15:0]excp_arg
 );
-    localparam yu=0,huo=1,huofei=2,yihuo=3,jia=4,jian=5,zuoyi=6,youyi=7,ssyouyi=8,sxiaoyu=9,xiaoyu=10,tong1=11,tong2=12,jia4=13;
+    localparam yu=0,huo=1,huofei=2,yihuo=3,jia=4,jian=5,zuoyi=6,youyi=7,ssyouyi=8,sxiaoyu=9,xiaoyu=10,tong1=11,tong2=12;
     localparam alu=0,tiao=1,cheng=4,chu=2,liwai=3,dcache=5,yuanzi=6,shizhong=7,tiaoxie=8;
-    reg [3:0]aluop;//0:&, 1:|, 2:~|, 3:^, 4:+, 5:-, 6:<<, 7:>>, 8:>>>, 9:sign<, 10:<, 11:alu1, 12:alu2, 13:alu1+4
     reg [1:0]pcsrc;//1:br, 0:writeback, 2:predecoder, 3:predictor
     reg [1:0]alusrc1;//0:reg, 1:pc
     reg [1:0]alusrc2;//0:reg, 1:imm
     reg [3:0]type_;//0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:llbit, 7:RDCNT, 8:alu+br, 9:ibar
+    reg [3:0]aluop;//0:&, 1:|, 2:~|, 3:^, 4:+, 5:-, 6:<<, 7:>>, 8:>>>, 9:sign<, 10:<, 11:alu1, 12:alu2, 13:alu1+4
     reg [4:0]subtype;//可与aluop合并？×有同时使用
     //for exceptions, 0:exception, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr
     //for div, 0:div.w, 1:mod.w, 2:div.wu, 3:mod.wu
     //for mul, 0:mul.w, 1:mulh.w, 2:mulh.wu
     //for dcache, 0~2:load, 3~5:store, 6~7:load, 8:cacop
     //for br, 0:b, 1:beq, 2:bne, 3:blt, 4:bge, 5:bltu, 6:bgeu
-    //fot yuanzi, 0:load, 1:store
+    //for yuanzi, 0:load, 1:store
+    //for tiaoxie, 0:jirl, 1:bl
     reg memread,memwrite,regwrite,nop,priv;
     assign control=nop?0:{9'b0,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_};//顺序可调换
     always @(*) begin
@@ -295,7 +296,7 @@ module decoder (
         // 'b010010: ;
         'b010011: //JIRL
             begin 
-                imm={{14{ir[25]}},ir[25:10],2'b0};type_=tiaoxie;regwrite=1;pcsrc=1;
+                imm={{14{ir[25]}},ir[25:10],2'b0};type_=tiaoxie;subtype=0;regwrite=1;pcsrc=1;
                 aluop=jia;alusrc1=1;alusrc2=3;rj=ir[9:5];rd=ir[4:0];
             end
         'b010100: //B
@@ -304,7 +305,7 @@ module decoder (
             end
         'b010101: //BL
             begin 
-                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiaoxie;regwrite=1;pcsrc=1;aluop=jia;alusrc1=1;alusrc2=3;rd=1;
+                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiaoxie;subtype=1;regwrite=1;pcsrc=1;aluop=jia;alusrc1=1;alusrc2=3;rd=1;
             end
         'b010110: //BEQ
             begin

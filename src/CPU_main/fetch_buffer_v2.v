@@ -5,7 +5,7 @@ module fetch_buffer_v2 (
     input [63:0]irin,
     input flag,
     //flag==1表示2个有效，flag==0表示1个有效
-    //[0:31]为pc大，0-后一条指令（[63:32]）无效 1-有效
+    //[0:31]为pc小，0-后一条指令（[63:32]）无效 1-有效
     output [31:0]ir0,ir1,pc0,pc1,
     output stall_fetch_buffer
 );
@@ -13,8 +13,8 @@ module fetch_buffer_v2 (
     reg [31:0]bufferpc[0:15];
     reg [3:0]pointer;//0~15
     wire [31:0]ir[0:1];
-    assign ir[1]=irin[31:0];
-    assign ir[0]=irin[63:32];
+    assign ir[0]=irin[31:0];
+    assign ir[1]=irin[63:32];
     assign ir0=buffer[pointer==15?pointer:pointer+1];
     assign ir1=buffer[pointer];
     assign pc0=bufferpc[pointer==15?pointer:pointer+1];

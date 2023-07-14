@@ -1,5 +1,5 @@
 module br (
-    input [31:0]ctr,pc,imm,
+    input [31:0]ctr,pc,imm,rrj,
     input zero,
     output reg ifbr,
     output reg [31:0]brresult
@@ -21,8 +21,10 @@ module br (
                 6: ifbr=!zero;
             endcase
         end
-        else if(type_==8) begin
-            brresult=pc+imm;ifbr=1;
-        end
+        else if(type_==8) 
+            case (subtype)
+                0: begin brresult=rrj+imm;ifbr=1; end
+                1: begin brresult=pc+imm;ifbr=1; end
+            endcase
     end
 endmodule
