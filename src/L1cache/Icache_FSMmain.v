@@ -120,11 +120,16 @@ always @(*) begin
             else next_state=Idle;
         end
         Flush:begin
-            if(pipeline_icache_valid)begin
-                if(opflag)next_state=Operation;
-                else next_state=Lookup;
+            if(flush_outside)begin
+                next_state=Flush;
             end
-            else next_state=Idle;
+            else begin
+                if(pipeline_icache_valid)begin
+                    if(opflag)next_state=Operation;
+                    else next_state=Lookup;
+                end
+                else next_state=Idle;
+            end
         end
         Operation:begin
             next_state=Idle;

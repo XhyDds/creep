@@ -188,7 +188,7 @@ always @(posedge clk) begin
     data_flag_reg <= data_flag;
     stall_reg <= rbuf_stall;
 end
-assign dout_icache_pipeline = send_nop ? 64'h1234ABCD00000013 : (stall_reg) ? data_out_reg : data_out;
+assign dout_icache_pipeline = send_nop ? 64'h1234ABCD00100000 : (stall_reg) ? data_out_reg : data_out;
 assign flag_icache_pipeline = send_nop ? 1'b0 : (stall_reg) ? data_flag_reg : data_flag;
 
 //Mem

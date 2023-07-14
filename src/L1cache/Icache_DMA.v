@@ -66,7 +66,7 @@ end
 always @(*) begin
     case (state)
         Idle:begin
-            if(pipeline_icache_valid)next_state = req;
+            if(pipeline_icache_vaild)next_state = req;
             else next_state = Idle;
         end 
         req:begin

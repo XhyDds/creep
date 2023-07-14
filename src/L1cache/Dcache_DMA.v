@@ -38,7 +38,7 @@ module Dcache_DMA#(
     output      [31:0]dout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
 
-    input       pipeline_dcache_vaild,
+    input       pipeline_dcache_valid,
     output reg  dcache_pipeline_ready,
     
     input       [3:0]pipeline_dcache_wstrb,//字节处理位
@@ -76,7 +76,7 @@ end
 always @(*) begin
     case (state)
         Idle:begin
-            if(pipeline_dcache_vaild)next_state = req;
+            if(pipeline_dcache_valid)next_state = req;
             else next_state = Idle;
         end 
         req:begin
