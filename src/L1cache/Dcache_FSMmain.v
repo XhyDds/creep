@@ -81,7 +81,7 @@ module Dcache_FSMmain#(
 //对字节和byte的选择暂未加入
 
 
-assign dcache_pipeline_stall=dcache_pipeline_ready;
+assign dcache_pipeline_stall = ~ dcache_pipeline_ready;
 assign FSM_TagV_we=FSM_Data_we;
 wire hit0,hit1;
 assign hit0=FSM_hit[0];
@@ -95,7 +95,7 @@ assign opflag=pipeline_dcache_opflag;
 
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Replace=5'd5,Replace1=5'd6,Operation=5'd7;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Replace=5'd5,Replace1=5'd6,Operation=5'd7,Hit_w=5'd8;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -114,14 +114,27 @@ always @(*) begin
                 if(!FSM_rbuf_type)next_state=Miss_r;//0-read
                 else next_state=Miss_w;
             end
-            else if(pipeline_dcache_valid)begin
-                if(opflag)next_state=Operation;
-                else next_state=Lookup;
+            else if(!FSM_rbuf_type)begin
+                if(pipeline_dcache_valid)begin
+                    if(opflag)next_state=Operation;
+                    else next_state=Lookup;
+                end
+                else next_state=Idle;
             end
-            else next_state=Idle;
+            else next_state = Hit_w;
         end
         Operation:begin
             next_state=Idle;
+        end
+        Hit_w:begin
+            if(!mem_dcache_addrOK)next_state = Hit_w;
+            else begin
+                if(pipeline_dcache_valid)begin
+                    if(opflag)next_state=Operation;
+                    else next_state=Lookup;
+                end
+                else next_state=Idle;
+            end
         end
         Miss_r:begin
             if(!mem_dcache_addrOK)next_state=Miss_r;
@@ -161,14 +174,12 @@ always @(*) begin
     dcache_pipeline_ready=0;
     dcache_mem_req=0;
     dcache_mem_wr=0;
-    dcache_mem_size=2'd0;
-    dcache_mem_wstrb=4'd0;
+    dcache_mem_size=2'd2;
+    dcache_mem_wstrb=FSM_rbuf_wstrb;
     FSM_rbuf_we=0;
     FSM_use0=0;
     FSM_use1=0;
     FSM_Data_we=2'd0;
-    // FSM_Dirtytable_set0=0;
-    // FSM_Dirtytable_set1=0;
     FSM_choose_way=0;
     FSM_choose_return=0;
     FSM_Data_replace=0;
@@ -193,14 +204,14 @@ always @(*) begin
                 Miss_r:begin
                     dcache_mem_req=1;
                     dcache_mem_wr=0;
-                    dcache_mem_size=2'd2;
-                    dcache_mem_wstrb=4'b0000;
+                    // dcache_mem_size=2'd2;
+                    // dcache_mem_wstrb=4'b0000;
                 end
                 Miss_w:begin
                     dcache_mem_req=1;
                     dcache_mem_wr=1;
-                    dcache_mem_size=2'd2;
-                    dcache_mem_wstrb=4'b1111;
+                    // dcache_mem_size=2'd2;
+                    // dcache_mem_wstrb=4'b1111;
 
                     //写Miss的时候同时写入主存和cache   //7.13：需要先调块？？好像又不用了 不写cache了直接写主存
 
@@ -217,7 +228,7 @@ always @(*) begin
                     //接着流
                     dcache_pipeline_ready=1;
                     FSM_rbuf_we=1;
-                    if(!FSM_rbuf_type)begin//读
+                    // if(!FSM_rbuf_type)begin//读
                         if(hit0)begin
                             FSM_choose_way=0;
                             FSM_use0=1;
@@ -226,17 +237,23 @@ always @(*) begin
                             FSM_choose_way=1;
                             FSM_use1=1;
                         end
-                    end
-                    else begin//写
-                        if(hit0)begin
-                            FSM_Data_we[0]=1;//这个Data的使能和Tag是相同的
-                            FSM_use0=1;
-                        end
-                        else if(hit1)begin
-                            FSM_Data_we[1]=1;
-                            FSM_use1=1;
-                        end
-                    end
+                    // end
+                    // else begin//写
+                    //     if(hit0)begin
+                    //         FSM_Data_we[0]=1;//这个Data的使能和Tag是相同的
+                    //         FSM_use0=1;
+                    //     end
+                    //     else if(hit1)begin
+                    //         FSM_Data_we[1]=1;
+                    //         FSM_use1=1;
+                    //     end
+                    // end
+                end
+                Hit_w:begin
+                    dcache_mem_req=1;
+                    dcache_mem_wr=1;
+                    // dcache_mem_size=2'd2;
+                    // dcache_mem_wstrb=4'b1111;
                 end
                 Idle:begin
                     dcache_pipeline_ready=1;
@@ -273,13 +290,23 @@ always @(*) begin
                 end
             endcase
         end
+        Hit_w:begin
+            if(next_state == Hit_w)begin
+                dcache_mem_req=1;
+                dcache_mem_wr=1;
+            end
+            else begin
+                dcache_pipeline_ready = 1;
+                FSM_rbuf_we = 1;
+            end
+        end
         Miss_r:begin
             case (next_state)
                 Miss_r:begin
                     dcache_mem_req=1;
                     dcache_mem_wr=0;
-                    dcache_mem_size=2'd2;
-                    dcache_mem_wstrb=4'b0000;
+                    // dcache_mem_size=2'd2;
+                    // dcache_mem_wstrb=4'b0000;
                 end
                 Miss_r_waitdata:begin
                     //nothing
@@ -332,8 +359,8 @@ always @(*) begin
                 Miss_w:begin
                     dcache_mem_req=1;
                     dcache_mem_wr=1;
-                    dcache_mem_size=2'd2;
-                    dcache_mem_wstrb=4'b1111;
+                    // dcache_mem_size=2'd2;
+                    // dcache_mem_wstrb=4'b1111;
                 end
                 Lookup:begin
                     dcache_pipeline_ready=1;

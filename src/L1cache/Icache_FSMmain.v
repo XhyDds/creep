@@ -101,7 +101,7 @@ end
 always @(*) begin
     case (state)
         Idle:begin
-            if(pipeline_icache_valid)begin
+            if(pipeline_icache_valid & ~ fStall_outside)begin//7.14
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
