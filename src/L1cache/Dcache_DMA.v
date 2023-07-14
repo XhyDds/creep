@@ -53,7 +53,7 @@ module Dcache_DMA#(
     input       [32*(2<<offset_width)-1:0]din_mem_dcache,
 
     output  reg dcache_mem_req,
-    output      dcache_mem_wr,//0-read 1-write
+    output  reg dcache_mem_wr,//0-read 1-write
     output      [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output      [3:0]dcache_mem_wstrb,//字节写使能
     input       mem_dcache_addrOK,
@@ -121,4 +121,33 @@ always @(*) begin
         end
     endcase
 end
+
+// always @(posedge clk,negedge rstn)begin
+//     if(!rstn)begin
+//         dcache_mem_wr<=0;
+//     end
+//     else begin
+//     case(state)
+//         Idle:begin
+//             if(next_state == req)begin
+//                 dcache_mem_wr<=type_pipeline_dcache;
+//             end
+//             else begin
+//                 dcache_mem_wr<=0;
+//             end
+//         end
+//         req:begin
+//             if(next_state == Idle)begin
+//                 dcache_mem_wr<=0;
+//             end
+//         end
+//         send:begin
+//             dcache_mem_wr<=0;
+//         end
+//         default:begin
+//             dcache_mem_wr<=0;
+//         end
+//     endcase
+//     end
+// end
 endmodule
