@@ -219,7 +219,7 @@ module core_top (
         .din_mem_icache         		( din_mem_icache         		),
         .icache_mem_req         		( icache_mem_req         		),
         .icache_mem_size        		( icache_mem_size        		),
-        .mem_icache_addrOK      		( rready      	),
+        .mem_icache_addrOK      		( mem_icache_addrOK      	),
         .mem_icache_dataOK      		( mem_icache_dataOK      		)
     );
     `endif
@@ -251,7 +251,7 @@ module core_top (
         .din_mem_icache         		( din_mem_icache         		),
         .icache_mem_req         		( icache_mem_req         		),
         .icache_mem_size        		( icache_mem_size        		),
-        .mem_icache_addrOK      		( rready      	),
+        .mem_icache_addrOK      		( mem_icache_addrOK      	),
         .mem_icache_dataOK      		( mem_icache_dataOK      		)
     );
     `endif
@@ -845,7 +845,6 @@ module core_top (
     wire    d_rlast;
     wire    [31:0] d_rdata;
     wire    d_bvalid;
-    assign  mem_dcache_addrOK = dcache_mem_wr?d_wready:rready;
     `ifdef DMA
     assign  mem_dcache_dataOK = d_rready;
     `endif
@@ -911,7 +910,8 @@ module core_top (
         .rstn     		( rstn     		),
 
         //ICache
-        .i_rvalid 		( icache_mem_req 		),//input       
+        .i_rvalid 		( icache_mem_req 		),//input     
+        .i_addrOK       ( mem_icache_addrOK),//output  
         .i_rready 		( i_rready 		),//output reg  
         .i_raddr  		( addr_icache_mem  		),//input [31:0]
         .i_rdata  		( i_rdata  		),//output[31:0]
@@ -920,7 +920,9 @@ module core_top (
         .i_rlen   		( 8'd3   		),//input [7:0] 
 
         //Dcache
+        .d_wr           ( dcache_mem_wr),
         .d_rvalid 		( dcache_mem_req & ~dcache_mem_wr ),//input       
+        .d_addrOK       ( mem_dcache_addrOK),//output
         .d_rready 		( d_rready 		),//output reg  
         .d_raddr  		( addr_dcache_mem  		),//input [31:0]
         `ifdef DMA
@@ -932,7 +934,7 @@ module core_top (
         .d_rlast  		( d_rlast	),//output reg  
         .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         `ifdef DMA
-        .d_rlen   		( 8'd1   		),//input [7:0]
+        .d_rlen   		( 8'd0   		),//input [7:0]
         `endif
         `ifdef L1Cache
         .d_rlen   		( 8'd3   		),//input [7:0]

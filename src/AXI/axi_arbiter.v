@@ -9,6 +9,7 @@ module axi_arbiter(
     input               rstn,
     // from icache
     input               i_rvalid,   //ar: i->arbiter:req
+    output reg          i_addrOK,   //arbiter->d:addrOK
     output reg          i_rready,   //r: arbiter->i:dataOK
     input [31:0]        i_raddr,
     output[31:0]        i_rdata,
@@ -16,7 +17,9 @@ module axi_arbiter(
     input [2:0]         i_rsize,
     input [7:0]         i_rlen,
     // from dcache
+    input               d_wr,
     input               d_rvalid,   //ar: d->arbiter:req
+    output              d_addrOK,   //arbiter->d:addrOK
     output reg          d_rready,   //r: arbiter->d:dataOK
     input [31:0]        d_raddr,
     output [31:0]       d_rdata,
@@ -71,6 +74,11 @@ module axi_arbiter(
     input               bvalid,     //b: axi->arbiter
     output reg          bready      //b: arbiter->axi
 );
+    assign d_addrOK=d_wr?d_waddrOK:d_raddrOK;
+
+    reg d_raddrOK;
+    reg d_waddrOK;
+
     localparam 
         R_IDLE  = 3'd0,
         I_AR    = 3'd1,
@@ -126,6 +134,8 @@ module axi_arbiter(
         arvalid     = 0;
         araddr      = 0;
         rready      = 0;
+        i_addrOK    = 0;
+        d_raddrOK   = 0;
         case(r_crt) 
         I_AR: begin
             araddr      = i_raddr;
@@ -140,6 +150,7 @@ module axi_arbiter(
             rready      = 1;
             i_rready    = rvalid;
             i_rlast     = rlast;
+            i_addrOK    = 1;
         end
         D_AR: begin
             araddr      = d_raddr;
@@ -152,6 +163,7 @@ module axi_arbiter(
             rready      = 1;
             d_rready    = rvalid;
             d_rlast     = rlast;
+            d_raddrOK   = 1;
         end
         default:;
         endcase
@@ -205,6 +217,7 @@ module axi_arbiter(
         awvalid     = 0;
         wvalid      = 0;
         wlast       = 0;
+        d_waddrOK   = 0;
 
         case(w_crt)
         D_AW: begin
@@ -214,6 +227,7 @@ module axi_arbiter(
             wvalid      = 1;
             wlast       = d_wlast;
             d_wready    = wready;
+            d_waddrOK   = wready;
         end
         D_B: begin
             bready      = d_bready;

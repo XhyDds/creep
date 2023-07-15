@@ -1,10 +1,14 @@
 
-///这里是用于L1cache测试的arbiter，实现了读写并行，有以下几点说明：
-///与正常版本不同，该版本需要L1cache适配以下设置：
+///这里是用于L2cache与axi交互的arbiter，实现了读写并行，有以下几点说明：
+///
 ///1. 搭载ReturnBuffer和WriteBuffer，设置size=2,len=3,配置last信号
 ///2. 取消addrOK的影响，写操作阻塞（没有写缓冲区）
 ///3. 目前并不需要WriteBuffer，因为一次最多写入一个byte。
-module axi_arbiter(
+///
+
+module axi_arbiter#(
+    offset_width=2
+)(
     input               clk,
     input               rstn,
     // from l2cache
@@ -12,7 +16,7 @@ module axi_arbiter(
     input               [31:0]addr_l2cache_mem_w,
     output              [32*(1<<offset_width)-1:0]din_mem_l2cache,
     input               [32*(1<<offset_width)-1:0]dout_l2cache_mem,
-    input               l2cache_mem_req_r,      //r
+    input               l2cache_mem_req_r,      //
     input               l2cache_mem_req_w,      //
     input               l2cache_mem_rdy,        //
     input               [1:0]l2cache_mem_size,
@@ -20,14 +24,6 @@ module axi_arbiter(
     output              mem_l2cache_addrOK_r,
     output              mem_l2cache_addrOK_w,
     output              mem_l2cache_dataOK,
-    // from icache
-    input               i_rvalid,   //ar: i->arbiter:req
-    output reg          i_rready,   //r: arbiter->i:dataOK
-    input [31:0]        i_raddr,
-    output[31:0]        i_rdata,
-    output reg          i_rlast,
-    input [2:0]         i_rsize,
-    input [7:0]         i_rlen,
     // from dcache
     input               d_rvalid,   //ar: d->arbiter:req
     output reg          d_rready,   //r: arbiter->d:dataOK
@@ -48,6 +44,7 @@ module axi_arbiter(
 
     output reg          d_bvalid,   //b: arbiter->d:dataOK
     input               d_bready,   //b: d->arbiter:req
+
     // from AXI 
     // AR
     output reg [31:0]   araddr,
@@ -84,13 +81,12 @@ module axi_arbiter(
     input               bvalid,     //b: axi->arbiter
     output reg          bready      //b: arbiter->axi
 );
+    //读通道
     localparam 
-        R_IDLE  = 3'd0,
-        I_AR    = 3'd1,
-        I_R     = 3'd2,
-        D_AR    = 3'd3,
-        D_R     = 3'd4;
-    reg [2:0] r_crt, r_nxt;
+        R_IDLE  = 2'd0,
+        D_AR    = 2'd1,
+        D_R     = 2'd2;
+    reg [1:0] r_crt, r_nxt;
     always @(posedge clk) begin
         if(!rstn) begin
             r_crt <= R_IDLE;
@@ -102,16 +98,7 @@ module axi_arbiter(
         case(r_crt)
         R_IDLE: begin
             if(d_rvalid)            r_nxt = D_AR;   //优先Dcache
-            else if(i_rvalid)       r_nxt = I_AR;
             else                    r_nxt = R_IDLE;
-        end
-        I_AR: begin
-            if(arready)             r_nxt = I_R;
-            else                    r_nxt = I_AR;
-        end
-        I_R: begin
-            if(rvalid && rlast)     r_nxt = R_IDLE;
-            else                    r_nxt = I_R;
         end
         D_AR: begin
             if(arready)             r_nxt = D_R;
@@ -125,13 +112,10 @@ module axi_arbiter(
         endcase
     end
     
-    assign i_rdata = rdata;
     assign d_rdata = rdata;
     assign arburst = 2'b01;
 
     always @(*) begin
-        i_rready    = 0;
-        i_rlast     = 0;
         d_rready    = 0;
         d_rlast     = 0;
         arlen       = 0;
@@ -140,20 +124,6 @@ module axi_arbiter(
         araddr      = 0;
         rready      = 0;
         case(r_crt) 
-        I_AR: begin
-            araddr      = i_raddr;
-            arvalid     = i_rvalid;
-            arlen       = i_rlen;
-            arsize      = i_rsize;
-        end
-        I_R: begin
-            araddr      = i_raddr;
-            arlen       = i_rlen;
-            arsize      = i_rsize;
-            rready      = 1;
-            i_rready    = rvalid;
-            i_rlast     = rlast;
-        end
         D_AR: begin
             araddr      = d_raddr;
             arvalid     = d_rvalid;
@@ -170,6 +140,7 @@ module axi_arbiter(
         endcase
     end
 
+    //写通道
     localparam 
         W_IDLE  = 3'd0,
         D_AW    = 3'd1,
@@ -235,6 +206,4 @@ module axi_arbiter(
         default:;
         endcase
     end
-
-
 endmodule
