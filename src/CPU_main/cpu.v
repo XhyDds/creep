@@ -875,23 +875,20 @@ module core_top (
     );
 
     //PC
-    wire ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush;
     always @(*) begin
         if(ifbr_priv) npc=pc_priv;
         else if(ifbr1) npc=brresult1;
         else if(ifbr0) npc=brresult0;
-        else if(pc[2]) npc=pc+4;//DMA ONLY
-        // else if(!ifflush_if1_fifo)npc=pc+8;
-        else npc=pc+8;//Icache
-        //0000 0004 0008 000C 0010
-        //0000 0100 1000 1100 10000
+        else if(pc[2]) npc=pc+4;//Icache ONLY
+        // else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY
+        else npc=pc+8;//Icache ONLY
     end    
     always @(posedge clk,negedge rstn) begin
         if(!rstn) pc<=32'h1c000000;
         else if(!stall_pc|ifbr0|ifbr1) pc<=npc;
     end
 
-    //IF0-IF1
+    //IF0-IF1 Icache ONLY
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_if0_if1) begin
             pc_if0_if1<=0;
@@ -903,13 +900,14 @@ module core_top (
 
     //IF1-FIFO
     //flush套壳
-    reg fflush;
+    reg fflush_if0_if1;
+    wire ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
-            fflush <= 0;
+            fflush_if0_if1 <= 0;
         end
-        else if(stall_icache) begin if(flush_if0_if1) fflush <= 1; end
-        else fflush <= 0;
+        else if(flush_if0_if1) fflush_if0_if1 <= 1;  //to be test
+        else if(!stall_icache) fflush_if0_if1 <= 0;
     end
 
     always @(posedge clk or negedge rstn) begin
@@ -921,7 +919,8 @@ module core_top (
             pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;
         end
         else begin
-            pc_if1_fifo<=pc_if0_if1;//DMA
+            pc_if1_fifo<=pc_if0_if1;//Icache ONLY
+            pc_if1_fifo<=pc;//DMA ONLY
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_ready;
             flag_if1_fifo<=flag_icache_pipeline;
@@ -1269,8 +1268,8 @@ module core_top (
     assign awprot=0;
     assign wid=0;
     wire ws_valid0,ws_valid1;
-    assign ws_valid0=stall_exe1_wb_0_reg?0:(|ctr_exe1_wb_0);
-    assign ws_valid1=stall_exe1_wb_1_reg?0:(|ctr_exe1_wb_1);
+    assign ws_valid0=stall_exe1_wb_0_reg?0:(|ir_exe1_wb_0);
+    assign ws_valid1=stall_exe1_wb_1_reg?0:(|ir_exe1_wb_1);
     assign ws_valid=ws_valid0|ws_valid1;
 
 //difftest begin here
