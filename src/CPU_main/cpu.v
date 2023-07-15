@@ -189,7 +189,7 @@ module core_top (
     wire [31:0]	addr_icache_mem;
     wire [1:0]	icache_mem_size;
 
-    Icache #(
+    Icache_DMA #(
         .index_width  		( 4 		),
         .offset_width 		( 2 		),
         .way          		( 2 		))
@@ -875,13 +875,14 @@ module core_top (
     );
 
     //PC
+    wire ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
     always @(*) begin
         if(ifbr_priv) npc=pc_priv;
         else if(ifbr1) npc=brresult1;
         else if(ifbr0) npc=brresult0;
-        else if(pc[2]) npc=pc+4;//Icache ONLY
-        // else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY
-        else npc=pc+8;//Icache ONLY
+        // else if(pc[2]) npc=pc+4;//Icache ONLY
+        else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY
+        // else npc=pc+8;//Icache ONLY
     end    
     always @(posedge clk,negedge rstn) begin
         if(!rstn) pc<=32'h1c000000;
@@ -889,19 +890,18 @@ module core_top (
     end
 
     //IF0-IF1 Icache ONLY
-    always @(posedge clk or negedge rstn) begin
-        if(!rstn|flush_if0_if1) begin
-            pc_if0_if1<=0;
-        end
-        else if(!stall_if0_if1)begin
-            pc_if0_if1<=pc;
-        end
-    end
+    // always @(posedge clk or negedge rstn) begin
+    //     if(!rstn|flush_if0_if1) begin
+    //         pc_if0_if1<=0;
+    //     end
+    //     else if(!stall_if0_if1)begin
+    //         pc_if0_if1<=pc;
+    //     end
+    // end
 
     //IF1-FIFO
     //flush套壳
     reg fflush_if0_if1;
-    wire ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             fflush_if0_if1 <= 0;
@@ -919,7 +919,7 @@ module core_top (
             pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;
         end
         else begin
-            pc_if1_fifo<=pc_if0_if1;//Icache ONLY
+            // pc_if1_fifo<=pc_if0_if1;//Icache ONLY
             pc_if1_fifo<=pc;//DMA ONLY
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_ready;
