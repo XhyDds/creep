@@ -1126,6 +1126,8 @@ module core_top (
             endcase
     end
 
+    reg [31:0]dcacheresult_reg;//DMA ONLY
+
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             ctr_exe0_exe1_0 <= 0;
@@ -1133,6 +1135,7 @@ module core_top (
             aluresult_exe0_exe1_0 <= 0;
             pc_exe0_exe1_0<=0;
             ir_exe0_exe1_0<=0;
+            dcacheresult_reg<=0;//DMA ONLY
         end
         else if(stall_exe0_exe1_0);
         else if(flush_exe0_exe1_0) begin
@@ -1141,6 +1144,7 @@ module core_top (
             aluresult_exe0_exe1_0 <= 0;
             pc_exe0_exe1_0<=0;
             ir_exe0_exe1_0<=0;
+            dcacheresult_reg<=0;//DMA ONLY
         end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
@@ -1148,6 +1152,7 @@ module core_top (
             aluresult_exe0_exe1_0 <= aluresult0;
             pc_exe0_exe1_0<=pc_reg_exe0_0;
             ir_exe0_exe1_0<=ir_reg_exe0_0;
+            dcacheresult_reg<=dcacheresult;//DMA ONLY
         end
     end
 
@@ -1197,8 +1202,10 @@ module core_top (
             2: result1=divresult1;
             3: result1=privresult1;
             4: result1=mulresult1;
-            5: result1=dcacheresult;
-            6: result1=dcacheresult;
+            5: result1=dcacheresult_reg;//DMA ONLY
+            6: result1=dcacheresult_reg;//DMA ONLY
+            // 5: result1=dcacheresult;//Icache ONLY
+            // 6: result1=dcacheresult;//Icache ONLY
             7: ;
             8: result1=aluresult_exe0_exe1_1;
         endcase
@@ -1288,6 +1295,20 @@ module core_top (
     assign ws_valid0=stall_exe1_wb_0_reg?0:(|ir_exe1_wb_0);
     assign ws_valid1=stall_exe1_wb_1_reg?0:(|ir_exe1_wb_1);
     assign ws_valid=ws_valid0|ws_valid1;
+
+    reg [31:0]pccount;
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            pccount <= 0;
+        end
+        else case ({ws_valid0,ws_valid1})
+            2'b00: ;
+            2'b01: pccount <= pccount+1;
+            2'b10: pccount <= pccount+1;
+            2'b11: pccount <= pccount+2;
+            default: ;
+        endcase 
+    end
 
 //difftest begin here
 `ifdef DIFFTEST_EN
