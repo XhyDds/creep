@@ -55,22 +55,38 @@ module dcache_ctr (
                 begin 
                     // pipeline_dcache_valid=1;
                     // type_pipeline_dcache=1;
-                    din_pipeline_dcache={24'b0,rrd1_forward[7:0]};
                     case (addr_pipeline_dcache[1:0])//小尾端？
-                        2'b00:pipeline_dcache_wstrb=4'b0001;
-                        2'b01:pipeline_dcache_wstrb=4'b0010;
-                        2'b10:pipeline_dcache_wstrb=4'b0100;
-                        2'b11:pipeline_dcache_wstrb=4'b1000;
+                        2'b00:begin 
+                            pipeline_dcache_wstrb=4'b0001;
+                            din_pipeline_dcache={24'b0,rrd1_forward[7:0]}; 
+                        end
+                        2'b01:begin 
+                            pipeline_dcache_wstrb=4'b0010; 
+                            din_pipeline_dcache={16'b0,rrd1_forward[7:0],8'b0}; 
+                        end
+                        2'b10:begin 
+                            pipeline_dcache_wstrb=4'b0100; 
+                            din_pipeline_dcache={8'b0,rrd1_forward[7:0],16'b0}; 
+                        end
+                        2'b11:begin 
+                            pipeline_dcache_wstrb=4'b1000; 
+                            din_pipeline_dcache={rrd1_forward[7:0],24'b0}; 
+                        end
                     endcase
                 end
                 4: 
                 begin 
                     // type_pipeline_dcache=1;
                     // pipeline_dcache_valid=1;
-                    din_pipeline_dcache={16'b0,rrd1_forward[15:0]}; 
                     case (addr_pipeline_dcache[1:0])//小尾端？
-                        2'b00:begin pipeline_dcache_wstrb=4'b0011; end
-                        2'b10:begin pipeline_dcache_wstrb=4'b1100; end
+                        2'b00:begin 
+                            pipeline_dcache_wstrb=4'b0011; 
+                            din_pipeline_dcache={16'b0,rrd1_forward[15:0]}; 
+                        end
+                        2'b10:begin 
+                            pipeline_dcache_wstrb=4'b1100; 
+                            din_pipeline_dcache={rrd1_forward[15:0],16'b0}; 
+                        end
                         default pipeline_dcache_wstrb=0;
                     endcase
                 end

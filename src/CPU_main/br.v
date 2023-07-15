@@ -15,10 +15,10 @@ module br (
                 0: ifbr=1;
                 1: ifbr=zero;
                 2: ifbr=!zero;
-                3: ifbr=zero;
-                4: ifbr=!zero;
-                5: ifbr=zero;
-                6: ifbr=!zero;
+                3: ifbr=!zero;
+                4: ifbr=zero;
+                5: ifbr=!zero;
+                6: ifbr=zero;
             endcase
         end
         else if(type_==8) 
