@@ -27,7 +27,7 @@ module Icache_DMA#(
 //写直达 非写分配 暂定延迟一周期出
 (  
     input       clk,rstn,
-    output      [31:0]test1,test2,test3,
+    // output      [31:0]test1,test2,test3,
 
     //pipeline port
     input       [31:0]addr_pipeline_icache,
