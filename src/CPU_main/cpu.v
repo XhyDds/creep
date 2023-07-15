@@ -482,10 +482,10 @@ module core_top (
 
     wire [31:0]	dcacheresult;
 
-    `ifdef DDMA
-    wire [31:0] result_exe0_exe1_1;
-    assign result_exe0_exe1_1=(|ctr_exe0_exe1_1[3:0])?dcacheresult:aluresult_exe0_exe1_1;
-    `endif
+    // `ifdef DDMA
+    // wire [31:0] result_exe0_exe1_1;
+    // assign result_exe0_exe1_1=(|ctr_exe0_exe1_1[3:0])?dcacheresult:aluresult_exe0_exe1_1;
+    // `endif
 
     forward u_forward(
         //ports
@@ -494,12 +494,12 @@ module core_top (
         .ctr_exe0_exe1_0(ctr_exe0_exe1_0),
         .ctr_exe0_exe1_1(ctr_exe0_exe1_1),
         .aluresult_exe0_exe1_0 		( aluresult_exe0_exe1_0 		),
-        `ifdef DDMA
-        .aluresult_exe0_exe1_1 		( result_exe0_exe1_1 		    ),
-        `endif
-        `ifdef ICache
+        // `ifdef DDMA
+        // .aluresult_exe0_exe1_1 		( result_exe0_exe1_1 		    ),
+        // `endif
+        // `ifdef DCache
         .aluresult_exe0_exe1_1 		( aluresult_exe0_exe1_1 		),
-        `endif
+        // `endif
         .result_exe1_wb_0      		( result_exe1_wb_0      		),
         .result_exe1_wb_1      		( result_exe1_wb_1      		),
         .rrj_reg_exe0_0        		( rrj_reg_exe0_0        		),
