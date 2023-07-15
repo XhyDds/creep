@@ -766,6 +766,28 @@ module core_top (
         .mem_dcache_dataOK      		( mem_dcache_dataOK      		)
     );
 
+    wire 	d_rready;
+    wire 	d_wready;
+    wire    d_rlast;
+    wire    [31:0] d_rdata;
+    wire    d_bvalid;
+    assign  mem_dcache_addrOK = dcache_mem_wr?d_wready:rready;
+    assign  mem_dcache_dataOK = d_rready;
+
+    ReturnBuffer#(
+        .offset_width       (offset_width)
+    )
+    dcache_returnbuf(
+        .clk                (clk),
+        .rstn               (rstn),
+        .cache_mem_req      (dcache_mem_req & ~dcache_mem_wr),
+        .mem_cache_dataOK   (mem_dcache_dataOK),
+        .dout_mem_cache     (din_mem_icache),
+        .rready             (d_rready),
+        .rdata              (d_rdata),
+        .rlast              (d_rlast)
+    );
+
     wire [31:0]	dcacheresult;
 
     dcache_extend u_dcache_extend(
@@ -804,12 +826,6 @@ module core_top (
     );
 
     //AXI
-    wire 	d_rready;
-    wire 	d_wready;
-    wire    d_rlast;
-    wire    d_bvalid;
-    assign  mem_dcache_addrOK = dcache_mem_wr?d_wready:arready;
-    assign  mem_dcache_dataOK = d_rready;
 
     axi_arbiter u_axi_arbiter(
         //ports
@@ -829,11 +845,12 @@ module core_top (
         .d_rvalid 		( dcache_mem_req & ~dcache_mem_wr ),//input       
         .d_rready 		( d_rready 		),//output reg  
         .d_raddr  		( addr_dcache_mem  		),//input [31:0]
-        .d_rdata  		( din_mem_dcache  		),//output [31:0]
+        .d_rdata  		( d_rdata  		),//output [31:0]
         .d_rlast  		( d_rlast	),//output reg  
         .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
-        .d_rlen   		( 8'b0   		),//input [7:0]
+        .d_rlen   		( 8'd3   		),//input [7:0]
 
+        //当前版本，dcache直接写
         .d_wvalid 		( dcache_mem_req & dcache_mem_wr ),//input
         .d_wready 		( d_wready 		),//output reg  
         .d_waddr  		( addr_dcache_mem  		),//input [31:0]
