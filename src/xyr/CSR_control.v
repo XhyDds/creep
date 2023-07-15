@@ -1,4 +1,6 @@
-module CSR_control(
+module CSR_control#(
+parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
+)(
     input clk,rstn,
     input pipeline_CSR_stall,
     input pipeline_CSR_flush,
@@ -22,10 +24,18 @@ module CSR_control(
     output CSR_pipeline_LLBit,
     output [9:0]CSR_pipeline_ASID,
     output [31:0]CSR_pipeline_DMW0,
-    output [31:0]CSR_pipeline_DMW1
+    output [31:0]CSR_pipeline_DMW1,
+    
+    output reg [31:0] CSR_pipeline_TLBIDX,
+    output reg [31:0] CSR_pipeline_TLBEHI,
+    output reg [31:0] CSR_pipeline_TLBELO0,
+    output reg [31:0] CSR_pipeline_TLBELO1,
+    input [31:0] pipeline_CSR_TLBIDX,
+    input [31:0] pipeline_CSR_TLBEHI,
+    input [31:0] pipeline_CSR_TLBELO0,
+    input [31:0] pipeline_CSR_TLBELO1
     //output CSR_TLB
 );
-    localparam TLB_n=10,TLB_PALEN=35,TIMER_n=20;
     reg [8:0] CRMD;reg [2:0] PRMD;reg EUEN;reg [12:0] ECFG_LIE;
     reg [1:0] ESTAT_IS;reg TI_INTE;reg [21:16]ESTAT_Ecode;reg [30:22]ESTAT_EsubCode;
     reg[31:0] ERA;reg [31:0] BADV;reg [31:6] EENTRY;wire [31:0] CPUID;
@@ -57,6 +67,7 @@ module CSR_control(
     wire exe;wire [15:0] excp_arg1;reg clk_stall;reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
     reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;
+    reg [31:0] dwcsr_reg;
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_stall=busy,CSR_pipeline_flush=flushout;
     assign exe=pipeline_CSR_type==PRIV||excp_arg1[15]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
@@ -65,6 +76,20 @@ module CSR_control(
     assign CSR_pipeline_outpc=outpc,ESTATin=pipeline_CSR_ESTAT;
     assign csr_num=pipeline_CSR_excp_arg0;
     assign inte={ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]}?CRMD[2]:0;
+    always@(*)
+    begin
+    CSR_pipeline_TLBIDX=0;CSR_pipeline_TLBEHI=0;
+    CSR_pipeline_TLBELO0=0;CSR_pipeline_TLBELO1=0;
+    CSR_pipeline_TLBIDX[TLB_n-1:0]=TLBIDX_Index;
+    CSR_pipeline_TLBIDX[29:24]=TLBIDX_PS;
+    CSR_pipeline_TLBIDX[31]=TLBIDX_NE;
+    CSR_pipeline_TLBEHI[31:13]=TLBEHI;
+    CSR_pipeline_TLBELO0[6:0]=TLBELO0_VDPLVMATG;
+    CSR_pipeline_TLBELO0[TLB_PALEN-5:8]=TLBELO0_PPN;
+    CSR_pipeline_TLBELO1[6:0]=TLBELO1_VDPLVMATG;
+    CSR_pipeline_TLBELO1[TLB_PALEN-5:8]=TLBELO1_PPN;
+    end
+    
     always@(posedge(clk),negedge(rstn))
     begin
     if(!rstn||flushin)
