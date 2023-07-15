@@ -57,6 +57,7 @@ assign flag_icache_pipeline = 1;
 assign icache_pipeline_stall = ~ icache_pipeline_ready;
 assign icache_mem_size = 2'd2;
 
+wire stall = pipeline_icache_ctrl[0];
 reg [4:0]state,next_state;
 localparam Idle=5'd0,req=5'd1,send=5'd2;
 always @(posedge clk,negedge rstn) begin
@@ -66,8 +67,11 @@ end
 always @(*) begin
     case (state)
         Idle:begin
-            if(pipeline_icache_valid)next_state = req;
-            else next_state = Idle;
+            if(stall)next_state = Idle;
+            else begin
+                if(pipeline_icache_valid)next_state = req;
+                else next_state = Idle;
+            end
         end 
         req:begin
             if(mem_icache_addrOK)next_state = send;
