@@ -30,7 +30,7 @@ module Dcache_DMA#(
 //也支持同时修改多个byte
 (  
     input       clk,rstn,
-    output      [31:0]test1,test2,test3,
+    // output      [31:0]test1,test2,test3,
 
     //pipeline port
     input       [31:0]addr_pipeline_dcache,

@@ -179,16 +179,20 @@ always @(*) begin
         default: data_out = 64'h1234ABCD1234ABCD;
     endcase
 end
+//理论输出
+wire [63:0]dout1 = send_nop ? 64'h1234ABCD00000000 : data_out;
+wire flag1 = send_nop ? 1'b0 : data_flag;
 //锁存
-wire choose_stall;
+reg choose_stall;
 reg [63:0]data_out_reg;
 reg data_flag_reg;
 always @(posedge clk) begin
-    data_out_reg <= data_out;
-    data_flag_reg <= data_flag;
+    data_out_reg <= dout_icache_pipeline;
+    data_flag_reg <= flag_icache_pipeline;
+    choose_stall <= rbuf_stall & icache_pipeline_ready;
 end
-assign dout_icache_pipeline = send_nop ? 64'h1234ABCD00000000 : (choose_stall) ? data_out_reg : data_out;
-assign flag_icache_pipeline = send_nop ? 1'b0 : (choose_stall) ? data_flag_reg : data_flag;
+assign dout_icache_pipeline = (choose_stall) ? data_out_reg : dout1;
+assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : flag1;
 
 //Mem
 wire [1+offset_width:0]temp;
@@ -231,7 +235,7 @@ Icache_FSMmain Icache_FSMmain(
     .FSM_TagV_we(TagV_we),
 
     //data choose
-    .FSM_choose_stall(choose_stall),
+    // .FSM_choose_stall(choose_stall),
     .FSM_choose_way(choose_way),
     .FSM_choose_return(choose_return),
     .FSM_choose_word(choose_word),

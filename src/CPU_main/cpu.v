@@ -1,6 +1,6 @@
-`define IDMA
+// `define IDMA
 `define DDMA
-//`define ICache
+`define ICache
 //`define DCache
 module core_top (
     input           aclk,
@@ -182,9 +182,9 @@ module core_top (
     );
 
     //ICache
-    wire [31:0]	test1_icache;
-    wire [31:0]	test2_icache;
-    wire [31:0]	test3_icache;
+    // wire [31:0]	test1_icache;
+    // wire [31:0]	test2_icache;
+    // wire [31:0]	test3_icache;
 
     wire [63:0]	dout_icache_pipeline;
     wire 	    flag_icache_pipeline;
@@ -202,9 +202,9 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .test1                  		( test1_icache           		),
-        .test2                  		( test2_icache           		),
-        .test3                  		( test3_icache           		),
+        // .test1                  		( test1_icache           		),
+        // .test2                  		( test2_icache           		),
+        // .test3                  		( test3_icache           		),
 
         // .ifibar(ifibar0|ifibar1),
         .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
@@ -234,9 +234,9 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .test1                  		( test1_icache           		),
-        .test2                  		( test2_icache           		),
-        .test3                  		( test3_icache           		),
+        // .test1                  		( test1_icache           		),
+        // .test2                  		( test2_icache           		),
+        // .test3                  		( test3_icache           		),
 
         // .ifibar(ifibar0|ifibar1),
         .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
@@ -482,10 +482,10 @@ module core_top (
 
     wire [31:0]	dcacheresult;
 
-    // `ifdef DDMA
-    // wire [31:0] result_exe0_exe1_1;
-    // assign result_exe0_exe1_1=(|ctr_exe0_exe1_1[3:0])?dcacheresult:aluresult_exe0_exe1_1;
-    // `endif
+    // // `ifdef DDMA
+    // // wire [31:0] result_exe0_exe1_1;
+    // // assign result_exe0_exe1_1=(|ctr_exe0_exe1_1[3:0])?dcacheresult:aluresult_exe0_exe1_1;
+    // // `endif
 
     forward u_forward(
         //ports
@@ -497,7 +497,7 @@ module core_top (
         // `ifdef DDMA
         // .aluresult_exe0_exe1_1 		( result_exe0_exe1_1 		    ),
         // `endif
-        // `ifdef ICache
+        // `ifdef DCache
         .aluresult_exe0_exe1_1 		( aluresult_exe0_exe1_1 		),
         // `endif
         .result_exe1_wb_0      		( result_exe1_wb_0      		),
@@ -822,9 +822,9 @@ module core_top (
     //     .CSR_pipeline_DMW1      		( DMW1      		)
     // );
 
-    wire [31:0]	test1_dcache;
-    wire [31:0]	test2_dcache;
-    wire [31:0]	test3_dcache;
+    // wire [31:0]	test1_dcache;
+    // wire [31:0]	test2_dcache;
+    // wire [31:0]	test3_dcache;
 
     wire [31:0]	dout_dcache_pipeline;
     wire 	dcache_pipeline_ready;//无用？
@@ -848,9 +848,9 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .test1                  		( test1_dcache           		),
-        .test2                  		( test2_dcache           		),
-        .test3                  		( test3_dcache           		),
+        // .test1                  		( test1_dcache           		),
+        // .test2                  		( test2_dcache           		),
+        // .test3                  		( test3_dcache           		),
 
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
@@ -884,9 +884,9 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .test1                  		( test1_dcache           		),
-        .test2                  		( test2_dcache           		),
-        .test3                  		( test3_dcache           		),
+        // .test1                  		( test1_dcache           		),
+        // .test2                  		( test2_dcache           		),
+        // .test3                  		( test3_dcache           		),
 
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),

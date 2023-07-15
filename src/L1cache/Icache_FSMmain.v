@@ -64,7 +64,7 @@ module Icache_FSMmain#(
     // output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
    
     //数据选择
-    output reg  FSM_choose_stall,
+    // output reg  FSM_choose_stall,
     output reg  FSM_send_nop,
     output reg  FSM_choose_way,
     output reg  FSM_choose_return,
@@ -173,7 +173,7 @@ always @(*) begin
     FSM_Data_we=2'd0;
     // FSM_Dirtytable_set0=0;
     // FSM_Dirtytable_set1=0;
-    FSM_choose_stall = 0;
+    // FSM_choose_stall = 0;
     FSM_choose_way=0;
     FSM_choose_return=0;
     FSM_choose_word=FSM_rbuf_addr[2+offset_width-1:2];
@@ -322,7 +322,7 @@ always @(*) begin
         end
         Stall:begin//考虑Stall情况  让外面多流一拍
             icache_pipeline_ready=1;
-            FSM_choose_stall = 1;
+            // FSM_choose_stall = 1;
         end
         default:begin
                     
