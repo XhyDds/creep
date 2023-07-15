@@ -482,10 +482,10 @@ module core_top (
 
     wire [31:0]	dcacheresult;
 
-    `ifdef DDMA
-    wire [31:0] result_exe0_exe1_1;
-    assign result_exe0_exe1_1=(|ctr_exe0_exe1_1[3:0])?dcacheresult:aluresult_exe0_exe1_1;
-    `endif
+    // `ifdef DDMA
+    // wire [31:0] result_exe0_exe1_1;
+    // assign result_exe0_exe1_1=(|ctr_exe0_exe1_1[3:0])?dcacheresult:aluresult_exe0_exe1_1;
+    // `endif
 
     forward u_forward(
         //ports
@@ -494,12 +494,12 @@ module core_top (
         .ctr_exe0_exe1_0(ctr_exe0_exe1_0),
         .ctr_exe0_exe1_1(ctr_exe0_exe1_1),
         .aluresult_exe0_exe1_0 		( aluresult_exe0_exe1_0 		),
-        `ifdef DDMA
-        .aluresult_exe0_exe1_1 		( result_exe0_exe1_1 		    ),
-        `endif
-        `ifdef ICache
+        // `ifdef DDMA
+        // .aluresult_exe0_exe1_1 		( result_exe0_exe1_1 		    ),
+        // `endif
+        // `ifdef ICache
         .aluresult_exe0_exe1_1 		( aluresult_exe0_exe1_1 		),
-        `endif
+        // `endif
         .result_exe1_wb_0      		( result_exe1_wb_0      		),
         .result_exe1_wb_1      		( result_exe1_wb_1      		),
         .rrj_reg_exe0_0        		( rrj_reg_exe0_0        		),
@@ -600,43 +600,75 @@ module core_top (
 
     wire [31:0]	mulresult0;
 
-    muitiplier u_muitiplier0(
+    mul u_mul0(
         //ports
-        .clk                         		( clk                         		),
-        .rstn                        		( rstn                        		),
-        .pipeline_muitiplier_flush   		( flush_exe0_exe1_0   		),
-        .pipeline_muitiplier_stall   		( stall_exe0_exe1_0   		),
-        // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_0[3:0] 		),
-        .pipeline_muitiplier_subtype 		( ctr_reg_exe0_0[11:7] 		),
-        .pipeline_muitiplier_din1    		( rrj0_forward    		),
-        .pipeline_muitiplier_din2    		( rrk0_forward    		),
-        .muitiplier_pipeline_dout    		( mulresult0    		)
+        .rrj           		( rrj0_forward           		),
+        .rrk           		( rrk0_forward           		),
+        .ctr           		( ctr_reg_exe0_0           		),
+        .clk           		( clk           		),
+        .rstn          		( rstn          		),
+        .mulresult_reg 		( mulresult0 		)
     );
+
+    // muitiplier u_muitiplier0(
+    //     //ports
+    //     .clk                         		( clk                         		),
+    //     .rstn                        		( rstn                        		),
+    //     .pipeline_muitiplier_flush   		( flush_exe0_exe1_0   		),
+    //     .pipeline_muitiplier_stall   		( stall_exe0_exe1_0   		),
+    //     // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_0[3:0] 		),
+    //     .pipeline_muitiplier_subtype 		( ctr_reg_exe0_0[11:7] 		),
+    //     .pipeline_muitiplier_din1    		( rrj0_forward    		),
+    //     .pipeline_muitiplier_din2    		( rrk0_forward    		),
+    //     .muitiplier_pipeline_dout    		( mulresult0    		)
+    // );
 
     wire [31:0]	mulresult1;
 
-    muitiplier u_muitiplier1(
+    mul u_mul1(
         //ports
-        .clk                         		( clk                         		),
-        .rstn                        		( rstn                        		),
-        .pipeline_muitiplier_flush   		( flush_exe0_exe1_1   		),
-        .pipeline_muitiplier_stall   		( stall_exe0_exe1_1   		),
-        // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_1_ALE[3:0] 		),
-        .pipeline_muitiplier_subtype 		( ctr_reg_exe0_1_ALE[11:7] 		),
-        .pipeline_muitiplier_din1    		( rrj1_forward    		),
-        .pipeline_muitiplier_din2    		( rrk1_forward    		),
-        .muitiplier_pipeline_dout    		( mulresult1    		)
+        .rrj           		( rrj1_forward           		),
+        .rrk           		( rrk1_forward           		),
+        .ctr           		( ctr_reg_exe0_1           		),
+        .clk           		( clk           		),
+        .rstn          		( rstn          		),
+        .mulresult_reg 		( mulresult1 		)
     );
 
-    wire [31:0]	divresult0;
+    // muitiplier u_muitiplier1(
+    //     //ports
+    //     .clk                         		( clk                         		),
+    //     .rstn                        		( rstn                        		),
+    //     .pipeline_muitiplier_flush   		( flush_exe0_exe1_1   		),
+    //     .pipeline_muitiplier_stall   		( stall_exe0_exe1_1   		),
+    //     // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_1_ALE[3:0] 		),
+    //     .pipeline_muitiplier_subtype 		( ctr_reg_exe0_1_ALE[11:7] 		),
+    //     .pipeline_muitiplier_din1    		( rrj1_forward    		),
+    //     .pipeline_muitiplier_din2    		( rrk1_forward    		),
+    //     .muitiplier_pipeline_dout    		( mulresult1    		)
+    // );
 
-    div u_div(
+    wire [31:0] divresult0_;
+    reg [31:0]	divresult0;
+
+    div u_div0(
         //ports
         .rrj       		( rrj0_forward      ),
         .rrk       		( rrk0_forward      ),
         .ctr       		( ctr_reg_exe0_0    ),
-        .divresult 		( divresult0 		)
+        .divresult 		( divresult0_ 		)
     );
+
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            divresult0 <= 0;
+        end
+        else if(stall_exe0_exe1_1);
+        else if(flush_exe0_exe1_1) divresult0 <= 0;
+        else begin
+            divresult0 <= divresult0_;
+        end
+    end
 
     // divider #(
     //     .WIDTH 		( 32 		))
@@ -654,15 +686,25 @@ module core_top (
     //     .divider_pipeline_dout    		( divresult0    		)
     // );
 
-    wire [31:0]	divresult1;
+    wire [31:0] divresult1_;
+    reg [31:0]	divresult1;
 
-    div u_div(
+    div u_div1(
         //ports
         .rrj       		( rrj1_forward      ),
         .rrk       		( rrk1_forward      ),
         .ctr       		( ctr_reg_exe0_1    ),
-        .divresult 		( divresult1 		)
+        .divresult 		( divresult1_ 		)
     );
+
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            divresult1 <= 0;
+        end
+        else begin
+            divresult1 <= divresult1_;
+        end
+    end
 
     // divider #(
     //     .WIDTH 		( 32 		))

@@ -11,7 +11,7 @@ module div (
                 0: divresult=$signed(rrj)/$signed(rrk);
                 1: divresult=$signed(rrj)%$signed(rrk);
                 2: divresult=$unsigned(rrj)/$unsigned(rrk);
-                3: divresult=$unsigned(rrj)&$unsigned(rrk);
+                3: divresult=$unsigned(rrj)%$unsigned(rrk);
             endcase
     end
 endmodule
