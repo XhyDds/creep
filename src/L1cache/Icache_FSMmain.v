@@ -322,7 +322,7 @@ always @(*) begin
         end
         Stall:begin//考虑Stall情况  让外面多流一拍
             icache_pipeline_ready=1;
-            choose_stall = 1;
+            FSM_choose_stall = 1;
         end
         default:begin
                     

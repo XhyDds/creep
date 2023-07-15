@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2023/05/19 19:11:03
+// Create Date: 2023/05/30 19:18:44
 // Design Name: 
-// Module Name: bram
+// Module Name: bram_bytewrite
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,35 +20,41 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module bram #(
+module bram_bytewrite#(
     parameter DATA_WIDTH = 32,
-            //   INIT_FILE = "C:\Users\lenovo\Desktop\data_init.coe"
               ADDR_WIDTH = 8
-)
-(
-    input clk,                    // Clock
-    input [ADDR_WIDTH-1:0] raddr,  // Read Address
-    input [ADDR_WIDTH-1:0] waddr,
-    input [DATA_WIDTH-1:0] din,   // Data Input
-    input we,                     // Write Enable
-    output [DATA_WIDTH-1:0] dout
+            //   INIT_FILE = ""
+)(
+    input                   clk,   // Clock
+    input [ADDR_WIDTH-1:0]  raddr, // read Address
+    input [ADDR_WIDTH-1:0]  waddr, // write Address
+    input [DATA_WIDTH-1:0]  din,   // Data Input
+    input [DATA_WIDTH/8-1:0]we,    // Write Enable
+    output [DATA_WIDTH-1:0] dout   // Data Output
 ); 
     reg [ADDR_WIDTH-1:0] addr_r;  // Address Register
     reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
-    integer i;
+    // initial $readmemh(INIT_FILE, ram); // initialize memory
+    integer j;
     initial begin
-        for (i = 0; i < (1 << ADDR_WIDTH); i = i + 1) begin
-            ram[i] = 0;
+        for (j = 0; j < (1 << ADDR_WIDTH); j = j + 1) begin
+            ram[j] = 0;
         end
     end
 
-    // assign dout = (addr_r==waddr&&we)?din:ram[addr_r];//write first
-    assign dout = ram[addr_r];
-
     always @(posedge clk) begin
+        // addr_r <= raddr == waddr ? waddr : raddr;????
         addr_r <= raddr;
-        if (we) ram[waddr] <= din;
     end
-
+    assign dout = ram[addr_r];
+    generate
+        genvar i;
+        for(i = 0; i < DATA_WIDTH/8; i = i+1) begin
+            always @(posedge clk) begin
+                if(we[i])
+                    ram[waddr][(i+1)*8-1:(i*8)] <= din[(i+1)*8-1:(i*8)];
+            end
+        end
+    endgenerate
 endmodule
