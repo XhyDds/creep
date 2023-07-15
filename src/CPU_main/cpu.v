@@ -478,6 +478,13 @@ module core_top (
     wire [31:0]	rrd0_forward;
     wire [31:0]	rrd1_forward;
 
+    wire [31:0]	dcacheresult;
+
+    `ifdef DMA
+    wire [31:0] result_exe0_exe1_1;
+    assign result_exe0_exe1_1=(|ctr_exe0_exe1_1[3:0])?dcacheresult:aluresult_exe0_exe1_1;
+    `endif
+
     forward u_forward(
         //ports
         .ctr_exe1_wb_0(ctr_exe1_wb_0),
@@ -485,7 +492,12 @@ module core_top (
         .ctr_exe0_exe1_0(ctr_exe0_exe1_0),
         .ctr_exe0_exe1_1(ctr_exe0_exe1_1),
         .aluresult_exe0_exe1_0 		( aluresult_exe0_exe1_0 		),
+        `ifdef DMA
+        .aluresult_exe0_exe1_1 		( result_exe0_exe1_1 		    ),
+        `endif
+        `ifdef L1Cache
         .aluresult_exe0_exe1_1 		( aluresult_exe0_exe1_1 		),
+        `endif
         .result_exe1_wb_0      		( result_exe1_wb_0      		),
         .result_exe1_wb_1      		( result_exe1_wb_1      		),
         .rrj_reg_exe0_0        		( rrj_reg_exe0_0        		),
@@ -614,7 +626,15 @@ module core_top (
         .muitiplier_pipeline_dout    		( mulresult1    		)
     );
 
-    wire [31:0]	divresult0=0;
+    wire [31:0]	divresult0;
+
+    div u_div(
+        //ports
+        .rrj       		( rrj0_forward      ),
+        .rrk       		( rrk0_forward      ),
+        .ctr       		( ctr_reg_exe0_0    ),
+        .divresult 		( divresult0 		)
+    );
 
     // divider #(
     //     .WIDTH 		( 32 		))
@@ -633,7 +653,15 @@ module core_top (
     // );
 
     wire [31:0]	divresult1;
-    
+
+    div u_div(
+        //ports
+        .rrj       		( rrj1_forward      ),
+        .rrk       		( rrk1_forward      ),
+        .ctr       		( ctr_reg_exe0_1    ),
+        .divresult 		( divresult1 		)
+    );
+
     // divider #(
     //     .WIDTH 		( 32 		))
     // u_divider1(
@@ -702,7 +730,7 @@ module core_top (
         .rrj1_forward         		    ( rrj1_forward         		    ),
         .imm_reg_exe0_1         		( imm_reg_exe0_1         		),
         .ctr_reg_exe0_1         		( ctr_reg_exe0_1         		),
-        .rd_reg_exe0_1          		( rd_reg_exe0_1          		),
+        .rrd1_forward          		    ( rrd1_forward          		),
         .addr_pipeline_dcache   		( addr_pipeline_dcache   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
@@ -865,11 +893,14 @@ module core_top (
     );
     `endif
 
-    wire [31:0]	dcacheresult;
-
     dcache_extend u_dcache_extend(
         //ports
+        `ifdef DMA
+        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1      ),
+        `endif
+        `ifdef L1Cache
         .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        `endif
         .dout_dcache_pipeline        		( dout_dcache_pipeline ),
         .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
         .dout_dcache_pipeline_extend 		( dcacheresult 		   ),

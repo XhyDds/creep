@@ -61,14 +61,14 @@ module Dcache_DMA#(
     );
 assign addr_dcache_mem = addr_pipeline_dcache;
 assign dout_dcache_mem = din_pipeline_dcache;
-assign dout_dcache_pipeline = din_mem_dcache[32:0];
+assign dout_dcache_pipeline = din_mem_dcache[31:0];
 assign dcache_mem_wr = type_pipeline_dcache;
 assign dcache_mem_wstrb = pipeline_dcache_wstrb;
 assign dcache_pipeline_stall = ~ dcache_pipeline_ready;
 assign dcache_mem_size = 2'd2;
 
 reg [4:0]state,next_state;
-localparam Idle=5'd0,req=5'd1,send=5'd2;
+localparam Idle=5'd0,req=5'd1,send=5'd2,send_=5'd3;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=Idle;
     else state<=next_state;
@@ -87,9 +87,10 @@ always @(*) begin
             else next_state = req;
         end
         send:begin
-            if(mem_dcache_dataOK)next_state = Idle;
+            if(mem_dcache_dataOK)next_state = send_;
             else next_state = send;
         end
+        send_:next_state=Idle;
         default: next_state = Idle;
     endcase
 end
@@ -111,14 +112,10 @@ always @(*) begin
                 dcache_pipeline_ready = 1;
             end
         end
-        send:begin
-            if(next_state == Idle)begin
-                dcache_pipeline_ready = 1;
-            end
+        send_:begin
+            dcache_pipeline_ready = 1;
         end
-        default: begin
-            
-        end
+        default: ;
     endcase
 end
 endmodule

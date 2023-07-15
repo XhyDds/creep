@@ -21,19 +21,22 @@ module dcache_extend (
         dout_dcache_pipeline_extend=0;
         if(type_==5)
             case (subtype)
-                0: dout_dcache_pipeline_extend=dout_dcache_pipeline;
+            //LD
+                0: dout_dcache_pipeline_extend={{24{dout16[15]}},dout8};
                 1: dout_dcache_pipeline_extend={{16{dout16[15]}},dout16};
-                2: dout_dcache_pipeline_extend={{24{dout16[15]}},dout8};
+                2: dout_dcache_pipeline_extend=dout_dcache_pipeline;
+            //ST
                 3: dout_dcache_pipeline_extend=din_pipeline_dcache;
                 4: dout_dcache_pipeline_extend=din_pipeline_dcache;
                 5: dout_dcache_pipeline_extend=din_pipeline_dcache;
-                6: dout_dcache_pipeline_extend={16'b0,dout16};
-                7: dout_dcache_pipeline_extend={24'b0,dout8};
+            //LD
+                6: dout_dcache_pipeline_extend={24'b0,dout8};
+                7: dout_dcache_pipeline_extend={16'b0,dout16};
             endcase
         else if(type_==6)
             case (subtype)
                 0: dout_dcache_pipeline_extend={{16{dout16[15]}},dout16};
-                1: dout_dcache_pipeline_extend={{24{dout16[15]}},dout8};
+                1: dout_dcache_pipeline_extend=din_pipeline_dcache;
             endcase
     end
 endmodule //dcache_extend

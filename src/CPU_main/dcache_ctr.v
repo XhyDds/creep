@@ -1,5 +1,5 @@
 module dcache_ctr (
-    input        [31:0]rrj1_forward,imm_reg_exe0_1,ctr_reg_exe0_1,rd_reg_exe0_1,
+    input        [31:0]rrj1_forward,imm_reg_exe0_1,ctr_reg_exe0_1,rrd1_forward,
     input        [15:0]excp_arg_reg_exe0_1_excp,
     // output  ALE,
     output  reg  [31:0]addr_pipeline_dcache,
@@ -55,7 +55,7 @@ module dcache_ctr (
                 begin 
                     // pipeline_dcache_valid=1;
                     // type_pipeline_dcache=1;
-                    din_pipeline_dcache={24'b0,rd_reg_exe0_1[7:0]};
+                    din_pipeline_dcache={24'b0,rrd1_forward[7:0]};
                     case (addr_pipeline_dcache[1:0])//小尾端？
                         2'b00:pipeline_dcache_wstrb=4'b0001;
                         2'b01:pipeline_dcache_wstrb=4'b0010;
@@ -67,7 +67,7 @@ module dcache_ctr (
                 begin 
                     // type_pipeline_dcache=1;
                     // pipeline_dcache_valid=1;
-                    din_pipeline_dcache={16'b0,rd_reg_exe0_1[15:0]}; 
+                    din_pipeline_dcache={16'b0,rrd1_forward[15:0]}; 
                     case (addr_pipeline_dcache[1:0])//小尾端？
                         2'b00:begin pipeline_dcache_wstrb=4'b0011; end
                         2'b10:begin pipeline_dcache_wstrb=4'b1100; end
@@ -78,7 +78,7 @@ module dcache_ctr (
                 begin 
                     // pipeline_dcache_valid=1;
                     // type_pipeline_dcache=1;
-                    din_pipeline_dcache=rd_reg_exe0_1; pipeline_dcache_wstrb='b1111;
+                    din_pipeline_dcache=rrd1_forward; pipeline_dcache_wstrb='b1111;
                 end
                 6: 
                 begin 
@@ -120,7 +120,7 @@ module dcache_ctr (
                 begin 
                     // pipeline_dcache_valid=1;
                     // type_pipeline_dcache=1;
-                    din_pipeline_dcache=rd_reg_exe0_1; pipeline_dcache_wstrb='b1111; 
+                    din_pipeline_dcache=rrd1_forward; pipeline_dcache_wstrb='b1111; 
                 end
             endcase
     end
