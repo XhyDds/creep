@@ -1,3 +1,5 @@
+`define DMA
+//`define L1Cache
 module core_top (
     input           aclk,
     input           aresetn,
@@ -189,6 +191,7 @@ module core_top (
     wire [31:0]	addr_icache_mem;
     wire [1:0]	icache_mem_size;
 
+    `ifdef DMA
     Icache_DMA #(
         .index_width  		( 4 		),
         .offset_width 		( 2 		),
@@ -219,6 +222,39 @@ module core_top (
         .mem_icache_addrOK      		( rready      	),
         .mem_icache_dataOK      		( mem_icache_dataOK      		)
     );
+    `endif
+    `ifdef L1Cache
+    Icache #(
+        .index_width  		( 4 		),
+        .offset_width 		( 2 		),
+        .way          		( 2 		))
+    u_Icache(
+        //ports
+        .clk                    		( clk                    		),
+        .rstn                   		( rstn                   		),
+        .test1                  		( test1_icache           		),
+        .test2                  		( test2_icache           		),
+        .test3                  		( test3_icache           		),
+
+        // .ifibar(ifibar0|ifibar1),
+        .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
+        .dout_icache_pipeline   		( dout_icache_pipeline   		),//
+        .flag_icache_pipeline   		( flag_icache_pipeline   		),//
+        .pipeline_icache_valid  		( 1  		),
+        .icache_pipeline_ready  		( icache_pipeline_ready  		),//
+        .pipeline_icache_opcode 		( 0 		),
+        .pipeline_icache_opflag 		( 0 		),
+        .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
+        .icache_pipeline_stall  		( stall_icache  		),//
+
+        .addr_icache_mem        		( addr_icache_mem        		),
+        .din_mem_icache         		( din_mem_icache         		),
+        .icache_mem_req         		( icache_mem_req         		),
+        .icache_mem_size        		( icache_mem_size        		),
+        .mem_icache_addrOK      		( rready      	),
+        .mem_icache_dataOK      		( mem_icache_dataOK      		)
+    );
+    `endif
 
     // wire [63:0]	dout_icache_pipeline;
     // wire 	flag_icache_pipeline,icache_pipeline_ready;
@@ -731,6 +767,7 @@ module core_top (
     wire mem_dcache_addrOK;
     wire mem_dcache_dataOK;
 
+    `ifdef DMA
     Dcache_DMA #(
         .index_width  		( 4 		),
         .offset_width 		( 2 		),
@@ -765,6 +802,43 @@ module core_top (
         .mem_dcache_addrOK      		( mem_dcache_addrOK      		),
         .mem_dcache_dataOK      		( mem_dcache_dataOK      		)
     );
+    `endif
+    `ifdef L1Cache
+    Dcache#(
+        .index_width  		( 4 		),
+        .offset_width 		( 2 		),
+        .way          		( 2 		))
+    u_Dcache(
+        //ports
+        .clk                    		( clk                    		),
+        .rstn                   		( rstn                   		),
+        .test1                  		( test1_dcache           		),
+        .test2                  		( test2_dcache           		),
+        .test3                  		( test3_dcache           		),
+
+        .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
+        .din_pipeline_dcache    		( din_pipeline_dcache    		),
+        .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
+        .type_pipeline_dcache   		( type_pipeline_dcache   		),
+        .pipeline_dcache_valid  		( pipeline_dcache_valid  		),
+        .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
+        .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
+        .pipeline_dcache_opcode 		( pipeline_dcache_opcode 		),
+        .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
+        .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
+        .dcache_pipeline_stall  		( stall_dcache  		        ),
+
+        .addr_dcache_mem        		( addr_dcache_mem        		),
+        .dout_dcache_mem        		( dout_dcache_mem        		),
+        .din_mem_dcache         		( din_mem_dcache         		),
+        .dcache_mem_req         		( dcache_mem_req         		),
+        .dcache_mem_wr          		( dcache_mem_wr          		),
+        .dcache_mem_size        		( dcache_mem_size        		),
+        .dcache_mem_wstrb       		( dcache_mem_wstrb       		),
+        .mem_dcache_addrOK      		( mem_dcache_addrOK      		),
+        .mem_dcache_dataOK      		( mem_dcache_dataOK      		)
+    );
+    `endif
 
     wire 	d_rready;
     wire 	d_wready;
@@ -772,8 +846,11 @@ module core_top (
     wire    [31:0] d_rdata;
     wire    d_bvalid;
     assign  mem_dcache_addrOK = dcache_mem_wr?d_wready:rready;
+    `ifdef DMA
     assign  mem_dcache_dataOK = d_rready;
+    `endif
 
+    `ifdef L1Cache
     ReturnBuffer#(
         .offset_width       (offset_width)
     )
@@ -782,11 +859,12 @@ module core_top (
         .rstn               (rstn),
         .cache_mem_req      (dcache_mem_req & ~dcache_mem_wr),
         .mem_cache_dataOK   (mem_dcache_dataOK),
-        .dout_mem_cache     (din_mem_icache),
+        .dout_mem_cache     (din_mem_dcache),
         .rready             (d_rready),
         .rdata              (d_rdata),
         .rlast              (d_rlast)
     );
+    `endif
 
     wire [31:0]	dcacheresult;
 
@@ -845,10 +923,21 @@ module core_top (
         .d_rvalid 		( dcache_mem_req & ~dcache_mem_wr ),//input       
         .d_rready 		( d_rready 		),//output reg  
         .d_raddr  		( addr_dcache_mem  		),//input [31:0]
+        `ifdef DMA
+        .d_rdata        ( din_mem_dcache),
+        `endif
+        `ifdef L1Cache
         .d_rdata  		( d_rdata  		),//output [31:0]
+        `endif
         .d_rlast  		( d_rlast	),//output reg  
         .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
+        `ifdef DMA
+        .d_rlen   		( 8'd1   		),//input [7:0]
+        `endif
+        `ifdef L1Cache
         .d_rlen   		( 8'd3   		),//input [7:0]
+        `endif
+        
 
         //当前版本，dcache直接写
         .d_wvalid 		( dcache_mem_req & dcache_mem_wr ),//input
@@ -897,24 +986,32 @@ module core_top (
         if(ifbr_priv) npc=pc_priv;
         else if(ifbr1) npc=brresult1;
         else if(ifbr0) npc=brresult0;
-        // else if(pc[2]) npc=pc+4;//Icache ONLY
-        else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY
-        // else npc=pc+8;//Icache ONLY
+
+        `ifdef DMA
+        else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY1
+        `endif
+        `ifdef L1Cache
+        else if(pc[2]) npc=pc+4;//Icache ONLY1
+        else npc=pc+8;//Icache ONLY1
+        `endif
+        
     end    
     always @(posedge clk,negedge rstn) begin
         if(!rstn) pc<=32'h1c000000;
         else if(!stall_pc|ifbr0|ifbr1) pc<=npc;
     end
 
-    //IF0-IF1 Icache ONLY
-    // always @(posedge clk or negedge rstn) begin
-    //     if(!rstn|flush_if0_if1) begin
-    //         pc_if0_if1<=0;
-    //     end
-    //     else if(!stall_if0_if1)begin
-    //         pc_if0_if1<=pc;
-    //     end
-    // end
+    `ifdef L1Cache
+    //IF0-IF1 Icache ONLY1
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn|flush_if0_if1) begin
+            pc_if0_if1<=0;
+        end
+        else if(!stall_if0_if1)begin
+            pc_if0_if1<=pc;
+        end
+    end
+    `endif
 
     //IF1-FIFO
     //flush套壳
@@ -936,8 +1033,12 @@ module core_top (
             pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;
         end
         else begin
-            // pc_if1_fifo<=pc_if0_if1;//Icache ONLY
-            pc_if1_fifo<=pc;//DMA ONLY
+            `ifdef L1Cache
+            pc_if1_fifo<=pc_if0_if1;//Icache ONLY1
+            `endif
+            `ifdef DMA
+            pc_if1_fifo<=pc;//DMA ONLY1
+            `endif
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_ready;
             flag_if1_fifo<=flag_icache_pipeline;
@@ -1126,7 +1227,9 @@ module core_top (
             endcase
     end
 
-    reg [31:0]dcacheresult_reg;//DMA ONLY
+    `ifdef DMA
+    reg [31:0]dcacheresult_reg;//DMA ONLY1
+    `endif
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
@@ -1135,7 +1238,9 @@ module core_top (
             aluresult_exe0_exe1_0 <= 0;
             pc_exe0_exe1_0<=0;
             ir_exe0_exe1_0<=0;
-            dcacheresult_reg<=0;//DMA ONLY
+            `ifdef DMA
+            dcacheresult_reg<=0;//DMA ONLY1
+            `endif
         end
         else if(stall_exe0_exe1_0);
         else if(flush_exe0_exe1_0) begin
@@ -1144,7 +1249,9 @@ module core_top (
             aluresult_exe0_exe1_0 <= 0;
             pc_exe0_exe1_0<=0;
             ir_exe0_exe1_0<=0;
-            dcacheresult_reg<=0;//DMA ONLY
+            `ifdef DMA
+            dcacheresult_reg<=0;//DMA ONLY1
+            `endif
         end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
@@ -1152,7 +1259,9 @@ module core_top (
             aluresult_exe0_exe1_0 <= aluresult0;
             pc_exe0_exe1_0<=pc_reg_exe0_0;
             ir_exe0_exe1_0<=ir_reg_exe0_0;
-            dcacheresult_reg<=dcacheresult;//DMA ONLY
+            `ifdef DMA
+            dcacheresult_reg<=dcacheresult;//DMA ONLY1
+            `endif
         end
     end
 
@@ -1202,10 +1311,14 @@ module core_top (
             2: result1=divresult1;
             3: result1=privresult1;
             4: result1=mulresult1;
-            5: result1=dcacheresult_reg;//DMA ONLY
-            6: result1=dcacheresult_reg;//DMA ONLY
-            // 5: result1=dcacheresult;//Icache ONLY
-            // 6: result1=dcacheresult;//Icache ONLY
+            `ifdef DMA
+            5: result1=dcacheresult_reg;//DMA ONLY1
+            6: result1=dcacheresult_reg;//DMA ONLY1
+            `endif
+            `ifdef L1Cache
+            5: result1=dcacheresult;//Icache ONLY1
+            6: result1=dcacheresult;//Icache ONLY1
+            `endif
             7: ;
             8: result1=aluresult_exe0_exe1_1;
         endcase
