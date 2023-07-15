@@ -34,19 +34,19 @@ module WriteBuffer #(
     input  clk,
     input  rstn,
 
-    input  [addr_width-1:0] queue_in_addr,
-    input  [data_width-1:0] queue_in_data,
-    input  queue_in_valid,
-    output queue_in_ready,
+    input  [addr_width-1:0] in_addr,
+    input  [data_width-1:0] in_data,
+    input  in_valid,
+    output in_ready,
 
-    output [addr_width-1:0] queue_out_addr,
-    output [data_width-1:0] queue_out_data,
-    output queue_out_valid,
-    input  queue_out_ready,
+    output [addr_width-1:0] out_addr,
+    output [data_width-1:0] out_data,
+    output out_valid,
+    input  out_ready,
 
-    input  [addr_width-1:0] queue_query_addr,
-    output [addr_width-1:0] queue_query_data,
-    output queue_query_ok                        //query是否成功
+    input  [addr_width-1:0] query_addr,
+    output [addr_width-1:0] query_data,
+    output query_ok                        //query是否成功
 );
 
 

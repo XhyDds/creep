@@ -2,28 +2,26 @@
 ///这里是用于L2cache与axi交互的arbiter，实现了读写通道并行，有以下几点说明：
 ///
 
-module axi_arbiter#(
+module l2_axi_arbiter#(
     offset_width=2
 )(
     input               clk,
     input               rstn,
     // from l2cache
-    input               l2_wr,
     input               l2_rvalid,   //ar: l2->arbiter:req
-    output              l2_addrOK,   //arbiter->l2:addrOK
+    output reg          l2_raddrOK,   //arbiter->l2:addrOK
     output reg          l2_rready,   //r: arbiter->l2:dataOK
     input [31:0]        l2_raddr,
     output [31:0]       l2_rdata,    
     output reg          l2_rlast,     
 
     input               l2_wvalid,   //aw: l2->arbiter:req
+    output reg          l2_waddrOK,   //arbiter->l2:addrOK
     output reg          l2_wready,   //w: arbiter->l2:暂不关注
     input [31:0]        l2_waddr,
     input [31:0]        l2_wdata,
     input [3:0]         l2_wstrb,
     input               l2_wlast,
-    input [2:0]         l2_wsize,
-    input [7:0]         l2_wlen,
 
     output reg          l2_bvalid,   //b: arbiter->d:dataOK
     input               l2_bready,   //b: d->arbiter:req
@@ -66,8 +64,12 @@ module axi_arbiter#(
 );
     wire [2:0]         l2_rsize;
     wire [7:0]         l2_rlen;    
+    wire [2:0]         l2_wsize;
+    wire [7:0]         l2_wlen;
     assign  l2_rsize=3'd2;
-    assign  l2_rlen=8'd3;
+    assign  l2_rlen =8'd3;
+    assign  l2_wsize=3'd2;
+    assign  l2_wlen =8'd3;
     //读通道
     localparam 
         R_IDLE  = 2'd0,
@@ -84,7 +86,7 @@ module axi_arbiter#(
     always @(*) begin
         case(r_crt)
         R_IDLE: begin
-            if(l2_rvalid)            r_nxt = D_AR;   //优先Dcache
+            if(l2_rvalid)           r_nxt = D_AR;   //优先Dcache
             else                    r_nxt = R_IDLE;
         end
         D_AR: begin
@@ -100,16 +102,17 @@ module axi_arbiter#(
     end
     
     assign l2_rdata = rdata;
-    assign arburst = 2'b01;
+    assign arburst  = 2'b01;
 
     always @(*) begin
-        l2_rready    = 0;
-        l2_rlast     = 0;
+        l2_rready   = 0;
+        l2_rlast    = 0;
         arlen       = 0;
         arsize      = 0;
         arvalid     = 0;
         araddr      = 0;
         rready      = 0;
+        l2_raddrOK  = 0;
         case(r_crt) 
         D_AR: begin
             araddr      = l2_raddr;
@@ -120,8 +123,9 @@ module axi_arbiter#(
         D_R: begin
             araddr      = l2_raddr;
             rready      = 1;
-            l2_rready    = rvalid;
-            l2_rlast     = rlast;
+            l2_rready   = rvalid;
+            l2_rlast    = rlast;
+            l2_raddrOK  = 1;
         end
         default:;
         endcase
@@ -144,7 +148,7 @@ module axi_arbiter#(
     always @(*) begin
         case(w_crt)
         W_IDLE: begin
-            if(l2_wvalid)            w_nxt = D_AW;
+            if(l2_wvalid)           w_nxt = D_AW;
             else                    w_nxt = W_IDLE;
         end
         D_AW: begin
@@ -170,12 +174,13 @@ module axi_arbiter#(
     assign wstrb    = l2_wstrb;
 
     always @(*) begin
-        l2_wready    = 0;
-        l2_bvalid    = 0;
+        l2_wready   = 0;
+        l2_bvalid   = 0;
         bready      = 0;
         awvalid     = 0;
         wvalid      = 0;
         wlast       = 0;
+        l2_waddrOK  = 0;
 
         case(w_crt)
         D_AW: begin
@@ -184,11 +189,12 @@ module axi_arbiter#(
         D_W: begin
             wvalid      = 1;
             wlast       = l2_wlast;
-            l2_wready    = wready;
+            l2_wready   = wready;
+            l2_waddrOK  = wready;
         end
         D_B: begin
             bready      = l2_bready;
-            l2_bvalid    = bvalid;
+            l2_bvalid   = bvalid;
         end
         default:;
         endcase
