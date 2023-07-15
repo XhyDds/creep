@@ -64,6 +64,7 @@ module Icache_FSMmain#(
     // output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
    
     //数据选择
+    output reg  FSM_choose_stall,
     output reg  FSM_send_nop,
     output reg  FSM_choose_way,
     output reg  FSM_choose_return,
@@ -93,7 +94,7 @@ assign icache_pipeline_ready1=icache_pipeline_ready&rstn_reg;
 
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Replace=5'd5,Operation=5'd6,Flush=5'd7;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Stall=5'd5,Operation=5'd6,Flush=5'd7;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -142,7 +143,7 @@ always @(*) begin
         Miss_r_waitdata:begin
             if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
             else begin//数据可信赖，内存准备写
-                if(fStall_outside)next_state=Replace;
+                if(fStall_outside)next_state=Stall;
                 else begin
                     if(pipeline_icache_valid)begin
                         if(opflag)next_state=Operation;
@@ -152,7 +153,7 @@ always @(*) begin
                 end
             end
         end
-        Replace:begin
+        Stall:begin
             if(pipeline_icache_valid)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
@@ -172,6 +173,7 @@ always @(*) begin
     FSM_Data_we=2'd0;
     // FSM_Dirtytable_set0=0;
     // FSM_Dirtytable_set1=0;
+    FSM_choose_stall = 0;
     FSM_choose_way=0;
     FSM_choose_return=0;
     FSM_choose_word=FSM_rbuf_addr[2+offset_width-1:2];
@@ -300,7 +302,7 @@ always @(*) begin
                         FSM_use1=1;
                     end
                 end
-                Replace:begin
+                Stall:begin
                     FSM_rbuf_we=1;
                     FSM_choose_return=1;//这是必须的
                     icache_pipeline_ready=1;
@@ -318,8 +320,9 @@ always @(*) begin
                 end
             endcase
         end
-        Replace:begin//考虑fStall情况  让外面多流一拍
+        Stall:begin//考虑Stall情况  让外面多流一拍
             icache_pipeline_ready=1;
+            choose_stall = 1;
         end
         default:begin
                     

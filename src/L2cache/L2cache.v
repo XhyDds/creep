@@ -9,6 +9,10 @@ module L2cache#(
     //四路 写回写分配
     //Icache可见前两路 Dcache可见后两路 PLRU公用
     input       clk,rstn,
+    
+    //op port
+    input       l2cache_opflag,
+    input       [31:0]l2cache_opcode,
 
     //Icache port
     input       [31:0]addr_icache_l2cache,
@@ -17,9 +21,6 @@ module L2cache#(
     output      l2cache_icache_addrOK,
     output      l2cache_icache_dataOK,
 
-    //op port
-    input       l2cache_opflag,
-    input       [31:0]l2cache_opcode,
     //Dcache port
     input       [31:0]addr_dcache_l2cache,
     input       [31:0]din_dcache_l2cache,//L1写直达

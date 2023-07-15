@@ -33,7 +33,6 @@ module Dcache#(
 //也支持同时修改多个byte
 (  
     input       clk,rstn,
-    output      [31:0]test1,test2,test3,
 
     //pipeline port
     input       [31:0]addr_pipeline_dcache,
@@ -62,9 +61,6 @@ module Dcache#(
     input       mem_dcache_addrOK,
     input       mem_dcache_dataOK
     );
-assign test1=0;
-assign test2=0;
-assign test3=0;
 
 wire [offset_width-1:0]offset;
 wire [index_width-1:0]index;

@@ -180,16 +180,15 @@ always @(*) begin
     endcase
 end
 //锁存
+wire choose_stall;
 reg [63:0]data_out_reg;
 reg data_flag_reg;
-reg stall_reg;
 always @(posedge clk) begin
     data_out_reg <= data_out;
     data_flag_reg <= data_flag;
-    stall_reg <= rbuf_stall;
 end
-assign dout_icache_pipeline = send_nop ? 64'h1234ABCD00000000 : (stall_reg) ? data_out_reg : data_out;
-assign flag_icache_pipeline = send_nop ? 1'b0 : (stall_reg) ? data_flag_reg : data_flag;
+assign dout_icache_pipeline = send_nop ? 64'h1234ABCD00000000 : (choose_stall) ? data_out_reg : data_out;
+assign flag_icache_pipeline = send_nop ? 1'b0 : (choose_stall) ? data_flag_reg : data_flag;
 
 //Mem
 wire [1+offset_width:0]temp;
@@ -232,6 +231,7 @@ Icache_FSMmain Icache_FSMmain(
     .FSM_TagV_we(TagV_we),
 
     //data choose
+    .FSM_choose_stall(choose_stall),
     .FSM_choose_way(choose_way),
     .FSM_choose_return(choose_return),
     .FSM_choose_word(choose_word),
