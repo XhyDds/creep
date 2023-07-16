@@ -1,5 +1,6 @@
 
 //供l1使用，适用于icache和dcache
+//l2也可使用，此时由于写buf的存在，交互对象为arbiter与axi
 module ReturnBuffer #(
     parameter   offset_width=2
 )(
@@ -10,7 +11,7 @@ module ReturnBuffer #(
     input               cache_mem_req,
     output reg          mem_cache_dataOK,
     output              [(1<<offset_width)*32-1:0]dout_mem_cache,
-    //arbiter 
+    //axi
     input               rready,   //r: arbiter->i:dataOK
     input[31:0]         rdata,
     input               rlast

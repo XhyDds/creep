@@ -39,13 +39,11 @@ module L2cache#(
     output      l2cache_mem_req_r,
     output      l2cache_mem_req_w,
     output      l2cache_mem_rdy,
-    output      [1:0]l2cache_mem_size,
     output      [3:0]l2cache_mem_wstrb,
     input       mem_l2cache_addrOK_r,
     input       mem_l2cache_addrOK_w, 
     input       mem_l2cache_dataOK
 );
-assign l2cache_mem_size = 2'd2;
 
 //仲裁逻辑：Dcache优先
 wire [31:0]addr_l1cache_l2cache;
