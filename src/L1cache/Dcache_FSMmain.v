@@ -291,9 +291,9 @@ always @(*) begin
             endcase
         end
         Hit_w:begin
+            dcache_mem_wr=1;//conbination
             if(next_state == Hit_w)begin
                 dcache_mem_req=1;
-                dcache_mem_wr=1;
             end
             else begin
                 dcache_pipeline_ready = 1;
@@ -301,10 +301,10 @@ always @(*) begin
             end
         end
         Miss_r:begin
+            dcache_mem_wr=0;//conbination
             case (next_state)
                 Miss_r:begin
                     dcache_mem_req=1;
-                    dcache_mem_wr=0;
                     // dcache_mem_size=2'd2;
                     // dcache_mem_wstrb=4'b0000;
                 end
@@ -355,10 +355,10 @@ always @(*) begin
             endcase
         end
         Miss_w:begin
+            dcache_mem_wr=1;//conbination
             case (next_state)
                 Miss_w:begin
                     dcache_mem_req=1;
-                    dcache_mem_wr=1;
                     // dcache_mem_size=2'd2;
                     // dcache_mem_wstrb=4'b1111;
                 end
