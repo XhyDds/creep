@@ -47,6 +47,8 @@ module WriteBuffer #(
     input  out_awready,
     input  out_wready,
     output reg out_last,
+    input  out_bvalid,
+    output reg out_bready,
 
     //query
     input  [31:0] query_addr,
@@ -65,9 +67,9 @@ module WriteBuffer #(
 
     //pull&push
     //state machine
-    parameter IDLE = 3'd0,PULL=3'd1,PUSH=3'd2,PULL_PUSH=3'd3,
-            SEND_0=3'd4,SEND_1=3'd5,SEND_2=3'd6,SEND_3=3'd7;
-    reg [2:0] crt,nxt;
+    parameter IDLE = 4'd0,PULL=4'd1,PUSH=4'd2,PULL_PUSH=4'd3,
+            SEND_0=4'd4,SEND_1=4'd5,SEND_2=4'd6,SEND_3=4'd7,_SEND=4'd8;
+    reg [3:0] crt,nxt;
     always @(posedge clk,negedge rstn) begin
         if (!rstn) begin
             crt<=IDLE;
@@ -110,8 +112,12 @@ module WriteBuffer #(
                 else                nxt=SEND_2;
             end
             SEND_3: begin
-                if(out_wready)      nxt=IDLE;
+                if(out_wready)      nxt=_SEND;
                 else                nxt=SEND_3;
+            end
+            _SEND: begin
+                if(out_bvalid)      nxt=IDLE;
+                else                nxt=_SEND;
             end
             default:                nxt=IDLE;
         endcase
@@ -124,6 +130,7 @@ module WriteBuffer #(
         out_last=0;
         out_addr=0;
         out_data=0;
+        out_bready=0;
         case (crt)
             IDLE: begin
                 
@@ -156,6 +163,9 @@ module WriteBuffer #(
                 out_valid=1;
                 out_last=1;
                 out_data=_out_data[127:96];
+            end
+            _SEND: begin
+                out_bready=1;
             end
             default: ;
         endcase

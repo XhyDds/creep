@@ -2,7 +2,7 @@
 ///这里是用于L2cache与axi交互的arbiter，实现了读写通道并行，有以下几点说明：
 ///
 
-module l2_axi_arbiter#(
+module l2_axi_interface#(
     offset_width=2
 )(
     input               clk,

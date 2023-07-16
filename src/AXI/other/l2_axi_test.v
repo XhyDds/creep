@@ -11,21 +11,25 @@
 ///     若结果为未命中，询问axi；
 ///     否则，直接返回
 
+///   ibar会flush，所以不用担心icache没有访问到正确数据
+
 module l2_axi_test #(
     offset_width=2
 )(
     //l2 interface
+    //r
     input      [31:0]addr_l2cache_mem_r,
-    input      [31:0]addr_l2cache_mem_w,
     output     [32*(1<<offset_width)-1:0]din_mem_l2cache,
-    input      [32*(1<<offset_width)-1:0]dout_l2cache_mem,
     input      l2cache_mem_req_r,
-    input      l2cache_mem_req_w,
     output     mem_l2cache_addrOK_r,
-    output     mem_l2cache_addrOK_w, 
-    input      [3:0]l2cache_mem_wstrb,
-    input      l2cache_mem_rdy, //给writebuffer
+    input      l2cache_mem_rdy,
     output     mem_l2cache_dataOK,
+    //w
+    input      [31:0]addr_l2cache_mem_w,
+    input      [32*(1<<offset_width)-1:0]dout_l2cache_mem,
+    input      l2cache_mem_req_w,
+    output     mem_l2cache_addrOK_w, 
+    input      [3:0]l2cache_mem_wstrb,//悬空
 
     //AXI interface 
     //read reqest
@@ -70,12 +74,25 @@ module l2_axi_test #(
     input           bvalid,
     output          bready
 );
-    wire 	l2_rready;
-    wire 	l2_wready;
-    wire    l2_rlast;
-    wire    l2_wlast;
-    wire    [31:0] l2_rdata;
-    wire    l2_bvalid;
+    wire l2_rready;
+    wire l2_rlast;
+    wire [31:0] l2_rdata;
+
+    wire l2_wvalid; 
+    wire l2_wready;
+    wire l2_waddrOK;
+    wire l2_wlast;
+    wire l2_bvalid;
+    wire l2_bready;
+    wire [31:0] l2_waddr;
+    wire [31:0] l2_wdata;
+
+    wire arbiter_mem_req;
+    wire mem_arbiter_dataOK;
+    wire [(1<<offset_width)*32-1:0] din_mem_arbiter;
+
+    wire [(1<<offset_width)*32-1:0] query_data;
+    wire query_ok;
 
     ReturnBuffer#(
         .offset_width       (offset_width)
@@ -83,37 +100,86 @@ module l2_axi_test #(
     l2cache_returnbuf(
         .clk                (clk),
         .rstn               (rstn),
-        .cache_mem_req      (l2cache_mem_req_r|l2cache_mem_req_w),
-        .mem_cache_dataOK   (mem_l2cache_dataOK),
-        .dout_mem_cache     (din_mem_l2cache),
+        .cache_mem_req      (arbiter_mem_req),
+        .mem_cache_dataOK   (mem_arbiter_dataOK),
+        .dout_mem_cache     (din_mem_arbiter),
         .rready             (l2_rready),
         .rdata              (l2_rdata),
         .rlast              (l2_rlast)
     );
 
-    l2_axi_arbiter u_axi_arbiter(
+    WriteBuffer#(
+        .length         (5),
+        .offset_width   (offset_width)
+    )
+    l2cache_writebuffer(
+        .clk                (clk),
+        .rstn               (rstn),
+
+        .in_addr            (addr_l2cache_mem_w),
+        .in_data            (dout_l2cache_mem),
+        .in_valid           (l2cache_mem_req_w),
+        .in_ready           (mem_l2cache_addrOK_w),
+
+        .out_addr           (l2_waddr),
+        .out_data           (l2_wdata),
+        .out_valid          (l2_wvalid),
+        .out_awready        (l2_waddrOK),
+        .out_wready         (l2_wready),
+        .out_last           (l2_wlast),
+        .out_bvalid         (l2_bvalid),
+        .out_bready         (l2_bready),
+
+        .query_addr         (addr_l2cache_mem_r),
+        .query_data         (query_data),
+        .query_ok           (query_ok)
+    );
+
+    wrt_ret_arbiter #(
+        .offset_width       (offset_width)
+    )
+    l2_wrt_ret_arbiter(
+        .clk                (clk),
+        .rstn               (rstn),
+
+        .l2cache_mem_req_r  (l2cache_mem_req_r),
+        .mem_l2cache_addrOK_r(mem_l2cache_addrOK_r),
+        .l2cache_mem_rdy    (l2cache_mem_rdy),
+        .mem_l2cache_dataOK (mem_l2cache_dataOK),
+        .din_mem_l2cache    (din_mem_l2cache),
+
+        .query_data         (query_data),
+        .query_ok           (query_ok),
+
+        .arbiter_mem_req    (arbiter_mem_req),
+        .mem_arbiter_addrOK (mem_arbiter_addrOK),
+        .mem_arbiter_dataOK (mem_arbiter_dataOK),
+        .dout_mem_arbiter   (din_mem_arbiter)
+    );
+
+    l2_axi_interface u_axi_interface(
         //ports
         .clk      		( clk      		),
         .rstn     		( rstn     		),
 
         //l2cache
-        .l2_rvalid 		( l2cache_mem_req_r ),//input       
-        .l2_raddrOK     ( mem_l2cache_addrOK_r),//output
+        .l2_rvalid 		( arbiter_mem_req ),//input       
+        .l2_raddrOK     ( mem_arbiter_addrOK),//output
         .l2_rready 		( l2_rready 		),//output reg  
         .l2_raddr  		( addr_l2cache_mem_r  		),//input [31:0]
         .l2_rdata  		( l2_rdata  		),//output [31:0]
         .l2_rlast  		( l2_rlast	),//output reg  
-        
-        .l2_wvalid 		( l2cache_mem_req_w ),//input
-        .l2_waddrOK     ( mem_l2cache_addrOK_w),//output
-        .l2_wready 		( l2_wready 		),//output reg  
-        .l2_waddr  		( addr_l2cache_mem_w  		),//input [31:0]
-        .l2_wdata  		( dout_l2cache_mem  		),//input [31:0]
-        .l2_wstrb  		( l2cache_mem_wstrb  		),//input [3:0] 字节选通位
-        .l2_wlast  		( l2_wlast  		),//input       
 
-        .l2_bvalid 		( l2_bvalid  ),//output reg
-        .l2_bready 		( 1'b1 		),//input       
+        .l2_wvalid 		( l2_wvalid         ),//input
+        .l2_waddrOK     ( l2_waddrOK        ),//output
+        .l2_wready 		( l2_wready 		),//output reg
+        .l2_waddr  		( l2_waddr  		),//input [31:0]
+        .l2_wdata  		( l2_wdata  		),//input [31:0]
+        .l2_wstrb  		( 4'hF  		    ),//input [3:0] 字节选通位
+        .l2_wlast  		( l2_wlast  		),//input
+
+        .l2_bvalid 		( l2_bvalid         ),//output reg
+        .l2_bready 		( l2_bready 		),//input
         
         //AXI
         .araddr   		( araddr   		),
