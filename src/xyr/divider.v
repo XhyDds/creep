@@ -71,6 +71,8 @@ module divider#(//din1/din2
         dout=remainder;
     case(cs)
         Wait:
+            begin
+            busy=0;
             if(exe)
                 begin
                 if(|din2)
@@ -91,15 +93,16 @@ module divider#(//din1/din2
             else
                 begin
                 ns=Wait;
-                busy=0;
                 end
+            end
         Aline:
             begin
             ncounter={1'b0,n1}-{1'b0,n2};
             if(ncounter[5])
                 begin
                 ns=Waitout;
-                nremainder=0;
+                if(din1s&&(mode_reg==DIVW||mode_reg==MODW))
+                    nremainder=0-remainder;
                 nquotient=0;
                 end
             else
