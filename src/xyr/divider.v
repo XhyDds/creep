@@ -98,7 +98,7 @@ module divider#(//din1/din2
             ncounter={1'b0,n1}-{1'b0,n2};
             if(ncounter[5])
                 begin
-                ns=Wait;
+                ns=Waitout;
                 nremainder=0;
                 nquotient=0;
                 end
