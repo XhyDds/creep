@@ -14,7 +14,7 @@ module dispatcher (
     //可同时发射：不相关且有一条是算术指令
     //如果3000是alu，3004是dcache，是否可交换？
     reg [4:0]rd0_reg,rd1_reg;
-    reg muldecache0_reg,muldecache1_reg;
+    reg muldivdecache0_reg,muldivdecache1_reg;
     wire [3:0]type0=control0[3:0];
     wire [3:0]type1=control1[3:0];
     //0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br
@@ -24,22 +24,22 @@ module dispatcher (
     // wire suanshu1=(type1==0|type1==2|type1==4);
     // wire suanshubr1=(suanshu1|type1==1|type1==8);
     // wire jiaohuan=(type0==5)&suanshu1;//3000是alu，3004是dcache
-    wire muldecache0=(type0==4|type0==5);
-    wire muldecache1=(type1==4|type1==5);
-    wire stall1=(muldecache0_reg&(rd0_reg==rk1|rd0_reg==rj1))|(muldecache1_reg&(rd1_reg==rk1|rd1_reg==rj1));
-    wire stall0=(muldecache0_reg&(rd0_reg==rk0|rd0_reg==rj0))|(muldecache1_reg&(rd1_reg==rk0|rd1_reg==rj0));
+    wire muldivdecache0=(type0==4|type0==5|type0==2);
+    wire muldivdecache1=(type1==4|type1==5|type1==2);
+    wire stall1=(muldivdecache0_reg&(rd0_reg==rk1|rd0_reg==rj1|rd1==rd0_reg&type1==1))|(muldivdecache1_reg&(rd1_reg==rk1|rd1_reg==rj1|rd1==rd1_reg&type1==1));
+    wire stall0=(muldivdecache0_reg&(rd0_reg==rk0|rd0_reg==rj0|rd0==rd0_reg&type0==1))|(muldivdecache1_reg&(rd1_reg==rk0|rd1_reg==rj0|rd0==rd1_reg&type0==1));
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush) begin
-            muldecache0_reg <= 0;
-            muldecache1_reg <= 0;
+            muldivdecache0_reg <= 0;
+            muldivdecache1_reg <= 0;
             rd0_reg <= 0;
             rd1_reg <= 0;
         end
         else if(!stall)begin
-            muldecache0_reg <= if0 ? muldecache0:0;
+            muldivdecache0_reg <= if0 ? muldivdecache0:0;
             rd0_reg <= rd0; 
-            muldecache1_reg <= if1 ? muldecache1:0;
+            muldivdecache1_reg <= if1 ? muldivdecache1:0;
             rd1_reg <= rd1; 
         end
     end
