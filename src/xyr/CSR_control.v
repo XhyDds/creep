@@ -67,7 +67,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;
     
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
-    reg [31:0] dout_reg;
+    reg [31:0] dout_reg;reg run_reg;reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
+    reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
     assign exe=pipeline_CSR_type==PRIV||excp_arg1[15]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
@@ -92,13 +93,21 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     
     always@(posedge(clk),negedge(rstn))
     begin
-    if(!rstn||flushin)
+    if(!rstn||(flushin&&!inte))
         begin   
-        
+        dwcsr_reg<=0;flushout_reg<=0;
+        outpc_reg<=0;dout_reg<=0;
+        run_reg<=0;
+        ecode_reg<=0;esubcode_reg<=0;
+        mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
         end
     else if(!stallin||inte)
         begin
-        
+        dwcsr_reg<=dwcsr;flushout_reg<=flushout;
+        outpc_reg<=0;dout_reg<=dout;
+        run_reg<=(!stallin && !flushin && exe)||inte;
+        ecode_reg<=ecode;esubcode_reg<=esubcode;
+        mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         end
     end
     always@(posedge(clk),negedge(rstn))
@@ -290,15 +299,15 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
         end
     else
         begin
-            if((!stallin && !flushin && exe)||inte)
+            if(run_reg)
                 begin
-                if(mode==IDLE && !clk_stall)
+                if(mode_reg==IDLE && !clk_stall)
                     begin
                     clk_stall<=1;
                     end   
                 else
                     begin
-                    case(mode)
+                    case(mode_reg)
                         ERTN:
                             begin
                             if(ESTAT_Ecode==TLBR)
@@ -313,15 +322,15 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
                             begin
                             PRMD<=CRMD[2:0];
                             CRMD[2:0]<=0;
-                            ERA<=inpc;
+                            ERA<=inpc_reg;
                             clk_stall<=0;
                             if(ecode==TLBR)
                                 begin
                                 CRMD[4:3]<=2'b01;
                                 end
-                            ESTAT_Ecode<=ecode;
-                            ESTAT_EsubCode<=esubcode;
-                            BADV<=evaddr;
+                            ESTAT_Ecode<=ecode_reg;
+                            ESTAT_EsubCode<=esubcode_reg;
+                            BADV<=evaddr_reg;
                             end
                         LLW:
                             begin
@@ -331,97 +340,97 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
                            case(csr_num)
                                 'h0:
                                     begin
-                                    CRMD[2:0]<=dwcsr[2:0];
-                                    CRMD[8:5]<=dwcsr[8:5];
-                                    if(dwcsr[4]^dwcsr[3])
-                                        CRMD[4:3]<=dwcsr[4:3];
+                                    CRMD[2:0]<=dwcsr_reg[2:0];
+                                    CRMD[8:5]<=dwcsr_reg[8:5];
+                                    if(dwcsr_reg[4]^dwcsr_reg[3])
+                                        CRMD[4:3]<=dwcsr_reg[4:3];
                                     end
                                 'h1:
-                                    PRMD<=dwcsr[2:0];
+                                    PRMD<=dwcsr_reg[2:0];
                                 'h2:
-                                    EUEN<=dwcsr[0];
+                                    EUEN<=dwcsr_reg[0];
                                 'h4:
                                     begin
-                                    ECFG_LIE[12:11]<=dwcsr[12:11];
-                                    ECFG_LIE[9:0]<=dwcsr[9:0];
+                                    ECFG_LIE[12:11]<=dwcsr_reg[12:11];
+                                    ECFG_LIE[9:0]<=dwcsr_reg[9:0];
                                     end
                                 'h5:
                                     begin
-                                    ESTAT_IS<=dwcsr[1:0];
+                                    ESTAT_IS<=dwcsr_reg[1:0];
                                     end
                                 'h6:
-                                     ERA<=dwcsr;
+                                     ERA<=dwcsr_reg;
                                 'h7:
-                                    BADV<=dwcsr;
+                                    BADV<=dwcsr_reg;
                                 'hc:
-                                    EENTRY<=dwcsr[31:6];
+                                    EENTRY<=dwcsr_reg[31:6];
                                 'h10:
                                     begin
-                                    TLBIDX_Index<=dwcsr[TLB_n-1:0];
-                                    TLBIDX_PS<=dwcsr[29:24];
-                                    TLBIDX_NE<=dwcsr[31];
+                                    TLBIDX_Index<=dwcsr_reg[TLB_n-1:0];
+                                    TLBIDX_PS<=dwcsr_reg[29:24];
+                                    TLBIDX_NE<=dwcsr_reg[31];
                                     end
                                 'h11:
-                                    TLBEHI<=dwcsr[31:13];
+                                    TLBEHI<=dwcsr_reg[31:13];
                                 'h12:
                                     begin
-                                    TLBELO0_VDPLVMATG<=dwcsr[6:0];
-                                    TLBELO0_PPN<=dwcsr[TLB_PALEN-5:8];
+                                    TLBELO0_VDPLVMATG<=dwcsr_reg[6:0];
+                                    TLBELO0_PPN<=dwcsr_reg[TLB_PALEN-5:8];
                                     end
                                 'h13:
                                     begin
-                                    TLBELO1_VDPLVMATG<=dwcsr[6:0];
-                                    TLBELO1_PPN<=dwcsr[TLB_PALEN-5:8];
+                                    TLBELO1_VDPLVMATG<=dwcsr_reg[6:0];
+                                    TLBELO1_PPN<=dwcsr_reg[TLB_PALEN-5:8];
                                     end  
                                 'h18:
                                     begin
-                                    ASID_ASID<=dwcsr[9:0];
+                                    ASID_ASID<=dwcsr_reg[9:0];
                                     end
                                 'h19:
-                                    PGDL<=dwcsr[31:12];
+                                    PGDL<=dwcsr_reg[31:12];
                                 'h1a:
-                                    PGDH<=dwcsr[31:12];
+                                    PGDH<=dwcsr_reg[31:12];
                                 //'h1b:
                                 //'h20:
                                     
                                 'h30:
-                                    SAVE0<=dwcsr;
+                                    SAVE0<=dwcsr_reg;
                                 'h31:
-                                    SAVE1<=dwcsr;
+                                    SAVE1<=dwcsr_reg;
                                 'h32:
-                                    SAVE2<=dwcsr;
+                                    SAVE2<=dwcsr_reg;
                                 'h33:
-                                    SAVE3<=dwcsr;
+                                    SAVE3<=dwcsr_reg;
                                 'h40:
-                                    TID<=dwcsr;
+                                    TID<=dwcsr_reg;
                                 'h41:
-                                    TCFG<=dwcsr[TIMER_n-1:0];
+                                    TCFG<=dwcsr_reg[TIMER_n-1:0];
                                 //'h42:
                                 //'h44:    
                                 'h60:
                                     begin
-                                    if(dwcsr[1])
+                                    if(dwcsr_reg[1])
                                         LLBCTL_ROLLB<=0;
-                                    LLBCTL_KLO<=dwcsr[2];
+                                    LLBCTL_KLO<=dwcsr_reg[2];
                                     end
                                 'h88:
-                                    TLBRENTRY<=dwcsr[31:6];
+                                    TLBRENTRY<=dwcsr_reg[31:6];
                                 //'h98:  
                                 'h180:
                                     begin
-                                    DMW0_PLV0<=dwcsr[0];
-                                    DMW0_PLV3<=dwcsr[3];
-                                    DMW0_MAT<=dwcsr[5:4];
-                                    DMW0_PSEG<=dwcsr[27:25];
-                                    DMW0_VSEG<=dwcsr[31:29];
+                                    DMW0_PLV0<=dwcsr_reg[0];
+                                    DMW0_PLV3<=dwcsr_reg[3];
+                                    DMW0_MAT<=dwcsr_reg[5:4];
+                                    DMW0_PSEG<=dwcsr_reg[27:25];
+                                    DMW0_VSEG<=dwcsr_reg[31:29];
                                     end
                                 'h181:
                                     begin
-                                    DMW1_PLV0<=dwcsr[0];
-                                    DMW1_PLV3<=dwcsr[3];
-                                    DMW1_MAT<=dwcsr[5:4];
-                                    DMW1_PSEG<=dwcsr[27:25];
-                                    DMW1_VSEG<=dwcsr[31:29];
+                                    DMW1_PLV0<=dwcsr_reg[0];
+                                    DMW1_PLV3<=dwcsr_reg[3];
+                                    DMW1_MAT<=dwcsr_reg[5:4];
+                                    DMW1_PSEG<=dwcsr_reg[27:25];
+                                    DMW1_VSEG<=dwcsr_reg[31:29];
                                     end
                             endcase 
                     endcase
