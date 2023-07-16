@@ -37,6 +37,7 @@ module Dcache#(
     //pipeline port
     input       [31:0]addr_pipeline_dcache,
     input       [31:0]din_pipeline_dcache,
+    input       [31:0]pcin_pipeline_dcache,
     output      [31:0]dout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
 
@@ -52,7 +53,7 @@ module Dcache#(
     //mem prot
     output      [31:0]addr_dcache_mem,
     output      [31:0]dout_dcache_mem,
-    input       [32*(2<<offset_width)-1:0]din_mem_dcache,
+    input       [32*(1<<offset_width)-1:0]din_mem_dcache,
 
     output      dcache_mem_req,
     output      dcache_mem_wr,//0-read 1-write
@@ -70,7 +71,7 @@ assign index = addr_pipeline_dcache[offset_width+index_width+1:offset_width+2];
 assign tag = addr_pipeline_dcache[31:offset_width+index_width+2];
 
 //rquest buffer
-wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode;
+wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc;
 wire rbuf_opflag,rbuf_type,rbuf_we;
 wire [3:0]rbuf_wstrb;
 wire [offset_width-1:0]rbuf_offset;
@@ -84,6 +85,9 @@ wire fStall_outside=pipeline_dcache_ctrl[0];//dcache好像不需要stall？？
 Dcache_rbuf Dcache_rbuf(
     .clk(clk),.rstn(rstn),
     .rbuf_we(rbuf_we),//dcache好像不需要stall？？
+
+    .pc(pcin_pipeline_dcache),
+    .rbuf_pc(rbuf_pc),
 
     .addr(addr_pipeline_dcache),
     .rbuf_addr(rbuf_addr),

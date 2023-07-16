@@ -50,7 +50,7 @@ module Dcache_DMA#(
     //mem prot
     output      [31:0]addr_dcache_mem,
     output      [31:0]dout_dcache_mem,
-    input       [32*(2<<offset_width)-1:0]din_mem_dcache,
+    input       [32*(1<<offset_width)-1:0]din_mem_dcache,
 
     output  reg dcache_mem_req,
     output      dcache_mem_wr,//0-read 1-write

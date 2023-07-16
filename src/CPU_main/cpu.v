@@ -1,7 +1,7 @@
 // `define IDMA
-`define DDMA
+// `define DDMA
 `define ICache
-//`define DCache
+`define DCache
 module core_top (
     input           aclk,
     input           aresetn,
@@ -899,6 +899,7 @@ module core_top (
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
+        .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
 
         .addr_dcache_mem        		( addr_dcache_mem        		),
         .dout_dcache_mem        		( dout_dcache_mem        		),
