@@ -36,12 +36,12 @@ module muitiplier(
     dout=0;
     //result={ac-abs-cds,32'b0}+{15'b0,{1'b0,ad}+{1'b0,bc},16'b0}+{32'b0,bd};
     //result={ac,32'b0}+{abs,32'b0}+{cds,32'b0}+{15'b0,{1'b0,ad}+{1'b0,bc},16'b0}+{32'b0,bd};
-    result={ac,32'b0}+{15'b0,{1'b0,ad}+{1'b0,bc},16'b0}+{32'b0,bd};
-    if(a_b[31]&&mode_reg==MULHW)
+    result={ac,bd}+{15'b0,{1'b0,ad}+{1'b0,bc},16'b0};
+    if(c_d[31]&&mode_reg==MULHW)
         abs=a_b;
     else
         abs=0;
-    if(c_d[31]&&mode_reg==MULHW)
+    if(a_b[31]&&mode_reg==MULHW)
         cds=c_d;
     else
         cds=0;
