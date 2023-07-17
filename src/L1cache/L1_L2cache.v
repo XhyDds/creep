@@ -88,7 +88,7 @@ defparam Icache.offset_width = offset_width;
 
 wire [31:0]addr_dcache_mem;
 wire [31:0]dout_dcache_mem;
-wire [32*(2<<offset_width)-1:0]din_mem_dcache;
+wire [32*(1<<offset_width)-1:0]din_mem_dcache;
 wire dcache_mem_req;
 wire dcache_mem_wr;
 wire [1:0]dcache_mem_size;

@@ -60,6 +60,7 @@ module Dcache#(
     output      [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output      [3:0]dcache_mem_wstrb,//字节写使能
     input       mem_dcache_addrOK,
+    input       mem_dcache_bvalid,
     input       mem_dcache_dataOK
     );
 
@@ -123,7 +124,7 @@ defparam Dcache_lru.way = way;
 
 //Data
 wire [way-1:0]Data_we;
-wire [(2<<index_width)*32-1:0]data0,data1;
+wire [(1<<index_width)*32-1:0]data0,data1;
 wire Data_replace;
 Dcache_Data Dcache_Data(
     .clk(clk),
@@ -141,7 +142,7 @@ Dcache_Data Dcache_Data(
     .Data_replace(Data_replace)
 );
 defparam Dcache_Data.addr_width = index_width;
-defparam Dcache_Data.data_width = (2<<index_width)*32;//单个line的长度
+defparam Dcache_Data.data_width = (1<<offset_width)*32;//单个line的长度
 defparam Dcache_Data.offset_width = offset_width;
 defparam Dcache_Data.way = way;
 
@@ -167,7 +168,7 @@ defparam Dcache_TagV.way = way;
 wire choose_way,choose_return;
 wire [offset_width-1:0]choose_word;
 reg [31:0]data_out;
-reg [32*(2<<offset_width)-1:0]data_line;
+reg [32*(1<<offset_width)-1:0]data_line;
 assign dout_dcache_pipeline = data_out;
 always @(*) begin
     if (choose_return) data_line = din_mem_dcache;
@@ -189,7 +190,7 @@ end
 //Mem
 wire [1+offset_width:0]temp;
 assign temp=0;
-assign addr_dcache_mem = {rbuf_addr[31:2+offset_width],temp};
+assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};//读写地址
 assign dout_dcache_mem = rbuf_data;
 
 
@@ -214,6 +215,7 @@ Dcache_FSMmain Dcache_FSMmain1(
     .dcache_mem_wstrb(dcache_mem_wstrb),
     .mem_dcache_addrOK(mem_dcache_addrOK),
     .mem_dcache_dataOK(mem_dcache_dataOK),
+    .mem_dcache_bvalid(mem_dcache_bvalid),
 
     //request buffer
     .FSM_rbuf_we(rbuf_we),

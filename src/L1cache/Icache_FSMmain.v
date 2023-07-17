@@ -321,6 +321,7 @@ always @(*) begin
             endcase
         end
         Stall:begin//考虑Stall情况  让外面多流一拍
+            FSM_rbuf_we=1;
             icache_pipeline_ready=1;
             // FSM_choose_stall = 1;
         end
