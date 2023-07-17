@@ -37,7 +37,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
 
     output reg [31:0]  csr_crmd_diff_0     ,
     output reg [31:0]  csr_prmd_diff_0     ,
-    output reg [31:0]  csr_ectl_diff_0     ,
+    output  [31:0]  csr_ectl_diff_0     ,
     output reg [31:0]  csr_estat_diff_0    ,
     output reg [31:0]  csr_era_diff_0      ,
     output reg [31:0]  csr_badv_diff_0     ,
@@ -52,8 +52,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     output reg [31:0]  csr_save2_diff_0    ,
     output reg [31:0]  csr_save3_diff_0    ,
     output reg [31:0]  csr_tid_diff_0      ,
-    output reg [31:0]  csr_tcfg_diff_0     ,
-    output reg [31:0]  csr_tval_diff_0     ,
+    output  [31:0]  csr_tcfg_diff_0     ,
+    output  [31:0]  csr_tval_diff_0     ,
     output reg [31:0]  csr_ticlr_diff_0    ,
     output reg [31:0]  csr_llbctl_diff_0   ,
     output reg [31:0]  csr_tlbrentry_diff_0,
@@ -201,7 +201,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
             begin
             TI_INTE<=1;
             end
-        if(TVAL==0&&TCFG[1])
+
+        if(TVAL==0&&(TCFG[1]|TCFG[0]&!TI_INTE))
             TVAL<={TCFG[TIMER_n-1:2],2'b0};
         else if(TCFG[0]&&TVAL!=0)
             TVAL<=TVAL-1;
