@@ -1,7 +1,8 @@
 // `define IDMA
 // `define DDMA
-`define ICache
-`define DCache
+// `define ICache
+// `define DCache
+`define L2Cache
 module core_top (
     input           aclk,
     input           aresetn,
@@ -494,12 +495,7 @@ module core_top (
         .ctr_exe0_exe1_0(ctr_exe0_exe1_0),
         .ctr_exe0_exe1_1(ctr_exe0_exe1_1),
         .aluresult_exe0_exe1_0 		( aluresult_exe0_exe1_0 		),
-        // `ifdef DDMA
-        // .aluresult_exe0_exe1_1 		( result_exe0_exe1_1 		    ),
-        // `endif
-        // `ifdef DCache
         .aluresult_exe0_exe1_1 		( aluresult_exe0_exe1_1 		),
-        // `endif
         .result_exe1_wb_0      		( result_exe1_wb_0      		),
         .result_exe1_wb_1      		( result_exe1_wb_1      		),
         .rrj_reg_exe0_0        		( rrj_reg_exe0_0        		),
@@ -913,9 +909,6 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        // .test1                  		( test1_dcache           		),
-        // .test2                  		( test2_dcache           		),
-        // .test3                  		( test3_dcache           		),
 
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
@@ -971,20 +964,20 @@ module core_top (
         //ports
         `ifdef DDMA
         .ctr_exe0_exe1_1             		( ctr_reg_exe0_1      ),
-        `endif
-        `ifdef DCache
-        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
-        `endif
-        .dout_dcache_pipeline        		( dout_dcache_pipeline ),
-
-        `ifdef DCache
-        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_reg ),
-        `endif
-
-        `ifdef DDMA
         .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
         `endif
 
+        `ifdef DCache
+        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_reg ),
+        `endif
+
+        `ifdef L2Cache
+        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_reg ),
+        `endif
+
+        .dout_dcache_pipeline        		( dout_dcache_pipeline ),
         .dout_dcache_pipeline_extend 		( dcacheresult 		   ),
         .din_pipeline_dcache                ( din_pipeline_dcache )
     );
@@ -1016,6 +1009,7 @@ module core_top (
     );
 
     //AXI
+    `ifndef L2Cache
 
     axi_arbiter u_axi_arbiter(
         //ports
@@ -1038,20 +1032,24 @@ module core_top (
         .d_addrOK       ( mem_dcache_addrOK),//output
         .d_rready 		( d_rready 		),//output reg  
         .d_raddr  		( addr_dcache_mem  		),//input [31:0]
+
         `ifdef DDMA
         .d_rdata        ( din_mem_dcache),
-        `endif
-        `ifdef DCache
-        .d_rdata  		( d_rdata  		),//output [31:0]
-        `endif
-        .d_rlast  		( d_rlast	),//output reg  
-        .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
-        `ifdef DDMA
         .d_rlen   		( 8'd0   		),//input [7:0]
         `endif
+
         `ifdef DCache
+        .d_rdata  		( d_rdata  		),//output [31:0]
         .d_rlen   		( 8'd3   		),//input [7:0]
         `endif
+
+        `ifdef L2Cache
+        .d_rdata  		( d_rdata  		),//output [31:0]
+        .d_rlen   		( 8'd3   		),//input [7:0]
+        `endif
+
+        .d_rlast  		( d_rlast	),//output reg  
+        .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         
 
         //当前版本，dcache直接写
@@ -1095,6 +1093,9 @@ module core_top (
         .bready   		( bready   		)
     );
 
+
+    `endif
+
     //PC
     wire ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
     always @(*) begin
@@ -1105,7 +1106,13 @@ module core_top (
         `ifdef IDMA
         else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY
         `endif
+
         `ifdef ICache
+        else if(pc[2]) npc=pc+4;//Icache ONLY
+        else npc=pc+8;//Icache ONLY
+        `endif
+
+        `ifdef L2Cache
         else if(pc[2]) npc=pc+4;//Icache ONLY
         else npc=pc+8;//Icache ONLY
         `endif
@@ -1118,6 +1125,17 @@ module core_top (
 
     `ifdef ICache
     //IF0-IF1 Icache ONLY
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn|flush_if0_if1) begin
+            pc_if0_if1<=0;
+        end
+        else if(!stall_if0_if1)begin
+            pc_if0_if1<=pc;
+        end
+    end
+    `endif
+
+    `ifdef L2Cache
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_if0_if1) begin
             pc_if0_if1<=0;
@@ -1148,12 +1166,19 @@ module core_top (
             pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;
         end
         else begin
+
             `ifdef ICache
             pc_if1_fifo<=pc_if0_if1;//Icache ONLY
             `endif
+
+            `ifdef L2Cache
+            pc_if1_fifo<=pc_if0_if1;//Icache ONLY
+            `endif
+
             `ifdef IDMA
             pc_if1_fifo<=pc;//DMA ONLY
             `endif
+
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_ready;
             flag_if1_fifo<=flag_icache_pipeline;
@@ -1430,10 +1455,17 @@ module core_top (
             5: result1=dcacheresult_reg;//DMA ONLY
             6: result1=dcacheresult_reg;//DMA ONLY
             `endif
+
             `ifdef DCache
             5: result1=dcacheresult;//Dcache ONLY
             6: result1=dcacheresult;//Dcache ONLY
             `endif
+
+            `ifdef L2Cache
+            5: result1=dcacheresult;//Dcache ONLY
+            6: result1=dcacheresult;//Dcache ONLY
+            `endif
+
             7: ;
             8: result1=aluresult_exe0_exe1_1;
         endcase
@@ -1499,6 +1531,134 @@ module core_top (
     //         stall_exe1_wb_1_reg <= stall_exe1_wb_1;
     //     end
     // end
+
+//L2Cache
+`ifdef L2Cache
+    wire [31:0]addr_l2cache_mem_r  ;
+    wire [31:0]addr_l2cache_mem_w  ;
+    wire [32*(1<<offset_width)-1:0]din_mem_l2cache     ;
+    wire [32*(1<<offset_width)-1:0]dout_l2cache_mem    ;
+    wire l2cache_mem_req_r   ;
+    wire l2cache_mem_req_w   ;
+    wire l2cache_mem_rdy     ;
+    // wire l2cache_mem_size    ;
+    wire [3:0]l2cache_mem_wstrb   ;
+    wire mem_l2cache_addrOK_r;
+    wire mem_l2cache_addrOK_w;
+    wire mem_l2cache_dataOK  ;
+
+L1_L2cache #(
+        .I_index_width  		( 4 		),
+        .D_index_width  		( 4 		),
+        .L2_index_width  		( 6 		),
+        .offset_width 		( 2 		))
+    u_L1_L2cache(
+        //ports
+        .clk                    		( clk                    		),
+        .rstn                   		( rstn                   		),
+
+        // .ifibar(ifibar0|ifibar1),
+        //  Icache
+        .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
+        .dout_icache_pipeline   		( dout_icache_pipeline   		),//
+        .flag_icache_pipeline   		( flag_icache_pipeline   		),//
+        .pipeline_icache_valid  		( 1  		),
+        .icache_pipeline_ready  		( icache_pipeline_ready  		),//
+        .pipeline_icache_opcode 		( 0 		),
+        .pipeline_icache_opflag 		( 0 		),
+        .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
+        .icache_pipeline_stall  		( stall_icache  		),//
+
+        //  Dcache
+        .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
+        .din_pipeline_dcache    		( din_pipeline_dcache    		),
+        .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
+        .type_pipeline_dcache   		( type_pipeline_dcache   		),
+        .pipeline_dcache_valid  		( pipeline_dcache_valid  		),
+        .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
+        .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
+        .pipeline_dcache_opcode 		( pipeline_dcache_opcode 		),
+        .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
+        .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
+        .dcache_pipeline_stall  		( stall_dcache  		        ),
+        .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
+
+        //  L2cache to Mem
+        .addr_l2cache_mem_r             ( addr_l2cache_mem_r   ),
+        .addr_l2cache_mem_w             ( addr_l2cache_mem_w   ),
+        .din_mem_l2cache                ( din_mem_l2cache      ),
+        .dout_l2cache_mem               ( dout_l2cache_mem     ),
+        .l2cache_mem_req_r              ( l2cache_mem_req_r    ),
+        .l2cache_mem_req_w              ( l2cache_mem_req_w    ),
+        .l2cache_mem_rdy                ( l2cache_mem_rdy      ),
+        // .l2cache_mem_size               ( l2cache_mem_size     ),
+        .l2cache_mem_wstrb              ( l2cache_mem_wstrb    ),
+        .mem_l2cache_addrOK_r           ( mem_l2cache_addrOK_r ),
+        .mem_l2cache_addrOK_w           ( mem_l2cache_addrOK_w ),
+        .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
+
+    );
+
+    l2_axi_package#(
+        .offset_width(offset_width)
+    )
+    u_l2_axi_package(
+        .clk(clk),
+        .rstn(rstn),
+        .addr_l2cache_mem_r(addr_l2cache_mem_r),
+        .addr_l2cache_mem_w(addr_l2cache_mem_w),
+        .din_mem_l2cache(din_mem_l2cache),
+        .dout_l2cache_mem(dout_l2cache_mem),
+        .l2cache_mem_req_r(l2cache_mem_req_r),
+        .l2cache_mem_req_w(l2cache_mem_req_w),
+        .l2cache_mem_rdy(l2cache_mem_rdy),
+        .l2cache_mem_wstrb(l2cache_mem_wstrb),
+        .mem_l2cache_addrOK_r(mem_l2cache_addrOK_r),
+        .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),
+        .mem_l2cache_dataOK(mem_l2cache_dataOK),
+        //AXI
+        .araddr   		( araddr   		),
+        .arvalid  		( arvalid  		),
+        .arready  		( arready  		),
+        .arlen    		( arlen    		),
+        .arsize   		( arsize   		),
+        .arburst  		( arburst  		),
+        .rdata    		( rdata    		),
+        .rresp    		( rresp    		),
+        .rvalid   		( rvalid   		),
+        .rready   		( rready   		),
+        .rlast    		( rlast    		),
+        .awaddr   		( awaddr   		),
+        .awvalid  		( awvalid  		),
+        .awready  		( awready  		),
+        .awlen    		( awlen    		),
+        .awsize   		( awsize   		),
+        .awburst  		( awburst  		),
+        .wdata    		( wdata    		),
+        .wstrb    		( wstrb    		),
+        .wvalid   		( wvalid   		),
+        .wready   		( wready   		),
+        .wlast    		( wlast    		),
+        .bresp    		( bresp    		),
+        .bvalid   		( bvalid   		),
+        .bready   		( bready   		)
+    );
+
+`endif 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //debug begin here 
     assign debug0_wb_pc=pc_exe1_wb_0;

@@ -13,9 +13,10 @@
 
 ///   ibar会flush，所以不用担心icache没有访问到正确数据
 
-module l2_axi_test #(
+module l2_axi_package #(
     offset_width=2
 )(
+    input      clk,rstn,
     //l2 interface
     //r
     input      [31:0]addr_l2cache_mem_r,

@@ -24,6 +24,7 @@ module L1_L2cache#(
     //Dcache-pipeline port
     input       [31:0]addr_pipeline_dcache,
     input       [31:0]din_pipeline_dcache,
+    input       [31:0]pcin_pipeline_dcache,
     output      [31:0]dout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
 
@@ -44,7 +45,7 @@ module L1_L2cache#(
     output      l2cache_mem_req_r,
     output      l2cache_mem_req_w,
     output      l2cache_mem_rdy,
-    output      [1:0]l2cache_mem_size,
+    // output      [1:0]l2cache_mem_size,
     output      [3:0]l2cache_mem_wstrb,
     input       mem_l2cache_addrOK_r,
     input       mem_l2cache_addrOK_w, 
@@ -102,6 +103,7 @@ Dcache Dcache(
 
     .addr_pipeline_dcache(addr_pipeline_dcache),
     .din_pipeline_dcache(din_pipeline_dcache),
+    .pcin_pipeline_dcache(pcin_pipeline_dcache),
     .dout_dcache_pipeline(dout_dcache_pipeline),
     .type_pipeline_dcache(type_pipeline_dcache),
 
@@ -193,7 +195,7 @@ L2cache L2cache(
     .l2cache_mem_req_r(l2cache_mem_req_r),
     .l2cache_mem_req_w(l2cache_mem_req_w),
     .l2cache_mem_rdy(l2cache_mem_rdy),
-    .l2cache_mem_size(l2cache_mem_size),
+    // .l2cache_mem_size(l2cache_mem_size),
     .l2cache_mem_wstrb(l2cache_mem_wstrb),
     .mem_l2cache_addrOK_r(mem_l2cache_addrOK_r),
     .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),
