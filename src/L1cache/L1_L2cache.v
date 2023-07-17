@@ -24,6 +24,7 @@ module L1_L2cache#(
     //Dcache-pipeline port
     input       [31:0]addr_pipeline_dcache,
     input       [31:0]din_pipeline_dcache,
+    input       [31:0]pcin_pipeline_dcache,
     output      [31:0]dout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
 
@@ -102,6 +103,7 @@ Dcache Dcache(
 
     .addr_pipeline_dcache(addr_pipeline_dcache),
     .din_pipeline_dcache(din_pipeline_dcache),
+    .pcin_pipeline_dcache(pcin_pipeline_dcache),
     .dout_dcache_pipeline(dout_dcache_pipeline),
     .type_pipeline_dcache(type_pipeline_dcache),
 
