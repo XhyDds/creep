@@ -192,7 +192,6 @@ assign temp=0;
 assign addr_dcache_mem = {rbuf_addr[31:2+offset_width],temp};
 assign dout_dcache_mem = rbuf_data;
 
-
 //FSM
 Dcache_FSMmain Dcache_FSMmain1(
 
