@@ -116,7 +116,11 @@ wire [way-1:0]use1;
 wire [way-1:0]valid;
 wire [1:0]way_sel_d;
 wire way_sel_i;
-L2cache_replace L2cache_replace(
+L2cache_replace #(
+    .way(way),
+    .index_width(index_width)
+)
+L2cache_replace(
     .clk(clk),
     .use1(use1),
     .valid(valid),
@@ -124,14 +128,18 @@ L2cache_replace L2cache_replace(
     .way_sel_d(way_sel_d),
     .way_sel_i(way_sel_i)
 );
-defparam L2cache_replace.addr_width = index_width;
-defparam L2cache_replace.way = way;
 
 //Data
 wire [way-1:0]Data_we;
 wire [(1<<index_width)*32-1:0]data0,data1,data2,data3;
 wire Data_replace;
-L2cache_Data L2cache_Data(
+L2cache_Data #(
+    .way(way),
+    .index_width(index_width),
+    .offset_width(offset_width),
+    .data_width((1<<index_width)*32)
+)
+L2cache_Data(
     .clk(clk),
     
     .Data_addr_read(index),
@@ -148,17 +156,18 @@ L2cache_Data L2cache_Data(
     .Data_we(Data_we),
     .Data_replace(Data_replace)
 );
-defparam L2cache_Data.addr_width = index_width;
-defparam L2cache_Data.data_width = (1<<index_width)*32;//单个line的长度
-defparam L2cache_Data.offset_width = offset_width;
-defparam L2cache_Data.way = way;
 
 //Tag
 wire [way-1:0]TagV_we,hit;
 wire [1:0]TagV_way_select;
 wire [32-2-index_width-offset_width-1:0]TagV_dout;
 assign TagV_we = Data_we;
-L2cache_TagV L2cache_TagV(
+L2cache_TagV #(
+    .way(way),
+    .index_width(index_width),
+    .data_width(32-2-index_width-offset_width)
+)
+L2cache_TagV(
     .clk(clk),
 
     .TagV_addr_read(index),
@@ -172,14 +181,14 @@ L2cache_TagV L2cache_TagV(
     .TagV_addr_write(rbuf_index),
     .TagV_we(TagV_we)
 );
-defparam L2cache_TagV.addr_width = index_width;
-defparam L2cache_TagV.data_width = 32-2-index_width-offset_width;
-defparam L2cache_TagV.way = way;
 
 //Dirtytable
 wire Dirty,Dirtytable_set0,Dirtytable_set1;
 wire [1:0]Dirtytable_way_select;
-L2cache_Dirtytable L2cache_Dirtytable(
+L2cache_Dirtytable #(
+    .index_width(index_width)
+)
+L2cache_Dirtytable(
     .clk(clk),
     
     .Dirtytable_addr(rbuf_index),
@@ -188,7 +197,6 @@ L2cache_Dirtytable L2cache_Dirtytable(
     .Dirtytable_set1(Dirtytable_set1),
     .Dirty(Dirty)
 );
-defparam L2cache_Dirtytable.addr_width = index_width;
 
 //data choose
 wire [1:0]choose_way;
@@ -212,7 +220,12 @@ assign addr_l2cache_mem_w = {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
 assign dout_l2cache_mem = dout_l2cache_l1cache;//
 
 //FSM
-L2cache_FSMmain L2cache_FSMmain(
+L2cache_FSMmain #(
+    .way(way),
+    .index_width(index_width),
+    .offset_width(offset_width)
+)
+L2cache_FSMmain(
     .clk(clk),.rstn(rstn),
 
     //req for L1(pipe)
@@ -259,7 +272,4 @@ L2cache_FSMmain L2cache_FSMmain(
     .FSM_choose_return(choose_return)
     
 );
-defparam L2cache_FSMmain.index_width = index_width;
-defparam L2cache_FSMmain.offset_width = offset_width;
-defparam L2cache_FSMmain.way = way;
 endmodule

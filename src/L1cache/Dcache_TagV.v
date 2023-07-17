@@ -57,7 +57,10 @@ always @(posedge clk) begin
     if(TagV_we[1])valid1[TagV_addr_write]<=1;
 end
 
-bram way0(
+bram #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width))
+way0(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
@@ -67,9 +70,11 @@ bram way0(
     .raddr(TagV_addr_read),
     .dout(TagV_data[0])
 );
-defparam way0.DATA_WIDTH=data_width,way0.ADDR_WIDTH=addr_width;
 
-bram way1(
+bram #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width))
+way1(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
@@ -79,7 +84,6 @@ bram way1(
     .raddr(TagV_addr_read),
     .dout(TagV_data[1])
 );
-defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 
 // generate
 //     genvar i;

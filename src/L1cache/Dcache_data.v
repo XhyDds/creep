@@ -75,7 +75,10 @@ end
 // wire [127:0]test2 = Data_choose_byte << (2'd2 << 2);
 // wire [127:0]test3 = Data_choose_byte << (2'd3 << 2);
 
-bram_bytewrite way0(
+bram_bytewrite #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width))
+way0(
     .clk(clk),
 
     .waddr(Data_addr_write),
@@ -85,9 +88,11 @@ bram_bytewrite way0(
     .raddr(Data_addr_read),
     .dout(Data_dout0)
 );
-defparam way0.DATA_WIDTH=data_width,way0.ADDR_WIDTH=addr_width;
 
-bram_bytewrite way1(
+bram_bytewrite #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width))
+way1(
     .clk(clk),
 
     .waddr(Data_addr_write),
@@ -97,6 +102,5 @@ bram_bytewrite way1(
     .raddr(Data_addr_read),
     .dout(Data_dout1)
 );
-defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 endmodule
 

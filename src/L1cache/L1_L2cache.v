@@ -59,7 +59,11 @@ wire [1:0]icache_mem_size;
 wire mem_icache_addrOK;
 wire mem_icache_dataOK;
 
-Icache Icache(
+Icache #(
+    .index_width(I_index_width),
+    .offset_width(offset_width)
+)
+Icache(
     .clk(clk),
     .rstn(rstn),
 
@@ -84,8 +88,6 @@ Icache Icache(
     .mem_icache_addrOK(mem_icache_addrOK),
     .mem_icache_dataOK(mem_icache_dataOK)
     );
-defparam Icache.index_width = I_index_width;
-defparam Icache.offset_width = offset_width;
 
 wire [31:0]addr_dcache_mem;
 wire [31:0]dout_dcache_mem;
@@ -97,7 +99,11 @@ wire [3:0]dcache_mem_wstrb;
 wire mem_dcache_addrOK;
 wire mem_dcache_dataOK;
 
-Dcache Dcache(
+Dcache #(
+    .index_width(D_index_width),
+    .offset_width(offset_width)
+)
+Dcache(
     .clk(clk),
     .rstn(rstn),
 
@@ -128,9 +134,6 @@ Dcache Dcache(
     .mem_dcache_dataOK(mem_dcache_dataOK)
 
 );
-defparam Dcache.index_width = D_index_width;
-defparam Dcache.offset_width = offset_width;
-
 
 wire l2cache_opflag;
 wire [31:0]l2cache_opcode;
@@ -166,7 +169,11 @@ assign dcache_l2cache_wstrb = dcache_mem_wstrb;
 assign mem_dcache_addrOK = l2cache_dcache_addrOK;
 assign mem_dcache_dataOK = l2cache_dcache_dataOK;
 
-L2cache L2cache(
+L2cache #(
+    .index_width(L2_index_width),
+    .offset_width(offset_width)
+)
+L2cache(
     .clk(clk),
     .rstn(rstn),
 
@@ -202,7 +209,5 @@ L2cache L2cache(
     .mem_l2cache_dataOK(mem_l2cache_dataOK)
 
 );
-defparam L2cache.index_width = L2_index_width;
-defparam L2cache.offset_width = offset_width;
 
 endmodule

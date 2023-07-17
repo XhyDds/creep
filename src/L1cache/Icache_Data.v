@@ -38,7 +38,11 @@ module Icache_Data#(
     input       [1:0]Data_we
     
     );
-bram way0(
+bram #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)
+way0(
     .clk(clk),
 
     .waddr(Data_addr_write),
@@ -48,9 +52,8 @@ bram way0(
     .raddr(Data_addr_read),
     .dout(Data_dout0)
 );
-defparam way0.DATA_WIDTH=data_width,way0.ADDR_WIDTH=addr_width;
 
-bram way1(
+bram #()way1(
     .clk(clk),
 
     .waddr(Data_addr_write),

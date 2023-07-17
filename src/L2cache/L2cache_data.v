@@ -79,7 +79,11 @@ always @(*) begin
     else Data_din = Data_din_write_32 << (Data_offset << 5);
 end
 
-bram_bytewrite way0(
+bram_bytewrite #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)
+way0(
     .clk(clk),
 
     .waddr(Data_addr_write),
@@ -89,9 +93,12 @@ bram_bytewrite way0(
     .raddr(Data_addr_read),
     .dout(Data_dout0)
 );
-defparam way0.DATA_WIDTH=data_width,way0.ADDR_WIDTH=addr_width;
 
-bram_bytewrite way1(
+bram_bytewrite #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)
+way1(
     .clk(clk),
 
     .waddr(Data_addr_write),
@@ -101,9 +108,12 @@ bram_bytewrite way1(
     .raddr(Data_addr_read),
     .dout(Data_dout1)
 );
-defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 
-bram_bytewrite way2(
+bram_bytewrite #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)
+way2(
     .clk(clk),
 
     .waddr(Data_addr_write),
@@ -113,9 +123,12 @@ bram_bytewrite way2(
     .raddr(Data_addr_read),
     .dout(Data_dout2)
 );
-defparam way2.DATA_WIDTH=data_width,way2.ADDR_WIDTH=addr_width;
 
-bram_bytewrite way3(
+bram_bytewrite #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)
+way3(
     .clk(clk),
 
     .waddr(Data_addr_write),
@@ -125,5 +138,4 @@ bram_bytewrite way3(
     .raddr(Data_addr_read),
     .dout(Data_dout3)
 );
-defparam way3.DATA_WIDTH=data_width,way3.ADDR_WIDTH=addr_width;
 endmodule

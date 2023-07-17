@@ -54,7 +54,11 @@ always @(posedge clk) begin
     if(TagV_we[3])valid3[TagV_addr_write]<=1;
 end
 
-bram way0(
+bram #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)
+way0(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
@@ -64,9 +68,12 @@ bram way0(
     .raddr(TagV_addr_read),
     .dout(TagV_data[0])
 );
-defparam way0.DATA_WIDTH=data_width,way0.ADDR_WIDTH=addr_width;
 
-bram way1(
+bram #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)
+way1(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
@@ -76,9 +83,12 @@ bram way1(
     .raddr(TagV_addr_read),
     .dout(TagV_data[1])
 );
-defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 
-bram way2(
+bram #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)
+way2(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
@@ -88,9 +98,12 @@ bram way2(
     .raddr(TagV_addr_read),
     .dout(TagV_data[2])
 );
-defparam way2.DATA_WIDTH=data_width,way2.ADDR_WIDTH=addr_width;
 
-bram way3(
+bram #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)
+way3(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
@@ -100,7 +113,6 @@ bram way3(
     .raddr(TagV_addr_read),
     .dout(TagV_data[3])
 );
-defparam way3.DATA_WIDTH=data_width,way3.ADDR_WIDTH=addr_width;
 
 assign hit[0]=(TagV_data[0]==TagV_din_compare)&&(valid0[TagV_addr_write]);//这个地址就是rbuf的地址
 assign hit[1]=(TagV_data[1]==TagV_din_compare)&&(valid1[TagV_addr_write]);
