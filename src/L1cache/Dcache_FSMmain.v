@@ -97,8 +97,8 @@ assign opflag=pipeline_dcache_opflag;
 
 
 reg [4:0]state;
-reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Stall=5'd6,Operation=5'd7,Hit_w=5'd8,Hit_w1=5'd9,;
+reg [4:0]next_state;//需要响应stall吗？？
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Stall=5'd6,Operation=5'd7,Hit_w=5'd8,Hit_w1=5'd9;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -328,7 +328,7 @@ always @(*) begin
             end
         end
         Hit_w1:begin
-            if(next_state = Hit_w1)begin
+            if(next_state == Hit_w1)begin
                 //nothing
             end
             else begin

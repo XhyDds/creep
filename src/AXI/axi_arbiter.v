@@ -164,6 +164,7 @@ module axi_arbiter(
             d_rready    = rvalid;
             d_rlast     = rlast;
             d_raddrOK   = 1;
+            arlen       = d_rlen;
         end
         default:;
         endcase

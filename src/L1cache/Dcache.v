@@ -190,7 +190,7 @@ end
 //Mem
 wire [1+offset_width:0]temp;
 assign temp=0;
-assign addr_dcache_mem = {rbuf_addr[31:2+offset_width],temp};
+assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};//读写地址
 assign dout_dcache_mem = rbuf_data;
 
 //FSM
