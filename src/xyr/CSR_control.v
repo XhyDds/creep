@@ -37,7 +37,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
 
     output reg [31:0]  csr_crmd_diff_0     ,
     output reg [31:0]  csr_prmd_diff_0     ,
-    output  [31:0]  csr_ectl_diff_0     ,
+    output reg [31:0]  csr_ectl_diff_0     ,
     output reg [31:0]  csr_estat_diff_0    ,
     output reg [31:0]  csr_era_diff_0      ,
     output reg [31:0]  csr_badv_diff_0     ,
@@ -52,8 +52,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     output reg [31:0]  csr_save2_diff_0    ,
     output reg [31:0]  csr_save3_diff_0    ,
     output reg [31:0]  csr_tid_diff_0      ,
-    output  [31:0]  csr_tcfg_diff_0     ,
-    output  [31:0]  csr_tval_diff_0     ,
+    output reg [31:0]  csr_tcfg_diff_0     ,
+    output reg [31:0]  csr_tval_diff_0     ,
     output reg [31:0]  csr_ticlr_diff_0    ,
     output reg [31:0]  csr_llbctl_diff_0   ,
     output reg [31:0]  csr_tlbrentry_diff_0,
@@ -63,9 +63,6 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     output reg [31:0]  csr_pgdh_diff_0     
     //output CSR_TLB
 );
-    assign csr_ectl_diff_0 = 0;
-    assign csr_tcfg_diff_0 = 0;
-    assign csr_tval_diff_0 = 0;
     reg [8:0] CRMD;reg [2:0] PRMD;reg EUEN;reg [12:0] ECFG_LIE;
     reg [1:0] ESTAT_IS;reg TI_INTE;reg [21:16]ESTAT_Ecode;reg [30:22]ESTAT_EsubCode;
     reg[31:0] ERA;reg [31:0] BADV;reg [31:6] EENTRY;wire [31:0] CPUID;
