@@ -1,4 +1,4 @@
-`define onlyDcache
+// `define onlyDcache
 `define withL2cache
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@ assign opflag=pipeline_dcache_opflag;
 
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Replace=5'd5,Replace1=5'd6,Operation=5'd7,Hit_w=5'd8,Hit_w1=5'd9,;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Stall=5'd6,Operation=5'd7,Hit_w=5'd8,Hit_w1=5'd9,;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -167,8 +167,14 @@ always @(*) begin
         Miss_r_waitdata:begin
             if(!mem_dcache_dataOK)next_state=Miss_r_waitdata;
             else begin//数据可信赖，内存准备写
-                if(fStall_outside)next_state=Replace1;
-                else next_state=Replace;
+                if(fStall_outside)next_state=Stall;
+                else begin
+                    if(pipeline_dcache_valid)begin
+                        if(opflag)next_state=Operation;
+                        else next_state=Lookup;
+                    end
+                    else next_state=Idle;
+                end
             end
         end
         Miss_w:begin
@@ -181,15 +187,12 @@ always @(*) begin
                 else next_state=Idle;
             end
         end
-        Replace:begin
+        Stall:begin
             if(pipeline_dcache_valid)begin
                 if(opflag)next_state=Operation;
                 else next_state=Lookup;
             end
             else next_state=Idle;
-        end
-        Replace1:begin
-            next_state=Replace;
         end
         default:next_state=Idle;
     endcase
@@ -350,42 +353,23 @@ always @(*) begin
             endcase
         end
         Miss_r_waitdata:begin
-            case (next_state)
-                Miss_r_waitdata:begin
-                    //nothing
+            if(next_state != Miss_r_waitdata)begin
+                FSM_Data_replace=1;
+                FSM_rbuf_we=1;
+                FSM_choose_return=1;//这是必须的
+                dcache_pipeline_ready=1;//5.30改动
+                if(FSM_wal_sel_lru==1'd0)begin
+                    FSM_Data_we[0]=1;
+                    FSM_use0=1;
                 end
-                Replace:begin//这一拍是dataOK
-                    FSM_Data_replace=1;
-                    FSM_rbuf_we=1;
-                    FSM_choose_return=1;//前递
-                    dcache_pipeline_ready=1;//5.30改动
-                    if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we[0]=1;
-                        FSM_use0=1;
-                    end
-                    else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we[1]=1;
-                        FSM_use1=1;
-                    end
+                else if(FSM_wal_sel_lru==1'd1)begin
+                    FSM_Data_we[1]=1;
+                    FSM_use1=1;
                 end
-                Replace1:begin
-                    FSM_Data_replace=1;
-                    FSM_rbuf_we=1;
-                    FSM_choose_return=1;//这是必须的
-                    dcache_pipeline_ready=1;//5.30改动
-                    if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we[0]=1;
-                        FSM_use0=1;
-                    end
-                    else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we[1]=1;
-                        FSM_use1=1;
-                    end
-                end
-                default:begin
-                    
-                end
-            endcase
+            end
+            else begin
+                
+            end
         end
         Miss_w:begin
             dcache_mem_wr=1;//conbination
@@ -407,10 +391,7 @@ always @(*) begin
                 end
             endcase
         end
-        Replace:begin
-            //nothing 此拍空出 但是可以优化一个周期 之后再说
-        end
-        Replace1:begin//考虑fStall情况  让外面多流一拍
+        Stall:begin//考虑fStall情况  让外面多流一拍
             dcache_pipeline_ready=1;
         end
         default:begin
