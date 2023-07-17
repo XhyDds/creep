@@ -14,11 +14,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�?高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�??高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?，ex1�?
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??，ex1�??
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中断
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -35,32 +35,32 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     input [31:0] pipeline_CSR_TLBELO0,
     input [31:0] pipeline_CSR_TLBELO1,
 
-    output [31:0]  csr_crmd_diff_0     ,
-    output [31:0]  csr_prmd_diff_0     ,
-    output [31:0]  csr_ectl_diff_0     ,
-    output [31:0]  csr_estat_diff_0    ,
-    output [31:0]  csr_era_diff_0      ,
-    output [31:0]  csr_badv_diff_0     ,
-    output [31:0]  csr_eentry_diff_0   ,
-    output [31:0]  csr_tlbidx_diff_0   ,
-    output [31:0]  csr_tlbehi_diff_0   ,
-    output [31:0]  csr_tlbelo0_diff_0  ,
-    output [31:0]  csr_tlbelo1_diff_0  ,
-    output [31:0]  csr_asid_diff_0     ,
-    output [31:0]  csr_save0_diff_0    ,
-    output [31:0]  csr_save1_diff_0    ,
-    output [31:0]  csr_save2_diff_0    ,
-    output [31:0]  csr_save3_diff_0    ,
-    output [31:0]  csr_tid_diff_0      ,
-    output [31:0]  csr_tcfg_diff_0     ,
-    output [31:0]  csr_tval_diff_0     ,
-    output [31:0]  csr_ticlr_diff_0    ,
-    output [31:0]  csr_llbctl_diff_0   ,
-    output [31:0]  csr_tlbrentry_diff_0,
-    output [31:0]  csr_dmw0_diff_0     ,
-    output [31:0]  csr_dmw1_diff_0     ,
-    output [31:0]  csr_pgdl_diff_0     ,
-    output [31:0]  csr_pgdh_diff_0     
+    output reg [31:0]  csr_crmd_diff_0     ,
+    output reg [31:0]  csr_prmd_diff_0     ,
+    //output reg [31:0]  csr_ectl_diff_0     ,//
+    output reg [31:0]  csr_estat_diff_0    ,
+    output reg [31:0]  csr_era_diff_0      ,
+    output reg [31:0]  csr_badv_diff_0     ,
+    output reg [31:0]  csr_eentry_diff_0   ,
+    output reg [31:0]  csr_tlbidx_diff_0   ,
+    output reg [31:0]  csr_tlbehi_diff_0   ,
+    output reg [31:0]  csr_tlbelo0_diff_0  ,
+    output reg [31:0]  csr_tlbelo1_diff_0  ,
+    output reg [31:0]  csr_asid_diff_0     ,
+    output reg [31:0]  csr_save0_diff_0    ,
+    output reg [31:0]  csr_save1_diff_0    ,
+    output reg [31:0]  csr_save2_diff_0    ,
+    output reg [31:0]  csr_save3_diff_0    ,
+    output reg [31:0]  csr_tid_diff_0      ,
+    output reg [31:0]  csr_tcfg_diff_0     ,
+    output reg [31:0]  csr_tval_diff_0     ,
+    output reg [31:0]  csr_ticlr_diff_0    ,
+    output reg [31:0]  csr_llbctl_diff_0   ,
+    output reg [31:0]  csr_tlbrentry_diff_0,
+    output reg [31:0]  csr_dmw0_diff_0     ,
+    output reg [31:0]  csr_dmw1_diff_0     ,
+    output reg [31:0]  csr_pgdl_diff_0     ,
+    output reg [31:0]  csr_pgdh_diff_0     
     //output CSR_TLB
 );
     reg [8:0] CRMD;reg [2:0] PRMD;reg EUEN;reg [12:0] ECFG_LIE;
@@ -115,6 +115,51 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     assign TLBELO0in=pipeline_CSR_TLBELO0,TLBELO1in=pipeline_CSR_TLBELO1;
     
     Random rand_(.en(1),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
+    
+    always@(*)
+    begin
+            csr_crmd_diff_0={23'b0,CRMD};
+            csr_prmd_diff_0={29'b0,PRMD};
+           
+            csr_estat_diff_0={1'b0,ESTAT_EsubCode,ESTAT_Ecode,3'b0,ESTATin[8],TI_INTE,1'b0,ESTATin[7:0],ESTAT_IS};
+            csr_era_diff_0=ERA;
+            csr_badv_diff_0=BADV;
+            csr_eentry_diff_0={EENTRY,6'b0};
+            begin
+            csr_tlbidx_diff_0=0;
+            csr_tlbidx_diff_0[TLB_n-1:0]=TLBIDX_Index;
+            csr_tlbidx_diff_0[29:24]=TLBIDX_PS;
+            csr_tlbidx_diff_0[31]=TLBIDX_NE;
+            end
+            csr_tlbehi_diff_0={TLBEHI,13'b0};
+            begin
+            csr_tlbelo0_diff_0=0;
+            csr_tlbelo0_diff_0[6:0]=TLBELO0_VDPLVMATG;
+            csr_tlbelo0_diff_0[TLB_PALEN-5:8]=TLBELO0_PPN;
+            end
+            begin
+            csr_tlbelo1_diff_0=0;
+            csr_tlbelo1_diff_0[6:0]=TLBELO1_VDPLVMATG;
+            csr_tlbelo1_diff_0[TLB_PALEN-5:8]=TLBELO1_PPN;
+            end  
+            csr_asid_diff_0={8'b0,ASID_ASIDBITS,6'b0,ASID_ASID};
+            csr_pgdl_diff_0={PGDL,12'b0};
+            csr_pgdh_diff_0={PGDH,12'b0};
+            
+            csr_save0_diff_0=SAVE0;
+            csr_save1_diff_0=SAVE1;
+            csr_save2_diff_0=SAVE2;
+            csr_save3_diff_0=SAVE3;
+            csr_tid_diff_0=TID;
+            csr_tcfg_diff_0[TIMER_n-1:0]=TCFG;
+            csr_tval_diff_0[TIMER_n-1:0]=TVAL;
+            csr_ticlr_diff_0={31'b0,TICLR};
+            csr_llbctl_diff_0={29'b0,LLBCTL_KLO,LLBCTL_WCLLB,LLBCTL_ROLLB};
+            csr_tlbrentry_diff_0={TLBRENTRY,6'b0};
+            
+            csr_dmw0_diff_0={DMW0_VSEG,1'b0,DMW0_PSEG,19'b0,DMW0_MAT,DMW0_PLV3,2'b0,DMW0_PLV0};
+            csr_dmw1_diff_0={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
+    end
     
     always@(posedge(clk),negedge(rstn))
     begin
