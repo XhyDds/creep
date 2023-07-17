@@ -1,3 +1,5 @@
+`define onlyDcache
+`define withL2cache
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -43,6 +45,7 @@ module Dcache_FSMmain#(
     output reg  [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output reg  [3:0]dcache_mem_wstrb,//字节写使能
     input       mem_dcache_addrOK,//发送的地址和数据都被接收
+    input       mem_dcache_bvaild,//写有效
     input       mem_dcache_dataOK,//返回的数据有效
 
     //模块间信号
@@ -95,7 +98,7 @@ assign opflag=pipeline_dcache_opflag;
 
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Replace=5'd5,Replace1=5'd6,Operation=5'd7,Hit_w=5'd8;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Replace=5'd5,Replace1=5'd6,Operation=5'd7,Hit_w=5'd8,Hit_w1=5'd9,;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -126,6 +129,8 @@ always @(*) begin
         Operation:begin
             next_state=Idle;
         end
+
+        `ifdef withL2cache
         Hit_w:begin
             if(!mem_dcache_addrOK)next_state = Hit_w;
             else begin
@@ -136,6 +141,25 @@ always @(*) begin
                 else next_state=Idle;
             end
         end
+        `endif
+
+        `ifdef onlyDcache
+        Hit_w:begin
+            if(!mem_dcache_addrOK)next_state = Hit_w;
+            else next_state = Hit_w1;
+        end
+        Hit_w1:begin
+            if(!mem_dcache_bvaild)next_state = Hit_w1;
+            else begin
+                if(pipeline_dcache_valid)begin
+                    if(opflag)next_state=Operation;
+                    else next_state=Lookup;
+                end
+                else next_state=Idle;
+            end
+        end
+        `endif
+
         Miss_r:begin
             if(!mem_dcache_addrOK)next_state=Miss_r;
             else next_state=Miss_r_waitdata;
@@ -292,8 +316,17 @@ always @(*) begin
         end
         Hit_w:begin
             dcache_mem_wr=1;//conbination
-            if(next_state == Hit_w)begin
+            if(next_state == Hit_w || next_state == Hit_w1)begin
                 dcache_mem_req=1;
+            end
+            else begin
+                dcache_pipeline_ready = 1;
+                FSM_rbuf_we = 1;
+            end
+        end
+        Hit_w1:begin
+            if(next_state = Hit_w1)begin
+                //nothing
             end
             else begin
                 dcache_pipeline_ready = 1;
