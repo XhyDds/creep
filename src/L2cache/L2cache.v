@@ -129,7 +129,7 @@ defparam L2cache_replace.way = way;
 
 //Data
 wire [way-1:0]Data_we;
-wire [(2<<index_width)*32-1:0]data0,data1,data2,data3;
+wire [(1<<index_width)*32-1:0]data0,data1,data2,data3;
 wire Data_replace;
 L2cache_Data L2cache_Data(
     .clk(clk),
@@ -149,7 +149,7 @@ L2cache_Data L2cache_Data(
     .Data_replace(Data_replace)
 );
 defparam L2cache_Data.addr_width = index_width;
-defparam L2cache_Data.data_width = (2<<index_width)*32;//单个line的长度
+defparam L2cache_Data.data_width = (1<<index_width)*32;//单个line的长度
 defparam L2cache_Data.offset_width = offset_width;
 defparam L2cache_Data.way = way;
 
