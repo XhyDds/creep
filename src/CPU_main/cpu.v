@@ -119,9 +119,8 @@ module core_top (
     wire [1:0]PLV;
     wire [31:0]pc_priv;
     wire [31:0]privresult1;
-    wire LLbit,flush_priv,stall_priv,ifpriv;
+    wire LLbit,ifpriv,stall_priv;
     wire stall_priv_idle;
-    assign ifpriv=flush_priv;
 
     wire ifbr0,ifbr1,ifibar0,ifibar1;
     wire stall_div0,stall_div1,stall_fetch_buffer;
@@ -130,14 +129,14 @@ module core_top (
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
     // reg stall_exe1_wb_0_reg,stall_exe1_wb_1_reg;
 
-    assign flush_if0_if1 =      flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
-    assign flush_if1_fifo =     flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
-    assign flush_fifo_id =      flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
-    assign flush_id_reg0 =      flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
-    assign flush_id_reg1 =      flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
-    assign flush_reg_exe0_0 =   flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
-    assign flush_reg_exe0_1 =   flush_priv|ifibar1|ifibar0|ifbr1|ifbr0;
-    assign flush_exe0_exe1_0 =  flush_priv|ifibar1|ifbr1;
+    assign flush_if0_if1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_if1_fifo =     ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_fifo_id =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_id_reg0 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_id_reg1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_reg_exe0_0 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_reg_exe0_1 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
+    assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1;
     assign flush_exe0_exe1_1 =  0;
     assign flush_exe1_wb_0 =    0;
     assign flush_exe1_wb_1 =    0;
@@ -797,7 +796,7 @@ module core_top (
         .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
         .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
         .CSR_pipeline_clk_stall     	( stall_priv     		        ),
-        .CSR_pipeline_flush     		( flush_priv     		        ),
+        .CSR_pipeline_flush     		( ifpriv     		        ),
         .CSR_pipeline_outpc     		( pc_priv     		            ),
         .pipeline_CSR_type      		( ctr_reg_exe0_1_ALE[3:0]     	),
         .pipeline_CSR_subtype   		( ctr_reg_exe0_1_ALE[11:7]     	),
@@ -819,35 +818,35 @@ module core_top (
         .CSR_pipeline_LLBit     		( LLbit     		),
         .CSR_pipeline_ASID      		( ASID      		),
         .CSR_pipeline_DMW0      		( DMW0      		),
-        .CSR_pipeline_DMW1      		( DMW1      		)
+        .CSR_pipeline_DMW1      		( DMW1      		),
         
         //debug
-        // .csr_crmd_diff_0                (csr_crmd_diff_0    ),
-        // .csr_prmd_diff_0                (csr_prmd_diff_0    ),
-        // .csr_ectl_diff_0                (csr_ectl_diff_0    ),
-        // .csr_estat_diff_0               (csr_estat_diff_0   ),
-        // .csr_era_diff_0                 (csr_era_diff_0     ),
-        // .csr_badv_diff_0                (csr_badv_diff_0    ),
-        // .csr_eentry_diff_0              (csr_eentry_diff_0  ),
-        // .csr_tlbidx_diff_0              (csr_tlbidx_diff_0  ),
-        // .csr_tlbehi_diff_0              (csr_tlbehi_diff_0  ),
-        // .csr_tlbelo0_diff_0             (csr_tlbelo0_diff_0 ),
-        // .csr_tlbelo1_diff_0             (csr_tlbelo1_diff_0 ),
-        // .csr_asid_diff_0                (csr_asid_diff_0    ),
-        // .csr_save0_diff_0               (csr_save0_diff_0   ),
-        // .csr_save1_diff_0               (csr_save1_diff_0   ),
-        // .csr_save2_diff_0               (csr_save2_diff_0   ),
-        // .csr_save3_diff_0               (csr_save3_diff_0   ),
-        // .csr_tid_diff_0                 (csr_tid_diff_0     ),
-        // .csr_tcfg_diff_0                (csr_tcfg_diff_0    ),
-        // .csr_tval_diff_0                (csr_tval_diff_0    ),
-        // .csr_ticlr_diff_0               (csr_ticlr_diff_0   ),
-        // .csr_llbctl_diff_0              (csr_llbctl_diff_0  ),
-        // .csr_tlbrentry_diff_0           (csr_tlbrentry_diff_),
-        // .csr_dmw0_diff_0                (csr_dmw0_diff_0    ),
-        // .csr_dmw1_diff_0                (csr_dmw1_diff_0    ),
-        // .csr_pgdl_diff_0                (csr_pgdl_diff_0    ),
-        // .csr_pgdh_diff_0                (csr_pgdh_diff_0    )
+        .csr_crmd_diff_0                (csr_crmd_diff_0    ),
+        .csr_prmd_diff_0                (csr_prmd_diff_0    ),
+        .csr_ectl_diff_0                (csr_ectl_diff_0    ),
+        .csr_estat_diff_0               (csr_estat_diff_0   ),
+        .csr_era_diff_0                 (csr_era_diff_0     ),
+        .csr_badv_diff_0                (csr_badv_diff_0    ),
+        .csr_eentry_diff_0              (csr_eentry_diff_0  ),
+        .csr_tlbidx_diff_0              (csr_tlbidx_diff_0  ),
+        .csr_tlbehi_diff_0              (csr_tlbehi_diff_0  ),
+        .csr_tlbelo0_diff_0             (csr_tlbelo0_diff_0 ),
+        .csr_tlbelo1_diff_0             (csr_tlbelo1_diff_0 ),
+        .csr_asid_diff_0                (csr_asid_diff_0    ),
+        .csr_save0_diff_0               (csr_save0_diff_0   ),
+        .csr_save1_diff_0               (csr_save1_diff_0   ),
+        .csr_save2_diff_0               (csr_save2_diff_0   ),
+        .csr_save3_diff_0               (csr_save3_diff_0   ),
+        .csr_tid_diff_0                 (csr_tid_diff_0     ),
+        .csr_tcfg_diff_0                (csr_tcfg_diff_0    ),
+        .csr_tval_diff_0                (csr_tval_diff_0    ),
+        .csr_ticlr_diff_0               (csr_ticlr_diff_0   ),
+        .csr_llbctl_diff_0              (csr_llbctl_diff_0  ),
+        .csr_tlbrentry_diff_0           (csr_tlbrentry_diff_),
+        .csr_dmw0_diff_0                (csr_dmw0_diff_0    ),
+        .csr_dmw1_diff_0                (csr_dmw1_diff_0    ),
+        .csr_pgdl_diff_0                (csr_pgdl_diff_0    ),
+        .csr_pgdh_diff_0                (csr_pgdh_diff_0    )
     );
 
     // wire [31:0]	test1_dcache;
