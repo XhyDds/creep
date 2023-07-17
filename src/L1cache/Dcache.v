@@ -39,6 +39,7 @@ module Dcache#(
     input       [31:0]din_pipeline_dcache,
     input       [31:0]pcin_pipeline_dcache,
     output      [31:0]dout_dcache_pipeline,
+    // output      [31:0]addrout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
 
     input       pipeline_dcache_valid,
@@ -124,7 +125,7 @@ defparam Dcache_lru.way = way;
 
 //Data
 wire [way-1:0]Data_we;
-wire [(2<<index_width)*32-1:0]data0,data1;
+wire [(1<<index_width)*32-1:0]data0,data1;
 wire Data_replace;
 Dcache_Data Dcache_Data(
     .clk(clk),
@@ -142,7 +143,7 @@ Dcache_Data Dcache_Data(
     .Data_replace(Data_replace)
 );
 defparam Dcache_Data.addr_width = index_width;
-defparam Dcache_Data.data_width = (2<<index_width)*32;//单个line的长度
+defparam Dcache_Data.data_width = (1<<offset_width)*32;//单个line的长度
 defparam Dcache_Data.offset_width = offset_width;
 defparam Dcache_Data.way = way;
 
@@ -168,7 +169,7 @@ defparam Dcache_TagV.way = way;
 wire choose_way,choose_return;
 wire [offset_width-1:0]choose_word;
 reg [31:0]data_out;
-reg [32*(2<<offset_width)-1:0]data_line;
+reg [32*(1<<offset_width)-1:0]data_line;
 assign dout_dcache_pipeline = data_out;
 always @(*) begin
     if (choose_return) data_line = din_mem_dcache;

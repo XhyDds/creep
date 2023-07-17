@@ -281,6 +281,14 @@ always @(*) begin
                     dcache_mem_wr=1;
                     // dcache_mem_size=2'd2;
                     // dcache_mem_wstrb=4'b1111;
+                    if(hit0)begin
+                        FSM_Data_we[0]=1;
+                        FSM_use0=1;
+                    end
+                    else if(hit1)begin
+                        FSM_Data_we[1]=1;
+                        FSM_use1=1;
+                    end
                 end
                 Idle:begin
                     dcache_pipeline_ready=1;

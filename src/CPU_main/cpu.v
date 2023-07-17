@@ -948,7 +948,15 @@ module core_top (
         .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
         `endif
         .dout_dcache_pipeline        		( dout_dcache_pipeline ),
+
+        `ifdef DCache
+        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_reg ),
+        `endif
+
+        `ifdef DDMA
         .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
+        `endif
+
         .dout_dcache_pipeline_extend 		( dcacheresult 		   ),
         .din_pipeline_dcache                ( din_pipeline_dcache )
     );
