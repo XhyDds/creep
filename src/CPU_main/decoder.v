@@ -184,11 +184,11 @@ module decoder (
                             end
                         'b00001: //CSRWR
                             begin
-                                excp_arg={2'b0,ir[23:10]};rd=ir[4:0];type_=liwai;subtype=9;priv=1;//regwrite?
+                                excp_arg={2'b0,ir[23:10]};rd=ir[4:0];type_=liwai;subtype=9;regwrite=1;priv=1;
                             end
                         default: //CSRXCHG
                             begin
-                                excp_arg={2'b0,ir[23:10]};rd=ir[4:0];type_=liwai;subtype=10;regwrite=1;priv=1;
+                                excp_arg={2'b0,ir[23:10]};rd=ir[4:0];rj=ir[9:5];type_=liwai;subtype=10;regwrite=1;priv=1;
                             end
                     endcase
                 'b10: 

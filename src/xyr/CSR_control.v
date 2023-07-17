@@ -14,11 +14,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�??高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�??高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??，ex1�??
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??，ex1�??
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -37,7 +37,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
 
     output reg [31:0]  csr_crmd_diff_0     ,
     output reg [31:0]  csr_prmd_diff_0     ,
-    //output reg [31:0]  csr_ectl_diff_0     ,//
+    output reg [31:0]  csr_ectl_diff_0     ,
     output reg [31:0]  csr_estat_diff_0    ,
     output reg [31:0]  csr_era_diff_0      ,
     output reg [31:0]  csr_badv_diff_0     ,
@@ -63,6 +63,9 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     output reg [31:0]  csr_pgdh_diff_0     
     //output CSR_TLB
 );
+    assign csr_ectl_diff_0 = 0;
+    assign csr_tcfg_diff_0 = 0;
+    assign csr_tval_diff_0 = 0;
     reg [8:0] CRMD;reg [2:0] PRMD;reg EUEN;reg [12:0] ECFG_LIE;
     reg [1:0] ESTAT_IS;reg TI_INTE;reg [21:16]ESTAT_Ecode;reg [30:22]ESTAT_EsubCode;
     reg[31:0] ERA;reg [31:0] BADV;reg [31:6] EENTRY;wire [31:0] CPUID;
@@ -71,7 +74,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     reg [29:24] TLBIDX_PS;reg TLBIDX_NE;reg [31:13] TLBEHI;reg [6:0]TLBELO0_VDPLVMATG;
     reg [TLB_PALEN-5:8]TLBELO0_PPN;reg [6:0]TLBELO1_VDPLVMATG;reg [TLB_PALEN-5:8]TLBELO1_PPN;
     reg [9:0] ASID_ASID;wire [23:16] ASID_ASIDBITS;reg [31:12] PGDL;reg [31:12]PGDH;
-    wire [31:12]PDG;reg [31:6]TLBRENTRY;reg DMW0_PLV0;reg DMW0_PLV3;reg [5:4] DMW0_MAT;
+    wire [31:12]PGD;reg [31:6]TLBRENTRY;reg DMW0_PLV0;reg DMW0_PLV3;reg [5:4] DMW0_MAT;
     reg [27:25] DMW0_PSEG;reg [31:29] DMW0_VSEG;reg DMW1_PLV0;reg DMW1_PLV3;reg [5:4] DMW1_MAT;
     reg [27:25] DMW1_PSEG;reg [31:29] DMW1_VSEG;reg [31:0]TID;reg [TIMER_n-1:0]TCFG;
     reg [TIMER_n-1:0]TVAL;wire TICLR;
@@ -120,7 +123,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     begin
             csr_crmd_diff_0={23'b0,CRMD};
             csr_prmd_diff_0={29'b0,PRMD};
-           
+            csr_ectl_diff_0={19'b0,ECFG_LIE[12:11],1'b0,ECFG_LIE[9:0]};
             csr_estat_diff_0={1'b0,ESTAT_EsubCode,ESTAT_Ecode,3'b0,ESTATin[8],TI_INTE,1'b0,ESTATin[7:0],ESTAT_IS};
             csr_era_diff_0=ERA;
             csr_badv_diff_0=BADV;
@@ -483,7 +486,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
                                     ESTAT_IS<=dwcsr_reg[1:0];
                                     end
                                 'h6:
-                                     ERA<=dwcsr_reg;
+                                    ERA<=dwcsr_reg;
                                 'h7:
                                     BADV<=dwcsr_reg;
                                 'hc:
