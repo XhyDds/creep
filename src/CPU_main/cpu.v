@@ -918,7 +918,7 @@ module core_top (
     wire 	d_rready;
     wire 	d_wready;
     wire    d_rlast;
-    wire    [31:0] d_rdata;s
+    wire    [31:0] d_rdata;
     `ifdef DDMA
     assign  mem_dcache_dataOK = d_rready;
     `endif
