@@ -26,10 +26,10 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     output [31:0]CSR_pipeline_DMW0,
     output [31:0]CSR_pipeline_DMW1,
     
-    output reg [31:0] CSR_pipeline_TLBIDX,
-    output reg [31:0] CSR_pipeline_TLBEHI,
-    output reg [31:0] CSR_pipeline_TLBELO0,
-    output reg [31:0] CSR_pipeline_TLBELO1,
+    output [31:0] CSR_pipeline_TLBIDX,
+    output [31:0] CSR_pipeline_TLBEHI,
+    output [31:0] CSR_pipeline_TLBELO0,
+    output [31:0] CSR_pipeline_TLBELO1,
     input [31:0] pipeline_CSR_TLBIDX,
     input [31:0] pipeline_CSR_TLBEHI,
     input [31:0] pipeline_CSR_TLBELO0,
@@ -55,7 +55,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     assign CSR_pipeline_DMW1={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     
     localparam PRIV=3,LLW=6,LOAD=0;
-    localparam ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10;
+    localparam ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10,
+    TLBSRCH=11,TLBRD=12,TLBWR=13,TLBFILL=14;
     localparam INT='H0,PIL='H1,PIS='H2,PIF='H3,PME='H4,PPI='H7,
     ADE='H8,ALE='H9,SYS='HB,BRK='HC,INE='HD,IPE='HE,FPD='HF,
     FPE='H12,TLBR='H3F;
@@ -64,11 +65,14 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     wire [8:0] ESTATin;reg flushout;wire stallin,flushin;
     wire exe;wire [15:0] excp_arg1;reg clk_stall;reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
-    reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;
+    reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;
+    reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
+    wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;
     
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
     reg [31:0] dout_reg;reg run_reg;reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
-    reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;
+    reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
+    
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
     assign exe=pipeline_CSR_type==PRIV||excp_arg1[15]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
@@ -77,19 +81,12 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
     assign csr_num=pipeline_CSR_excp_arg0;
     assign inte={ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]}?CRMD[2]:0;
-    always@(*)
-    begin
-    CSR_pipeline_TLBIDX=0;CSR_pipeline_TLBEHI=0;
-    CSR_pipeline_TLBELO0=0;CSR_pipeline_TLBELO1=0;
-    CSR_pipeline_TLBIDX[TLB_n-1:0]=TLBIDX_Index;
-    CSR_pipeline_TLBIDX[29:24]=TLBIDX_PS;
-    CSR_pipeline_TLBIDX[31]=TLBIDX_NE;
-    CSR_pipeline_TLBEHI[31:13]=TLBEHI;
-    CSR_pipeline_TLBELO0[6:0]=TLBELO0_VDPLVMATG;
-    CSR_pipeline_TLBELO0[TLB_PALEN-5:8]=TLBELO0_PPN;
-    CSR_pipeline_TLBELO1[6:0]=TLBELO1_VDPLVMATG;
-    CSR_pipeline_TLBELO1[TLB_PALEN-5:8]=TLBELO1_PPN;
-    end
+    assign CSR_pipeline_TLBIDX=TLBIDXout,CSR_pipeline_TLBEHI=TLBEHIout;
+    assign CSR_pipeline_TLBELO0=TLBELO0out,CSR_pipeline_TLBELO1=TLBELO1out;
+    assign TLBIDXin=pipeline_CSR_TLBIDX,TLBEHIin=pipeline_CSR_TLBEHI;
+    assign TLBELO0in=pipeline_CSR_TLBELO0,TLBELO1in=pipeline_CSR_TLBELO1;
+    
+    Random rand(.en(1),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
     
     always@(posedge(clk),negedge(rstn))
     begin
@@ -100,6 +97,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
         run_reg<=0;
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
+        csr_num_reg<=0;
         end
     else if(!stallin||inte)
         begin
@@ -108,6 +106,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
         run_reg<=(!stallin && !flushin && exe)||inte;
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
+        csr_num_reg<=csr_num;
         end
     end
     always@(posedge(clk),negedge(rstn))
@@ -143,6 +142,17 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     mode=pipeline_CSR_subtype;
     evaddr=pipeline_CSR_evaddr0;
     TI_cl=0;
+    
+    TLBIDXout=0;TLBEHIout=0;
+    TLBELO0out=0;TLBELO1out=0;
+    TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
+    TLBIDXout[29:24]=TLBIDX_PS;
+    TLBIDXout[31]=TLBIDX_NE;
+    TLBEHIout[31:13]=TLBEHI;
+    TLBELO0out[6:0]=TLBELO0_VDPLVMATG;
+    TLBELO0out[TLB_PALEN-5:8]=TLBELO0_PPN;
+    TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
+    TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
     if(inte)
         begin
         mode=INTE;
@@ -197,7 +207,19 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
                  if(csr_num=='h44&&dwcsr[0])
                     TI_cl=1;  
             CSRRD:
-                   flushout=0;     
+                   flushout=0;
+            TLBWR:
+                begin
+                if(ecode==TLBR)
+                    TLBIDXout[31]=0;//NE=0,E=1
+                end
+            TLBFILL:
+                begin
+                if(ecode==TLBR)
+                    TLBIDXout[31]=0;//NE=0,E=1
+                TLBIDXout[TLB_n-1:0]=randnum[TLB_n-1:0];
+                end
+                      
         endcase
         end
     else
@@ -336,8 +358,37 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
                             begin
                             LLBCTL_ROLLB<=1;
                             end
+                        TLBSRCH:
+                            begin
+                            TLBIDX_NE<=TLBIDXin[31];
+                            if(!TLBIDXin[31])
+                                TLBIDX_Index<=TLBIDXin[TLB_n-1:0];
+                            end
+                        TLBRD:
+                            begin
+                                TLBIDX_NE<=TLBIDXin[31];
+                                if(!TLBIDXin[31])//NE=0
+                                    begin
+                                    TLBEHI<=TLBEHIin[31:13];
+                                    TLBELO0_VDPLVMATG<=TLBELO0in[6:0];
+                                    TLBELO0_PPN<=TLBELO0in[TLB_PALEN-5:8];
+                                    TLBELO1_VDPLVMATG<=TLBELO1in[6:0];
+                                    TLBELO1_PPN<=TLBELO1in[TLB_PALEN-5:8];
+                                    TLBIDX_PS<=TLBIDXin[29:24];
+                                    end
+                                else
+                                    begin
+                                    ASID_ASID<=0;
+                                    TLBEHI<=0;
+                                    TLBELO0_VDPLVMATG<=0;
+                                    TLBELO0_PPN<=0;
+                                    TLBELO1_VDPLVMATG<=0;
+                                    TLBELO1_PPN<=0;
+                                    TLBIDX_PS<=0;
+                                    end
+                            end
                         CSRWR,CSRXCHG:
-                           case(csr_num)
+                           case(csr_num_reg)
                                 'h0:
                                     begin
                                     CRMD[2:0]<=dwcsr_reg[2:0];
@@ -443,7 +494,20 @@ endmodule
 
 
 
-
+module Random(
+    input en, clk, rstn,
+    input [31:1] seed,
+    output reg [31:0] randnum
+    );
+    always @(posedge clk) begin
+        if(!rstn)   randnum <= 32'b0;
+        else if(en) begin
+          if(|randnum)  randnum <= {randnum[30:0], ((((randnum[31] ^ randnum[6]) ^ randnum[4]) ^ randnum[2]) ^ randnum[1]) ^ randnum[0]};
+          else          randnum <= {seed,1'b1};
+        end
+    end
+  
+endmodule
 
 
 
