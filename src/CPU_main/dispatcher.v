@@ -17,7 +17,7 @@ module dispatcher (
     reg muldivdecache0_reg,muldivdecache1_reg;
     wire [3:0]type0=control0[3:0];
     wire [3:0]type1=control1[3:0];
-    //0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br
+    //0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br, 9:ibar, 10:priv+mmu, 11:mmu
     wire xiangguan=(rd1==rk0|rd1==rj0|rd1==rd0&type0==1)&(type1!=1)&(|rd1);
     // wire xiangguan=(/*rd0==rd1|rd0==rk1|rd0==rj1|*/rd0==rk1|rd0==rj1|rd1==rk0|rd1==rj0);
     wire suanshubr0=(type0==0|type0==1|type0==2|type0==4|type0==8|type0==9);

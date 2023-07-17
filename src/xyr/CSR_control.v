@@ -14,11 +14,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�?高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�?高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?，ex1�?
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?，ex1�?
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中断
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -73,10 +73,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     reg [31:0] dout_reg;reg run_reg;reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
     
+
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
     assign exe=pipeline_CSR_type==PRIV||excp_arg1[15]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
-    assign din=pipeline_CSR_din,CSR_pipeline_dout=dout;
+    assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
     assign csr_num=pipeline_CSR_excp_arg0;
@@ -86,7 +87,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     assign TLBIDXin=pipeline_CSR_TLBIDX,TLBEHIin=pipeline_CSR_TLBEHI;
     assign TLBELO0in=pipeline_CSR_TLBELO0,TLBELO1in=pipeline_CSR_TLBELO1;
     
-    Random rand(.en(1),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
+    Random rand_(.en(1),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
     
     always@(posedge(clk),negedge(rstn))
     begin
@@ -102,7 +103,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     else if(!stallin||inte)
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
-        outpc_reg<=0;dout_reg<=dout;
+        outpc_reg<=outpc;dout_reg<=dout;
         run_reg<=(!stallin && !flushin && exe)||inte;
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;

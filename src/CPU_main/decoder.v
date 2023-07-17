@@ -12,10 +12,12 @@ module decoder (
     reg [1:0]pcsrc;//1:br, 0:writeback, 2:predecoder, 3:predictor
     reg [1:0]alusrc1;//0:reg, 1:pc
     reg [1:0]alusrc2;//0:reg, 1:imm
-    reg [3:0]type_;//0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:llbit, 7:RDCNT, 8:alu+br, 9:ibar
+    reg [3:0]type_;//0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:llbit, 7:RDCNT, 8:alu+br, 9:ibar, 10:priv+mmu, 11:mmu
     reg [3:0]aluop;//0:&, 1:|, 2:~|, 3:^, 4:+, 5:-, 6:<<, 7:>>, 8:>>>, 9:sign<, 10:<, 11:alu1, 12:alu2, 13:alu1+4
     reg [4:0]subtype;//可与aluop合并？×有同时使用
-    //for exceptions, 0:exception, 1~5:tlb, 6:ertn, 7:idle, 8~10:csr
+    //for priv, 0:exception, 6:ertn, 7:idle, 8~10:csr
+    //for mmu, 5:invtlb
+    //for priv+mmu: 1~4:tlb
     //for div, 0:div.w, 1:mod.w, 2:div.wu, 3:mod.wu
     //for mul, 0:mul.w, 1:mulh.w, 2:mulh.wu
     //for dcache, 0~2:load, 3~5:store, 6~7:load, 8:cacop

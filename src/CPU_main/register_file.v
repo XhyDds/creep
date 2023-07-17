@@ -16,9 +16,9 @@ module register_file (
             end
         end
         else begin
-            if(ifwb0&/*!stall0&*/|wb_addr0) rf[wb_addr0]<=wb_data0;
-            if(ifwb1&/*!stall1&*/|wb_addr1) begin//禁止写r0
-                if(wb_addr0==wb_addr1 & (ifwb0&/*!stall0&*/|wb_addr0));
+            if(ifwb0&!stall0&|wb_addr0) rf[wb_addr0]<=wb_data0;
+            if(ifwb1&!stall1&|wb_addr1) begin//禁止写r0
+                if(wb_addr0==wb_addr1 & (ifwb0&!stall0&|wb_addr0));
                 else rf[wb_addr1]<=wb_data1;
             end
         end
