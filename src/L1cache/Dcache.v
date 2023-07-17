@@ -39,7 +39,6 @@ module Dcache#(
     input       [31:0]din_pipeline_dcache,
     input       [31:0]pcin_pipeline_dcache,
     output      [31:0]dout_dcache_pipeline,
-    // output      [31:0]addrout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
 
     input       pipeline_dcache_valid,
