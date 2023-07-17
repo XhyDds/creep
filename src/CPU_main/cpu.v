@@ -1,7 +1,7 @@
-`define IDMA
-`define DDMA
-// `define ICache
-//`define DCache
+// `define IDMA
+// `define DDMA
+`define ICache
+`define DCache
 module core_top (
     input           aclk,
     input           aresetn,
@@ -116,12 +116,12 @@ module core_top (
     wire tlbexcp=0,tlbcode=0,tlbsubcode=0;
 
     //PRIV
+    wire ifbr_priv,LLbit;
     wire [1:0]PLV;
     wire [31:0]pc_priv;
     wire [31:0]privresult1;
-    wire LLbit,flush_priv,stall_priv,ifpriv;
+    wire flush_priv,stall_priv;
     wire stall_priv_idle;
-    assign ifpriv=flush_priv;
 
     wire ifbr0,ifbr1,ifibar0,ifibar1;
     wire stall_div0,stall_div1,stall_fetch_buffer;
@@ -600,127 +600,127 @@ module core_top (
 
     wire [31:0]	mulresult0;
 
-    // mul u_mul0(
-    //     //ports
-    //     .rrj           		( rrj0_forward           		),
-    //     .rrk           		( rrk0_forward           		),
-    //     .ctr           		( ctr_reg_exe0_0           		),
-    //     .clk           		( clk           		),
-    //     .rstn          		( rstn          		),
-    //     .mulresult_reg 		( mulresult0 		)
-    // );
-
-    muitiplier u_muitiplier0(
+    mul u_mul0(
         //ports
-        .clk                         		( clk                         		),
-        .rstn                        		( rstn                        		),
-        .pipeline_muitiplier_flush   		( flush_exe0_exe1_0   		),
-        .pipeline_muitiplier_stall   		( stall_exe0_exe1_0   		),
-        // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_0[3:0] 		),
-        .pipeline_muitiplier_subtype 		( ctr_reg_exe0_0[11:7] 		),
-        .pipeline_muitiplier_din1    		( rrj0_forward    		),
-        .pipeline_muitiplier_din2    		( rrk0_forward    		),
-        .muitiplier_pipeline_dout    		( mulresult0    		)
+        .rrj           		( rrj0_forward           		),
+        .rrk           		( rrk0_forward           		),
+        .ctr           		( ctr_reg_exe0_0           		),
+        .clk           		( clk           		),
+        .rstn          		( rstn          		),
+        .mulresult_reg 		( mulresult0 		)
     );
+
+    // muitiplier u_muitiplier0(
+    //     //ports
+    //     .clk                         		( clk                         		),
+    //     .rstn                        		( rstn                        		),
+    //     .pipeline_muitiplier_flush   		( flush_exe0_exe1_0   		),
+    //     .pipeline_muitiplier_stall   		( stall_exe0_exe1_0   		),
+    //     // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_0[3:0] 		),
+    //     .pipeline_muitiplier_subtype 		( ctr_reg_exe0_0[11:7] 		),
+    //     .pipeline_muitiplier_din1    		( rrj0_forward    		),
+    //     .pipeline_muitiplier_din2    		( rrk0_forward    		),
+    //     .muitiplier_pipeline_dout    		( mulresult0    		)
+    // );
 
     wire [31:0]	mulresult1;
 
-    // mul u_mul1(
-    //     //ports
-    //     .rrj           		( rrj1_forward           		),
-    //     .rrk           		( rrk1_forward           		),
-    //     .ctr           		( ctr_reg_exe0_1           		),
-    //     .clk           		( clk           		),
-    //     .rstn          		( rstn          		),
-    //     .mulresult_reg 		( mulresult1 		)
-    // );
-
-    muitiplier u_muitiplier1(
+    mul u_mul1(
         //ports
-        .clk                         		( clk                         		),
-        .rstn                        		( rstn                        		),
-        .pipeline_muitiplier_flush   		( flush_exe0_exe1_1   		),
-        .pipeline_muitiplier_stall   		( stall_exe0_exe1_1   		),
-        // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_1_ALE[3:0] 		),
-        .pipeline_muitiplier_subtype 		( ctr_reg_exe0_1_ALE[11:7] 		),
-        .pipeline_muitiplier_din1    		( rrj1_forward    		),
-        .pipeline_muitiplier_din2    		( rrk1_forward    		),
-        .muitiplier_pipeline_dout    		( mulresult1    		)
+        .rrj           		( rrj1_forward           		),
+        .rrk           		( rrk1_forward           		),
+        .ctr           		( ctr_reg_exe0_1           		),
+        .clk           		( clk           		),
+        .rstn          		( rstn          		),
+        .mulresult_reg 		( mulresult1 		)
     );
 
-    wire [31:0] divresult0;
-    // reg [31:0]	divresult0;
-
-    // div u_div0(
+    // muitiplier u_muitiplier1(
     //     //ports
-    //     .rrj       		( rrj0_forward      ),
-    //     .rrk       		( rrk0_forward      ),
-    //     .ctr       		( ctr_reg_exe0_0    ),
-    //     .divresult 		( divresult0 		)
+    //     .clk                         		( clk                         		),
+    //     .rstn                        		( rstn                        		),
+    //     .pipeline_muitiplier_flush   		( flush_exe0_exe1_1   		),
+    //     .pipeline_muitiplier_stall   		( stall_exe0_exe1_1   		),
+    //     // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_1_ALE[3:0] 		),
+    //     .pipeline_muitiplier_subtype 		( ctr_reg_exe0_1_ALE[11:7] 		),
+    //     .pipeline_muitiplier_din1    		( rrj1_forward    		),
+    //     .pipeline_muitiplier_din2    		( rrk1_forward    		),
+    //     .muitiplier_pipeline_dout    		( mulresult1    		)
     // );
 
-    // always @(posedge clk or negedge rstn) begin
-    //     if(!rstn) begin
-    //         divresult0 <= 0;
-    //     end
-    //     else if(stall_exe0_exe1_1);
-    //     else if(flush_exe0_exe1_1) divresult0 <= 0;
-    //     else begin
-    //         divresult0 <= divresult0_;
-    //     end
-    // end
+    wire [31:0] divresult0_;
+    reg [31:0]	divresult0;
 
-    divider #(
-        .WIDTH 		( 32 		))
-    u_divider0(
+    div u_div0(
         //ports
-        .clk                      		( clk                      		),
-        .rstn                     		( rstn                     		),
-        .pipeline_divider_type    		( ctr_reg_exe0_0[3:0]    		),
-        .pipeline_divider_subtype 		( ctr_reg_exe0_0[11:7] 		),
-        .pipeline_divider_stall   		( stall_exe0_exe1_0   		),
-        .pipeline_divider_flush   		( flush_exe0_exe1_0   		),
-        .pipeline_divider_din1    		( rrj0_forward    		),
-        .pipeline_divider_din2    		( rrk0_forward    		),
-        .divider_pipeline_stall   		( stall_div0   		),
-        .divider_pipeline_dout    		( divresult0    		)
+        .rrj       		( rrj0_forward      ),
+        .rrk       		( rrk0_forward      ),
+        .ctr       		( ctr_reg_exe0_0    ),
+        .divresult 		( divresult0_ 		)
     );
 
-    wire [31:0] divresult1;
-    // reg [31:0]	divresult1;
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            divresult0 <= 0;
+        end
+        else if(stall_exe0_exe1_1);
+        else if(flush_exe0_exe1_1) divresult0 <= 0;
+        else begin
+            divresult0 <= divresult0_;
+        end
+    end
 
-    // div u_div1(
+    // divider #(
+    //     .WIDTH 		( 32 		))
+    // u_divider0(
     //     //ports
-    //     .rrj       		( rrj1_forward      ),
-    //     .rrk       		( rrk1_forward      ),
-    //     .ctr       		( ctr_reg_exe0_1    ),
-    //     .divresult 		( divresult1_ 		)
+    //     .clk                      		( clk                      		),
+    //     .rstn                     		( rstn                     		),
+    //     .pipeline_divider_type    		( ctr_reg_exe0_0[3:0]    		),
+    //     .pipeline_divider_subtype 		( ctr_reg_exe0_0[11:7] 		),
+    //     .pipeline_divider_stall   		( stall_exe0_exe1_0   		),
+    //     .pipeline_divider_flush   		( flush_exe0_exe1_0   		),
+    //     .pipeline_divider_din1    		( rrj0_forward    		),
+    //     .pipeline_divider_din2    		( rrk0_forward    		),
+    //     .divider_pipeline_stall   		( stall_div0   		),
+    //     .divider_pipeline_dout    		( divresult0    		)
     // );
 
-    // always @(posedge clk or negedge rstn) begin
-    //     if(!rstn) begin
-    //         divresult1 <= 0;
-    //     end
-    //     else begin
-    //         divresult1 <= divresult1_;
-    //     end
-    // end
+    wire [31:0] divresult1_;
+    reg [31:0]	divresult1;
 
-    divider #(
-        .WIDTH 		( 32 		))
-    u_divider1(
+    div u_div1(
         //ports
-        .clk                      		( clk                      		),
-        .rstn                     		( rstn                     		),
-        .pipeline_divider_type    		( ctr_reg_exe0_1_ALE[3:0]    		),
-        .pipeline_divider_subtype 		( ctr_reg_exe0_1_ALE[11:7] 		),
-        .pipeline_divider_stall   		( stall_exe0_exe1_1   		),
-        .pipeline_divider_flush   		( flush_exe0_exe1_1   		),
-        .pipeline_divider_din1    		( rrj1_forward    		),
-        .pipeline_divider_din2    		( rrk1_forward    		),
-        .divider_pipeline_stall   		( stall_div1   		),
-        .divider_pipeline_dout    		( divresult1    		)
+        .rrj       		( rrj1_forward      ),
+        .rrk       		( rrk1_forward      ),
+        .ctr       		( ctr_reg_exe0_1    ),
+        .divresult 		( divresult1_ 		)
     );
+
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            divresult1 <= 0;
+        end
+        else begin
+            divresult1 <= divresult1_;
+        end
+    end
+
+    // divider #(
+    //     .WIDTH 		( 32 		))
+    // u_divider1(
+    //     //ports
+    //     .clk                      		( clk                      		),
+    //     .rstn                     		( rstn                     		),
+    //     .pipeline_divider_type    		( ctr_reg_exe0_1_ALE[3:0]    		),
+    //     .pipeline_divider_subtype 		( ctr_reg_exe0_1_ALE[11:7] 		),
+    //     .pipeline_divider_stall   		( stall_exe0_exe1_1   		),
+    //     .pipeline_divider_flush   		( flush_exe0_exe1_1   		),
+    //     .pipeline_divider_din1    		( rrj1_forward    		),
+    //     .pipeline_divider_din2    		( rrk1_forward    		),
+    //     .divider_pipeline_stall   		( stall_div1   		),
+    //     .divider_pipeline_dout    		( divresult1    		)
+    // );
 
     ibar u_ibar0(
         //ports
@@ -790,65 +790,37 @@ module core_top (
     wire [31:0]	DMW1=0;
     assign PLV=CRMD[1:0];
 
-    CSR_control u_CSR_control(
-        //ports
-        .clk                    		( clk                    		),
-        .rstn                   		( rstn                   		),
-        .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
-        .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
-        .CSR_pipeline_stall     		( stall_priv     		        ),
-        .CSR_pipeline_flush     		( flush_priv     		        ),
-        .CSR_pipeline_outpc     		( pc_priv     		            ),
-        .pipeline_CSR_type      		( ctr_reg_exe0_1_ALE[3:0]     	),
-        .pipeline_CSR_subtype   		( ctr_reg_exe0_1_ALE[11:7]     	),
-        .pipeline_CSR_din       		( rrd1_forward       		    ),
-        .pipeline_CSR_mask      		( rrj1_forward      		    ),
-        .CSR_pipeline_dout      		( privresult1      		        ),
+    // CSR_control u_CSR_control(
+    //     //ports
+    //     .clk                    		( clk                    		),
+    //     .rstn                   		( rstn                   		),
+    //     .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
+    //     .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
+    //     .CSR_pipeline_stall     		( stall_priv     		        ),
+    //     .CSR_pipeline_flush     		( flush_priv     		        ),
+    //     .CSR_pipeline_outpc     		( pc_priv     		            ),
+    //     .pipeline_CSR_type      		( ctr_reg_exe0_1_ALE[3:0]     	),
+    //     .pipeline_CSR_subtype   		( ctr_reg_exe0_1_ALE[11:7]     	),
+    //     .pipeline_CSR_din       		( rrd1_forward       		    ),
+    //     .pipeline_CSR_mask      		( rrj1_forward      		    ),
+    //     .CSR_pipeline_dout      		( privresult1      		        ),
 
-        .pipeline_CSR_inpc0     		( pc_reg_exe0_1     		    ),
-        .pipeline_CSR_excp_arg0 		( excp_arg_reg_exe0_1_excp      ),
-        .pipeline_CSR_evaddr0   		( addr_pipeline_dcache          ),
+    //     .pipeline_CSR_inpc0     		( pc_reg_exe0_1     		    ),
+    //     .pipeline_CSR_excp_arg0 		( excp_arg_reg_exe0_1_excp      ),
+    //     .pipeline_CSR_evaddr0   		( addr_pipeline_dcache          ),
 
-        .pipeline_CSR_inpc1     		( pc_exe0_exe1_1     		    ),
-        .pipeline_CSR_excp_arg1 		( excp_arg_exe0_exe1_1_excp     ),
-        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_reg		),
+    //     .pipeline_CSR_inpc1     		( pc_exe0_exe1_1     		    ),
+    //     .pipeline_CSR_excp_arg1 		( excp_arg_exe0_exe1_1_excp     ),
+    //     .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_reg		),
 
-        .pipeline_CSR_ESTAT     		( 0     		),
-        .CSR_pipeline_clk_stall 		( stall_priv_idle 		        ),
-        .CSR_pipeline_CRMD      		( CRMD      		),
-        .CSR_pipeline_LLBit     		( LLbit     		),
-        .CSR_pipeline_ASID      		( ASID      		),
-        .CSR_pipeline_DMW0      		( DMW0      		),
-        .CSR_pipeline_DMW1      		( DMW1      		),
-        
-        //debug
-        .csr_crmd_diff_0                (csr_crmd_diff_0    ),
-        .csr_prmd_diff_0                (csr_prmd_diff_0    ),
-        .csr_ectl_diff_0                (csr_ectl_diff_0    ),
-        .csr_estat_diff_0               (csr_estat_diff_0   ),
-        .csr_era_diff_0                 (csr_era_diff_0     ),
-        .csr_badv_diff_0                (csr_badv_diff_0    ),
-        .csr_eentry_diff_0              (csr_eentry_diff_0  ),
-        .csr_tlbidx_diff_0              (csr_tlbidx_diff_0  ),
-        .csr_tlbehi_diff_0              (csr_tlbehi_diff_0  ),
-        .csr_tlbelo0_diff_0             (csr_tlbelo0_diff_0 ),
-        .csr_tlbelo1_diff_0             (csr_tlbelo1_diff_0 ),
-        .csr_asid_diff_0                (csr_asid_diff_0    ),
-        .csr_save0_diff_0               (csr_save0_diff_0   ),
-        .csr_save1_diff_0               (csr_save1_diff_0   ),
-        .csr_save2_diff_0               (csr_save2_diff_0   ),
-        .csr_save3_diff_0               (csr_save3_diff_0   ),
-        .csr_tid_diff_0                 (csr_tid_diff_0     ),
-        .csr_tcfg_diff_0                (csr_tcfg_diff_0    ),
-        .csr_tval_diff_0                (csr_tval_diff_0    ),
-        .csr_ticlr_diff_0               (csr_ticlr_diff_0   ),
-        .csr_llbctl_diff_0              (csr_llbctl_diff_0  ),
-        .csr_tlbrentry_diff_0           (csr_tlbrentry_diff_),
-        .csr_dmw0_diff_0                (csr_dmw0_diff_0    ),
-        .csr_dmw1_diff_0                (csr_dmw1_diff_0    ),
-        .csr_pgdl_diff_0                (csr_pgdl_diff_0    ),
-        .csr_pgdh_diff_0                (csr_pgdh_diff_0    )
-    );
+    //     .pipeline_CSR_ESTAT     		( 0     		),
+    //     .CSR_pipeline_clk_stall 		( stall_priv_idle 		        ),
+    //     .CSR_pipeline_CRMD      		( CRMD      		),
+    //     .CSR_pipeline_LLBit     		( LLbit     		),
+    //     .CSR_pipeline_ASID      		( ASID      		),
+    //     .CSR_pipeline_DMW0      		( DMW0      		),
+    //     .CSR_pipeline_DMW1      		( DMW1      		)
+    // );
 
     // wire [31:0]	test1_dcache;
     // wire [31:0]	test2_dcache;
@@ -863,9 +835,10 @@ module core_top (
     wire 	dcache_mem_wr;
     wire [1:0]	dcache_mem_size;
     wire [3:0]	dcache_mem_wstrb;
-    wire [31:0] din_mem_dcache;
+    wire [32*(1<<offset_width)-1:0] din_mem_dcache;
     wire mem_dcache_addrOK;
     wire mem_dcache_dataOK;
+    wire    d_bvalid;
 
     `ifdef DDMA
     Dcache_DMA #(
@@ -937,6 +910,7 @@ module core_top (
         .dcache_mem_size        		( dcache_mem_size        		),
         .dcache_mem_wstrb       		( dcache_mem_wstrb       		),
         .mem_dcache_addrOK      		( mem_dcache_addrOK      		),
+        .mem_dcache_bvalid              ( d_bvalid                      ),
         .mem_dcache_dataOK      		( mem_dcache_dataOK      		)
     );
     `endif
@@ -944,8 +918,7 @@ module core_top (
     wire 	d_rready;
     wire 	d_wready;
     wire    d_rlast;
-    wire    [31:0] d_rdata;
-    wire    d_bvalid;
+    wire    [31:0] d_rdata;s
     `ifdef DDMA
     assign  mem_dcache_dataOK = d_rready;
     `endif
@@ -1089,7 +1062,7 @@ module core_top (
     //PC
     wire ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
     always @(*) begin
-        if(ifpriv) npc=pc_priv;
+        if(ifbr_priv) npc=pc_priv;
         else if(ifbr1) npc=brresult1;
         else if(ifbr0) npc=brresult0;
 

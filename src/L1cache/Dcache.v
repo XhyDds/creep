@@ -60,7 +60,7 @@ module Dcache#(
     output      [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output      [3:0]dcache_mem_wstrb,//字节写使能
     input       mem_dcache_addrOK,
-    input       mem_dcache_bvaild,
+    input       mem_dcache_bvalid,
     input       mem_dcache_dataOK
     );
 
@@ -214,7 +214,7 @@ Dcache_FSMmain Dcache_FSMmain1(
     .dcache_mem_wstrb(dcache_mem_wstrb),
     .mem_dcache_addrOK(mem_dcache_addrOK),
     .mem_dcache_dataOK(mem_dcache_dataOK),
-    .mem_dcache_bvaild(mem_dcache_bvaild),
+    .mem_dcache_bvalid(mem_dcache_bvalid),
 
     //request buffer
     .FSM_rbuf_we(rbuf_we),
