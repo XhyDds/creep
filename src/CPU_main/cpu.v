@@ -1541,7 +1541,7 @@ module core_top (
     wire l2cache_mem_req_r   ;
     wire l2cache_mem_req_w   ;
     wire l2cache_mem_rdy     ;
-    wire l2cache_mem_size    ;
+    // wire l2cache_mem_size    ;
     wire [3:0]l2cache_mem_wstrb   ;
     wire mem_l2cache_addrOK_r;
     wire mem_l2cache_addrOK_w;
@@ -1591,7 +1591,7 @@ L1_L2cache #(
         .l2cache_mem_req_r              ( l2cache_mem_req_r    ),
         .l2cache_mem_req_w              ( l2cache_mem_req_w    ),
         .l2cache_mem_rdy                ( l2cache_mem_rdy      ),
-        .l2cache_mem_size               ( l2cache_mem_size     ),
+        // .l2cache_mem_size               ( l2cache_mem_size     ),
         .l2cache_mem_wstrb              ( l2cache_mem_wstrb    ),
         .mem_l2cache_addrOK_r           ( mem_l2cache_addrOK_r ),
         .mem_l2cache_addrOK_w           ( mem_l2cache_addrOK_w ),
@@ -1601,7 +1601,8 @@ L1_L2cache #(
 
     l2_axi_package#(
         .offset_width(offset_width)
-    )(
+    )
+    u_l2_axi_package(
         .clk(clk),
         .rstn(rstn),
         .addr_l2cache_mem_r(addr_l2cache_mem_r),

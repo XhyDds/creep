@@ -16,6 +16,7 @@
 module l2_axi_package #(
     offset_width=2
 )(
+    input      clk,rstn,
     //l2 interface
     //r
     input      [31:0]addr_l2cache_mem_r,
