@@ -1,14 +1,14 @@
 module btb#(
     parameter gh_width = 14,
-              btb_width = 14
+              ADDR_WIDTH = 30
 )(
     input clk,
     //query
     input [gh_width-1:0]hashed_pc,//hash(pc,gh)
-    output [btb_width-1:0]npc_pdc,
+    output [ADDR_WIDTH-1:0]npc_pdc,
     //update
     input [gh_width-1:0]hashed_pc_update,
-    input [btb_width-1:0]npc_real
+    input [ADDR_WIDTH-1:0]npc_real
 );
 
     wire update_en;
@@ -16,7 +16,7 @@ module btb#(
 
     sp_dram#(
         .ADDR_WIDTH(gh_width),
-        .DATA_WIDTH(btb_width)
+        .DATA_WIDTH(ADDR_WIDTH)
     )
     btb_regs(
         .clk(clk),
