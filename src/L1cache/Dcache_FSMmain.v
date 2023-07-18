@@ -81,8 +81,13 @@ module Dcache_FSMmain#(
     output reg  [offset_width-1:0]FSM_choose_word
     
     );
-//对字节和byte的选择暂未加入
-
+wire [index_width:0]useparam1 = pipeline_dcache_wstrb;
+wire [31:0]usesignal1 = pipeline_dcache_opcode;
+wire [31:0]usesignal2 = pipeline_dcache_ctrl;
+wire [31:0]usesignal3 = mem_dcache_bvalid;
+wire [31:0]usesignal4 = FSM_rbuf_opcode;
+wire [31:0]usesignal5 = FSM_rbuf_opflag;
+wire [31:0]usesignal6 = FSM_rbuf_addr;
 
 assign dcache_pipeline_stall = ~ dcache_pipeline_ready;
 assign FSM_TagV_we=FSM_Data_we;
