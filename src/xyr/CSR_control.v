@@ -14,11 +14,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�??高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�???高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??，ex1�??
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???，ex1�???
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -199,7 +199,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
             TI_INTE<=1;
             end
 
-        if(TVAL==0&&(TCFG[1]|TCFG[0]&!TI_INTE))
+        if(TVAL==0&&(TCFG[1]|TCFG[0]&~TI_INTE))
             TVAL<={TCFG[TIMER_n-1:2],2'b0};
         else if(TCFG[0]&&TVAL!=0)
             TVAL<=TVAL-1;
@@ -241,14 +241,14 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
         esubcode=pipeline_CSR_excp_arg1[14:6];
         evaddr=pipeline_CSR_evaddr1;
         end
-    if(mode==ERTN)
-        begin
-        outpc=ERA;
-        end
-    else if(ecode==TLBR)
-        begin
-        outpc={TLBRENTRY,6'b0};
-        end
+//    if(mode==ERTN)
+//        begin
+//        outpc=ERA;
+//        end
+//    else if(ecode==TLBR)
+//        begin
+//        outpc={TLBRENTRY,6'b0};
+//        end
     if(ecode==ADE&&esubcode==ADEF)
         evaddr=inpc;
    
@@ -278,17 +278,22 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
                     outpc={EENTRY,6'b0};
                end 
             CSRWR:
+                begin
+                flushout=1; 
                  if(csr_num=='h44&&dwcsr[0])
-                    TI_cl=1;  
+                    TI_cl=1; 
+                end 
             CSRRD:
                    flushout=0;
             TLBWR:
                 begin
+                flushout=1; 
                 if(ecode==TLBR)
                     TLBIDXout[31]=0;//NE=0,E=1
                 end
             TLBFILL:
                 begin
+                flushout=1; 
                 if(ecode==TLBR)
                     TLBIDXout[31]=0;//NE=0,E=1
                 TLBIDXout[TLB_n-1:0]=randnum[TLB_n-1:0];
@@ -375,6 +380,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     endcase
     
     end
+    
     assign dwcsr=(dout&(~mask))|(din&mask);
     always@(posedge(clk),negedge(rstn))
     begin
