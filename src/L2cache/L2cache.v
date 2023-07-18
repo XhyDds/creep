@@ -137,7 +137,7 @@ L2cache_Data #(
     .way(way),
     .addr_width(index_width),
     .offset_width(offset_width),
-    .data_width((1<<index_width)*32)
+    .data_width((1<<offset_width)*32)
 )
 L2cache_Data(
     .clk(clk),

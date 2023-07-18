@@ -22,6 +22,7 @@ module wrt_ret_arbiter#(
     input       [(1<<offset_width)*32-1:0]dout_mem_arbiter,
     output      cache_mem_rdy
 );
+    assign cache_mem_rdy = l2cache_mem_rdy;
     //state_machine
     parameter IDLE = 3'd0,WRT_AR = 3'd1,WRT_R=3'd2,RET_AR = 3'd3,RET_R = 3'd4;
     reg [2:0] crt,nxt;
