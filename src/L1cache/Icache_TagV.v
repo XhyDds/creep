@@ -41,17 +41,6 @@ wire [data_width-1:0]TagV_data[way-1:0];
 reg [(1<<addr_width)-1:0]valid0; 
 reg [(1<<addr_width)-1:0]valid1;
 
-// always @(posedge clk,negedge rstn) begin
-//     if(!rstn)begin
-//         valid0<=0;
-//         valid1<=0;
-//     end
-//     else begin
-//         if(TagV_we[0])valid0[TagV_addr_write]<=1;
-//         if(TagV_we[1])valid1[TagV_addr_write]<=1;
-//     end
-// end
-
 always @(posedge clk,negedge rstn) begin
     if(!rstn)begin
         valid0<=0;
@@ -64,8 +53,8 @@ always @(posedge clk,negedge rstn) begin
 end
 
 bram #(
-    .DATA_WIDTH=data_width,
-    .ADDR_WIDTH=addr_width
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
 )
 way0(
     .clk(clk),
@@ -79,8 +68,8 @@ way0(
 );
 
 bram #(
-    .DATA_WIDTH=data_width,
-    .ADDR_WIDTH=addr_width
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
 )
 way1(
     .clk(clk),
@@ -92,7 +81,6 @@ way1(
     .raddr(TagV_addr_read),
     .dout(TagV_data[1])
 );
-defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 
 assign hit[0]=(TagV_data[0]==TagV_din_compare)&&(valid0[TagV_addr_write]);//这个地址就是rbuf的地址
 assign hit[1]=(TagV_data[1]==TagV_din_compare)&&(valid1[TagV_addr_write]);

@@ -30,7 +30,6 @@ module Icache#(
 //写直达 非写分配 暂定延迟一周期出
 (  
     input       clk,rstn,
-    output      [31:0]test1,test2,test3,
 
     //pipeline port
     input       [31:0]addr_pipeline_icache,
@@ -55,9 +54,6 @@ module Icache#(
     input       mem_icache_addrOK,
     input       mem_icache_dataOK
     );
-assign test1=0;
-assign test2=0;
-assign test3=0;
 
 wire [offset_width-1:0]offset;
 wire [index_width-1:0]index;
@@ -207,7 +203,7 @@ assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
 
 //FSM
 Icache_FSMmain #(
-    .addr_width(index_width),
+    .index_width(index_width),
     .offset_width(offset_width),
     .way(way)
 )

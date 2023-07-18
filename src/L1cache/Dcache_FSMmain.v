@@ -229,13 +229,13 @@ always @(*) begin
         Lookup:begin
             case (next_state)
                 Miss_r:begin
-                    dcache_mem_req=1;
+                    // dcache_mem_req=1;
                     dcache_mem_wr=0;
                     // dcache_mem_size=2'd2;
                     // dcache_mem_wstrb=4'b0000;
                 end
                 Miss_w:begin
-                    dcache_mem_req=1;
+                    // dcache_mem_req=1;
                     dcache_mem_wr=1;
                     // dcache_mem_size=2'd2;
                     // dcache_mem_wstrb=4'b1111;
@@ -327,8 +327,9 @@ always @(*) begin
         end
         Hit_w:begin
             dcache_mem_wr=1;//conbination
+            dcache_mem_req=1;
             if(next_state == Hit_w || next_state == Hit_w1)begin
-                dcache_mem_req=1;
+                // dcache_mem_req=1;
             end
             else begin
                 dcache_pipeline_ready = 1;
@@ -346,19 +347,20 @@ always @(*) begin
         end
         Miss_r:begin
             dcache_mem_wr=0;//conbination
-            case (next_state)
-                Miss_r:begin
-                    dcache_mem_req=1;
-                    // dcache_mem_size=2'd2;
-                    // dcache_mem_wstrb=4'b0000;
-                end
-                Miss_r_waitdata:begin
-                    //nothing
-                end
-                default:begin
+            dcache_mem_req=1;
+            // case (next_state)
+            //     Miss_r:begin
+            //         dcache_mem_req=1;
+            //         // dcache_mem_size=2'd2;
+            //         // dcache_mem_wstrb=4'b0000;
+            //     end
+            //     Miss_r_waitdata:begin
+            //         //nothing
+            //     end
+            //     default:begin
                     
-                end
-            endcase
+            //     end
+            // endcase
         end
         Miss_r_waitdata:begin
             if(next_state != Miss_r_waitdata)begin
@@ -381,9 +383,10 @@ always @(*) begin
         end
         Miss_w:begin
             dcache_mem_wr=1;//conbination
+            dcache_mem_req=1;
             case (next_state)
                 Miss_w:begin
-                    dcache_mem_req=1;
+                    // dcache_mem_req=1;
                     // dcache_mem_size=2'd2;
                     // dcache_mem_wstrb=4'b1111;
                 end
