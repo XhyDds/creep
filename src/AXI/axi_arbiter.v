@@ -74,10 +74,10 @@ module axi_arbiter(
     input               bvalid,     //b: axi->arbiter
     output reg          bready      //b: arbiter->axi
 );
-    assign d_addrOK=d_wr?d_waddrOK:d_raddrOK;
-
     reg d_raddrOK;
     reg d_waddrOK;
+    
+    assign d_addrOK=d_wr?d_waddrOK:d_raddrOK;
 
     localparam 
         R_IDLE  = 3'd0,
