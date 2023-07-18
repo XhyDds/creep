@@ -1,23 +1,3 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2023/07/11 14:27:44
-// Design Name: 
-// Module Name: Queue
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 
 // 写缓冲队列
 // 非循环队列
@@ -61,7 +41,7 @@ module WriteBuffer #(
     reg [WORD-1:0] buffer_data[0:length-1];
 
     wire _in_valid=in_valid&&(pointer!=length-1);
-    wire _out_awready=out_awready&&(pointer!=0);
+    // wire _out_awready=out_awready&&(pointer!=0);
 
     reg [(1<<offset_width)*32-1:0] _out_data;
 
@@ -82,10 +62,11 @@ module WriteBuffer #(
     always @(*) begin
         case (crt_pull)
             IDLE_L: begin
-                                    nxt_pull=PULL;
+                if(pointer!=0)      nxt_pull=PULL;
+                else                nxt_pull=IDLE_L;
             end 
             PULL:       begin
-                if(_out_awready)    nxt_pull=SEND_0;
+                if(out_awready)     nxt_pull=SEND_0;
                 else                nxt_pull=PULL;
             end
             SEND_0: begin
@@ -113,15 +94,19 @@ module WriteBuffer #(
     end
     //signal
     //组合action
+    reg pointer_minus;
     always @(*) begin
         out_valid=0;
         out_last=0;
         out_addr=0;
         out_data=0;
         out_bready=0;
+
+        pointer_minus=0;
         case (crt_pull)
             IDLE_L: begin
-                
+                if(nxt_pull==PULL)  pointer_minus=1;
+                else ;
             end
             PULL: begin
                 out_valid=1;
@@ -162,9 +147,6 @@ module WriteBuffer #(
                 PULL: begin
                     _out_data<=buffer_data[pointer];
                 end
-                PULL_PUSH: begin
-                    _out_data<=buffer_data[pointer];
-                end
                 default: ;
             endcase
         end
@@ -173,11 +155,11 @@ module WriteBuffer #(
     //push(cache->)
     
     //statemachine
-    parameter IDLE_H = 4'd0,PUSH=4'd1,PULL_PUSH=4'd2,PULL_H=4'd3;
+    parameter IDLE_H = 4'd0,PUSH=4'd1;
     reg [3:0] crt_push,nxt_push;
     always @(posedge clk,negedge rstn) begin
         if (!rstn) begin
-            crt_push<=IDLE_L;
+            crt_push<=IDLE_H;
         end
         else begin
             crt_push<=nxt_push;
@@ -187,44 +169,26 @@ module WriteBuffer #(
     always @(*) begin
         case (crt_push)
             IDLE_H: begin
-                if(_in_valid) begin
-                    if(_out_awready)    nxt_push=PULL_PUSH;
-                    else                nxt_push=PUSH;
-                end
-                else if(_out_awready)   nxt_push=PULL_H;
+                if(_in_valid)           nxt_push=PUSH;
                 else                    nxt_push=IDLE_H;
             end 
-            PUSH: begin
-                if(_out_awready)        nxt_push=PULL_H;
-                else                    nxt_push=IDLE_H;
-            end
-            PULL_H: begin
-                if(_out_awready)        nxt_push=PULL_H;
-                else                    nxt_push=IDLE_H;
-            end
-            PULL_PUSH: begin
-                if(_out_awready)        nxt_push=PULL_H;
-                else                    nxt_push=IDLE_H;
-            end
+            PUSH:                       nxt_push=IDLE_H;
             default:                    nxt_push=IDLE_H;
         endcase
     end
 
     //signal
     //组合action
+    reg pointer_plus;
     always @(*) begin
         in_ready=0;
+        pointer_plus=0;
         case (crt_push)
             IDLE_H: begin
-                
-            end
-            PULL_H: begin
-                
+                if(nxt_push==PUSH)  pointer_plus=1;
+                else ;
             end
             PUSH: begin
-                in_ready=1;
-            end
-            PULL_PUSH: begin
                 in_ready=1;
             end
             default: ;
@@ -233,7 +197,6 @@ module WriteBuffer #(
     //时序action
     always @(posedge clk,negedge rstn) begin
         if(!rstn) begin
-            pointer<=0;
             buffer_addr[32'd0]<=0;
             buffer_data[32'd0]<=0;
             buffer_addr[32'd1]<=0;
@@ -246,14 +209,6 @@ module WriteBuffer #(
             buffer_data[32'd4]<=0;
         end
         else begin
-            case (nxt_push)
-                PULL_H: pointer<=pointer-1;
-                PUSH:   pointer<=pointer+1;
-                PULL_PUSH: ;
-                IDLE_H: ;
-                default: pointer<=0;
-            endcase
-
             case (crt_push)
                 IDLE_H: begin
                     if(nxt_push==PUSH) begin
@@ -268,21 +223,23 @@ module WriteBuffer #(
                         buffer_addr[32'd4]<=buffer_addr[32'd3];
                         buffer_data[32'd4]<=buffer_data[32'd3];
                     end
-                    else if(nxt_push==PULL_PUSH) begin
-                        buffer_addr[32'd0]<=in_addr;
-                        buffer_data[32'd0]<=in_data;
-                        buffer_addr[32'd1]<=buffer_addr[32'd0];
-                        buffer_data[32'd1]<=buffer_data[32'd0];
-                        buffer_addr[32'd2]<=buffer_addr[32'd1];
-                        buffer_data[32'd2]<=buffer_data[32'd1];
-                        buffer_addr[32'd3]<=buffer_addr[32'd2];
-                        buffer_data[32'd3]<=buffer_data[32'd2];
-                        buffer_addr[32'd4]<=buffer_addr[32'd3];
-                        buffer_data[32'd4]<=buffer_data[32'd3];
-                    end
+                    else ;
                 end
                 default: ;
             endcase
+        end
+    end
+
+    //pointer仲裁
+    always @(posedge clk,negedge rstn) begin
+        if(!rstn) begin
+            pointer<=0;
+        end
+        else begin
+            if(pointer_minus&&pointer_plus) ;
+            else if(pointer_minus) pointer<=pointer-1;
+            else if(pointer_plus) pointer<=pointer+1;
+            else ;
         end
     end
 
