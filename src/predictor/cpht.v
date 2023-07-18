@@ -7,16 +7,14 @@ module cpht#(
     output choice_pdc,
     //update
     input [ch_width-1:0]hashed_pc_update,
-    input choice_real
+    input choice_real,
+    input update_en
 );
     wire[1:0] _cph;
     assign choice_pdc=_cph[1];
 
     wire[1:0] _cph_old;
     wire[1:0] _cph_new;
-
-    wire update_en;
-    assign update_en=1;//暂定如此，需要考虑stall等信号    //TOBE DONE
 
     dp_dram#(
         .ADDR_WIDTH(ch_width),
