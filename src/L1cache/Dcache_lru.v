@@ -30,6 +30,8 @@ module Dcache_lru#(
     input       [addr_width-1:0]addr,
     output      way_sel
     );
+wire [way:0]useparam1 = 0; 
+
 reg [(1<<addr_width)-1:0]record;
 assign way_sel=record[addr];
 always @(posedge clk) begin

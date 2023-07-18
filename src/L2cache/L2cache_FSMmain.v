@@ -60,6 +60,7 @@ module L2cache_FSMmain#(
     output reg  [way-1:0]FSM_Data_we,
     output reg  FSM_Data_replace,
     output reg  [1:0]FSM_TagV_way_select,
+    output reg  FSM_Data_writeback,
 
     //Dirtytable
     input       FSM_Dirty,
@@ -154,6 +155,7 @@ always @(*) begin
     FSM_use = 0;
     FSM_Data_we = 0;
     FSM_Data_replace = 0;
+    FSM_Data_writeback = 0;
     FSM_Dirtytable_way_select = 0;
     FSM_Dirtytable_set0 = 0;
     FSM_Dirtytable_set1 = 0;
@@ -173,7 +175,7 @@ always @(*) begin
             end
         Lookup:begin
             if((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3]))begin//未命中，调块
-                l2cache_mem_req_r = 1;
+                // l2cache_mem_req_r = 1;  //串行并行
             end
             else begin
                 if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
@@ -229,12 +231,15 @@ always @(*) begin
             end
         end
         checkDirty:begin
-            l2cache_mem_req_r = 1;
+            // l2cache_mem_req_r = 1;   //串行并行
             if(FSM_rbuf_from == 2'b01)FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
             else FSM_Dirtytable_way_select = FSM_way_sel_d;
+            FSM_Data_writeback = 1;
         end
         writeback:begin
-            l2cache_mem_req_r = 1;
+            // l2cache_mem_req_r = 1;   //串行并行
+            if(next_state == writeback)FSM_Data_writeback = 1;//用rbuf_index读tag
+            else FSM_Data_writeback = 0;
             l2cache_mem_req_w = 1;
             if(FSM_rbuf_from == 2'b01)begin
                 FSM_choose_way = {1'b0,FSM_way_sel_i};//选择写数据
@@ -256,8 +261,8 @@ always @(*) begin
                 if(FSM_rbuf_from == 2'b01)begin//i-r
                     FSM_rbuf_we = 1;
                     l2cache_icache_dataOK = 1;
-                    FSM_use[FSM_way_sel_i] = 1;
-                    FSM_Data_we[FSM_way_sel_i] = 1;
+                    FSM_use[{1'b0,FSM_way_sel_i}] = 1;
+                    FSM_Data_we[{1'b0,FSM_way_sel_i}] = 1;
                     FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
                     FSM_Dirtytable_set0 = 1;
                 end

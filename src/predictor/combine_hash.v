@@ -1,6 +1,6 @@
 //hash函数for双输入
 module combine_hash#(
-    parameter DATA1_width=32,
+    parameter DATA1_width=30,
     parameter DATA2_width=14,   //暂定相同，为14
     parameter HASH_width=14
 )(

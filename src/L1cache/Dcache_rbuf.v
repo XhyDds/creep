@@ -20,9 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Dcache_rbuf#(
-    parameter   offset_width=2
-)
+module Dcache_rbuf
 (
     input clk,rstn,rbuf_we,
     input [31:0]addr,data,opcode,pc,

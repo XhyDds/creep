@@ -67,6 +67,11 @@ assign dcache_mem_wstrb = pipeline_dcache_wstrb;
 assign dcache_pipeline_stall = ~ dcache_pipeline_ready;
 assign dcache_mem_size = 2'd2;
 
+wire [index_width:0]useparam1 = pipeline_dcache_opcode;
+wire [offset_width:0]useparam2 = pipeline_dcache_opflag;
+wire [way:0]useparam3 = pipeline_dcache_ctrl;
+wire [32*(1<<offset_width)-1:0]usesignal4 = din_mem_dcache;
+
 reg [4:0]state,next_state;
 localparam Idle=5'd0,req=5'd1,send=5'd2,send_=5'd3;
 always @(posedge clk,negedge rstn) begin

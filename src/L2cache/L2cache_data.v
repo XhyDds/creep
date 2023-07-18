@@ -46,37 +46,45 @@ module L2cache_Data#(
     );
 reg [data_width/8-1:0]we0,we1,we2,we3;
 reg [data_width-1:0]Data_din;
+
+wire [offset_width+1:0]Data_offset_2 = {0,Data_offset} << 2;
+wire [offset_width+4:0]Data_offset_5 = {0,Data_offset} << 5;
+
+wire [data_width/8-1:0] we = Data_choose_byte;
+
+wire [data_width-1:0]Data_din_1 = Data_din_write_32;
+
 always @(*) begin
     if(!Data_we[0])we0 = 0;
     else begin
         if(Data_replace)we0 = -1;//全部有效
         else begin
-            we0 = Data_choose_byte << (Data_offset << 2);//左移4*Data_offset
+            we0 = we << Data_offset_2;//左移4*Data_offset
         end
     end
     if(!Data_we[1])we1 = 0;
     else begin
         if(Data_replace)we1 = -1;
         else begin
-            we1 = Data_choose_byte << (Data_offset << 2);
+            we1 = we << Data_offset_2;
         end
     end
     if(!Data_we[2])we2 = 0;
     else begin
         if(Data_replace)we2 = -1;
         else begin
-            we2 = Data_choose_byte << (Data_offset << 2);
+            we2 = we << Data_offset_2;
         end
     end
     if(!Data_we[3])we3 = 0;
     else begin
         if(Data_replace)we3 = -1;
         else begin
-            we3 = Data_choose_byte << (Data_offset << 2);
+            we3 = we << Data_offset_2;
         end
     end
     if(Data_replace)Data_din = Data_din_write;
-    else Data_din = Data_din_write_32 << (Data_offset << 5);
+    else Data_din = Data_din_1 << Data_offset_5;
 end
 
 bram_bytewrite #(

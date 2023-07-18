@@ -45,12 +45,13 @@ module Dcache_Data#(
 reg [data_width/8-1:0]we0,we1;
 reg [data_width-1:0]Data_din;
 
-wire [offset_width+1:0]Data_offset_2 = Data_offset << 2;
-wire [offset_width+4:0]Data_offset_5 = Data_offset << 5;
+wire [offset_width+1:0]Data_offset_2 = {0,Data_offset} << 2;
+wire [offset_width+4:0]Data_offset_5 = {0,Data_offset} << 5;
 
 wire [data_width/8-1:0] we = Data_choose_byte;
 
 wire [data_width-1:0]Data_din_1 = Data_din_write_32;
+
 always @(*) begin
     if(!Data_we[0])we0 = 0;
     else begin
@@ -69,11 +70,6 @@ always @(*) begin
     if(Data_replace)Data_din = Data_din_write;
     else Data_din = Data_din_1 << Data_offset_5;//左移32*Data_offset
 end
-
-// wire [127:0]test0 = Data_choose_byte << (2'd0 << 2);
-// wire [127:0]test1 = Data_choose_byte << (2'd1 << 2);
-// wire [127:0]test2 = Data_choose_byte << (2'd2 << 2);
-// wire [127:0]test3 = Data_choose_byte << (2'd3 << 2);
 
 bram_bytewrite #(
     .DATA_WIDTH(data_width),
@@ -103,4 +99,3 @@ way1(
     .dout(Data_dout1)
 );
 endmodule
-
