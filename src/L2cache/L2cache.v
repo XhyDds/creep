@@ -118,7 +118,7 @@ wire [1:0]way_sel_d;
 wire way_sel_i;
 L2cache_replace #(
     .way(way),
-    .index_width(index_width)
+    .addr_width(index_width)
 )
 L2cache_replace(
     .clk(clk),
@@ -135,7 +135,7 @@ wire [(1<<index_width)*32-1:0]data0,data1,data2,data3;
 wire Data_replace;
 L2cache_Data #(
     .way(way),
-    .index_width(index_width),
+    .addr_width(index_width),
     .offset_width(offset_width),
     .data_width((1<<index_width)*32)
 )
@@ -164,7 +164,7 @@ wire [32-2-index_width-offset_width-1:0]TagV_dout;
 assign TagV_we = Data_we;
 L2cache_TagV #(
     .way(way),
-    .index_width(index_width),
+    .addr_width(index_width),
     .data_width(32-2-index_width-offset_width)
 )
 L2cache_TagV(
@@ -186,7 +186,7 @@ L2cache_TagV(
 wire Dirty,Dirtytable_set0,Dirtytable_set1;
 wire [1:0]Dirtytable_way_select;
 L2cache_Dirtytable #(
-    .index_width(index_width)
+    .addr_width(index_width)
 )
 L2cache_Dirtytable(
     .clk(clk),

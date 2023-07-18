@@ -85,7 +85,7 @@ always @(*) begin
     case (state)
         Idle:begin
             if(opflag)next_state = Operation;
-            else if(!from)next_state = Lookup;
+            else if(from)next_state = Lookup;
             else next_state = Idle;
         end 
         Lookup:begin
@@ -93,9 +93,10 @@ always @(*) begin
                 next_state = checkDirty;
             end
             else begin
-                if(opflag)next_state = Operation;
-                else if(!from)next_state = Lookup;
-                else next_state = Idle;
+                // if(opflag)next_state = Operation;
+                // else if(from)next_state = Lookup;
+                // else next_state = Idle;
+                next_state = Idle;
             end
         end
         checkDirty:begin
@@ -113,9 +114,10 @@ always @(*) begin
         replace2:begin
             if(mem_l2cache_dataOK)begin
                 if(FSM_rbuf_from != 2'b11)begin
-                    if(opflag)next_state = Operation;
-                    else if(!from)next_state = Lookup;
-                    else next_state = Idle;
+                    // if(opflag)next_state = Operation;
+                    // else if(from)next_state = Lookup;
+                    // else next_state = Idle;
+                    next_state = Idle;
                 end
                 else begin
                     next_state = replace_write;
@@ -124,15 +126,20 @@ always @(*) begin
             else next_state = replace2;
         end
         replace_write:begin
-            if(opflag)next_state = Operation;
-            else if(!from)next_state = Lookup;
-            else next_state = Idle;
+            // if(opflag)next_state = Operation;
+            // else if(from)next_state = Lookup;
+            // else next_state = Idle;
+            next_state = Idle;
         end
         Operation:begin
             next_state = Idle;
         end
         default:next_state = Idle; 
     endcase
+end
+reg [1:0]FSM_way_sel_d_reg;
+always @(posedge clk) begin
+    FSM_way_sel_d_reg <= FSM_way_sel_d;
 end
 always @(*) begin
     l2cache_icache_addrOK = 0;
@@ -154,12 +161,13 @@ always @(*) begin
     FSM_choose_return = 0;
     case (state)
         Idle:begin
+            l2cache_dcache_addrOK = 1;//Dcache优先
             if(from == 2'b01)begin
                 l2cache_icache_addrOK = 1;
                 FSM_rbuf_we = 1;
             end
             else if(from[1])begin
-                l2cache_dcache_addrOK = 1;
+                // l2cache_dcache_addrOK = 1;
                 FSM_rbuf_we = 1;
             end
             end
@@ -214,9 +222,10 @@ always @(*) begin
                         FSM_Dirtytable_set1 = 1;
                     end
                 end
-                if(next_state != Idle)begin
-                    FSM_rbuf_we = 1;
-                end
+                // if(next_state != Idle)begin
+                //     FSM_rbuf_we = 1;
+                //     l2cache_dcache_addrOK = 1;
+                // end
             end
         end
         checkDirty:begin
@@ -266,11 +275,11 @@ always @(*) begin
                 end 
             end
         end
-        replace_write:begin//写一个字
+        replace_write:begin//写一个字  用上一个周期的FSM_way_sel_d  上一次写会改变vaild
             if(next_state != Idle)FSM_rbuf_we = 1;
-            FSM_Data_we[FSM_way_sel_d] = 1;
-            FSM_use[FSM_way_sel_d] = 1;
-            FSM_Dirtytable_way_select = FSM_way_sel_d;
+            FSM_Data_we[FSM_way_sel_d_reg] = 1;
+            FSM_use[FSM_way_sel_d_reg] = 1;
+            FSM_Dirtytable_way_select = FSM_way_sel_d_reg;
             FSM_Dirtytable_set1 = 1;
         end
         default:begin

@@ -196,7 +196,7 @@ always @(*) begin
         Lookup:begin
             case (next_state)
                 Miss_r:begin
-                    icache_mem_req=1;
+                    // icache_mem_req=1;
                     icache_mem_size=2'd2;
                 end
                 Lookup:begin//命中
@@ -245,9 +245,10 @@ always @(*) begin
             endcase
         end
         Miss_r:begin
+            icache_mem_req=1;
             case (next_state)
                 Miss_r:begin
-                    icache_mem_req=1;
+                    // icache_mem_req=1;
                     icache_mem_size=2'd2;
                 end
                 Miss_r_waitdata:begin
