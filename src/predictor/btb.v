@@ -8,11 +8,9 @@ module btb#(
     output [ADDR_WIDTH-1:0]npc_pdc,
     //update
     input [gh_width-1:0]hashed_pc_update,
-    input [ADDR_WIDTH-1:0]npc_real
+    input [ADDR_WIDTH-1:0]npc_real,
+    input update_en
 );
-
-    wire update_en;
-    assign update_en=1;//暂定如此，需要考虑stall等信号    //TOBE DONE
 
     sp_dram#(
         .ADDR_WIDTH(gh_width),

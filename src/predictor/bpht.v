@@ -7,16 +7,14 @@ module bpht#(
     output b_taken_pdc,
     //update
     input [bh_width-1:0]hashed_pc_update,
-    input b_taken_real
+    input b_taken_real,
+    input update_en
 );
     wire[1:0] _bph;
     assign b_taken_pdc=_bph[1];
 
     wire[1:0] _bph_old;
     wire[1:0] _bph_new;
-
-    wire update_en;
-    assign update_en=1;//暂定如此，需要考虑stall等信号    //TOBE DONE
 
     dp_dram#(
         .ADDR_WIDTH(bh_width),
