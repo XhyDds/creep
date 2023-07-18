@@ -97,19 +97,27 @@ assign pc_icache_pipeline = rbuf_addr;
 wire use0,use1;
 wire way_sel_lru;
 
-Icache_lru Icache_lru(
+Icache_lru #(
+    .addr_width(index_width),
+    .way(way)
+)
+Icache_lru(
     .clk(clk),.rstn(rstn),
     .use0(use0),.use1(use1),
     .addr(rbuf_index),
     .way_sel(way_sel_lru)
 );
-defparam Icache_lru.addr_width = index_width;
-defparam Icache_lru.way = way;
 
 //Data
 wire [way-1:0]Data_we;
 wire [(1<<offset_width)*32-1:0]data0,data1;
-Icache_Data Icache_Data(
+Icache_Data #(
+    .addr_width(index_width),
+    .data_width((1<<offset_width)*32),//单个line的长度
+    .offset_width(offset_width),
+    .way(way)
+)
+Icache_Data(
     .clk(clk),
     
     .Data_addr_read(index),
@@ -120,14 +128,15 @@ Icache_Data Icache_Data(
     .Data_addr_write(rbuf_index),
     .Data_we(Data_we)
 );
-defparam Icache_Data.addr_width = index_width;
-defparam Icache_Data.data_width = (1<<offset_width)*32;//单个line的长度
-defparam Icache_Data.offset_width = offset_width;
-defparam Icache_Data.way = way;
 
 //Tag
 wire [way-1:0]TagV_we,hit;
-Icache_TagV Icache_TagV(
+Icache_TagV #(
+    .addr_width(index_width),
+    .data_width(32-2-index_width-offset_width),
+    .way(way)
+)
+Icache_TagV(
     .clk(clk),.rstn(rstn),
 
     .TagV_addr_read(index),
@@ -138,9 +147,6 @@ Icache_TagV Icache_TagV(
     .TagV_addr_write(rbuf_index),
     .TagV_we(TagV_we)
 );
-defparam Icache_TagV.addr_width = index_width;
-defparam Icache_TagV.data_width = 32-2-index_width-offset_width;
-defparam Icache_TagV.way = way;
 
 //data choose
 //需要stall所以需要锁存
@@ -200,7 +206,12 @@ assign temp=0;
 assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
 
 //FSM
-Icache_FSMmain Icache_FSMmain(
+Icache_FSMmain #(
+    .addr_width(index_width),
+    .offset_width(offset_width),
+    .way(way)
+)
+Icache_FSMmain(
 
     .clk(clk),.rstn(rstn),
 
@@ -241,8 +252,5 @@ Icache_FSMmain Icache_FSMmain(
     .FSM_choose_word(choose_word),
     .FSM_send_nop(send_nop)
 );
-defparam Icache_FSMmain.index_width = index_width;
-defparam Icache_FSMmain.offset_width = offset_width;
-defparam Icache_FSMmain.way = way;
 endmodule
 

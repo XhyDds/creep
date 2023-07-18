@@ -113,20 +113,28 @@ Dcache_rbuf Dcache_rbuf(
 wire use0,use1;
 wire way_sel_lru;
 
-Dcache_lru Dcache_lru(
+Dcache_lru #(
+    .addr_width(index_width),
+    .way(way)
+)
+Dcache_lru(
     .clk(clk),
     .use0(use0),.use1(use1),
     .addr(rbuf_index),
     .way_sel(way_sel_lru)
 );
-defparam Dcache_lru.addr_width = index_width;
-defparam Dcache_lru.way = way;
 
 //Data
 wire [way-1:0]Data_we;
 wire [(1<<index_width)*32-1:0]data0,data1;
 wire Data_replace;
-Dcache_Data Dcache_Data(
+Dcache_Data #(
+    .addr_width(index_width),
+    .data_width((1<<offset_width)*32),
+    .offset_width(offset_width),
+    .way(way)
+)
+Dcache_Data(
     .clk(clk),
     
     .Data_addr_read(index),
@@ -141,14 +149,15 @@ Dcache_Data Dcache_Data(
     .Data_we(Data_we),
     .Data_replace(Data_replace)
 );
-defparam Dcache_Data.addr_width = index_width;
-defparam Dcache_Data.data_width = (1<<offset_width)*32;//单个line的长度
-defparam Dcache_Data.offset_width = offset_width;
-defparam Dcache_Data.way = way;
 
 //Tag
 wire [way-1:0]TagV_we,hit;
-Dcache_TagV Dcache_TagV(
+Dcache_TagV #(
+    .addr_width(index_width),
+    .data_width(32-2-index_width-offset_width),
+    .way(way)
+)
+Dcache_TagV(
     .clk(clk),
 
     .TagV_addr_read(index),
@@ -159,9 +168,6 @@ Dcache_TagV Dcache_TagV(
     .TagV_addr_write(rbuf_index),
     .TagV_we(TagV_we)
 );
-defparam Dcache_TagV.addr_width = index_width;
-defparam Dcache_TagV.data_width = 32-2-index_width-offset_width;
-defparam Dcache_TagV.way = way;
 
 //data choose
 //不需要stall所以不需要锁存？？
@@ -193,9 +199,12 @@ assign temp=0;
 assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};//读写地址
 assign dout_dcache_mem = rbuf_data;
 
-
 //FSM
-Dcache_FSMmain Dcache_FSMmain1(
+Dcache_FSMmain #(
+    .offset_width(offset_width),
+    .index_width(index_width),
+    .way(way))
+Dcache_FSMmain1(
 
     .clk(clk),.rstn(rstn),
 
@@ -241,8 +250,5 @@ Dcache_FSMmain Dcache_FSMmain1(
     .FSM_choose_return(choose_return),
     .FSM_choose_word(choose_word)
 );
-defparam Dcache_FSMmain1.index_width = index_width;
-defparam Dcache_FSMmain1.offset_width = offset_width;
-defparam Dcache_FSMmain1.way = way;
 endmodule
 //锁存出去的data，上一个周期有stall则发上一个周期锁存的data

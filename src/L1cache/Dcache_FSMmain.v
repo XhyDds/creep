@@ -1,5 +1,5 @@
-`define onlyDcache
-// `define withL2cache
+// `define onlyDcache
+`define withL2cache
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
