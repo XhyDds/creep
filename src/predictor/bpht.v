@@ -1,5 +1,5 @@
 module bpht#(
-    parameter bh_width = 16
+    parameter bh_width = 14
 )(
     input clk,
     //query

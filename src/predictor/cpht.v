@@ -1,5 +1,5 @@
 module cpht#(
-    parameter ch_width=16
+    parameter ch_width=14
 )(
     input clk,
     //query

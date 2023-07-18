@@ -1,6 +1,6 @@
 module bht#(
-    parameter k_width = 16,
-              bh_width = 16
+    parameter k_width = 14,
+              bh_width = 14
 )(
     input clk,
     //query

@@ -1,7 +1,6 @@
 module predictor #(
-    parameter bh_width = 16,
-              gh_width = 16,
-              ch_width = 16
+    parameter   k_width = 14,
+                h_width = 14
 )(
     input clk,
     input rstn,
