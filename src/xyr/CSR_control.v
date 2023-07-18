@@ -1,5 +1,5 @@
 module CSR_control#(
-parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
+parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 )(
     input clk,rstn,
     input pipeline_CSR_stall,
@@ -14,11 +14,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�???高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�???高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???，ex1�???
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???，ex1�???
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -34,6 +34,10 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     input [31:0] pipeline_CSR_TLBEHI,
     input [31:0] pipeline_CSR_TLBELO0,
     input [31:0] pipeline_CSR_TLBELO1,
+
+    output reg excp_flush,
+    output reg ertn_flush,
+    output reg [5:0]ws_csr_ecode,
 
     output reg [31:0]  csr_crmd_diff_0     ,
     output reg [31:0]  csr_prmd_diff_0     ,

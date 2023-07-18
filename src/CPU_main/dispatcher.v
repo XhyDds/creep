@@ -20,9 +20,9 @@ module dispatcher (
     wire regwrite0=control0[6];
     wire regwrite1=control1[6];
     //0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br, 9:ibar, 10:priv+mmu, 11:mmu
-    wire xiangguan=(rd1==rk0|rd1==rj0|rd1==rd0&type0==1)&(type1!=1)&(|rd1);
+    wire xiangguan=(rd1==rk0|rd1==rj0|rd1==rd0&type0==1)&regwrite1&(|rd1);
     // wire xiangguan=(/*rd0==rd1|rd0==rk1|rd0==rj1|*/rd0==rk1|rd0==rj1|rd1==rk0|rd1==rj0);
-    wire suanshubr0=(type0==0|type0==1|type0==2|type0==4|type0==8|type0==9);
+    wire upable=(type0==0|type0==1|type0==2|type0==4|type0==8|type0==9|type0==7);
     // wire suanshu1=(type1==0|type1==2|type1==4);
     // wire suanshubr1=(suanshu1|type1==1|type1==8);
     // wire jiaohuan=(type0==5)&suanshu1;//3000是alu，3004是dcache
@@ -67,7 +67,7 @@ module dispatcher (
             ir00=0;
             ir11=0;
         end
-        else if(!xiangguan&suanshubr0&!stall0)begin//不相关且第二条指令为算术指令
+        else if(!xiangguan&upable&!stall0)begin//不相关且第二条指令为算术指令
             rk00=rk0;
             rk11=rk1;
             rj00=rj0;

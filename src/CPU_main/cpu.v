@@ -117,10 +117,10 @@ module core_top (
     wire tlbexcp=0,tlbcode=0,tlbsubcode=0;
 
     //PRIV
-    wire ifbr_priv,LLbit;
+    wire LLbit;
     wire [1:0]PLV;
     wire [31:0]pc_priv;
-    wire [31:0]privresult1;
+    wire [31:0]privresult;
     wire flush_priv,stall_priv;
     wire stall_priv_idle;
 
@@ -595,6 +595,21 @@ module core_top (
         .zero      		( zero1     		)
     );
 
+    wire [31:0] countresult0;
+    wire [31:0] countresult1;
+    wire [63:0] countresult;
+
+    counter u_counter(
+        //ports
+        .clk  		    ( clk  		),
+        .rstn 		    ( rstn 		),
+        .ctr0  		    ( ctr_reg_exe0_0  	),
+        .countresult0 	( countresult0		),
+        .ctr1  		    ( ctr_reg_exe0_1_ALE),
+        .countresult1 	( countresult1		),
+        .countresult    ( countresult		)
+    );
+
     wire [31:0]	mulresult0;
 
     muitiplier u_muitiplier0(
@@ -754,6 +769,10 @@ module core_top (
     wire 	[31:0]  csr_dmw1_diff_0     ;
     wire 	[31:0]  csr_pgdl_diff_0     ;
     wire 	[31:0]  csr_pgdh_diff_0     ;
+    wire            tlbfill_en          ;
+    wire            excp_flush          ;
+    wire            ertn_flush          ;
+    wire    [5:0]   ws_csr_ecode        ;
 
     CSR_control u_priv(
         //ports
@@ -787,6 +806,10 @@ module core_top (
         .CSR_pipeline_DMW1      		( DMW1      		),
         
         //debug
+        .tlbfill_en                     ( tlbfill_en         ),
+        .excp_flush                     ( excp_flush         ),
+        .ertn_flush                     ( ertn_flush         ),
+        .ws_csr_ecode                   ( ws_csr_ecode       ),
         .csr_crmd_diff_0                ( csr_crmd_diff_0    ),
         .csr_prmd_diff_0                ( csr_prmd_diff_0    ),
         .csr_ectl_diff_0                ( csr_ectl_diff_0    ),
@@ -1414,6 +1437,7 @@ module core_top (
             1: ;
             2: result0=divresult0;
             4: result0=mulresult0;
+            7: result0=countresult0;
             8: result0=aluresult_exe0_exe1_0;
         endcase
         case (ctr_exe0_exe1_1[3:0])
@@ -1437,7 +1461,7 @@ module core_top (
             6: result1=dcacheresult;//Dcache ONLY
             `endif
 
-            7: ;
+            7: result1=countresult1;
             8: result1=aluresult_exe0_exe1_1;
         endcase
     end
@@ -1617,20 +1641,6 @@ L1_L2cache #(
 
 `endif 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //debug begin here 
     assign debug0_wb_pc=pc_exe1_wb_0;
     assign debug1_wb_pc=pc_exe1_wb_1;
@@ -1675,19 +1685,19 @@ L1_L2cache #(
     // difftest
 
     //undefined
-    wire tlbfill_en=0;
-    wire rand_index0=0;
-    wire rand_index1=0;
-    wire excp_flush=0;
-    wire ertn_flush=0;
-    wire ws_csr_ecode=0;
+    wire rand_index0                    =   0;
+    wire rand_index1                    =   0;
+    wire tlbfill_en                     =   0;
+    // wire excp_flush                     =   0;
+    // wire ertn_flush                     =   0;
+    // wire [5:0]ws_csr_ecode              =   csr_estat_diff_0[21:16];
     
     // from wb_stage
     wire            ws_valid_diff0      =   ws_valid0;
     wire            ws_valid_diff1      =   ws_valid1;
     wire            cnt_inst_diff0      =   0;
     wire            cnt_inst_diff1      =   0;
-    wire    [63:0]  timer_64_diff       =   0;
+    wire    [63:0]  timer_64_diff       =   countresult;
 
     wire    [ 7:0]  inst_ld_en_diff     =   0;
     wire    [31:0]  ld_paddr_diff       =   0;

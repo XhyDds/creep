@@ -24,6 +24,7 @@ module decoder (
     //for br, 0:b, 1:beq, 2:bne, 3:blt, 4:bge, 5:bltu, 6:bgeu
     //for yuanzi, 0:load, 1:store
     //for tiaoxie, 0:jirl, 1:bl
+    //for rdcnt, 0:rdcntvl.w, 1:rdcntvh.w, (2:rdcntid)
     reg memread,memwrite,regwrite,nop,priv;
     assign control=nop?0:{9'b0,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_};//顺序可调换
     always @(*) begin
@@ -38,14 +39,14 @@ module decoder (
                         'b0000000: 
                             if(ir[14:11]=='b1100) 
                                 if(!ir[10])
-                                    if(|ir[9:5])         begin rj=ir[9:5];type_=shizhong; end//RDCNTID.W
-                                    else if(|ir[4:0])    begin rd=ir[4:0];type_=shizhong; end//RDCNTVL.W
-                                    else                begin type_=liwai;subtype=0;excp_arg='b001101; end
+                                    if(|ir[9:5])         begin excp_arg=16'h40;rd=ir[9:5];type_=liwai;subtype=8;regwrite=1; end//RDCNTID.W
+                                    else if(|ir[4:0])    begin rd=ir[4:0];type_=shizhong;subtype=0; end//RDCNTVL.W
+                                    else                 begin type_=liwai;subtype=0;excp_arg='b001101; end
                                 else 
-                                    if(~|ir[9:5])        begin rd=ir[4:0];type_=shizhong; end//RDCNTVH.W
-                                    else                begin type_=liwai;subtype=0;excp_arg='b001101; end
+                                    if(~|ir[9:5])        begin rd=ir[4:0];type_=shizhong;subtype=1; end//RDCNTVH.W
+                                    else                 begin type_=liwai;subtype=0;excp_arg='b001101; end
                             else    if(~|ir[14:0])       begin nop=1; end//全0为nop，不是不存在例外
-                            else                        begin type_=liwai;subtype=0;excp_arg='b001101; end
+                            else                         begin type_=liwai;subtype=0;excp_arg='b001101; end
                         'b0100000: //ADD.W
                             begin
                                 rk=ir[14:10];rj=ir[9:5];rd=ir[4:0];type_=alu;aluop=jia;regwrite=1;
