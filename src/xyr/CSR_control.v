@@ -7,6 +7,9 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     //output CSR_pipeline_stall,
     output CSR_pipeline_flush,
     output [31:0] CSR_pipeline_outpc,
+    input pipeline_CSR_jumpc_valid,
+    input [31:0] pipeline_CSR_jumpc,
+    input pipeline_CSR_inpc_valid,
     input [31:0] pipeline_CSR_inpc0,//
     input [3:0]pipeline_CSR_type,
     input [4:0]pipeline_CSR_subtype,
@@ -14,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�???高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???，ex1�???
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�????，ex1�????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�???
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -95,15 +98,16 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg [4:0] mode;wire [31:0] din;reg [31:0]dout,mask;
     wire [8:0] ESTATin;reg flushout;wire stallin,flushin;
     wire exe;wire [15:0] excp_arg1;reg clk_stall;reg [31:0] outpc;
-    wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
-    reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;reg rand_en;reg inst_stop,inst_stop_reg;
+    wire inte;wire [15:0] csr_num;reg [31:0] inpc;wire inpc_valid;reg [5:0]ecode;
+    reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;
+    reg rand_en;reg inst_stop,inst_stop_reg;wire [31:0] jumpc;wire jumpc_valid;
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;
     
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
     reg [31:0] dout_reg;reg run_reg;reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
-    
+    reg [31:0] jumpc_reg;
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
@@ -117,7 +121,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign CSR_pipeline_TLBELO0=TLBELO0out,CSR_pipeline_TLBELO1=TLBELO1out;
     assign TLBIDXin=pipeline_CSR_TLBIDX,TLBEHIin=pipeline_CSR_TLBEHI;
     assign TLBELO0in=pipeline_CSR_TLBELO0,TLBELO1in=pipeline_CSR_TLBELO1;
-    
+    assign inpc_valid=pipeline_CSR_inpc_valid,jumpc_valid=pipeline_CSR_jumpc_valid;
+    assign jumpc=pipeline_CSR_jumpc;
     Random rand_(.en(rand_en),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
     
     always@(*)
@@ -174,7 +179,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         run_reg<=0;
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
-        csr_num_reg<=0;inst_stop_reg<=0;
+        csr_num_reg<=0;inst_stop_reg<=0;jumpc_reg<=0;
         end
     else if(!stallin||inte)
         begin
@@ -184,6 +189,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
+        if(jumpc_valid)
+            jumpc_reg<=jumpc;
         end
     end
     always@(posedge(clk),negedge(rstn))
@@ -232,6 +239,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
     TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
     
+    if(!inpc_valid)
+        inpc=jumpc_reg;
     if(inte)
         begin
         mode=INTE;
