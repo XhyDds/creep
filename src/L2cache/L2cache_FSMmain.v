@@ -256,8 +256,8 @@ always @(*) begin
                 if(FSM_rbuf_from == 2'b01)begin//i-r
                     FSM_rbuf_we = 1;
                     l2cache_icache_dataOK = 1;
-                    FSM_use[FSM_way_sel_i] = 1;
-                    FSM_Data_we[FSM_way_sel_i] = 1;
+                    FSM_use[{1'b0,FSM_way_sel_i}] = 1;
+                    FSM_Data_we[{1'b0,FSM_way_sel_i}] = 1;
                     FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
                     FSM_Dirtytable_set0 = 1;
                 end
