@@ -65,85 +65,65 @@ module WriteBuffer #(
 
     reg [(1<<offset_width)*32-1:0] _out_data;
 
-    //pull&push
+    //pull(->axi)
+
     //state machine
-    parameter IDLE = 4'd0,PULL=4'd1,PUSH=4'd2,PULL_PUSH=4'd3,
-            SEND_0=4'd4,SEND_1=4'd5,SEND_2=4'd6,SEND_3=4'd7,_SEND=4'd8;
-    reg [3:0] crt,nxt;
+    parameter IDLE_L = 4'd0,PULL=4'd1,
+            SEND_0=4'd2,SEND_1=4'd3,SEND_2=4'd4,SEND_3=4'd5,_SEND=4'd6;
+    reg [3:0] crt_pull,nxt_pull;
     always @(posedge clk,negedge rstn) begin
         if (!rstn) begin
-            crt<=IDLE;
+            crt_pull<=IDLE_L;
         end
         else begin
-            crt<=nxt;
+            crt_pull<=nxt_pull;
         end
     end
     always @(*) begin
-        case (crt)
-            IDLE: begin
-               if (_out_awready) begin
-                    if(_in_valid)   nxt=PULL_PUSH;
-                    else            nxt=PULL;
-               end
-               else if(_in_valid) begin
-                                    nxt=PUSH;
-               end
-               else                 nxt=IDLE;
+        case (crt_pull)
+            IDLE_L: begin
+                                    nxt_pull=PULL;
             end 
             PULL:       begin
-                if(_out_awready)    nxt=SEND_0;
-                else                nxt=PULL;
-            end
-            PUSH:                   nxt=IDLE;
-            PULL_PUSH:  begin
-                if(_out_awready)    nxt=SEND_0;
-                else                nxt=PULL_PUSH;
+                if(_out_awready)    nxt_pull=SEND_0;
+                else                nxt_pull=PULL;
             end
             SEND_0: begin
-                if(out_wready)      nxt=SEND_1;
-                else                nxt=SEND_0;
+                if(out_wready)      nxt_pull=SEND_1;
+                else                nxt_pull=SEND_0;
             end
             SEND_1: begin
-                if(out_wready)      nxt=SEND_2;
-                else                nxt=SEND_1;
+                if(out_wready)      nxt_pull=SEND_2;
+                else                nxt_pull=SEND_1;
             end
             SEND_2: begin
-                if(out_wready)      nxt=SEND_3;
-                else                nxt=SEND_2;
+                if(out_wready)      nxt_pull=SEND_3;
+                else                nxt_pull=SEND_2;
             end
             SEND_3: begin
-                if(out_wready)      nxt=_SEND;
-                else                nxt=SEND_3;
+                if(out_wready)      nxt_pull=_SEND;
+                else                nxt_pull=SEND_3;
             end
             _SEND: begin
-                if(out_bvalid)      nxt=IDLE;
-                else                nxt=_SEND;
+                if(out_bvalid)      nxt_pull=IDLE_L;
+                else                nxt_pull=_SEND;
             end
-            default:                nxt=IDLE;
+            default:                nxt_pull=IDLE_L;
         endcase
     end
     //signal
     //组合action
     always @(*) begin
-        in_ready=0;
         out_valid=0;
         out_last=0;
         out_addr=0;
         out_data=0;
         out_bready=0;
-        case (crt)
-            IDLE: begin
+        case (crt_pull)
+            IDLE_L: begin
                 
             end
             PULL: begin
-                out_valid=1;
-                out_addr=buffer_addr[pointer];
-            end
-            PUSH: begin
-                in_ready=1;
-            end
-            PULL_PUSH: begin
-                in_ready=1;
                 out_valid=1;
                 out_addr=buffer_addr[pointer];
             end
@@ -173,54 +153,11 @@ module WriteBuffer #(
     //时序action
     always @(posedge clk,negedge rstn) begin
         if(!rstn) begin
-            pointer<=0;
-            buffer_addr[32'd0]<=0;
-            buffer_data[32'd0]<=0;
-            buffer_addr[32'd1]<=0;
-            buffer_data[32'd1]<=0;
-            buffer_addr[32'd2]<=0;
-            buffer_data[32'd2]<=0;
-            buffer_addr[32'd3]<=0;
-            buffer_data[32'd3]<=0;
-            buffer_addr[32'd4]<=0;
-            buffer_data[32'd4]<=0;
-
             _out_data<=0;
         end
         else begin
-            case (crt)
-                IDLE: begin
-                    if(nxt==PULL)begin
-                        pointer<=pointer-1;
-                    end
-                    else if(nxt==PUSH) begin
-                        pointer<=pointer+1;
-                        buffer_addr[32'd0]<=in_addr;
-                        buffer_data[32'd0]<=in_data;
-                        buffer_addr[32'd1]<=buffer_addr[32'd0];
-                        buffer_data[32'd1]<=buffer_data[32'd0];
-                        buffer_addr[32'd2]<=buffer_addr[32'd1];
-                        buffer_data[32'd2]<=buffer_data[32'd1];
-                        buffer_addr[32'd3]<=buffer_addr[32'd2];
-                        buffer_data[32'd3]<=buffer_data[32'd2];
-                        buffer_addr[32'd4]<=buffer_addr[32'd3];
-                        buffer_data[32'd4]<=buffer_data[32'd3];
-                    end
-                    else if(nxt==PULL_PUSH) begin
-                        buffer_addr[32'd0]<=in_addr;
-                        buffer_data[32'd0]<=in_data;
-                        buffer_addr[32'd1]<=buffer_addr[32'd0];
-                        buffer_data[32'd1]<=buffer_data[32'd0];
-                        buffer_addr[32'd2]<=buffer_addr[32'd1];
-                        buffer_data[32'd2]<=buffer_data[32'd1];
-                        buffer_addr[32'd3]<=buffer_addr[32'd2];
-                        buffer_data[32'd3]<=buffer_data[32'd2];
-                        buffer_addr[32'd4]<=buffer_addr[32'd3];
-                        buffer_data[32'd4]<=buffer_data[32'd3];
-                    end
-                end
-                PUSH: begin
-                    
+            case (crt_pull)
+                IDLE_L: begin
                 end
                 PULL: begin
                     _out_data<=buffer_data[pointer];
@@ -232,8 +169,122 @@ module WriteBuffer #(
             endcase
         end
     end
-    
 
+    //push(cache->)
+    
+    //statemachine
+    parameter IDLE_H = 4'd0,PUSH=4'd1,PULL_PUSH=4'd2,PULL_H=4'd3;
+    reg [3:0] crt_push,nxt_push;
+    always @(posedge clk,negedge rstn) begin
+        if (!rstn) begin
+            crt_push<=IDLE_L;
+        end
+        else begin
+            crt_push<=nxt_push;
+        end
+    end
+
+    always @(*) begin
+        case (crt_push)
+            IDLE_H: begin
+                if(_in_valid) begin
+                    if(_out_awready)    nxt_push=PULL_PUSH;
+                    else                nxt_push=PUSH;
+                end
+                else if(_out_awready)   nxt_push=PULL_H;
+                else                    nxt_push=IDLE_H;
+            end 
+            PUSH: begin
+                if(_out_awready)        nxt_push=PULL_H;
+                else                    nxt_push=IDLE_H;
+            end
+            PULL_H: begin
+                if(_out_awready)        nxt_push=PULL_H;
+                else                    nxt_push=IDLE_H;
+            end
+            PULL_PUSH: begin
+                if(_out_awready)        nxt_push=PULL_H;
+                else                    nxt_push=IDLE_H;
+            end
+            default:                    nxt_push=IDLE_H;
+        endcase
+    end
+
+    //signal
+    //组合action
+    always @(*) begin
+        in_ready=0;
+        case (crt_push)
+            IDLE_H: begin
+                
+            end
+            PULL_H: begin
+                
+            end
+            PUSH: begin
+                in_ready=1;
+            end
+            PULL_PUSH: begin
+                in_ready=1;
+            end
+            default: ;
+        endcase
+    end
+    //时序action
+    always @(posedge clk,negedge rstn) begin
+        if(!rstn) begin
+            pointer<=0;
+            buffer_addr[32'd0]<=0;
+            buffer_data[32'd0]<=0;
+            buffer_addr[32'd1]<=0;
+            buffer_data[32'd1]<=0;
+            buffer_addr[32'd2]<=0;
+            buffer_data[32'd2]<=0;
+            buffer_addr[32'd3]<=0;
+            buffer_data[32'd3]<=0;
+            buffer_addr[32'd4]<=0;
+            buffer_data[32'd4]<=0;
+        end
+        else begin
+            case (nxt_push)
+                PULL_H: pointer<=pointer-1;
+                PUSH:   pointer<=pointer+1;
+                PULL_PUSH: ;
+                IDLE_H: ;
+                default: pointer<=0;
+            endcase
+
+            case (crt_push)
+                IDLE_H: begin
+                    if(nxt_push==PUSH) begin
+                        buffer_addr[32'd0]<=in_addr;
+                        buffer_data[32'd0]<=in_data;
+                        buffer_addr[32'd1]<=buffer_addr[32'd0];
+                        buffer_data[32'd1]<=buffer_data[32'd0];
+                        buffer_addr[32'd2]<=buffer_addr[32'd1];
+                        buffer_data[32'd2]<=buffer_data[32'd1];
+                        buffer_addr[32'd3]<=buffer_addr[32'd2];
+                        buffer_data[32'd3]<=buffer_data[32'd2];
+                        buffer_addr[32'd4]<=buffer_addr[32'd3];
+                        buffer_data[32'd4]<=buffer_data[32'd3];
+                    end
+                    else if(nxt_push==PULL_PUSH) begin
+                        buffer_addr[32'd0]<=in_addr;
+                        buffer_data[32'd0]<=in_data;
+                        buffer_addr[32'd1]<=buffer_addr[32'd0];
+                        buffer_data[32'd1]<=buffer_data[32'd0];
+                        buffer_addr[32'd2]<=buffer_addr[32'd1];
+                        buffer_data[32'd2]<=buffer_data[32'd1];
+                        buffer_addr[32'd3]<=buffer_addr[32'd2];
+                        buffer_data[32'd3]<=buffer_data[32'd2];
+                        buffer_addr[32'd4]<=buffer_addr[32'd3];
+                        buffer_data[32'd4]<=buffer_data[32'd3];
+                    end
+                end
+                default: ;
+            endcase
+        end
+    end
 
     //query
     reg res[length-1:0];
