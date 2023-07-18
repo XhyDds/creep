@@ -259,10 +259,7 @@ module WriteBuffer #(
         else if(res[3'd2]==1'b1) begin query_ok=1;query_data=buffer_data[32'd2]; end
         else if(res[3'd3]==1'b1) begin query_ok=1;query_data=buffer_data[32'd3]; end
         else if(res[3'd4]==1'b1) begin query_ok=1;query_data=buffer_data[32'd4]; end
-        else begin
-            query_ok=0;
-            query_data=0;
-        end
+        else                     begin query_ok=0;query_data=0                 ; end
     end
 
 endmodule

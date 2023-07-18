@@ -133,6 +133,7 @@ L2cache_replace(
 wire [way-1:0]Data_we;
 wire [(1<<index_width)*32-1:0]data0,data1,data2,data3;
 wire Data_replace;
+wire Data_writeback;
 L2cache_Data #(
     .way(way),
     .addr_width(index_width),
@@ -142,7 +143,7 @@ L2cache_Data #(
 L2cache_Data(
     .clk(clk),
     
-    .Data_addr_read(index),
+    .Data_addr_read(Data_writeback ? rbuf_index : index),
     .Data_dout0(data0),
     .Data_dout1(data1),
     .Data_dout2(data2),
@@ -170,7 +171,7 @@ L2cache_TagV #(
 L2cache_TagV(
     .clk(clk),
 
-    .TagV_addr_read(index),
+    .TagV_addr_read(Data_writeback ? rbuf_index : index),
     .TagV_din_compare(rbuf_tag),
     .hit(hit),
     .valid(valid),
@@ -260,6 +261,7 @@ L2cache_FSMmain(
     .FSM_Data_we(Data_we),
     .FSM_Data_replace(Data_replace),//为1时替换整行，否则对word操作
     .FSM_TagV_way_select(TagV_way_select),
+    .FSM_Data_writeback(Data_writeback),
 
     //Dirtytable
     .FSM_Dirtytable_way_select(Dirtytable_way_select),

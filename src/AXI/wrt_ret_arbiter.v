@@ -90,27 +90,28 @@ module wrt_ret_arbiter#(
         endcase
     end
     //data
-    reg [(1<<offset_width)*32-1:0] _data;
+    reg [(1<<offset_width)*32-1:0] tmp_data;
     always @(posedge clk,negedge rstn) begin
         if(!rstn) begin
-            _data <= 0;
+            tmp_data <= 0;
         end
         else begin
             case (crt)
                 IDLE: begin
                     if(l2cache_mem_req_r) begin
                         if(query_ok)
-                            _data <= query_data;
-                        else _data <= 0;
+                            tmp_data <= query_data;
+                        else tmp_data <= 0;
                     end
-                    else _data <= 0;
+                    else tmp_data <= 0;
                 end
+                WRT_AR: ;
                 WRT_R: begin
                     if (nxt==IDLE) begin
-                        _data <= 0;
+                        tmp_data <= 0;
                     end
                 end
-                default: _data <= 0;
+                default: tmp_data <= 0;
             endcase
         end
     end
@@ -122,7 +123,7 @@ module wrt_ret_arbiter#(
                 din_mem_l2cache=0;
             end
             WRT_R: begin
-                din_mem_l2cache=_data;
+                din_mem_l2cache=tmp_data;
             end
             RET_AR: begin
                 din_mem_l2cache=0;
