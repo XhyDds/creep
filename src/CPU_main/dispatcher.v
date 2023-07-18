@@ -1,5 +1,5 @@
 module dispatcher (
-    input clk,rstn,flush,stall,
+    input clk,rstn,flush,stall,valid0,valid1,
     input [31:0]imm0,imm1,control0,control1,pc0,pc1,ir0,ir1,
     input [4:0]rk0,rk1,rj0,rj1,rd0,rd1,
     input [15:0]excp_arg0,excp_arg1,
@@ -8,7 +8,7 @@ module dispatcher (
     output reg [31:0]imm00,imm11,control00,control11,pc00,pc11,ir00,ir11,
     output reg [15:0]excp_arg00,excp_arg11,
     // output reg INE00,INE11,
-    output reg if0,if1
+    output reg if0,if1,valid00,valid11
 );
     //上方alu div mul，下方全功能
     //可同时发射：不相关且有一条是算术指令
@@ -66,6 +66,8 @@ module dispatcher (
             pc11=0;
             ir00=0;
             ir11=0;
+            valid00=0;
+            valid11=0;
         end
         else if(!xiangguan&upable&!stall0)begin//不相关且第二条指令为算术指令
             rk00=rk0;
@@ -86,6 +88,8 @@ module dispatcher (
             pc11=pc1;
             ir00=ir0;
             ir11=ir1;
+            valid00=valid0;
+            valid11=valid1;
         end
         // else if(!xiangguan&jiaohuan) begin//特殊情况：算数在前访存在后，交换后发射
         //     rk00=rk1;
@@ -126,6 +130,8 @@ module dispatcher (
             pc11=pc1;
             ir00=0;
             ir11=ir1;
+            valid00=0;
+            valid11=valid1;
         end
     end
 endmodule

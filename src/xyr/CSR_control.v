@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�????，ex1�????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�????，ex1�????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�???
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�???
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -107,7 +107,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
     reg [31:0] dout_reg;reg run_reg;reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
-    reg [31:0] jumpc_reg;
+    reg [31:0] jumpc_reg;reg TCFG0_reg;
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
@@ -199,20 +199,26 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         TI_INTE<=0;
         TVAL<=0;
-        //TCFG<=0;
+        TCFG0_reg<=0;
+        TCFG<=0;
         end
     else
         begin
+        TCFG0_reg<=TCFG[0];
         if(TI_cl)
+            begin
             TI_INTE<=0;
-        else if(TVAL==1)
+            end
+        else if(TVAL==0&&TCFG[0]&&TCFG0_reg)
             begin
             TI_INTE<=1;
             end
 
-        if(TVAL==0&&(TCFG[1]|TCFG[0]&~TI_INTE))
+        if((TVAL==0&&TCFG[1])||TCFG[0]&~TCFG0_reg)
             TVAL<={TCFG[TIMER_n-1:2],2'b0};
-        else if(TCFG[0]&&TVAL!=0)
+        else if(~TCFG[0]&TCFG0_reg)
+            TVAL<=0;
+        else if(TCFG[0]&&TVAL!=~0)
             TVAL<=TVAL-1;
         end
     end

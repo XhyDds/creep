@@ -1,6 +1,7 @@
 module decoder (
     input [31:0]ir,
     input [31:0]pc,
+    input valid,
     // input [1:0]PLV,
     output [31:0]control,
     output reg [4:0]rk,rj,rd,
@@ -26,12 +27,13 @@ module decoder (
     //for tiaoxie, 0:jirl, 1:bl
     //for rdcnt, 0:rdcntvl.w, 1:rdcntvh.w, (2:rdcntid)
     reg memread,memwrite,regwrite,nop,priv;
-    assign control=nop?0:{9'b0,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_};//顺序可调换
+    assign control=(valid)?{9'b0,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
     always @(*) begin
         rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;
         if(|pc[1:0]) begin type_=liwai;subtype=0;excp_arg='b0_001000; end //ADEF
         else if(pc[31]) begin type_=liwai;subtype=0;excp_arg='b1_001000; end //ADEM
-        else case (ir[31:26])
+        else 
+        case (ir[31:26])
         'b000000: 
             case (ir[25:22])
                 'b0000: 
@@ -45,7 +47,7 @@ module decoder (
                                 else 
                                     if(~|ir[9:5])        begin rd=ir[4:0];type_=shizhong;subtype=1; end//RDCNTVH.W
                                     else                 begin type_=liwai;subtype=0;excp_arg='b001101; end
-                            else    if(~|ir[14:0])       begin nop=1; end//全0为nop，不是不存在例外
+                            // else    if(~|ir[14:0])       begin nop=1; end//全0为也是不存在例外！！
                             else                         begin type_=liwai;subtype=0;excp_arg='b001101; end
                         'b0100000: //ADD.W
                             begin
@@ -334,7 +336,7 @@ module decoder (
             begin
                 imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;alusrc2=2;
             end
-            default: begin type_=liwai;subtype=0;excp_arg='b001101; end
+        default: begin type_=liwai;subtype=0;excp_arg='b001101; end
         endcase
     end
 endmodule
