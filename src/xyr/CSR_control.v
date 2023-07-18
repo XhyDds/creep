@@ -10,7 +10,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     input [31:0] pipeline_CSR_inpc0,//
     input [3:0]pipeline_CSR_type,
     input [4:0]pipeline_CSR_subtype,
-    input [15:0] pipeline_CSR_excp_arg0,
+    input [15:0] pipeline_CSR_excp_arg0,//csrnum+excparg
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
@@ -92,7 +92,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     wire [8:0] ESTATin;reg flushout;wire stallin,flushin;
     wire exe;wire [15:0] excp_arg1;reg clk_stall;reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
-    reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;
+    reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;reg rand_en;
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;
     
@@ -114,7 +114,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     assign TLBIDXin=pipeline_CSR_TLBIDX,TLBEHIin=pipeline_CSR_TLBEHI;
     assign TLBELO0in=pipeline_CSR_TLBELO0,TLBELO1in=pipeline_CSR_TLBELO1;
     
-    Random rand_(.en(1),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
+    Random rand_(.en(rand_en),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
     
     always@(*)
     begin
@@ -215,7 +215,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     esubcode=pipeline_CSR_excp_arg0[14:6];
     mode=pipeline_CSR_subtype;
     evaddr=pipeline_CSR_evaddr0;
-    TI_cl=0;
+    TI_cl=0;rand_en=0;
     
     TLBIDXout=0;TLBEHIout=0;
     TLBELO0out=0;TLBELO1out=0;
@@ -227,6 +227,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
     TLBELO0out[TLB_PALEN-5:8]=TLBELO0_PPN;
     TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
     TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
+    
     if(inte)
         begin
         mode=INTE;
@@ -293,6 +294,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=20
                 end
             TLBFILL:
                 begin
+                rand_en=1;
                 flushout=1; 
                 if(ecode==TLBR)
                     TLBIDXout[31]=0;//NE=0,E=1
