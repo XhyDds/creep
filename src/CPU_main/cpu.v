@@ -96,7 +96,8 @@ module core_top (
     ir_reg_exe0_0,ir_reg_exe0_1,
     ir_exe0_exe1_0,ir_exe0_exe1_1,
     ir_exe1_wb_0,ir_exe1_wb_1,
-    addr_pipeline_dcache_reg;
+    addr_exe0_exe1,
+    vaddr_exe1_wb,paddr_exe1_wb;
     
     reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,
     excp_arg_id_reg_0,excp_arg_id_reg_1;
@@ -795,7 +796,7 @@ module core_top (
 
         .pipeline_CSR_inpc1     		( pc_exe0_exe1_1     		    ),
         .pipeline_CSR_excp_arg1 		( excp_arg_exe0_exe1_1_excp     ),
-        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_reg		),
+        .pipeline_CSR_evaddr1   		( addr_exe0_exe1		),
 
         .pipeline_CSR_ESTAT     		( 0     		),
         // .CSR_pipeline_clk_stall 		( stall_priv_idle 		        ),
@@ -806,7 +807,6 @@ module core_top (
         .CSR_pipeline_DMW1      		( DMW1      		),
         
         //debug
-        .tlbfill_en                     ( tlbfill_en         ),
         .excp_flush                     ( excp_flush         ),
         .ertn_flush                     ( ertn_flush         ),
         .ws_csr_ecode                   ( ws_csr_ecode       ),
@@ -961,12 +961,12 @@ module core_top (
 
         `ifdef DCache
         .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
-        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_reg ),
+        .addr_pipeline_dcache    		    ( addr_exe0_exe1 ),
         `endif
 
         `ifdef L2Cache
         .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
-        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_reg ),
+        .addr_pipeline_dcache    		    ( addr_exe0_exe1 ),
         `endif
 
         .dout_dcache_pipeline        		( dout_dcache_pipeline ),
@@ -1148,7 +1148,7 @@ module core_top (
             fflush_if0_if1 <= 0;
         end
         else if(flush_if0_if1) fflush_if0_if1 <= 1;  //to be test
-        else if(!stall_icache) fflush_if0_if1 <= 0;
+        else if(!(stall_icache|stall_to_icache)) fflush_if0_if1 <= 0;
     end
 
     always @(posedge clk or negedge rstn) begin
@@ -1406,7 +1406,7 @@ module core_top (
             aluresult_exe0_exe1_1<=0;
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
-            addr_pipeline_dcache_reg<=0;
+            addr_exe0_exe1<=0;
         end
         else if(stall_exe0_exe1_1);
         else if(flush_exe0_exe1_1) begin
@@ -1415,7 +1415,7 @@ module core_top (
             aluresult_exe0_exe1_1<=0;
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
-            addr_pipeline_dcache_reg<=0;
+            addr_exe0_exe1<=0;
         end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_ALE;
@@ -1423,7 +1423,7 @@ module core_top (
             aluresult_exe0_exe1_1<=aluresult1;
             pc_exe0_exe1_1<=pc_reg_exe0_1;
             ir_exe0_exe1_1<=ir_reg_exe0_1;
-            addr_pipeline_dcache_reg<=addr_pipeline_dcache;
+            addr_exe0_exe1<=addr_pipeline_dcache;
         end
     end
 
@@ -1498,6 +1498,8 @@ module core_top (
             result_exe1_wb_1<=0;
             pc_exe1_wb_1<=0;
             ir_exe1_wb_1<=0;
+            vaddr_exe1_wb<=0;
+            paddr_exe1_wb<=0;
         end
         else if(stall_exe1_wb_1);
         else if(flush_exe1_wb_1) begin
@@ -1506,6 +1508,8 @@ module core_top (
             result_exe1_wb_1<=0;
             pc_exe1_wb_1<=0;
             ir_exe1_wb_1<=0;
+            vaddr_exe1_wb<=0;
+            paddr_exe1_wb<=0;
         end
         else begin
             ctr_exe1_wb_1 <= ctr_exe0_exe1_1;
@@ -1513,6 +1517,8 @@ module core_top (
             result_exe1_wb_1<=result1;
             pc_exe1_wb_1<=pc_exe0_exe1_1;
             ir_exe1_wb_1<=ir_exe0_exe1_1;
+            vaddr_exe1_wb<=addr_exe0_exe1;
+            paddr_exe1_wb<=0;
         end
     end
 
@@ -1706,7 +1712,7 @@ L1_L2cache #(
     wire    [ 7:0]  inst_st_en_diff     =   0;
     wire    [31:0]  st_paddr_diff       =   0;
     wire    [31:0]  st_vaddr_diff       =   0;
-    wire    [31:0]  st_data_diff        =   0;
+    wire    [31:0]  st_data_diff        =   debug1_wb_rf_wdata;
 
     wire            csr_rstat_en_diff   =   0;
     wire    [31:0]  csr_data_diff       =   0;

@@ -96,7 +96,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     wire [8:0] ESTATin;reg flushout;wire stallin,flushin;
     wire exe;wire [15:0] excp_arg1;reg clk_stall;reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;reg [5:0]ecode;reg [8:0] esubcode;
-    reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;reg rand_en;
+    reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;reg rand_en;reg inst_stop,inst_stop_reg;
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;
     
@@ -112,7 +112,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
     assign csr_num=pipeline_CSR_excp_arg0;
-    assign inte={ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]}?CRMD[2]:0;
+    assign inte={ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]}?CRMD[2]&~inst_stop_reg:0;
     assign CSR_pipeline_TLBIDX=TLBIDXout,CSR_pipeline_TLBEHI=TLBEHIout;
     assign CSR_pipeline_TLBELO0=TLBELO0out,CSR_pipeline_TLBELO1=TLBELO1out;
     assign TLBIDXin=pipeline_CSR_TLBIDX,TLBEHIin=pipeline_CSR_TLBEHI;
@@ -174,7 +174,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         run_reg<=0;
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
-        csr_num_reg<=0;
+        csr_num_reg<=0;inst_stop_reg<=0;
         end
     else if(!stallin||inte)
         begin
@@ -183,7 +183,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         run_reg<=(!stallin && !flushin && exe)||inte;
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
-        csr_num_reg<=csr_num;
+        csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
         end
     end
     always@(posedge(clk),negedge(rstn))
@@ -220,7 +220,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     mode=pipeline_CSR_subtype;
     evaddr=pipeline_CSR_evaddr0;
     TI_cl=0;rand_en=0;
-    
+    inst_stop=0;
     TLBIDXout=0;TLBEHIout=0;
     TLBELO0out=0;TLBELO1out=0;
     TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
@@ -274,6 +274,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 end
             INTE:
                begin
+                inst_stop=1;
                flushout=1; 
                if(ecode==TLBR)
                     begin
@@ -404,9 +405,13 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         TLBRENTRY<=0;DMW0_PLV0<=0;DMW0_PLV3<=0;DMW0_MAT<=0;
         DMW0_PSEG<=0;DMW0_VSEG<=0;DMW1_PLV0<=0;DMW1_PLV3<=0;DMW1_MAT<=0;
         DMW1_PSEG<=0;DMW1_VSEG<=0;TID<=0;TCFG<=0;
+        excp_flush<=0;
+        ertn_flush<=0;
         end
     else
         begin
+        excp_flush<=0;
+        ertn_flush<=0;
             if(run_reg)
                 begin
                 if(mode_reg==IDLE && !clk_stall)
@@ -418,6 +423,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                     case(mode_reg)
                         ERTN:
                             begin
+                            ertn_flush<=1;
                             if(ESTAT_Ecode==TLBR)
                                 CRMD[4:0]<={2'b10,PRMD};
                             else
@@ -435,6 +441,10 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             if(ecode==TLBR)
                                 begin
                                 CRMD[4:3]<=2'b01;
+                                end
+                            else 
+                                begin
+                                excp_flush<=1;
                                 end
                             ESTAT_Ecode<=ecode_reg;
                             ESTAT_EsubCode<=esubcode_reg;
