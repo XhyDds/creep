@@ -94,6 +94,8 @@ module l2_axi_package #(
 
     wire [(1<<offset_width)*32-1:0] query_data;
     wire query_ok;
+    wire cache_mem_rdy;
+    wire mem_arbiter_addrOK;
 
     ReturnBuffer#(
         .offset_width       (offset_width)
@@ -106,7 +108,8 @@ module l2_axi_package #(
         .dout_mem_cache     (din_mem_arbiter),
         .rready             (l2_rready),
         .rdata              (l2_rdata),
-        .rlast              (l2_rlast)
+        .rlast              (l2_rlast),
+        .cache_mem_rdy      (cache_mem_rdy)
     );
 
     WriteBuffer#(
@@ -155,7 +158,8 @@ module l2_axi_package #(
         .arbiter_mem_req    (arbiter_mem_req),
         .mem_arbiter_addrOK (mem_arbiter_addrOK),
         .mem_arbiter_dataOK (mem_arbiter_dataOK),
-        .dout_mem_arbiter   (din_mem_arbiter)
+        .dout_mem_arbiter   (din_mem_arbiter),
+        .cache_mem_rdy      (cache_mem_rdy)
     );
 
     l2_axi_interface u_axi_interface(

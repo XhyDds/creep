@@ -1,6 +1,7 @@
 
 //供l1使用，适用于icache和dcache
 //l2也可使用，此时由于写buf的存在，交互对象为arbiter与axi
+`define L2Cache
 module ReturnBuffer #(
     parameter   offset_width=2
 )(
@@ -14,6 +15,9 @@ module ReturnBuffer #(
     //axi
     input               rready,   //r: arbiter->i:dataOK
     input[31:0]         rdata,
+    `ifdef L2Cache
+        input           cache_mem_rdy,
+    `endif
     input               rlast
 );
     localparam  WORD_NUM = (1 << offset_width)*32-1,              // words per block(set)
@@ -54,12 +58,25 @@ module ReturnBuffer #(
                 end
             end
             SEND: begin
-                if(cache_mem_req) begin
-                    next_state = OK;
-                end
-                else begin
-                    next_state = IDLE;
-                end
+                `ifdef L2Cache
+                    if(cache_mem_req&&cache_mem_rdy) begin
+                        next_state = OK;
+                    end
+                    else if(cache_mem_rdy) begin
+                        next_state = IDLE;
+                    end
+                    else begin
+                        next_state = SEND;
+                    end
+                `endif
+                `ifndef L2Cache
+                    if(cache_mem_req) begin
+                        next_state = OK;
+                    end
+                    else begin
+                        next_state = IDLE;
+                    end
+                `endif
             end
             default:begin
                 next_state = IDLE;
