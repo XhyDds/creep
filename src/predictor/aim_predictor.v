@@ -1,7 +1,7 @@
 module aim_predictor#(
     parameter   gh_width   = 14,
                 bh_width   = 14,
-                ADDR_WIDTH = 30
+                ADDR_WIDTH = 29
 )(
     input  clk,
     //ex
@@ -14,6 +14,7 @@ module aim_predictor#(
     //预测
     input  [2:0]kind_pdc,
     output reg taken_pdc,
+    output choice_b_g,    //0:b,1:g
     //当前
     input  [gh_width-1:0] pc_gh_hashed,
     input  [bh_width-1:0] pc_bh_hashed,
@@ -49,8 +50,6 @@ module aim_predictor#(
         .g_taken_real(taken_real),
         .update_en(try_to_pdc)
     );
-
-    wire choice_b_g;    //0:b,1:g
 
     cpht#(
         .ch_width(gh_width)
