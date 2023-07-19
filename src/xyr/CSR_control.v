@@ -454,14 +454,14 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             CRMD[2:0]<=0;
                             ERA<=inpc_reg;
                             clk_stall<=0;
-                            if(ecode==TLBR)
+                            if(ecode_reg==TLBR)
                                 begin
                                 CRMD[4:3]<=2'b01;
                                 end
-                            else
-                                begin
+                            // else if(ecode_reg==INT)
+                            //     begin
                                 excp_flush<=1;
-                                end
+                                // end
                             ESTAT_Ecode<=ecode_reg;
                             ESTAT_EsubCode<=esubcode_reg;
                             case(ecode_reg)
