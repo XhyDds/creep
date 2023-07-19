@@ -3,7 +3,7 @@ module predictor #(
                 h_width   = 14,
                 stack_len = 16,
                 queue_len = 16,
-                ADDR_WIDTH= 30
+                ADDR_WIDTH = 29
 )(
     input clk,
     input rstn,
@@ -19,6 +19,7 @@ module predictor #(
     output [ADDR_WIDTH-1:0]npc_pdc,
     output [2:0]kind_pdc,
     output taken_pdc,
+    output [1:0]choice_pdc,     //1:btb/ras  0:g/h
     //当前
     input [ADDR_WIDTH-1:0]pc
 );
@@ -30,6 +31,9 @@ module predictor #(
 
     wire choice_real_btb_ras=choice_real[1];
     wire choice_real_b_g    =choice_real[0];
+
+    wire choice_pdc_b_g,choice_pdc_btb_ras;
+    assign choice_pdc={choice_pdc_b_g,choice_pdc_btb_ras};
 
     //hash
     wire [k_width-1:0] pc_hashed;
@@ -123,6 +127,7 @@ module predictor #(
         .taken_real(taken_real),
         .kind_pdc(kind_pdc),
         .taken_pdc(taken_pdc),
+        .choice_b_g(choice_pdc_b_g),
         .pc_gh_hashed(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
         .pc(pc)
@@ -188,6 +193,7 @@ module predictor #(
         .npc_pdc(npc_pdc),
         .kind_pdc(kind_pdc),
         .taken_pdc(taken_pdc),
+        .choice_btb_ras(choice_pdc_btb_ras),
         .pc_gh_hashed(pc_gh_hashed),
         .pc(pc)
     );

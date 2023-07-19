@@ -50,7 +50,7 @@ module ReturnBuffer #(
                 end
             end
             RECEIVE: begin
-                if(rlast) begin
+                if(rready&&rlast) begin
                     next_state = SEND;
                 end
                 else begin
@@ -99,7 +99,7 @@ module ReturnBuffer #(
                     end
                 end
                 RECEIVE: begin
-                    if(rlast) begin
+                    if(rready&&rlast) begin
                         _word <= {rdata,_word[(1<<offset_width)*32-1:32]};
                     end
                     else begin
