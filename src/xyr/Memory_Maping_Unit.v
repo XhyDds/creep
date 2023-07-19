@@ -1,5 +1,5 @@
 module Memory_Maping_Unit#(
-    parameter TLB_n=1,TLB_PALEN=32,TLB_VALEN=32
+    parameter TLB_n=3,TLB_PALEN=32,TLB_VALEN=32
 )(
     input clk,rstn,
     input [3:0] pipeline_MMU_type,
@@ -90,7 +90,7 @@ module Memory_Maping_Unit#(
     assign op=pipeline_MMU_excp_arg[4:0];
     
     wire exe;wire [TLB_n-1:0] Index;
-    assign exe=type==MMU||type==PRIV_MMU;
+    assign exe=(type==MMU||type==PRIV_MMU);
     assign Index=TLBIDXin[TLB_n-1:0];
     
     always@(posedge(clk),negedge(rstn))
@@ -115,114 +115,120 @@ module Memory_Maping_Unit#(
     TLBIDX=TLBIDXin;TLBEHI=TLBEHIin;
     TLBELO0=TLBELO0in;TLBELO1=TLBELO1in;
     ASIDrd=ASIDin;
-    case(subtype)
-        TLBSRCH:
-            begin
-            TLBIDX[31]=1;//NE
-            for(i=0;i<=TLB_nex;i=i+1)
-                begin
-                if((ASID[i]==ASIDin || G[i]==1) && VPPN[i]==TLBEHIin[31:13] && E[i]==1)//E,G?
-                    begin
-                    TLBIDX[31]=0;
-                    TLBIDX[TLB_n-1:0]=i;//Index
-                    end
-                end
-            end
-        TLBRD:
-            if(E[Index])//E[Index]==1
-                begin
-                TLBIDX[31]=0;//NE
-                TLBEHI[31:13]=VPPN[Index];
-                TLBELO0[6:0]={G[Index],MAT0[Index],PLV0[Index],D0[Index],V0[Index]};
-                TLBELO0[TLB_PALEN-5:8]=PPN0[Index];
-                TLBELO1[6:0]={G[Index],MAT1[Index],PLV1[Index],D1[Index],V1[Index]};
-                TLBELO1[TLB_PALEN-5:8]=PPN1[Index];
-                TLBIDX[29:24]=PS[Index];
-                ASIDrd=ASID[Index];
-                end
-            else
-                begin
-                TLBIDX[31]=1;
-                TLBEHI[31:13]=0;
-                TLBELO0=0;
-                TLBELO1=0;
-                TLBIDX=0;
-                ASIDrd=0;
-                end
-    endcase 
+    if(exe)
+       begin
+       case(subtype)
+           TLBSRCH:
+               begin
+               TLBIDX[31]=1;//NE
+               for(i=0;i<=TLB_nex;i=i+1)
+                   begin
+                   if((ASID[i]==ASIDin || G[i]==1) && VPPN[i]==TLBEHIin[31:13] && E[i]==1)//E,G?
+                       begin
+                       TLBIDX[31]=0;
+                       TLBIDX[TLB_n-1:0]=i;//Index
+                       end
+                   end
+               end
+           TLBRD:
+               if(E[Index])//E[Index]==1
+                   begin
+                   TLBIDX[31]=0;//NE
+                   TLBEHI[31:13]=VPPN[Index];
+                   TLBELO0[6:0]={G[Index],MAT0[Index],PLV0[Index],D0[Index],V0[Index]};
+                   TLBELO0[TLB_PALEN-5:8]=PPN0[Index];
+                   TLBELO1[6:0]={G[Index],MAT1[Index],PLV1[Index],D1[Index],V1[Index]};
+                   TLBELO1[TLB_PALEN-5:8]=PPN1[Index];
+                   TLBIDX[29:24]=PS[Index];
+                   ASIDrd=ASID[Index];
+                   end
+               else
+                   begin
+                   TLBIDX[31]=1;
+                   TLBEHI[31:13]=0;
+                   TLBELO0=0;
+                   TLBELO1=0;
+                   TLBIDX=0;
+                   ASIDrd=0;
+                   end
+       endcase 
+       end
     end
     
     always@(posedge(clk))
     begin
-    case(subtype)
-        TLBWR,TLBFILL:
-            begin
-            PS[Index]<=TLBIDXin[29:24];
-            E[Index]<=~TLBIDXin[31];
-            VPPN[Index]<=TLBEHIin[31:13];
-            {MAT0[Index],PLV0[Index],D0[Index],V0[Index]}<=TLBELO0[5:0];
-            {MAT1[Index],PLV1[Index],D1[Index],V1[Index]}<=TLBELO1[5:0];
-            G[Index]<=TLBELO1[6]&TLBELO0[6];
-            ASID[Index]<=ASIDin;
-            end
-        INVTLB:
-            begin
-            case(op)
-                5'h0,5'h1:
-                    for(i=0;i<=TLB_nex;i=i+1)
-                        begin
-                        V0[i]<=0;V1[i]<=0;
-                        end
-                5'h2:
-                    for(i=0;i<=TLB_nex;i=i+1)
-                        begin
-                        if(G[i])//G[i]==1
+    if(exe)
+        begin
+        case(subtype)
+            TLBWR,TLBFILL:
+                begin
+                PS[Index]<=TLBIDXin[29:24];
+                E[Index]<=~TLBIDXin[31];
+                VPPN[Index]<=TLBEHIin[31:13];
+                {MAT0[Index],PLV0[Index],D0[Index],V0[Index]}<=TLBELO0[5:0];
+                {MAT1[Index],PLV1[Index],D1[Index],V1[Index]}<=TLBELO1[5:0];
+                G[Index]<=TLBELO1[6]&TLBELO0[6];
+                ASID[Index]<=ASIDin;
+                end
+            INVTLB:
+                begin
+                case(op)
+                    5'h0,5'h1:
+                        for(i=0;i<=TLB_nex;i=i+1)
                             begin
                             V0[i]<=0;V1[i]<=0;
                             end
-                        end
-                5'h3:
-                    for(i=0;i<=TLB_nex;i=i+1)
-                        begin
-                        if(~G[i])//G[i]==0
+                    5'h2:
+                        for(i=0;i<=TLB_nex;i=i+1)
                             begin
-                            V0[i]<=0;V1[i]<=0;
+                            if(G[i])//G[i]==1
+                                begin
+                                V0[i]<=0;V1[i]<=0;
+                                end
                             end
-                        end
-                5'h4:
-                    for(i=0;i<=TLB_nex;i=i+1)
-                        begin
-                        if(~G[i] && ASID[i]==rj[9:0])//G[i]==0
+                    5'h3:
+                        for(i=0;i<=TLB_nex;i=i+1)
                             begin
-                            V0[i]<=0;V1[i]<=0;
+                            if(~G[i])//G[i]==0
+                                begin
+                                V0[i]<=0;V1[i]<=0;
+                                end
                             end
-                        end
-                5'h5:
-                     for(i=0;i<=TLB_nex;i=i+1)
-                        begin
-                        if(~G[i] && ASID[i]==rj[9:0] && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==0
+                    5'h4:
+                        for(i=0;i<=TLB_nex;i=i+1)
                             begin
-                            if((rk>>PS[i])&32'b1)//rk[PS[i]]==1
-                                V1[i]<=0;
-                            else
-                                V1[i]<=0;
+                            if(~G[i] && ASID[i]==rj[9:0])//G[i]==0
+                                begin
+                                V0[i]<=0;V1[i]<=0;
+                                end
                             end
-                        end
-                5'h6:
-                    for(i=0;i<=TLB_nex;i=i+1)
-                        begin
-                        if((G[i] || ASID[i]==rj[9:0]) && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==1
+                    5'h5:
+                         for(i=0;i<=TLB_nex;i=i+1)
                             begin
-                            if((rk>>PS[i])&32'b1)//rk[PS[i]]==1
-                                V1[i]<=0;
-                            else
-                                V1[i]<=0;
+                            if(~G[i] && ASID[i]==rj[9:0] && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==0
+                                begin
+                                if((rk>>PS[i])&32'b1)//rk[PS[i]]==1
+                                    V1[i]<=0;
+                                else
+                                    V1[i]<=0;
+                                end
                             end
-                        end
-            
-            endcase
-            end
-    endcase
+                    5'h6:
+                        for(i=0;i<=TLB_nex;i=i+1)
+                            begin
+                            if((G[i] || ASID[i]==rj[9:0]) && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==1
+                                begin
+                                if((rk>>PS[i])&32'b1)//rk[PS[i]]==1
+                                    V1[i]<=0;
+                                else
+                                    V1[i]<=0;
+                                end
+                            end
+                
+                endcase
+                end
+        endcase
+        end
     end
     
     //0Â·²éÕÒÂß¼­
@@ -277,7 +283,7 @@ module Memory_Maping_Unit#(
             excp_arg0<={1'b1,DEFAULT,TLBR};
             end
         else if(found_v0==0)
-            case(memtype0)
+            case(optype0)
                 FETCH:
                    excp_arg0<={1'b1,DEFAULT,PIF}; 
                 LOAD:
@@ -356,7 +362,7 @@ module Memory_Maping_Unit#(
             excp_arg1<={1'b1,DEFAULT,TLBR};
             end
         else if(found_v1==0)
-            case(memtype1)
+            case(optype1)
                 FETCH:
                    excp_arg1<={1'b1,DEFAULT,PIF}; 
                 LOAD:
