@@ -1,7 +1,7 @@
 module npc_predictor#(
     parameter   gh_width   = 14,
                 stack_len  = 16,
-                ADDR_WIDTH = 30
+                ADDR_WIDTH = 29
 )(
     input clk,
     input rstn,
@@ -15,6 +15,7 @@ module npc_predictor#(
     output reg[ADDR_WIDTH-1:0] npc_pdc,
     input [2:0]kind_pdc,
     input taken_pdc,
+    output choice_btb_ras,    //0:btb,1:ras
     //当前
     input [gh_width-1:0] pc_gh_hashed,
     input [ADDR_WIDTH-1:0] pc
@@ -51,8 +52,6 @@ module npc_predictor#(
         .is_ret_ex(kind_ex==RET),
         .is_ret_pdc(kind_pdc==RET)
     );
-
-    wire choice_btb_ras;    //0:btb,1:ras
 
     cpht#(
         .ch_width(gh_width)
