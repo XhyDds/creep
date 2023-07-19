@@ -47,6 +47,9 @@ module fetch_buffer_v2 (
                 if(icache_valid)
                     if (flag) 
                         begin
+                            buffer[0]<=buffer[2];
+                            bufferpc[0]<=bufferpc[2];
+                            valid_and_plv[0]<=valid_and_plv[2];
                             buffer[1]<=buffer[3];
                             bufferpc[1]<=bufferpc[3];
                             valid_and_plv[1]<=valid_and_plv[3];
@@ -92,6 +95,9 @@ module fetch_buffer_v2 (
                         end
                     else 
                         begin
+                            buffer[0]<=buffer[1];
+                            bufferpc[0]<=bufferpc[1];
+                            valid_and_plv[0]<=valid_and_plv[1];
                             buffer[1]<=buffer[2];
                             bufferpc[1]<=bufferpc[2];
                             valid_and_plv[1]<=valid_and_plv[2];
