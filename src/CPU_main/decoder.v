@@ -46,11 +46,11 @@ module decoder (
                         'b0000000: 
                             if(ir[14:11]=='b1100) 
                                 if(!ir[10])
-                                    if(|ir[9:5])         begin excp_arg=16'h40;rd=ir[9:5];type_=liwai;subtype=8;regwrite=1; end//RDCNTID.W
-                                    else if(|ir[4:0])    begin rd=ir[4:0];type_=shizhong;subtype=0; end//RDCNTVL.W
+                                    if(|ir[9:5])         begin excp_arg=16'h40;rd=ir[9:5];type_=liwai;subtype=8;regwrite=1; end//RDCNTID
+                                    else if(|ir[4:0])    begin rd=ir[4:0];type_=shizhong;subtype=0;regwrite=1; end//RDCNTVL.W
                                     else                 begin type_=liwai;subtype=0;excp_arg='b001101; end
                                 else 
-                                    if(~|ir[9:5])        begin rd=ir[4:0];type_=shizhong;subtype=1; end//RDCNTVH.W
+                                    if(~|ir[9:5])        begin rd=ir[4:0];type_=shizhong;subtype=1;regwrite=1; end//RDCNTVH.W
                                     else                 begin type_=liwai;subtype=0;excp_arg='b001101; end
                             // else    if(~|ir[14:0])       begin nop=1; end//全0为也是不存在例外！！
                             else                         begin type_=liwai;subtype=0;excp_arg='b001101; end

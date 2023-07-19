@@ -750,7 +750,7 @@ module core_top (
         .excp_arg_reg_exe0_1_excp       ( excp_arg_reg_exe0_1_excp      ),
         .rrj1_forward         		    ( rrj1_forward         		    ),
         .imm_reg_exe0_1         		( imm_reg_exe0_1         		),
-        .ctr_reg_exe0_1         		( ctr_reg_exe0_1         		),
+        .ctr_reg_exe0_1         		( ctr_reg_exe0_1_ALE         	),
         .rrd1_forward          		    ( rrd1_forward          		),
         .addr_pipeline_dcache   		( addr_pipeline_dcache   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
@@ -792,7 +792,6 @@ module core_top (
     wire 	[31:0]  csr_dmw1_diff_0     ;
     wire 	[31:0]  csr_pgdl_diff_0     ;
     wire 	[31:0]  csr_pgdh_diff_0     ;
-    wire            tlbfill_en          ;
     wire            excp_flush          ;
     wire            ertn_flush          ;
     wire    [5:0]   ws_csr_ecode        ;
@@ -1446,7 +1445,7 @@ module core_top (
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
             rd_exe0_exe1_0 <= rd_reg_exe0_0;
-            aluresult_exe0_exe1_0 <= aluresult0;
+            aluresult_exe0_exe1_0 <= (ctr_reg_exe0_0[3:0]==7)?countresult0:aluresult0;
             pc_exe0_exe1_0<=pc_reg_exe0_0;
             ir_exe0_exe1_0<=ir_reg_exe0_0;
             ir_valid_exe0_exe1_0<=ir_valid_reg_exe0_0;
@@ -1479,7 +1478,7 @@ module core_top (
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_ALE;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
-            aluresult_exe0_exe1_1<=aluresult1;
+            aluresult_exe0_exe1_1<=(ctr_reg_exe0_1_ALE[3:0]==7)?countresult1:aluresult1;
             pc_exe0_exe1_1<=pc_reg_exe0_1;
             ir_exe0_exe1_1<=ir_reg_exe0_1;
             addr_exe0_exe1<=addr_pipeline_dcache;
@@ -1497,7 +1496,7 @@ module core_top (
             1: ;
             2: result0=divresult0;
             4: result0=mulresult0;
-            7: result0=countresult0;
+            7: result0=aluresult_exe0_exe1_0;
             8: result0=aluresult_exe0_exe1_0;
         endcase
         case (ctr_exe0_exe1_1[3:0])
@@ -1521,7 +1520,7 @@ module core_top (
             6: result1=dcacheresult;//Dcache ONLY
             `endif
 
-            7: result1=countresult1;
+            7: result1=aluresult_exe0_exe1_1;
             8: result1=aluresult_exe0_exe1_1;
         endcase
     end
@@ -2027,7 +2026,7 @@ L1_L2cache #(
         .clock              (aclk           ),
         .coreid             (0              ),
         .index              (0              ),
-        .valid              (cmt_inst_st_en ),
+        .valid              (0 ),
         .storePAddr         (cmt_st_paddr   ),
         .storeVAddr         (cmt_st_vaddr   ),
         .storeData          (cmt_st_data    )
@@ -2037,7 +2036,7 @@ L1_L2cache #(
         .clock              (aclk           ),
         .coreid             (0              ),
         .index              (0              ),
-        .valid              (cmt_inst_ld_en ),
+        .valid              (0 ),
         .paddr              (cmt_ld_paddr   ),
         .vaddr              (cmt_ld_vaddr   )
     );

@@ -23,15 +23,15 @@ module counter (
     end
 
     always @(*) begin
+        countresult0=0;
+        countresult1=0; 
+        countresult=count;
         if(type0==7)
             if(subtype0==0) countresult0=count[31:0];
-            if(subtype0==1) countresult0=count[63:32];
-            else countresult0=0;
+            else if(subtype0==1) countresult0=count[63:32];
         if(type1==7)
             if(subtype1==0) countresult1=count[31:0];
-            if(subtype1==1) countresult1=count[63:32];
-            else countresult1=0; 
-        countresult=count;
+            else if(subtype1==1) countresult1=count[63:32];
     end
     
 endmodule //counter
