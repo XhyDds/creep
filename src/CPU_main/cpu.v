@@ -1984,9 +1984,9 @@ L1_L2cache #(
         .excp_valid         (cmt_excp_flush ),
         .eret               (cmt_ertn       ),
         .intrNo             (csr_estat_diff_0[12:2]),
-        .cause              (cmt_csr_ecode  ),
-        .exceptionPC        (cmt_pc1        ),
-        .exceptionInst      (cmt_inst       )
+        .cause              (0  ),
+        .exceptionPC        (0        ),
+        .exceptionInst      (0       )
     );
 
     DifftestTrapEvent DifftestTrapEvent(

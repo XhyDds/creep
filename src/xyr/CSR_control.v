@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�?????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�?????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?????，ex1�?????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?????，ex1�?????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -284,7 +284,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 begin
                 flushout=1;                        
                 mask=pipeline_CSR_mask;
-                if(csr_num=='h44&&dwcsr[0])
+                if(csr_num=='h44 && dwcsr[0])
                     TI_cl=1;
                 end
             INTE:
@@ -439,7 +439,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                     case(mode_reg)
                         ERTN:
                             begin
-                            excp_flush<=1;
+                            ertn_flush<=1;
                             if(ESTAT_Ecode==TLBR)
                                 CRMD[4:0]<={2'b10,PRMD};
                             else
@@ -460,11 +460,17 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                                 end
                             else
                                 begin
-                                ertn_flush<=1;
+                                excp_flush<=1;
                                 end
                             ESTAT_Ecode<=ecode_reg;
                             ESTAT_EsubCode<=esubcode_reg;
-                            BADV<=evaddr_reg;
+                            case(ecode_reg)
+                                TLBR,ALE,PIL,PIS,PIF,PME,PPI:
+                                    BADV<=evaddr_reg;
+                                ADE:
+                                    if(esubcode_reg==ADEF)
+                                        BADV<=evaddr_reg;
+                            endcase
                             end
                         LLW:
                             begin
