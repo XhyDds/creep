@@ -9,14 +9,151 @@ module Memory_Maping_Unit#(
     input [8:0] pipeline_MMU_CRMD,
     input [9:0] pipeline_MMU_ASID,
     input [31:0] pipeline_MMU_DMW0,
+    input [31:0] pipeline_MMU_DMW1,
+    
+    output [31:0] MMU_pipeline_TLBIDX,
+    output [31:0] MMU_pipeline_TLBEHI,
+    output [31:0] MMU_pipeline_TLBELO0,
+    output [31:0] MMU_pipeline_TLBELO1,
+    input [31:0] pipeline_MMU_TLBIDX,
+    input [31:0] pipeline_MMU_TLBEHI,
+    input [31:0] pipeline_MMU_TLBELO0,
+    input [31:0] pipeline_MMU_TLBELO1,
+    
+    input [1:0] pipeline_MMU_optype0,//0-fetch 1-load 2-store
     input [31:0] pipeline_MMU_VADDR0,
-    input [31:0] pipeline_MMU_PADDR0,
-    input 
+    output [31:0] MMU_pipeline_PADDR0,
+    output [15:0] MMU_pipeline_excp_arg0,//valid,subcode,code
+    output [1:0] MMU_pipeline_memtype0,
+    
+    input [1:0] pipeline_MMU_optype1,//0-fetch 1-load 2-store
+    input [31:0] pipeline_MMU_VADDR1,
+    output [31:0] MMU_pipeline_PADDR1,
+    output [15:0] MMU_pipeline_excp_arg1,
+    output [1:0] MMU_pipeline_memtype1
     
 );
-
-
-
+    localparam TLB_nex=(1<<TLB_n)-1;
+    localparam MMU=11,PRIV_MMU=10;
+    localparam TLBSRCH=1,TLBRD=2,TLBWR=3,TLBFILL=4,INVTLB=5;
+    localparam FETCH=0,LOAD=1,STORE=2;
+    localparam INT=6'H0,PIL=6'H1,PIS=6'H2,PIF=6'H3,PME=6'H4,PPI=6'H7,
+    ADE=6'H8,ALE=6'H9,SYS=6'HB,BRK=6'HC,INE=6'HD,IPE=6'HE,FPD=6'HF,
+    FPE=6'H12,TLBR=6'H3F;
+    localparam ADEF=9'H0,ADEM=9'H1,DEFAULT=9'H0;
+    
+    reg [TLB_VALEN-14:0] VPPN[0:TLB_nex];reg [5:0] PS[0:TLB_nex];
+    reg G[0:TLB_nex];reg [9:0] ASID[0:TLB_nex];reg E[0:TLB_nex];
+    reg [TLB_PALEN-13:0] PPN0[0:TLB_nex],PPN1[0:TLB_nex];
+    reg [1:0] PLV0[0:TLB_nex],PLV1[0:TLB_nex];
+    reg [1:0] MAT0[0:TLB_nex],MAT1[0:TLB_nex];
+    reg D0[0:TLB_nex],D1[0:TLB_nex];reg V0[0:TLB_nex],V1[0:TLB_nex];
+    
+    wire [31:0]VADDR0,VADDR1;wire [1:0]optype0,optype1;
+    reg [31:0]PADDR0,PADDR1;reg [15:0]excp_arg0,excp_arg1;
+    reg [1:0]memtype0,memtype1;reg [31:0]temp0,temp1;
+    reg TLB_found0,TLB_found1;reg [5:0] found_ps0,found_ps1;
+    reg found_v0,found_d0,found_v1,found_d1;
+    reg [1:0] found_mat0,found_plv0,found_mat1,found_plv1;
+    reg [TLB_PALEN-13:0] found_ppn0,found_ppn1;
+    wire [31:0] addrmask0,addrmask1;wire DMW0_plvOK,DMW1_plvOK;   
+    assign VADDR0=pipeline_MMU_VADDR0,optype0=pipeline_MMU_optype0;
+    assign MMU_pipeline_PADDR0=PADDR0,MMU_pipeline_excp_arg0=excp_arg0;
+    assign MMU_pipeline_memtype0=memtype0;
+    assign VADDR1=pipeline_MMU_VADDR1,optype1=pipeline_MMU_optype1;
+    assign MMU_pipeline_PADDR1=PADDR1,MMU_pipeline_excp_arg1=excp_arg1;
+    assign MMU_pipeline_memtype1=memtype1;
+    
+    
+    
+    reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
+    wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;
+    assign MMU_pipeline_TLBIDX=TLBIDXout,MMU_pipeline_TLBEHI=TLBEHIout;
+    assign MMU_pipeline_TLBELO0=TLBELO0out,MMU_pipeline_TLBELO1=TLBELO1out;
+    assign TLBIDXin=pipeline_MMU_TLBIDX,TLBEHIin=pipeline_MMU_TLBEHI;
+    assign TLBELO0in=pipeline_MMU_TLBELO0,TLBELO1in=pipeline_MMU_TLBELO1;
+    
+    wire [8:0]CRMDin;wire [9:0]ASIDin;wire [31:0] DMW0in,DMW1in;
+    wire [3:0] type;wire [4:0] subtype; wire [31:0] rj,rk;
+    assign CRMDin=pipeline_MMU_CRMD,ASIDin=pipeline_MMU_ASID;
+    assign DMW0in=pipeline_MMU_DMW0,DMW1in=pipeline_MMU_DMW1;
+    assign DMW0_plvOK=(DMW0in[0]==1&&CRMDin[1:0]==0)||(DMW0in[3]==1&&CRMDin[1:0]==3);
+    assign DMW1_plvOK=(DMW1in[0]==1&&CRMDin[1:0]==0)||(DMW1in[3]==1&&CRMDin[1:0]==3);
+    assign type=pipeline_MMU_type,subtype=pipeline_MMU_subtype;
+    assign rj=pipeline_MMU_rj,rk=pipeline_MMU_rk;
+    
+    
+    
+    integer i;
+    always@(*)
+    begin
+    TLB_found0=0;
+    temp0=0;
+    for(i=0;i<=TLB_nex;i=i+1)
+        begin
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR0,12'b0}>>PS[i]))
+            begin
+            TLB_found0=1;
+            found_ps0=PS[i];temp0={VADDR0,12'b0}>>found_ps0;
+            if(temp0[0]==0)
+                begin
+                found_v0=V0[i];found_d0=D0[i];
+                found_mat0=MAT0[i];found_plv0=PLV0[i];
+                found_ppn0=PPN0[i];
+                end
+            else
+                begin
+                found_v0=V1[i];found_d0=D1[i];
+                found_mat0=MAT1[i];found_plv0=PLV1[i];
+                found_ppn0=PPN1[i];
+                end
+            end
+        end
+    end
+    assign addrmask0=(~0)<<found_ps0;
+    always@(posedge(clk),negedge(rstn))
+    begin
+    if(!rstn)
+        begin
+        PADDR0<=0;excp_arg0<=0;
+        memtype0<=0;
+        end
+    else
+        begin
+        PADDR0<=({found_ppn0,12'b0}&addrmask0)|(PADDR0&~addrmask0);
+        memtype0<=found_mat0;
+        excp_arg0<=0;
+        if(TLB_found0==0)
+            begin
+            excp_arg0<={1'b1,DEFAULT,TLBR};
+            end
+        else if(found_v0==0)
+            case(memtype0)
+                FETCH:
+                   excp_arg0<={1'b1,DEFAULT,PIF}; 
+                LOAD:
+                    excp_arg0<={1'b1,DEFAULT,PIL};
+                STORE:
+                    excp_arg0<={1'b1,DEFAULT,PIS};
+            endcase
+        else if(CRMDin[1:0]>found_plv0)
+            excp_arg0<={1'b1,DEFAULT,PPI};
+        else if(memtype0==STORE&&found_d0==0)
+            excp_arg0<={1'b1,DEFAULT,PME};
+        if(DMW0_plvOK && DMW0in[31:29]==VADDR0[31:29])
+            begin
+            PADDR0<={DMW0in[27:25],VADDR0[28:0]};
+            memtype0<=DMW0in[5:4];
+            excp_arg0<=0;
+            end
+        else if(DMW1_plvOK && DMW1in[31:29]==VADDR0[31:29])
+            begin
+            PADDR0<={DMW1in[27:25],VADDR0[28:0]};
+            memtype0<=DMW1in[5:4];
+            excp_arg0<=0;
+            end
+        end
+    end
 
 
 endmodule
