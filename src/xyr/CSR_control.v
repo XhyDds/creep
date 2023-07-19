@@ -108,7 +108,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
     reg [31:0] dout_reg;reg run_reg;reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
-    reg [31:0] jumpc_reg;reg TCFG0_reg;
+    reg [31:0] jumpc_reg;reg TCFG0_reg;reg nexcp_flush,nertn_flush;
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
@@ -182,6 +182,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
         csr_num_reg<=0;inst_stop_reg<=0;jumpc_reg<=0;
+        excp_flush<=0;ertn_flush<=0;
         end
     else if(!stallin||inte)
         begin
@@ -191,6 +192,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
+        excp_flush<=nexcp_flush;ertn_flush<=nertn_flush;
         if(jumpc_valid)
             jumpc_reg<=jumpc;
         end
@@ -247,6 +249,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
     TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
     
+    nexcp_flush=0;nertn_flush=0;
     if(!inpc_valid)
         inpc=jumpc_reg;
     if(inte)
@@ -279,6 +282,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         case(mode)
             ERTN:
                 begin
+                nertn_flush=1;
                 flushout=1;
                 outpc=ERA;
                 end
@@ -298,7 +302,10 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                     outpc={TLBRENTRY,6'b0};
                     end
                else
+                    begin
+                    nexcp_flush=1;
                     outpc={EENTRY,6'b0};
+                    end
                end 
             CSRWR:
                 begin
@@ -422,13 +429,9 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         TLBRENTRY<=0;DMW0_PLV0<=0;DMW0_PLV3<=0;DMW0_MAT<=0;
         DMW0_PSEG<=0;DMW0_VSEG<=0;DMW1_PLV0<=0;DMW1_PLV3<=0;DMW1_MAT<=0;
         DMW1_PSEG<=0;DMW1_VSEG<=0;TID<=0;TCFG<=0;
-        excp_flush<=0;
-        ertn_flush<=0;
         end
     else
         begin
-        excp_flush<=0;
-        ertn_flush<=0;
             if(run_reg)
                 begin
                 if(mode_reg==IDLE && !clk_stall)
@@ -440,7 +443,6 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                     case(mode_reg)
                         ERTN:
                             begin
-                            ertn_flush<=1;
                             if(ESTAT_Ecode==TLBR)
                                 CRMD[4:0]<={2'b10,PRMD};
                             else
@@ -458,10 +460,6 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             if(ecode==TLBR)
                                 begin
                                 CRMD[4:3]<=2'b01;
-                                end
-                            else 
-                                begin
-                                excp_flush<=1;
                                 end
                             ESTAT_Ecode<=ecode_reg;
                             ESTAT_EsubCode<=esubcode_reg;
