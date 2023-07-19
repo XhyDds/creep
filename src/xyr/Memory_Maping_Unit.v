@@ -1,9 +1,10 @@
 module Memory_Maping_Unit#(
-    parameter TLB_n=7,TLB_PALEN=32,TLB_VALEN=32
+    parameter TLB_n=1,TLB_PALEN=32,TLB_VALEN=32
 )(
     input clk,rstn,
     input [3:0] pipeline_MMU_type,
     input [4:0] pipeline_MMU_subtype,
+    input [15:0] pipeline_MMU_excp_arg,
     input [31:0] pipeline_MMU_rj,
     input [31:0] pipeline_MMU_rk,
     input [8:0] pipeline_MMU_CRMD,
@@ -15,10 +16,12 @@ module Memory_Maping_Unit#(
     output [31:0] MMU_pipeline_TLBEHI,
     output [31:0] MMU_pipeline_TLBELO0,
     output [31:0] MMU_pipeline_TLBELO1,
+    output [9:0] MMU_pipeline_ASID,
     input [31:0] pipeline_MMU_TLBIDX,
     input [31:0] pipeline_MMU_TLBEHI,
     input [31:0] pipeline_MMU_TLBELO0,
     input [31:0] pipeline_MMU_TLBELO1,
+
     
     input [1:0] pipeline_MMU_optype0,//0-fetch 1-load 2-store
     input [31:0] pipeline_MMU_VADDR0,
@@ -67,31 +70,172 @@ module Memory_Maping_Unit#(
     
     
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
+    reg [31:0] TLBIDX,TLBEHI,TLBELO0,TLBELO1;
+    reg [9:0] ASIDrd,ASIDout;
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;
     assign MMU_pipeline_TLBIDX=TLBIDXout,MMU_pipeline_TLBEHI=TLBEHIout;
     assign MMU_pipeline_TLBELO0=TLBELO0out,MMU_pipeline_TLBELO1=TLBELO1out;
     assign TLBIDXin=pipeline_MMU_TLBIDX,TLBEHIin=pipeline_MMU_TLBEHI;
     assign TLBELO0in=pipeline_MMU_TLBELO0,TLBELO1in=pipeline_MMU_TLBELO1;
+    assign MMU_pipeline_ASID=ASIDout;
     
     wire [8:0]CRMDin;wire [9:0]ASIDin;wire [31:0] DMW0in,DMW1in;
-    wire [3:0] type;wire [4:0] subtype; wire [31:0] rj,rk;
+    wire [3:0] type;wire [4:0] subtype; wire [31:0] rj,rk;wire [4:0] op;
     assign CRMDin=pipeline_MMU_CRMD,ASIDin=pipeline_MMU_ASID;
     assign DMW0in=pipeline_MMU_DMW0,DMW1in=pipeline_MMU_DMW1;
     assign DMW0_plvOK=(DMW0in[0]==1&&CRMDin[1:0]==0)||(DMW0in[3]==1&&CRMDin[1:0]==3);
     assign DMW1_plvOK=(DMW1in[0]==1&&CRMDin[1:0]==0)||(DMW1in[3]==1&&CRMDin[1:0]==3);
     assign type=pipeline_MMU_type,subtype=pipeline_MMU_subtype;
     assign rj=pipeline_MMU_rj,rk=pipeline_MMU_rk;
+    assign op=pipeline_MMU_excp_arg[4:0];
     
+    wire exe;wire [TLB_n-1:0] Index;
+    assign exe=type==MMU||type==PRIV_MMU;
+    assign Index=TLBIDXin[TLB_n-1:0];
     
+    always@(posedge(clk),negedge(rstn))
+    begin
+    if(!rstn)
+        begin
+        TLBIDXout<=0;TLBEHIout<=0;
+        TLBELO0out<=0;TLBELO1out<=0;
+        ASIDout<=0;
+        end
+    else
+        begin
+        TLBIDXout<=TLBIDX;TLBEHIout<=TLBEHI;
+        TLBELO0out<=TLBELO0;TLBELO1out<=TLBELO1;
+        ASIDout<=ASIDrd;
+        end
+    end
     
     integer i;
     always@(*)
     begin
+    TLBIDX=TLBIDXin;TLBEHI=TLBEHIin;
+    TLBELO0=TLBELO0in;TLBELO1=TLBELO1in;
+    ASIDrd=ASIDin;
+    case(subtype)
+        TLBSRCH:
+            begin
+            TLBIDX[31]=1;//NE
+            for(i=0;i<=TLB_nex;i=i+1)
+                begin
+                if((ASID[i]==ASIDin || G[i]==1) && VPPN[i]==TLBEHIin[31:13] && E[i]==1)//E,G?
+                    begin
+                    TLBIDX[31]=0;
+                    TLBIDX[TLB_n-1:0]=i;//Index
+                    end
+                end
+            end
+        TLBRD:
+            if(E[Index])//E[Index]==1
+                begin
+                TLBIDX[31]=0;//NE
+                TLBEHI[31:13]=VPPN[Index];
+                TLBELO0[6:0]={G[Index],MAT0[Index],PLV0[Index],D0[Index],V0[Index]};
+                TLBELO0[TLB_PALEN-5:8]=PPN0[Index];
+                TLBELO1[6:0]={G[Index],MAT1[Index],PLV1[Index],D1[Index],V1[Index]};
+                TLBELO1[TLB_PALEN-5:8]=PPN1[Index];
+                TLBIDX[29:24]=PS[Index];
+                ASIDrd=ASID[Index];
+                end
+            else
+                begin
+                TLBIDX[31]=1;
+                TLBEHI[31:13]=0;
+                TLBELO0=0;
+                TLBELO1=0;
+                TLBIDX=0;
+                ASIDrd=0;
+                end
+    endcase 
+    end
+    
+    always@(posedge(clk))
+    begin
+    case(subtype)
+        TLBWR,TLBFILL:
+            begin
+            PS[Index]<=TLBIDXin[29:24];
+            E[Index]<=~TLBIDXin[31];
+            VPPN[Index]<=TLBEHIin[31:13];
+            {MAT0[Index],PLV0[Index],D0[Index],V0[Index]}<=TLBELO0[5:0];
+            {MAT1[Index],PLV1[Index],D1[Index],V1[Index]}<=TLBELO1[5:0];
+            G[Index]<=TLBELO1[6]&TLBELO0[6];
+            ASID[Index]<=ASIDin;
+            end
+        INVTLB:
+            begin
+            case(op)
+                5'h0,5'h1:
+                    for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        V0[i]<=0;V1[i]<=0;
+                        end
+                5'h2:
+                    for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if(G[i])//G[i]==1
+                            begin
+                            V0[i]<=0;V1[i]<=0;
+                            end
+                        end
+                5'h3:
+                    for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if(~G[i])//G[i]==0
+                            begin
+                            V0[i]<=0;V1[i]<=0;
+                            end
+                        end
+                5'h4:
+                    for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if(~G[i] && ASID[i]==rj[9:0])//G[i]==0
+                            begin
+                            V0[i]<=0;V1[i]<=0;
+                            end
+                        end
+                5'h5:
+                     for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if(~G[i] && ASID[i]==rj[9:0] && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==0
+                            begin
+                            if((rk>>PS[i])&32'b1)//rk[PS[i]]==1
+                                V1[i]<=0;
+                            else
+                                V1[i]<=0;
+                            end
+                        end
+                5'h6:
+                    for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if((G[i] || ASID[i]==rj[9:0]) && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==1
+                            begin
+                            if((rk>>PS[i])&32'b1)//rk[PS[i]]==1
+                                V1[i]<=0;
+                            else
+                                V1[i]<=0;
+                            end
+                        end
+            
+            endcase
+            end
+    endcase
+    end
+    
+    //0路查找逻辑
+    always@(*)
+    begin
     TLB_found0=0;
     temp0=0;
+    found_v0=0;found_d0=0;
+    found_mat0=0;found_plv0=0;
+    found_ppn0=0;found_ps0=0;
     for(i=0;i<=TLB_nex;i=i+1)
         begin
-        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR0,12'b0}>>PS[i]))
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR0,11'b0}>>PS[i]))//去低位比较，VPPN要补13位为正确地址
             begin
             TLB_found0=1;
             found_ps0=PS[i];temp0={VADDR0,12'b0}>>found_ps0;
@@ -120,10 +264,15 @@ module Memory_Maping_Unit#(
         end
     else
         begin
-        PADDR0<=({found_ppn0,12'b0}&addrmask0)|(PADDR0&~addrmask0);
+        PADDR0<=({found_ppn0,12'b0}&addrmask0)|(VADDR0&~addrmask0);
         memtype0<=found_mat0;
         excp_arg0<=0;
-        if(TLB_found0==0)
+        if(CRMDin[4:3]==2'b01)//DA==1,PG==0
+            begin
+            PADDR0<=0;
+            PADDR0<=VADDR0;
+            end
+        else if(TLB_found0==0)
             begin
             excp_arg0<={1'b1,DEFAULT,TLBR};
             end
@@ -154,8 +303,85 @@ module Memory_Maping_Unit#(
             end
         end
     end
-
-
+    
+    //1路查找逻辑
+    always@(*)
+    begin
+    TLB_found1=0;
+    temp1=0;
+    found_v1=0;found_d1=0;
+    found_mat1=0;found_plv1=0;
+    found_ppn1=0;found_ps1=0;
+    for(i=0;i<=TLB_nex;i=i+1)
+        begin
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR1,11'b0}>>PS[i]))//去低位比较，VPPN要补13位为正确地址
+            begin
+            TLB_found1=1;
+            found_ps1=PS[i];temp1={VADDR0,12'b0}>>found_ps1;
+            if(temp1[0]==0)
+                begin
+                found_v1=V0[i];found_d1=D0[i];
+                found_mat1=MAT0[i];found_plv1=PLV0[i];
+                found_ppn1=PPN0[i];
+                end
+            else
+                begin
+                found_v1=V1[i];found_d1=D1[i];
+                found_mat1=MAT1[i];found_plv1=PLV1[i];
+                found_ppn1=PPN1[i];
+                end
+            end
+        end
+    end
+    assign addrmask1=(~0)<<found_ps1;
+    always@(posedge(clk),negedge(rstn))
+    begin
+    if(!rstn)
+        begin
+        PADDR1<=0;excp_arg1<=0;
+        memtype1<=0;
+        end
+    else
+        begin
+        PADDR1<=({found_ppn1,12'b0}&addrmask1)|(VADDR1&~addrmask1);
+        memtype1<=found_mat1;
+        excp_arg1<=0;
+        if(CRMDin[4:3]==2'b01)//DA==1,PG==0
+            begin
+            PADDR1<=0;
+            PADDR1<=VADDR1;
+            end
+        else if(TLB_found1==0)
+            begin
+            excp_arg1<={1'b1,DEFAULT,TLBR};
+            end
+        else if(found_v1==0)
+            case(memtype1)
+                FETCH:
+                   excp_arg1<={1'b1,DEFAULT,PIF}; 
+                LOAD:
+                    excp_arg1<={1'b1,DEFAULT,PIL};
+                STORE:
+                    excp_arg1<={1'b1,DEFAULT,PIS};
+            endcase
+        else if(CRMDin[1:0]>found_plv1)
+            excp_arg1<={1'b1,DEFAULT,PPI};
+        else if(memtype1==STORE&&found_d1==0)
+            excp_arg1<={1'b1,DEFAULT,PME};
+        if(DMW0_plvOK && DMW0in[31:29]==VADDR1[31:29])
+            begin
+            PADDR1<={DMW0in[27:25],VADDR1[28:0]};
+            memtype1<=DMW0in[5:4];
+            excp_arg1<=0;
+            end
+        else if(DMW1_plvOK && DMW1in[31:29]==VADDR1[31:29])
+            begin
+            PADDR1<={DMW1in[27:25],VADDR1[28:0]};
+            memtype1<=DMW1in[5:4];
+            excp_arg1<=0;
+            end
+        end
+    end
 endmodule
 
 
