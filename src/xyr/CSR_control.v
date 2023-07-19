@@ -37,6 +37,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0] pipeline_CSR_TLBEHI,
     input [31:0] pipeline_CSR_TLBELO0,
     input [31:0] pipeline_CSR_TLBELO1,
+    input [9:0]  pipeline_CSR_ASID,
 
     output reg excp_flush,
     output reg ertn_flush,
@@ -102,7 +103,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;
     reg rand_en;reg inst_stop,inst_stop_reg;wire [31:0] jumpc;wire jumpc_valid;
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
-    wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;
+    wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;wire [9:0] ASIDin;
     
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
     reg [31:0] dout_reg;reg run_reg;reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
@@ -121,6 +122,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign CSR_pipeline_TLBELO0=TLBELO0out,CSR_pipeline_TLBELO1=TLBELO1out;
     assign TLBIDXin=pipeline_CSR_TLBIDX,TLBEHIin=pipeline_CSR_TLBEHI;
     assign TLBELO0in=pipeline_CSR_TLBELO0,TLBELO1in=pipeline_CSR_TLBELO1;
+    assign ASIDin=pipeline_CSR_ASID;
     assign inpc_valid=pipeline_CSR_inpc_valid,jumpc_valid=pipeline_CSR_jumpc_valid;
     assign jumpc=pipeline_CSR_jumpc;
     Random rand_(.en(rand_en),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
@@ -480,6 +482,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                                 TLBIDX_NE<=TLBIDXin[31];
                                 if(!TLBIDXin[31])//NE=0
                                     begin
+                                    ASID_ASID<=ASIDin;
                                     TLBEHI<=TLBEHIin[31:13];
                                     TLBELO0_VDPLVMATG<=TLBELO0in[6:0];
                                     TLBELO0_PPN<=TLBELO0in[TLB_PALEN-5:8];
