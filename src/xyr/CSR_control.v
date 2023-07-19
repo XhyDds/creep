@@ -183,7 +183,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
         csr_num_reg<=0;inst_stop_reg<=0;jumpc_reg<=0;
-        excp_flush<=0;ertn_flush<=0;
+        //excp_flush<=0;ertn_flush<=0;
         end
     else if(!stallin||inte)
         begin
@@ -193,7 +193,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
-        excp_flush<=nexcp_flush;ertn_flush<=nertn_flush;
+        //excp_flush<=nexcp_flush;ertn_flush<=nertn_flush;
         if(jumpc_valid)
             jumpc_reg<=jumpc;
         end
@@ -267,14 +267,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         esubcode=pipeline_CSR_excp_arg1[14:6];
         evaddr=pipeline_CSR_evaddr1;
         end
-//    if(mode==ERTN)
-//        begin
-//        outpc=ERA;
-//        end
-//    else if(ecode==TLBR)
-//        begin
-//        outpc={TLBRENTRY,6'b0};
-//        end
+
     if(ecode==ADE&&esubcode==ADEF)
         evaddr=inpc;
    
@@ -430,9 +423,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         TLBRENTRY<=0;DMW0_PLV0<=0;DMW0_PLV3<=0;DMW0_MAT<=0;
         DMW0_PSEG<=0;DMW0_VSEG<=0;DMW1_PLV0<=0;DMW1_PLV3<=0;DMW1_MAT<=0;
         DMW1_PSEG<=0;DMW1_VSEG<=0;TID<=0;TCFG<=0;
+        excp_flush<=0;ertn_flush<=0;
         end
     else
         begin
+        excp_flush<=0;ertn_flush<=0;
             if(run_reg)
                 begin
                 if(mode_reg==IDLE && !clk_stall)
@@ -444,6 +439,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                     case(mode_reg)
                         ERTN:
                             begin
+                            excp_flush<=1;
                             if(ESTAT_Ecode==TLBR)
                                 CRMD[4:0]<={2'b10,PRMD};
                             else
@@ -461,6 +457,10 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             if(ecode==TLBR)
                                 begin
                                 CRMD[4:3]<=2'b01;
+                                end
+                            else
+                                begin
+                                ertn_flush<=1;
                                 end
                             ESTAT_Ecode<=ecode_reg;
                             ESTAT_EsubCode<=esubcode_reg;

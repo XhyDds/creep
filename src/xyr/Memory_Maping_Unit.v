@@ -80,17 +80,17 @@ module Memory_Maping_Unit#(
     assign MMU_pipeline_ASID=ASIDout;
     
     wire [8:0]CRMDin;wire [9:0]ASIDin;wire [31:0] DMW0in,DMW1in;
-    wire [3:0] type;wire [4:0] subtype; wire [31:0] rj,rk;wire [4:0] op;
+    wire [3:0] type_;wire [4:0] subtype; wire [31:0] rj,rk;wire [4:0] op;
     assign CRMDin=pipeline_MMU_CRMD,ASIDin=pipeline_MMU_ASID;
     assign DMW0in=pipeline_MMU_DMW0,DMW1in=pipeline_MMU_DMW1;
     assign DMW0_plvOK=(DMW0in[0]==1&&CRMDin[1:0]==0)||(DMW0in[3]==1&&CRMDin[1:0]==3);
     assign DMW1_plvOK=(DMW1in[0]==1&&CRMDin[1:0]==0)||(DMW1in[3]==1&&CRMDin[1:0]==3);
-    assign type=pipeline_MMU_type,subtype=pipeline_MMU_subtype;
+    assign type_=pipeline_MMU_type,subtype=pipeline_MMU_subtype;
     assign rj=pipeline_MMU_rj,rk=pipeline_MMU_rk;
     assign op=pipeline_MMU_excp_arg[4:0];
     
     wire exe;wire [TLB_n-1:0] Index;
-    assign exe=(type==MMU||type==PRIV_MMU);
+    assign exe=(type_==MMU||type_==PRIV_MMU);
     assign Index=TLBIDXin[TLB_n-1:0];
     
     always@(posedge(clk),negedge(rstn))
