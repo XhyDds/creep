@@ -100,6 +100,8 @@ module core_top (
     vaddr_exe1_wb,paddr_exe1_wb;
 
     reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1;
+
+    reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
     reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,
     // excp_arg_id_reg_0,
@@ -212,7 +214,7 @@ module core_top (
         // .test3                  		( test3_icache           		),
 
         // .ifibar(ifibar0|ifibar1),
-        .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
+        .addr_pipeline_icache   		( (|pc[1:0])|(pc[31]&PLV!=0)?0:pc),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
         .pipeline_icache_valid  		( 1  		),
@@ -286,6 +288,8 @@ module core_top (
     wire 	if1;
     wire    ir_valid0;
     wire    ir_valid1;
+    wire    [1:0]PLV0;
+    wire    [1:0]PLV1;
     
     fetch_buffer_v2 u_fetch_buffer(
         //ports
@@ -305,7 +309,10 @@ module core_top (
         .pc1            ( pc1           ),
         .valid0         ( ir_valid0     ),
         .valid1         ( ir_valid1     ),
-        .stall_fetch_buffer(stall_fetch_buffer)
+        .stall_fetch_buffer(stall_fetch_buffer),
+        .plv            ( PLV_if1_fifo  ),
+        .plv0           ( PLV0          ),
+        .plv1           ( PLV1          )
     );
 
     wire [31:0]	control0;
@@ -317,7 +324,7 @@ module core_top (
 
     decoder u_decoder0(
         //ports
-        // .PLV            ( PLV               ),
+        .PLV            ( PLV0              ),
         .pc             ( pc0               ),
         .ir       		( ir0 	    	    ),
         .control  		( control0  		),
@@ -338,7 +345,7 @@ module core_top (
 
     decoder u_decoder1(
         //ports
-        // .PLV            ( PLV               ),
+        .PLV            ( PLV1              ),
         .pc             ( pc1               ),
         .ir       		( ir1        	    ),
         .control  		( control1  		),
@@ -1138,22 +1145,36 @@ module core_top (
     `ifdef ICache
     //IF0-IF1 Icache ONLY
     always @(posedge clk or negedge rstn) begin
-        if(!rstn|flush_if0_if1) begin
+        if(!rstn) begin
             pc_if0_if1<=0;
+            PLV_if0_if1<=0;
         end
-        else if(!stall_if0_if1)begin
+        else if(stall_if0_if1);
+        else if(flush_if0_if1) begin
+            pc_if0_if1<=0;
+            PLV_if0_if1<=0;
+        end
+        else begin
             pc_if0_if1<=pc;
+            PLV_if0_if1<=PLV;
         end
     end
     `endif
 
     `ifdef L2Cache
     always @(posedge clk or negedge rstn) begin
-        if(!rstn|flush_if0_if1) begin
+        if(!rstn) begin
             pc_if0_if1<=0;
+            PLV_if0_if1<=0;
         end
-        else if(!stall_if0_if1)begin
+        else if(stall_if0_if1);
+        else if(flush_if0_if1) begin
+            pc_if0_if1<=0;
+            PLV_if0_if1<=0;
+        end
+        else begin
             pc_if0_if1<=pc;
+            PLV_if0_if1<=PLV;
         end
     end
     `endif
@@ -1165,7 +1186,7 @@ module core_top (
         if(!rstn) begin
             fflush_if0_if1 <= 0;
         end
-        else if(flush_if0_if1) fflush_if0_if1 <= 1;  //to be test
+        else if(flush_if0_if1) fflush_if0_if1 <= 1;
         else if(!(stall_icache|stall_to_icache)) fflush_if0_if1 <= 0;
     end
 
@@ -1175,20 +1196,23 @@ module core_top (
         end
         else if(stall_if1_fifo);
         else if(flush_if1_fifo|ifflush_if1_fifo)begin
-            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;
+            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;
         end
         else begin
 
             `ifdef ICache
             pc_if1_fifo<=pc_if0_if1;//Icache ONLY
+            PLV_if1_fifo<=PLV_if0_if1;
             `endif
 
             `ifdef L2Cache
             pc_if1_fifo<=pc_if0_if1;//Icache ONLY
+            PLV_if1_fifo<=PLV_if0_if1;
             `endif
 
             `ifdef IDMA
             pc_if1_fifo<=pc;//DMA ONLY
+            PLV_if1_fifo<=PLV;
             `endif
 
             ir_if1_fifo<=dout_icache_pipeline;

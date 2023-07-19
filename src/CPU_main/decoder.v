@@ -2,7 +2,7 @@ module decoder (
     input [31:0]ir,
     input [31:0]pc,
     input valid,
-    // input [1:0]PLV,
+    input [1:0]PLV,
     output [31:0]control,
     output reg [4:0]rk,rj,rd,
     output reg [31:0]imm,
@@ -30,8 +30,13 @@ module decoder (
     assign control=(valid)?{9'b0,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
     always @(*) begin
         rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;
-        if(|pc[1:0]) begin type_=liwai;subtype=0;excp_arg='b0_001000; end //ADEF
-        else if(pc[31]) begin type_=liwai;subtype=0;excp_arg='b1_001000; end //ADEM
+        if(|pc[1:0]) begin //ADEF 
+            type_=liwai;subtype=0;excp_arg='b0_001000; 
+        end
+        else 
+        if(pc[31]&PLV!=0) begin //ADEM 
+            type_=liwai;subtype=0;excp_arg='b1_001000; 
+        end
         else 
         case (ir[31:26])
         'b000000: 
