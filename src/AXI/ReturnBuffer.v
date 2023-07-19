@@ -1,7 +1,6 @@
 
 //供l1使用，适用于icache和dcache
 //l2也可使用，此时由于写buf的存在，交互对象为arbiter与axi
-`define L2Cache_ReBuf
 module ReturnBuffer #(
     parameter   offset_width=2
 )(
@@ -15,7 +14,7 @@ module ReturnBuffer #(
     //axi
     input               rready,   //r: arbiter->i:dataOK
     input[31:0]         rdata,
-    `ifdef L2Cache_ReBuf
+    `ifdef L2Cache
         input           cache_mem_rdy,
     `endif
     input               rlast
@@ -58,7 +57,7 @@ module ReturnBuffer #(
                 end
             end
             SEND: begin
-                `ifdef L2Cache_ReBuf
+                `ifdef L2Cache
                     if(cache_mem_req&&cache_mem_rdy) begin
                         next_state = OK;
                     end
@@ -69,7 +68,7 @@ module ReturnBuffer #(
                         next_state = SEND;
                     end
                 `endif
-                `ifndef L2Cache_ReBuf
+                `ifndef L2Cache
                     if(cache_mem_req) begin
                         next_state = OK;
                     end

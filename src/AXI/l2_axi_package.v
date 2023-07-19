@@ -108,8 +108,10 @@ module l2_axi_package #(
         .dout_mem_cache     (din_mem_arbiter),
         .rready             (l2_rready),
         .rdata              (l2_rdata),
-        .rlast              (l2_rlast),
-        .cache_mem_rdy      (cache_mem_rdy)
+        `ifdef L2Cache
+        .cache_mem_rdy      (cache_mem_rdy),
+        `endif
+        .rlast              (l2_rlast)
     );
 
     WriteBuffer#(
