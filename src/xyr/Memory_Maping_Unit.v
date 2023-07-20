@@ -2,7 +2,6 @@ module Memory_Maping_Unit#(
     parameter TLB_n=7,TLB_PALEN=32,TLB_VALEN=32
 )(
     input clk,rstn,
-    input pipeline_MMU_stall,
     input [3:0] pipeline_MMU_type,
     input [4:0] pipeline_MMU_subtype,
     input [15:0] pipeline_MMU_excp_arg,
@@ -13,6 +12,8 @@ module Memory_Maping_Unit#(
     input [31:0] pipeline_MMU_DMW0,
     input [31:0] pipeline_MMU_DMW1,
     
+    input pipeline_MMU_stallw,
+    input pipeline_MMU_flushw,
     output [31:0] MMU_pipeline_TLBIDX,
     output [31:0] MMU_pipeline_TLBEHI,
     output [31:0] MMU_pipeline_TLBELO0,
@@ -23,13 +24,16 @@ module Memory_Maping_Unit#(
     input [31:0] pipeline_MMU_TLBELO0,
     input [31:0] pipeline_MMU_TLBELO1,
 
-    
+    input pipeline_MMU_stall0,
+    input pipeline_MMU_flush0,
     input [1:0] pipeline_MMU_optype0,//0-fetch 1-load 2-store
     input [31:0] pipeline_MMU_VADDR0,
     output [31:0] MMU_pipeline_PADDR0,
     output [15:0] MMU_pipeline_excp_arg0,//valid,subcode,code
     output [1:0] MMU_pipeline_memtype0,
     
+    input pipeline_MMU_stall1,
+    input pipeline_MMU_flush1,
     input [1:0] pipeline_MMU_optype1,//0-fetch 1-load 2-store
     input [31:0] pipeline_MMU_VADDR1,
     output [31:0] MMU_pipeline_PADDR1,
@@ -82,13 +86,15 @@ module Memory_Maping_Unit#(
     assign MMU_pipeline_ASID=ASIDout;
     
     wire [8:0]CRMDin;wire [9:0]ASIDin;wire [31:0] DMW0in,DMW1in;
-    wire stall;
+    wire stallw,flushw,stall0,flush0,stall1,flush1;
     wire [3:0] type_;wire [4:0] subtype; wire [31:0] rj,rk;wire [4:0] op;
     assign CRMDin=pipeline_MMU_CRMD,ASIDin=pipeline_MMU_ASID;
     assign DMW0in=pipeline_MMU_DMW0,DMW1in=pipeline_MMU_DMW1;
     assign DMW0_plvOK=(DMW0in[0]==1&&CRMDin[1:0]==0)||(DMW0in[3]==1&&CRMDin[1:0]==3);
     assign DMW1_plvOK=(DMW1in[0]==1&&CRMDin[1:0]==0)||(DMW1in[3]==1&&CRMDin[1:0]==3);
-    assign stall=pipeline_MMU_stall;
+    assign stallw=pipeline_MMU_stallw,flushw=pipeline_MMU_flushw;
+    assign stall0=pipeline_MMU_stall0,flush0=pipeline_MMU_flush0;
+    assign stall1=pipeline_MMU_stall1,flush1=pipeline_MMU_flush1;
     assign type_=pipeline_MMU_type,subtype=pipeline_MMU_subtype;
     assign rj=pipeline_MMU_rj,rk=pipeline_MMU_rk;
     assign op=pipeline_MMU_excp_arg[4:0];
@@ -104,14 +110,14 @@ module Memory_Maping_Unit#(
     
     always@(posedge(clk),negedge(rstn))
     begin
-    if(!rstn)
+    if(!rstn || flushw)
         begin
         TLBIDXout<=0;TLBEHIout<=0;
         TLBELO0out<=0;TLBELO1out<=0;
         ASIDout<=0;
         optype0_reg<=0;optype1_reg<=0;
         end
-    else if(~stall)
+    else if(~stallw)
         begin
         TLBIDXout<=TLBIDX;TLBEHIout<=TLBEHI;
         TLBELO0out<=TLBELO0;TLBELO1out<=TLBELO1;
@@ -177,7 +183,7 @@ module Memory_Maping_Unit#(
     
     always@(posedge(clk))
     begin
-    if(exe && ~stall && (subtype==TLBWR || subtype==TLBFILL))
+    if(exe && ~stallw && (subtype==TLBWR || subtype==TLBFILL))
         begin
         PS[Index]<=TLBIDXin[29:24];
         VPPN[Index]<=TLBEHIin[31:13];
@@ -193,7 +199,7 @@ module Memory_Maping_Unit#(
         begin:gen_E
         always@(posedge(clk))
         begin
-        if(exe && ~stall)
+        if(exe && ~stallw)
             if(Index==j && (subtype==TLBWR || subtype==TLBFILL))
                 begin
                 E[Index]<=~TLBIDXin[31];
@@ -284,12 +290,12 @@ module Memory_Maping_Unit#(
     assign addrmask0=(~0)<<found_ps0;
     always@(posedge(clk),negedge(rstn))
     begin
-    if(!rstn)
+    if(!rstn || flush0)
         begin
         PADDR0<=0;excp_arg0<=0;
         memtype0<=0;
         end
-    else if(~stall)
+    else if(~stall0)
         begin
         PADDR0<=({found_ppn0,12'b0}&addrmask0)|(VADDR0&~addrmask0);
         memtype0<=found_mat0;
@@ -374,12 +380,12 @@ module Memory_Maping_Unit#(
     assign addrmask1=(~0)<<found_ps1;
     always@(posedge(clk),negedge(rstn))
     begin
-    if(!rstn)
+    if(!rstn || flush1)
         begin
         PADDR1<=0;excp_arg1<=0;
         memtype1<=0;
         end
-    else if(~stall)
+    else if(~stall1)
         begin
         PADDR1<=({found_ppn1,12'b0}&addrmask1)|(VADDR1&~addrmask1);
         memtype1<=found_mat1;
