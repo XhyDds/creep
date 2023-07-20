@@ -1,5 +1,5 @@
 module Memory_Maping_Unit#(
-    parameter TLB_n=3,TLB_PALEN=32,TLB_VALEN=32
+    parameter TLB_n=7,TLB_PALEN=32,TLB_VALEN=32
 )(
     input clk,rstn,
     input [3:0] pipeline_MMU_type,

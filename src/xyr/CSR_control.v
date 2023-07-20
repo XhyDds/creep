@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�??????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�???????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??????，ex1�??????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???????，ex1�???????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -42,6 +42,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     output reg excp_flush,
     output reg ertn_flush,
     output reg [5:0]ws_csr_ecode,
+    output reg [TLB_n-1:0] rand_index1,
+    output reg tlbfill_en,
 
     output reg [31:0]  csr_crmd_diff_0     ,
     output reg [31:0]  csr_prmd_diff_0     ,
@@ -140,6 +142,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             begin
             csr_tlbidx_diff_0=0;
             csr_tlbidx_diff_0[TLB_n-1:0]=TLBIDX_Index;
+            rand_index1=randnum[TLB_n-1:0];
             csr_tlbidx_diff_0[29:24]=TLBIDX_PS;
             csr_tlbidx_diff_0[31]=TLBIDX_NE;
             end
@@ -250,7 +253,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
     TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
     
-    nexcp_flush=0;nertn_flush=0;
+    nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
     if(!inpc_valid)
         inpc=jumpc_reg;
     if(inte)
@@ -317,6 +320,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 end
             TLBFILL:
                 begin
+                tlbfill_en=1;
                 rand_en=1;
                 flushout=1; 
                 if(ecode==TLBR)

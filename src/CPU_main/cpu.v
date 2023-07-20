@@ -157,7 +157,7 @@ module core_top (
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死锁
+    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�?
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_fifo_id =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_id_reg0 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
@@ -166,7 +166,7 @@ module core_top (
     assign stall_reg_exe0_1 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_0 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_1 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死锁
+    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�?
     assign stall_exe1_wb_0 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe1_wb_1 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
 
@@ -761,11 +761,12 @@ module core_top (
         .pipeline_dcache_opcode 		( pipeline_dcache_opcode 		),
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		)
     );
+    localparam TLB_n=7,TLB_PALEN=32;
 
-    wire [8:0]	CRMD=0;
-    wire [9:0]	ASID=0;
-    wire [31:0]	DMW0=0;
-    wire [31:0]	DMW1=0;
+    wire [8:0]	CRMD;
+    wire [9:0]	ASID;
+    wire [31:0]	DMW0;
+    wire [31:0]	DMW1;
     assign PLV=CRMD[1:0];
     wire    [31:0]  csr_crmd_diff_0     ;
     wire    [31:0]  csr_prmd_diff_0     ;
@@ -796,8 +797,14 @@ module core_top (
     wire            excp_flush          ;
     wire            ertn_flush          ;
     wire    [5:0]   ws_csr_ecode        ;
-
-    CSR_control u_priv(
+    wire    [TLB_n-1:0] CSR_rand_index1 ;
+    wire            CSR_tlbfill_en      ;
+    
+    CSR_control #(
+        .TLB_n(TLB_n),
+        .TLB_PALEN(TLB_PALEN),
+        .TIMER_n(32))
+   u_priv(
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
@@ -831,9 +838,21 @@ module core_top (
         .CSR_pipeline_DMW0      		( DMW0      		),
         .CSR_pipeline_DMW1      		( DMW1      		),
         
+        .CSR_pipeline_TLBIDX            (),
+        .CSR_pipeline_TLBEHI(),
+        .CSR_pipeline_TLBELO0(),
+        .CSR_pipeline_TLBELO1(),
+        .pipeline_CSR_TLBIDX(),
+        .pipeline_CSR_TLBEHI(),
+        .pipeline_CSR_TLBELO0(),
+        .pipeline_CSR_TLBELO1(),
+        .pipeline_CSR_ASID(),
+        
         //debug
         .excp_flush                     ( excp_flush         ),
         .ertn_flush                     ( ertn_flush         ),
+        .rand_index1                    (CSR_rand_index1     ),
+        .tlbfill_en                     (CSR_tlbfill_en      ),
         .ws_csr_ecode                   ( ws_csr_ecode       ),
         .csr_crmd_diff_0                ( csr_crmd_diff_0    ),
         .csr_prmd_diff_0                ( csr_prmd_diff_0    ),
@@ -862,13 +881,56 @@ module core_top (
         .csr_pgdl_diff_0                ( csr_pgdl_diff_0    ),
         .csr_pgdh_diff_0                ( csr_pgdh_diff_0    )
     );
+    
+    Memory_Maping_Unit #(
+    .TLB_n(TLB_n),
+    .TLB_PALEN(TLB_PALEN),
+    .TLB_VALEN(32))
+    u_MMU(
+        //ports
+        .clk                    		( clk                    		),
+        .rstn                   		( rstn                   		),
+        .pipeline_MMU_type              (ctr_reg_exe0_1_ALE[3:0]        ),
+        .pipeline_MMU_subtype           (ctr_reg_exe0_1_ALE[11:7]       ),
+        .pipeline_MMU_excp_arg		    (xcp_arg_reg_exe0_1_excp        ),
+        .pipeline_MMU_rj                (rrj1_forward                   ),
+        .pipeline_MMU_rk                (rrk1_forward                   ),
+        .pipeline_MMU_CRMD              (CRMD                           ),
+        .pipeline_MMU_ASID              (ASID                           ),
+        .pipeline_MMU_DMW0              (DMW0                           ),
+        .pipeline_MMU_DMW1              (DMW1                           ),
+    
+        .MMU_pipeline_TLBIDX(),
+    1:0] MMU_pipeline_TLBEHI,
+    1:0] MMU_pipeline_TLBELO0,
+    1:0] MMU_pipeline_TLBELO1,
+    :0] MMU_pipeline_ASID,
+    :0] pipeline_MMU_TLBIDX,
+    :0] pipeline_MMU_TLBEHI,
+    :0] pipeline_MMU_TLBELO0,
+    :0] pipeline_MMU_TLBELO1,
+
+    
+    0] pipeline_MMU_optype0,//0-fetch 1-load 2-store
+    :0] pipeline_MMU_VADDR0,
+    1:0] MMU_pipeline_PADDR0,
+    5:0] MMU_pipeline_excp_arg0,//valid,subcode,code
+    :0] MMU_pipeline_memtype0,
+    
+    0] pipeline_MMU_optype1,//0-fetch 1-load 2-store
+    :0] pipeline_MMU_VADDR1,
+    1:0] MMU_pipeline_PADDR1,
+    5:0] MMU_pipeline_excp_arg1,
+    :0] MMU_pipeline_memtype1
+    
+    );
 
     // wire [31:0]	test1_dcache;
     // wire [31:0]	test2_dcache;
     // wire [31:0]	test3_dcache;
 
     wire [31:0]	dout_dcache_pipeline;
-    wire 	dcache_pipeline_ready;//无用？
+    wire 	dcache_pipeline_ready;//无用�?
 
     wire [31:0]	addr_dcache_mem;
     wire [31:0]	dout_dcache_mem;
@@ -1069,12 +1131,12 @@ module core_top (
         .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         
 
-        //当前版本，dcache直接写
+        //当前版本，dcache直接�?
         .d_wvalid 		( dcache_mem_req & dcache_mem_wr ),//input
         .d_wready 		( d_wready 		),//output reg  
         .d_waddr  		( addr_dcache_mem  		),//input [31:0]
         .d_wdata  		( dout_dcache_mem  		),//input [31:0]
-        .d_wstrb  		( dcache_mem_wstrb  		),//input [3:0] 字节选通位
+        .d_wstrb  		( dcache_mem_wstrb  		),//input [3:0] 字节选�?�位
         .d_wlast  		( 1'b1  		),//input       
         .d_wsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         .d_wlen   		( 8'b0   		),//input [7:0] 
@@ -1446,10 +1508,10 @@ module core_top (
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//检测访存地址是否对齐，特权指令是否内核态，否则将访存指令变为例外指令
+    always @(*) begin//�?测访存地�?是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?
         ctr_reg_exe0_1_ALE=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
-        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越界
+        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越�?
         else if(ctr_reg_exe0_1[3:0]==5)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1807,8 +1869,8 @@ L1_L2cache #(
 `ifdef DIFFTEST_EN
     //undefined
     wire rand_index0                    =   0;
-    wire rand_index1                    =   0;
-    wire tlbfill_en                     =   0;
+    wire [TLB_n-1:0] rand_index1        =   CSR_rand_index1;
+    wire tlbfill_en                     =   CSR_tlbfill_en;
     wire            csr_rstat_en_diff   =   0;
     wire    [31:0]  csr_data_diff       =   0;
     
