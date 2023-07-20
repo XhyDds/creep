@@ -3,7 +3,7 @@ module ras #(
                 ADDR_WIDTH = 29
 )(
     input   clk,
-    input   rstn,               
+    input   rstn,
     input   is_call_ex,            //来自ex段的指令是否为函数调用
     input   [ADDR_WIDTH-1:0] ret_pc_ex,      //来自ex段的返回地址
     output  reg [ADDR_WIDTH-1:0] ret_pc_pdc, //预测的返回地址

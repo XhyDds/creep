@@ -29,5 +29,12 @@ module test#(
 
     assign mis_pdc={(npc_ex!=npc_pdc),(kind_ex!=kind_pdc),(taken_real!=taken_pdc)};
 
-    // assign choice_real={choice_real_btb_ras,choice_real_g_h};
+    assign choice_real={choice_real_btb_ras,choice_real_g_h};
+
+    wire choice_real_btb_ras;
+    wire choice_real_g_h;
+
+    assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc[1]:choice_pdc[1];
+    assign choice_real_g_h=mis_pdc[0]?~choice_pdc[1]:choice_pdc[1];
+
 endmodule

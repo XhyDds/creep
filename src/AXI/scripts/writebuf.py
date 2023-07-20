@@ -1,4 +1,6 @@
-
+len=5
+offset=2
+code='''
 // 写缓冲队列
 // 非循环队列
 // 支持query,insert,get三项功能
@@ -10,8 +12,8 @@
 // push时
 
 module WriteBuffer #(
-    parameter   length=5,
-                offset_width=2
+    parameter   length='''+str(len)+''',
+                offset_width='''+str(offset)+'''
 ) (
     input  clk,
     input  rstn,
@@ -49,7 +51,11 @@ module WriteBuffer #(
 
     //state machine
     parameter IDLE_L = 4'd0,PULL=4'd1,
-            SEND_0=4'd2,SEND_1=4'd3,SEND_2=4'd4,SEND_3=4'd5,_SEND=4'd6;
+            '''
+offset=1<<offset
+for i in range(offset):
+    code+='''SEND_'''+str(i)+'''=4'd'''+str(i+2)+''','''
+code+='''_SEND=4'd'''+str(offset+2)+''';
     reg [3:0] crt_pull,nxt_pull;
     always @(posedge clk,negedge rstn) begin
         if (!rstn) begin
@@ -68,22 +74,17 @@ module WriteBuffer #(
             PULL:       begin
                 if(out_awready)     nxt_pull=SEND_0;
                 else                nxt_pull=PULL;
-            end
-            SEND_0: begin
-                if(out_wready)      nxt_pull=SEND_1;
-                else                nxt_pull=SEND_0;
-            end
-            SEND_1: begin
-                if(out_wready)      nxt_pull=SEND_2;
-                else                nxt_pull=SEND_1;
-            end
-            SEND_2: begin
-                if(out_wready)      nxt_pull=SEND_3;
-                else                nxt_pull=SEND_2;
-            end
-            SEND_3: begin
+            end'''
+for i in range(offset-1):
+    code+='''
+            SEND_'''+str(i)+''': begin
+                if(out_wready)      nxt_pull=SEND_'''+str(i+1)+''';
+                else                nxt_pull=SEND_'''+str(i)+''';
+            end'''
+code+='''
+            SEND_'''+str(offset-1)+''': begin
                 if(out_wready)      nxt_pull=_SEND;
-                else                nxt_pull=SEND_3;
+                else                nxt_pull=SEND_'''+str(offset-1)+''';
             end
             _SEND: begin
                 if(out_bvalid)      nxt_pull=IDLE_L;
@@ -111,23 +112,18 @@ module WriteBuffer #(
             PULL: begin
                 out_valid=1;
                 out_addr=buffer_addr[pointer];
-            end
-            SEND_0: begin
+            end'''
+for i in range(offset-1):
+    code+='''
+            SEND_'''+str(i)+''': begin
                 out_valid=1;
-                out_data=_out_data[31:0];
-            end
-            SEND_1: begin
-                out_valid=1;
-                out_data=_out_data[63:32];
-            end
-            SEND_2: begin
-                out_valid=1;
-                out_data=_out_data[95:64];
-            end
-            SEND_3: begin
+                out_data=_out_data['''+str(i*32+31)+''':'''+str(i*32)+'''];
+            end'''
+code+='''
+            SEND_'''+str(offset-1)+''': begin
                 out_valid=1;
                 out_last=1;
-                out_data=_out_data[127:96];
+                out_data=_out_data['''+str(offset*32-1)+''':'''+str(offset*32-32)+'''];
             end
             _SEND: begin
                 out_bready=1;
@@ -196,32 +192,24 @@ module WriteBuffer #(
     end
     //时序action
     always @(posedge clk,negedge rstn) begin
-        if(!rstn) begin
-            buffer_addr[32'd0]<=0;
-            buffer_data[32'd0]<=0;
-            buffer_addr[32'd1]<=0;
-            buffer_data[32'd1]<=0;
-            buffer_addr[32'd2]<=0;
-            buffer_data[32'd2]<=0;
-            buffer_addr[32'd3]<=0;
-            buffer_data[32'd3]<=0;
-            buffer_addr[32'd4]<=0;
-            buffer_data[32'd4]<=0;
+        if(!rstn) begin'''
+for i in range(len):
+    code+='''
+            buffer_addr[32'd'''+str(i)+''']<=0;
+            buffer_data[32'd'''+str(i)+''']<=0;'''
+code+='''
         end
         else begin
             case (crt_push)
                 IDLE_H: begin
                     if(nxt_push==PUSH) begin
                         buffer_addr[32'd0]<=in_addr;
-                        buffer_data[32'd0]<=in_data;
-                        buffer_addr[32'd1]<=buffer_addr[32'd0];
-                        buffer_data[32'd1]<=buffer_data[32'd0];
-                        buffer_addr[32'd2]<=buffer_addr[32'd1];
-                        buffer_data[32'd2]<=buffer_data[32'd1];
-                        buffer_addr[32'd3]<=buffer_addr[32'd2];
-                        buffer_data[32'd3]<=buffer_data[32'd2];
-                        buffer_addr[32'd4]<=buffer_addr[32'd3];
-                        buffer_data[32'd4]<=buffer_data[32'd3];
+                        buffer_data[32'd0]<=in_data;'''
+for i in range(0,len-1):
+    code+='''
+                        buffer_addr[32'd'''+str(i+1)+''']<=buffer_addr[32'd'''+str(i)+'''];
+                        buffer_data[32'd'''+str(i+1)+''']<=buffer_data[32'd'''+str(i)+'''];'''
+code+='''
                     end
                     else ;
                 end
@@ -245,21 +233,24 @@ module WriteBuffer #(
 
     //query
     reg res[length-1:0];
-    always @(*) begin
-        res[32'd0]=(query_addr==buffer_addr[32'd0]);
-        res[32'd1]=(query_addr==buffer_addr[32'd1]);
-        res[32'd2]=(query_addr==buffer_addr[32'd2]);
-        res[32'd3]=(query_addr==buffer_addr[32'd3]);
-        res[32'd4]=(query_addr==buffer_addr[32'd4]);
+    always @(*) begin'''
+for i in range(len):
+    code+='''
+        res[32'd'''+str(i)+''']=(query_addr==buffer_addr[32'd'''+str(i)+''']);'''
+code+='''
     end
 
     always @(*) begin
-             if(res[3'd0]==1'b1) begin query_ok=1;query_data=buffer_data[32'd0]; end
-        else if(res[3'd1]==1'b1) begin query_ok=1;query_data=buffer_data[32'd1]; end
-        else if(res[3'd2]==1'b1) begin query_ok=1;query_data=buffer_data[32'd2]; end
-        else if(res[3'd3]==1'b1) begin query_ok=1;query_data=buffer_data[32'd3]; end
-        else if(res[3'd4]==1'b1) begin query_ok=1;query_data=buffer_data[32'd4]; end
+             if(res[3'd0]==1'b1) begin query_ok=1;query_data=buffer_data[32'd0]; end'''
+for i in range(1,len):
+    code+='''
+        else if(res[3'd'''+str(i)+''']==1'b1) begin query_ok=1;query_data=buffer_data[32'd'''+str(i)+''']; end'''
+code+='''
         else                     begin query_ok=0;query_data=0                 ; end
     end
 
 endmodule
+'''
+# print(code)
+with open('writebuf.v','w+') as f:
+    f.write(code)
