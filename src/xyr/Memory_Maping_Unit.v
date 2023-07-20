@@ -90,9 +90,14 @@ module Memory_Maping_Unit#(
     assign rj=pipeline_MMU_rj,rk=pipeline_MMU_rk;
     assign op=pipeline_MMU_excp_arg[4:0];
     
-    wire exe;wire [TLB_n-1:0] Index;
+    wire exe;wire [TLB_n-1:0] Index,Index_tlbsch,Index_look0,Index_look1;
+    reg [TLB_nex:0] found_tlbsch,look0,look1;
     assign exe=(type_==MMU||type_==PRIV_MMU);
     assign Index=TLBIDXin[TLB_n-1:0];
+    
+    encoder_2n_n  #(TLB_n)encoder_tlbsch(.din(found_tlbsch),.dout(Index_tlbsch));
+    encoder_2n_n  #(TLB_n)encoder_look0(.din(look0),.dout(Index_look0));
+    encoder_2n_n  #(TLB_n)encoder_look1(.din(look1),.dout(Index_look1));
     
     always@(posedge(clk),negedge(rstn))
     begin
@@ -112,7 +117,19 @@ module Memory_Maping_Unit#(
         end
     end
     
-    integer i;
+    genvar i;
+    generate
+    for(i=0;i<=TLB_nex;i=i+1)
+        begin:gen_tlbsch
+        always@(*)
+        begin
+        found_tlbsch[i]=1'b0;
+        if((ASID[i]==ASIDin || G[i]==1) && ({VPPN[i],12'b0}>>PS[i])==(TLBEHIin[31:1]>>PS[i]) && E[i]==1)//VPPNlow
+            found_tlbsch[i]=1'b1;
+        end
+        end
+    endgenerate
+    
     always@(*)
     begin
     TLBIDX=TLBIDXin;TLBEHI=TLBEHIin;
@@ -124,14 +141,11 @@ module Memory_Maping_Unit#(
            TLBSRCH:
                begin
                TLBIDX[31]=1;//NE
-               for(i=0;i<=TLB_nex;i=i+1)
-                   begin
-                   if((ASID[i]==ASIDin || G[i]==1) && ({VPPN[i],12'b0}>>PS[i])==(TLBEHIin[31:1]>>PS[i]) && E[i]==1)//VPPNlow
-                       begin
-                       TLBIDX[31]=0;
-                       TLBIDX[TLB_n-1:0]=i;//Index
-                       end
-                   end
+               if(|found_tlbsch)//hit
+                    begin
+                    TLBIDX[31]=0;
+                    TLBIDX[TLB_n-1:0]=Index_tlbsch;//Index
+                    end
                end
            TLBRD:
                if(E[Index])//E[Index]==1
@@ -231,31 +245,37 @@ module Memory_Maping_Unit#(
     endgenerate
     
     //0路查找逻辑
+    generate
+    for(i=0;i<=TLB_nex;i=i+1)
+        begin:gen_look0
+        always@(*)
+        begin
+        look0[i]=1'b0;
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR0,11'b0}>>PS[i]))//去低位比较，VPPN要补13位为正确地址
+            look0[i]=1'b1;
+        end
+        end
+    endgenerate
+    
     always@(*)
     begin
-    TLB_found0=0;
-    found_v0=0;found_d0=0;
-    found_mat0=0;found_plv0=0;
-    found_ppn0=0;found_ps0=0;
-    for(i=0;i<=TLB_nex;i=i+1)
+//    TLB_found0=0;
+//    found_v0=0;found_d0=0;
+//    found_mat0=0;found_plv0=0;
+//    found_ppn0=0;found_ps0=0;
+    TLB_found0=|look0;       
+    found_ps0=PS[Index_look0];
+    if(|(({VADDR0,12'b0}>>found_ps0)&32'b1))//VLow==1
         begin
-        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR0,11'b0}>>PS[i]))//去低位比较，VPPN要补13位为正确地址
-            begin
-            TLB_found0=1;
-            found_ps0=PS[i];
-            if(|(({VADDR0,12'b0}>>found_ps0)&32'b1))//VLow==1
-                begin
-                found_v0=V1[i];found_d0=D1[i];
-                found_mat0=MAT1[i];found_plv0=PLV1[i];
-                found_ppn0=PPN1[i];
-                end
-            else
-                begin
-                found_v0=V0[i];found_d0=D0[i];
-                found_mat0=MAT0[i];found_plv0=PLV0[i];
-                found_ppn0=PPN0[i];
-                end
-            end
+        found_v0=V1[Index_look0];found_d0=D1[Index_look0];
+        found_mat0=MAT1[Index_look0];found_plv0=PLV1[Index_look0];
+        found_ppn0=PPN1[Index_look0];
+        end
+    else
+        begin
+        found_v0=V0[Index_look0];found_d0=D0[Index_look0];
+        found_mat0=MAT0[Index_look0];found_plv0=PLV0[Index_look0];
+        found_ppn0=PPN0[Index_look0];
         end
     end
     assign addrmask0=(~0)<<found_ps0;
@@ -315,31 +335,37 @@ module Memory_Maping_Unit#(
     end
     
     //1路查找逻辑
+    generate
+    for(i=0;i<=TLB_nex;i=i+1)
+        begin:gen_look1
+        always@(*)
+        begin
+        look1[i]=1'b0;
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR1,11'b0}>>PS[i]))//去低位比较，VPPN要补13位为正确地址
+            look1[i]=1'b1;
+        end
+        end
+    endgenerate
+    
     always@(*)
     begin
-    TLB_found1=0;
-    found_v1=0;found_d1=0;
-    found_mat1=0;found_plv1=0;
-    found_ppn1=0;found_ps1=0;
-    for(i=0;i<=TLB_nex;i=i+1)
+//    TLB_found1=0;
+//    found_v1=0;found_d1=0;
+//    found_mat1=0;found_plv1=0;
+//    found_ppn1=0;found_ps1=0;
+    TLB_found1=|look1;       
+    found_ps1=PS[Index_look1];
+    if(|(({VADDR1,12'b0}>>found_ps1)&32'b1))//VLow==1
         begin
-        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR1,11'b0}>>PS[i]))//去低位比较，VPPN要补13位为正确地址
-            begin
-            TLB_found1=1;
-            found_ps1=PS[i];
-            if(|(({VADDR1,12'b0}>>found_ps1)&32'b1))//VLow==1
-                begin
-                found_v1=V1[i];found_d1=D1[i];
-                found_mat1=MAT1[i];found_plv1=PLV1[i];
-                found_ppn1=PPN1[i];
-                end
-            else
-                begin
-                found_v1=V0[i];found_d1=D0[i];
-                found_mat1=MAT0[i];found_plv1=PLV0[i];
-                found_ppn1=PPN0[i];
-                end
-            end
+        found_v1=V1[Index_look1];found_d1=D1[Index_look1];
+        found_mat1=MAT1[Index_look1];found_plv0=PLV1[Index_look1];
+        found_ppn1=PPN1[Index_look1];
+        end
+    else
+        begin
+        found_v1=V0[Index_look1];found_d1=D0[Index_look1];
+        found_mat1=MAT0[Index_look1];found_plv1=PLV0[Index_look1];
+        found_ppn1=PPN0[Index_look1];
         end
     end
     assign addrmask1=(~0)<<found_ps1;
