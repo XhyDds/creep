@@ -812,7 +812,7 @@ module core_top (
         .pipeline_CSR_mask      		( rrj1_forward      		    ),
         .CSR_pipeline_dout      		( privresult      		        ),
 
-        .pipeline_CSR_jumpc_valid       ( !stall_pc|ifbr0|ifbr1|ifpriv  ),
+        .pipeline_CSR_jumpc_valid       ( ifbr0|ifbr1|ifpriv            ),
         .pipeline_CSR_jumpc             ( npc                           ),
         .pipeline_CSR_inpc_valid        ( ir_valid_reg_exe0_1           ),
         .pipeline_CSR_inpc0     		( pc_reg_exe0_1     		    ),
