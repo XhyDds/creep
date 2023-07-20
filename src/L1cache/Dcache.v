@@ -76,9 +76,9 @@ assign tag = addr_pipeline_dcache[31:offset_width+index_width+2];
 wire [offset_width-1:0]poffset;
 wire [index_width-1:0]pindex;
 wire [32-offset_width-index_width-2-1:0]ptag;
-assign poffset = paddr_pipeline_icache[offset_width+1:2];
-assign pindex = paddr_pipeline_icache[offset_width+index_width+1:offset_width+2];
-assign ptag = paddr_pipeline_icache[31:offset_width+index_width+2];
+assign poffset = paddr_pipeline_dcache[offset_width+1:2];
+assign pindex = paddr_pipeline_dcache[offset_width+index_width+1:offset_width+2];
+assign ptag = paddr_pipeline_dcache[31:offset_width+index_width+2];
 
 //rquest buffer
 wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc;
