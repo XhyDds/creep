@@ -142,10 +142,11 @@ module core_top (
     wire ifbr0,ifbr1,ifibar0,ifibar1;
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;//dcache_valid-ready?
-    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
+    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flush_pc;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
     // reg stall_exe1_wb_0_reg,stall_exe1_wb_1_reg;
 
+    assign flush_pc =           ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
     assign flush_if0_if1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
     assign flush_if1_fifo =     ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
     assign flush_fifo_id =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
@@ -328,7 +329,8 @@ module core_top (
         .plv0           ( PLV0          ),
         .plv1           ( PLV1          ),
         .pre0           ( pre0          ),
-        .pre1           ( pre1          )
+        .pre1           ( pre1          ),
+        .pre            ( pre_if1_fifo  )
     );
 
     wire [31:0]	control0;
@@ -654,11 +656,11 @@ module core_top (
 
     muitiplier u_muitiplier0(
         //ports
-        .clk                         		( clk                         		),
-        .rstn                        		( rstn                        		),
+        .clk                         		( clk                       ),
+        .rstn                        		( rstn                      ),
         .pipeline_muitiplier_flush   		( flush_exe0_exe1_0   		),
         .pipeline_muitiplier_stall   		( stall_exe0_exe1_0   		),
-        // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_0[3:0] 		),
+        // .pipeline_muitiplier_type 	    ( ctr_reg_exe0_0[3:0] 		),
         .pipeline_muitiplier_subtype 		( ctr_reg_exe0_0[11:7] 		),
         .pipeline_muitiplier_din1    		( rrj0_forward    		),
         .pipeline_muitiplier_din2    		( rrk0_forward    		),
@@ -924,9 +926,15 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
+        .pipeline_MMU_stall0            ( stall_pc                      ),
+        .pipeline_MMU_flush0            ( flush_pc                      ),
+        .pipeline_MMU_stall1            ( stall_reg_exe0_0              ),
+        .pipeline_MMU_flush1            ( flush_reg_exe0_0              ),
+        .pipeline_MMU_stallw            ( 0                             ),
+        .pipeline_MMU_flushw            ( 0                             ),
         .pipeline_MMU_type              ( ctr_reg_exe0_1_ALE[3:0]       ),
         .pipeline_MMU_subtype           ( ctr_reg_exe0_1_ALE[11:7]      ),
-        .pipeline_MMU_excp_arg		    ( excp_arg_reg_exe0_1_excp       ),
+        .pipeline_MMU_excp_arg		    ( excp_arg_reg_exe0_1_excp      ),
         .pipeline_MMU_rj                ( rrj1_forward                  ),
         .pipeline_MMU_rk                ( rrk1_forward                  ),
         .pipeline_MMU_CRMD              ( CRMD                          ),
@@ -1207,11 +1215,6 @@ module core_top (
 
     `endif
 
-
-    wire [28:0]	npc_pdc;
-    wire [2:0]	kind_pdc;
-    wire 	taken_pdc;
-
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
@@ -1228,15 +1231,18 @@ module core_top (
         //ports
         .clk         		( clk         		),
         .rstn        		( rstn        		),
-        .pc_ex       		( pc_ex       		),
+
+        .pc_ex       		( ifbr1?pc_reg_exe0_1:pc_reg_exe0_0 ),
         .mis_pdc     		( mis_pdc     		),
-        .npc_ex      		( npc_ex      		),
+        .npc_ex      		( npc      		    ),
         .kind_ex     		( kind_ex     		),
         .taken_real  		( taken_real  		),
         .choice_real 		( choice_real 		),
+
         .npc_pdc     		( npc_pdc     		),
         .kind_pdc    		( kind_pdc    		),
         .taken_pdc   		( taken_pdc   		),
+
         .pc          		( pc          		)
     );
 

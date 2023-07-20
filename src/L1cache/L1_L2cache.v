@@ -10,6 +10,7 @@ module L1_L2cache#(
 
     //Icache-pipeline port
     input       [31:0]addr_pipeline_icache,
+    input       [31:0]paddr_pipeline_icache,
     output      [63:0]dout_icache_pipeline,//双发射 [31:0]是给定地址处的指令
     output      [31:0]pc_icache_pipeline,
     output      flag_icache_pipeline,//0-后一条指令（[63:32]）无效 1-有效
@@ -24,6 +25,7 @@ module L1_L2cache#(
 
     //Dcache-pipeline port
     input       [31:0]addr_pipeline_dcache,
+    input       [31:0]paddr_pipeline_dcache,
     input       [31:0]din_pipeline_dcache,
     input       [31:0]pcin_pipeline_dcache,
     output      [31:0]dout_dcache_pipeline,
@@ -69,6 +71,7 @@ Icache(
     .rstn(rstn),
 
     .addr_pipeline_icache(addr_pipeline_icache),
+    .paddr_pipeline_icache(paddr_pipeline_icache),
     .dout_icache_pipeline(dout_icache_pipeline),
     .pc_icache_pipeline(pc_icache_pipeline),
     .flag_icache_pipeline(flag_icache_pipeline),
@@ -109,6 +112,7 @@ Dcache(
     .rstn(rstn),
 
     .addr_pipeline_dcache(addr_pipeline_dcache),
+    .paddr_pipeline_dcache(paddr_pipeline_dcache),
     .din_pipeline_dcache(din_pipeline_dcache),
     .pcin_pipeline_dcache(pcin_pipeline_dcache),
     .dout_dcache_pipeline(dout_dcache_pipeline),

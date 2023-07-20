@@ -49,6 +49,9 @@ module Icache_FSMmain#(
     input       FSM_rbuf_opflag,//好像不需要
     input       [31:0]FSM_rbuf_addr,
 
+    //paddr寄存器
+    output reg  FSM_paddr_we,
+
     //lru
     output reg  FSM_use0,FSM_use1,
     input       FSM_wal_sel_lru,
@@ -166,20 +169,21 @@ always @(*) begin
     endcase
 end
 always @(*) begin
-    icache_pipeline_ready=0;
-    icache_mem_req=0;
-    icache_mem_size=2'd0;
-    FSM_rbuf_we=0;
-    FSM_use0=0;
-    FSM_use1=0;
-    FSM_Data_we=2'd0;
+    icache_pipeline_ready = 0;
+    icache_mem_req = 0;
+    icache_mem_size = 2'd0;
+    FSM_rbuf_we = 0;
+    FSM_paddr_we = 0;
+    FSM_use0 = 0;
+    FSM_use1 = 0;
+    FSM_Data_we = 2'd0;
     // FSM_Dirtytable_set0=0;
     // FSM_Dirtytable_set1=0;
     // FSM_choose_stall = 0;
-    FSM_choose_way=0;
-    FSM_choose_return=0;
-    FSM_choose_word=FSM_rbuf_addr[2+offset_width-1:2];
-    FSM_send_nop=0;
+    FSM_choose_way = 0;
+    FSM_choose_return = 0;
+    FSM_choose_word = FSM_rbuf_addr[2+offset_width-1:2];
+    FSM_send_nop = 0;
     case (state)
         Idle:begin
             case (next_state)
@@ -199,6 +203,7 @@ always @(*) begin
             case (next_state)
                 Miss_r:begin
                     // icache_mem_req=1;
+                    FSM_paddr_we = 1;
                     icache_mem_size=2'd2;
                 end
                 Lookup:begin//命中

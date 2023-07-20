@@ -4,6 +4,7 @@ module fetch_buffer_v2 (
     input if0,if1,icache_valid,
     input [1:0]plv,
     input [63:0]irin,
+    input [63:0]pre,
     // input [63:0]
     input flag,
     //flag==1表示2个有效，flag==0表示1个有效
@@ -15,7 +16,7 @@ module fetch_buffer_v2 (
 );
     reg [31:0]buffer[0:15];//15为0，14最新，0最旧，是否会溢出？
     reg [31:0]bufferpc[0:15];
-    reg [2:0]valid_and_plv[0:15];
+    reg [66:0]pre_and_valid_and_plv[0:15];
     reg [3:0]pointer;//0~15
     wire [31:0]ir[0:1];
     assign ir[0]=irin[31:0];
@@ -90,10 +91,10 @@ module fetch_buffer_v2 (
                             valid_and_plv[12]<=valid_and_plv[14];
                             buffer[13]<=ir[0];
                             bufferpc[13]<=pc;
-                            valid_and_plv[13]<={1'b1,plv};
+                            valid_and_plv[13]<={pre,1'b1,plv};
                             buffer[14]<=ir[1];
                             bufferpc[14]<=pc+4;
-                            valid_and_plv[14]<={1'b1,plv};
+                            valid_and_plv[14]<={pre,'b1,plv};
                         end
                     else 
                         begin
@@ -138,7 +139,7 @@ module fetch_buffer_v2 (
                             valid_and_plv[12]<=valid_and_plv[13];
                             buffer[14]<=ir[0];
                             bufferpc[14]<=pc;
-                            valid_and_plv[14]<={1'b1,plv};
+                            valid_and_plv[14]<={pre,1'b1,plv};
                         end
                 if(if1)
                     if(if0) pointer<=(pointer==14|pointer==15)?(15-flag4p):(pointer-flag4m);//取两个
