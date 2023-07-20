@@ -36,6 +36,7 @@ module Dcache#(
 
     //pipeline port
     input       [31:0]addr_pipeline_dcache,
+    input       [31:0]paddr_pipeline_dcache,//物理地址
     input       [31:0]din_pipeline_dcache,
     input       [31:0]pcin_pipeline_dcache,
     output      [31:0]dout_dcache_pipeline,
@@ -70,6 +71,13 @@ wire [32-offset_width-index_width-2-1:0]tag;
 assign offset = addr_pipeline_dcache[offset_width+1:2];
 assign index = addr_pipeline_dcache[offset_width+index_width+1:offset_width+2];
 assign tag = addr_pipeline_dcache[31:offset_width+index_width+2];
+
+wire [offset_width-1:0]poffset;
+wire [index_width-1:0]pindex;
+wire [32-offset_width-index_width-2-1:0]ptag;
+assign poffset = paddr_pipeline_icache[offset_width+1:2];
+assign pindex = paddr_pipeline_icache[offset_width+index_width+1:offset_width+2];
+assign ptag = paddr_pipeline_icache[31:offset_width+index_width+2];
 
 //rquest buffer
 wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc;
@@ -161,10 +169,12 @@ Dcache_TagV(
     .clk(clk),
 
     .TagV_addr_read(index),
-    .TagV_din_compare(rbuf_tag),
+    // .TagV_din_compare(rbuf_tag),
+    .TagV_din_compare(ptag),
     .hit(hit),
     
-    .TagV_din_write(rbuf_tag),
+    // .TagV_din_write(rbuf_tag),
+    .TagV_din_write(ptag),
     .TagV_addr_write(rbuf_index),
     .TagV_we(TagV_we)
 );
@@ -194,9 +204,14 @@ always @(*) begin
 end
 
 //Mem
+reg paddr_reg;
+wire paddr_we;//进入访存之前置1
+always @(posedge clk) begin
+    if(paddr_we)paddr_reg <= paddr_pipeline_dcache;
+end
 wire [1+offset_width:0]temp;
 assign temp=0;
-assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};//读写地址
+assign addr_dcache_mem = dcache_mem_wr ? paddr_reg:{paddr_reg[31:2+offset_width],temp};//读写地址
 assign dout_dcache_mem = rbuf_data;
 
 //FSM
@@ -233,6 +248,8 @@ Dcache_FSMmain1(
     .FSM_rbuf_addr(rbuf_addr),
     .FSM_rbuf_type(rbuf_type),
     .FSM_rbuf_wstrb(rbuf_wstrb),
+
+    .FSM_paddr_we(paddr_we),
     
     //lru
     .FSM_use0(use0),
