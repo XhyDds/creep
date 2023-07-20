@@ -1,18 +1,19 @@
 len=16
 code='''module ras #(
-    parameter   stack_len= '''+str(len)+'''
+    parameter   stack_len= '''+str(len)+''',
+                ADDR_WIDTH = 29
 )(
     input   clk,
     input   rstn,
     input   is_call_ex,            //来自ex段的指令是否为函数调用
-    input   [31:0] ret_pc_ex,      //来自ex段的返回地址
-    output  reg [31:0] ret_pc_pdc, //预测的返回地址
+    input   [ADDR_WIDTH-1:0] ret_pc_ex,      //来自ex段的返回地址
+    output  reg [ADDR_WIDTH-1:0] ret_pc_pdc, //预测的返回地址
     input   mis_pdc,               //地址是否预测错误
     input   is_ret_ex,             //ex段传回的指令是否是返回指令
     input   is_ret_pdc             //预测是否是返回指令
 );
     //函数调用栈
-    reg [31:0] ret_stk[0:stack_len-1];//return stack
+    reg [ADDR_WIDTH-1:0] ret_stk[0:stack_len-1];//return stack
 
     reg error_crt;
 
@@ -110,4 +111,6 @@ code+='''
     end
 endmodule
 '''
-print(code)
+# print(code)
+with open('ras.v','w+') as f:
+    f.write(code)
