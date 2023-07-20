@@ -14,9 +14,9 @@ module ReturnBuffer #(
     //axi
     input               rready,   //r: arbiter->i:dataOK
     input[31:0]         rdata,
-    `ifdef L2Cache
+    // `ifdef L2Cache
         input           cache_mem_rdy,
-    `endif
+    // `endif
     input               rlast
 );
     localparam  WORD_NUM = (1 << offset_width)*32-1,              // words per block(set)

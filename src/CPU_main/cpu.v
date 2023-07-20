@@ -980,18 +980,18 @@ module core_top (
     dcache_extend u_dcache_extend(
         //ports
         `ifdef DDMA
-        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE      ),
+        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE   ),
         .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
         `endif
 
         `ifdef DCache
-        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE      ),
-        .addr_pipeline_dcache    		    ( addr_exe0_exe1 ),
+        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        .addr_pipeline_dcache    		    ( addr_exe0_exe1       ),
         `endif
 
         `ifdef L2Cache
-        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE      ),
-        .addr_pipeline_dcache    		    ( addr_exe0_exe1 ),
+        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        .addr_pipeline_dcache    		    ( addr_exe0_exe1       ),
         `endif
 
         .dout_dcache_pipeline        		( dout_dcache_pipeline ),

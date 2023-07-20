@@ -133,7 +133,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             csr_prmd_diff_0={29'b0,PRMD};
             csr_ectl_diff_0={19'b0,ECFG_LIE[12:11],1'b0,ECFG_LIE[9:0]};
             csr_estat_diff_0={1'b0,ESTAT_EsubCode,ESTAT_Ecode,3'b0,ESTATin[8],TI_INTE,1'b0,ESTATin[7:0],ESTAT_IS};
-            ws_csr_ecode=ESTAT_Ecode;
+            // ws_csr_ecode=excp_flush?ESTAT_Ecode:0;
             csr_era_diff_0=ERA;
             csr_badv_diff_0=BADV;
             csr_eentry_diff_0={EENTRY,6'b0};
@@ -445,8 +445,6 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             else
                                 CRMD[4:0]<={2'b01,PRMD};
                             LLBCTL_KLO<=0;
-                            // ESTAT_Ecode<=0;
-                            // ESTAT_EsubCode<=0;
                             if(!LLBCTL_KLO)
                                 LLBCTL_ROLLB<=0;  
                             end
