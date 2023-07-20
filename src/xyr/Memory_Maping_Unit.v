@@ -160,73 +160,75 @@ module Memory_Maping_Unit#(
     
     always@(posedge(clk))
     begin
-    if(exe)
+    if(exe && (subtype==TLBWR || subtype==TLBFILL))
         begin
-        case(subtype)
-            TLBWR,TLBFILL:
+        PS[Index]<=TLBIDXin[29:24];
+        VPPN[Index]<=TLBEHIin[31:13];
+        {MAT0[Index],PLV0[Index],D0[Index],V0[Index]}<=TLBELO0[5:0];
+        {MAT1[Index],PLV1[Index],D1[Index],V1[Index]}<=TLBELO1[5:0];
+        G[Index]<=TLBELO1[6]&TLBELO0[6];
+        ASID[Index]<=ASIDin;
+        end
+    end
+    genvar j;
+    generate
+    for(j=0;j<=TLB_nex;j=j+1)
+        begin:gen_E
+        always@(posedge(clk))
+        begin
+        if(exe)
+            if(Index==j && (subtype==TLBWR || subtype==TLBFILL))
                 begin
-                PS[Index]<=TLBIDXin[29:24];
                 E[Index]<=~TLBIDXin[31];
-                VPPN[Index]<=TLBEHIin[31:13];
-                {MAT0[Index],PLV0[Index],D0[Index],V0[Index]}<=TLBELO0[5:0];
-                {MAT1[Index],PLV1[Index],D1[Index],V1[Index]}<=TLBELO1[5:0];
-                G[Index]<=TLBELO1[6]&TLBELO0[6];
-                ASID[Index]<=ASIDin;
                 end
-            INVTLB:
+            else if(subtype==INVTLB)
                 begin
                 case(op)
                     5'h0,5'h1:
-                        for(i=0;i<=TLB_nex;i=i+1)
-                            begin
-                            E[i]<=0;
-                            end
+                        begin
+                        E[j]<=0;
+                        end
                     5'h2:
-                        for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if(G[j])//G[j]==1
                             begin
-                            if(G[i])//G[i]==1
-                                begin
-                                E[i]<=0;
-                                end
+                            E[j]<=0;
                             end
+                        end
                     5'h3:
-                        for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if(~G[j])//G[j]==0
                             begin
-                            if(~G[i])//G[i]==0
-                                begin
-                                E[i]<=0;
-                                end
+                            E[j]<=0;
                             end
+                        end
                     5'h4:
-                        for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if(~G[j] && ASID[j]==rj[9:0])//G[j]==0
                             begin
-                            if(~G[i] && ASID[i]==rj[9:0])//G[i]==0
-                                begin
-                                E[i]<=0;
-                                end
+                            E[j]<=0;
                             end
+                        end
                     5'h5:
-                         for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if(~G[j] && ASID[j]==rj[9:0] && ({VPPN[j],12'b0}>>PS[j])==(rk>>PS[j]+1))//G[j]==0
                             begin
-                            if(~G[i] && ASID[i]==rj[9:0] && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==0
-                                begin
-                                E[i]<=0;
-                                end
+                            E[j]<=0;
                             end
+                        end
                     5'h6:
-                        for(i=0;i<=TLB_nex;i=i+1)
+                        begin
+                        if((G[j] || ASID[j]==rj[9:0]) && ({VPPN[j],12'b0}>>PS[j])==(rk>>PS[j]+1))//G[j]==1
                             begin
-                            if((G[i] || ASID[i]==rj[9:0]) && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==1
-                                begin
-                                E[i]<=0;
-                                end
+                            E[j]<=0;
                             end
+                        end
                 
                 endcase
                 end
-        endcase
         end
-    end
+        end
+    endgenerate
     
     //0Â·²éÕÒÂß¼­
     always@(*)
@@ -397,7 +399,24 @@ module Memory_Maping_Unit#(
     end
 endmodule
 
+module encoder_2n_n#(
+    parameter n=7
+)(
+    input [(1<<n)-1:0] din,
+    output reg [n-1:0] dout
+);
+    integer i;
+    always@(*)
+    begin
+    dout=0;
+    for(i=0;i<(1<<n);i=i+1)
+        begin
+        if(din[i])
+            dout=i;
+        end
+    end
 
+endmodule
 
 
 
