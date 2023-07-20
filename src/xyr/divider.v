@@ -4,8 +4,10 @@ module divider#(//din1/din2
     input clk,rstn,
     input [3:0] pipeline_divider_type,
     input [4:0] pipeline_divider_subtype,
-    input pipeline_divider_stall,
-    input pipeline_divider_flush,
+    input pipeline_divider_stall1,
+    input pipeline_divider_flush1,
+    input pipeline_divider_stall2,
+    input pipeline_divider_flush2,
     input [WIDTH-1:0] pipeline_divider_din1,
     input [WIDTH-1:0] pipeline_divider_din2,
     output divider_pipeline_stall,
@@ -15,22 +17,24 @@ module divider#(//din1/din2
     localparam Tdiv=2;
     localparam Wait=0,Aline=1,Div=2,Waitout=3;
     localparam DIVW=0,MODW=1,DIVWU=2,MODWU=3;
-    wire exe,flush;reg busy;wire [WIDTH-1:0] din1,din2;
+    wire exe;reg busy;wire [WIDTH-1:0] din1,din2;
     reg [WIDTH-1:0] dout;wire [4:0] mode;reg [4:0]mode_reg,nmode;
     reg [2:0] ns,cs;reg [WIDTH:0]temp;
     reg [WIDTH-1:0] remainder,nremainder,quotient,nquotient,din2_reg,ndin2_reg;
     reg din1s,din2s;
-    reg [5:0] counter,ncounter;wire [4:0] n1,n2;wire stall;
-    assign stall=pipeline_divider_stall;
-    assign exe=(pipeline_divider_type==Tdiv)&&(!stall||busy);
+    reg [5:0] counter,ncounter;wire [4:0] n1,n2;
+    wire stall1,stall2;wire flush1,flush2;
+    assign stall1=pipeline_divider_stall1,flush1=pipeline_divider_flush1;
+    assign stall2=pipeline_divider_stall2,flush2=pipeline_divider_flush2;
+    assign exe=(pipeline_divider_type==Tdiv)&&!flush1;
     assign divider_pipeline_stall=busy,din1=pipeline_divider_din1;
     assign din2=pipeline_divider_din2,divider_pipeline_dout=dout;
-    assign flush=pipeline_divider_flush,mode=pipeline_divider_subtype;
+    assign mode=pipeline_divider_subtype;
     aliner alin1(.din(remainder),.n(n1));
     aliner alin2(.din(din2_reg),.n(n2));
     always@(posedge(clk),negedge(rstn))
     begin
-    if(!rstn||flush)
+    if(!rstn||flush2)
         begin
         cs<=Wait;
         mode_reg<=DIVW;
@@ -138,7 +142,7 @@ module divider#(//din1/din2
             end
         Waitout:
             begin
-            if(stall)
+            if(stall2)
                 ns=Waitout;
             else
                 ns=Wait;
