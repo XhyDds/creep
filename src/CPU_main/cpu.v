@@ -1792,7 +1792,8 @@ L1_L2cache #(
         .I_index_width  		( 4 		),
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
-        .offset_width 		( 2 		))
+        .L1_offset_width 		( 2 		),
+        .L2_offset_width 		( 2 		))
     u_L1_L2cache(
         //ports
         .clk                    		( clk                    		),
