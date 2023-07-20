@@ -1,7 +1,6 @@
-len=16
-code='''module ghr#(
+module ghr#(
     parameter   gh_width = 14,
-                queue_len= '''+str(len)+'''       //取决于流水线中同时存在的最大指令数
+                queue_len= 16       //取决于流水线中同时存在的最大指令数
 )(
     input   clk,
     input   rstn,               
@@ -17,18 +16,41 @@ code='''module ghr#(
     reg     [3:0]pointer;
 
     always @(posedge clk,negedge rstn) begin
-        if(!rstn) begin'''
-for i in range(len):
-    code+='''
-            chkpt_q[4'd'''+str(i)+''']<=0;'''
-code+='''
+        if(!rstn) begin
+            chkpt_q[4'd0]<=0;
+            chkpt_q[4'd1]<=0;
+            chkpt_q[4'd2]<=0;
+            chkpt_q[4'd3]<=0;
+            chkpt_q[4'd4]<=0;
+            chkpt_q[4'd5]<=0;
+            chkpt_q[4'd6]<=0;
+            chkpt_q[4'd7]<=0;
+            chkpt_q[4'd8]<=0;
+            chkpt_q[4'd9]<=0;
+            chkpt_q[4'd10]<=0;
+            chkpt_q[4'd11]<=0;
+            chkpt_q[4'd12]<=0;
+            chkpt_q[4'd13]<=0;
+            chkpt_q[4'd14]<=0;
+            chkpt_q[4'd15]<=0;
         end
         else if(is_jump_pdc) begin
-            chkpt_q[4'd0]<={gh[gh_width-2:0],~taken_pdc};'''
-for i in range(len-1):
-    code+='''
-            chkpt_q[4'd'''+str(i+1)+''']<=chkpt_q[4'd'''+str(i)+'''];'''
-code+='''
+            chkpt_q[4'd0]<={gh[gh_width-2:0],~taken_pdc};
+            chkpt_q[4'd1]<=chkpt_q[4'd0];
+            chkpt_q[4'd2]<=chkpt_q[4'd1];
+            chkpt_q[4'd3]<=chkpt_q[4'd2];
+            chkpt_q[4'd4]<=chkpt_q[4'd3];
+            chkpt_q[4'd5]<=chkpt_q[4'd4];
+            chkpt_q[4'd6]<=chkpt_q[4'd5];
+            chkpt_q[4'd7]<=chkpt_q[4'd6];
+            chkpt_q[4'd8]<=chkpt_q[4'd7];
+            chkpt_q[4'd9]<=chkpt_q[4'd8];
+            chkpt_q[4'd10]<=chkpt_q[4'd9];
+            chkpt_q[4'd11]<=chkpt_q[4'd10];
+            chkpt_q[4'd12]<=chkpt_q[4'd11];
+            chkpt_q[4'd13]<=chkpt_q[4'd12];
+            chkpt_q[4'd14]<=chkpt_q[4'd13];
+            chkpt_q[4'd15]<=chkpt_q[4'd14];
         end
     end
 
@@ -59,7 +81,3 @@ code+='''
         end
     end
 endmodule
-'''
-# print(code)
-with open('ghr.v','w+') as f:
-    f.write(code)
