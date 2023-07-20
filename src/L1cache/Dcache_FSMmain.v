@@ -58,6 +58,9 @@ module Dcache_FSMmain#(
     input       FSM_rbuf_type,//0-read  1-write
     input       [3:0]FSM_rbuf_wstrb,
 
+    //paddr寄存器
+    output reg  FSM_paddr_we,
+
     //lru
     output reg  FSM_use0,FSM_use1,
     input       FSM_wal_sel_lru,
@@ -203,19 +206,20 @@ always @(*) begin
     endcase
 end
 always @(*) begin
-    dcache_pipeline_ready=0;
-    dcache_mem_req=0;
-    dcache_mem_wr=0;
-    dcache_mem_size=2'd2;
-    dcache_mem_wstrb=FSM_rbuf_wstrb;
-    FSM_rbuf_we=0;
-    FSM_use0=0;
-    FSM_use1=0;
-    FSM_Data_we=2'd0;
-    FSM_choose_way=0;
-    FSM_choose_return=0;
-    FSM_Data_replace=0;
-    FSM_choose_word=FSM_rbuf_addr[2+offset_width-1:2];
+    dcache_pipeline_ready = 0;
+    dcache_mem_req = 0;
+    dcache_mem_wr = 0;
+    dcache_mem_size = 2'd2;
+    dcache_mem_wstrb = FSM_rbuf_wstrb;
+    FSM_rbuf_we = 0;
+    FSM_paddr_we = 0;
+    FSM_use0 = 0;
+    FSM_use1 = 0;
+    FSM_Data_we = 2'd0;
+    FSM_choose_way = 0;
+    FSM_choose_return = 0;
+    FSM_Data_replace = 0;
+    FSM_choose_word = FSM_rbuf_addr[2+offset_width-1:2];
     case (state)
         Idle:begin
             case (next_state)
@@ -235,6 +239,7 @@ always @(*) begin
             case (next_state)
                 Miss_r:begin
                     // dcache_mem_req=1;
+                    FSM_paddr_we = 1;
                     dcache_mem_wr=0;
                     // dcache_mem_size=2'd2;
                     // dcache_mem_wstrb=4'b0000;
@@ -242,6 +247,7 @@ always @(*) begin
                 Miss_w:begin
                     // dcache_mem_req=1;
                     dcache_mem_wr=1;
+                    FSM_paddr_we = 1;
                     // dcache_mem_size=2'd2;
                     // dcache_mem_wstrb=4'b1111;
 

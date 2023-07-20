@@ -33,6 +33,7 @@ module Icache#(
 
     //pipeline port
     input       [31:0]addr_pipeline_icache,
+    input       [31:0]paddr_pipeline_icache,//物理地址
     output      [63:0]dout_icache_pipeline,//双发射 [31:0]是给定地址处的指令
     output      [31:0]pc_icache_pipeline,
     output      flag_icache_pipeline,//0-后一条指令（[63:32]）无效 1-有效
@@ -61,6 +62,13 @@ wire [32-offset_width-index_width-2-1:0]tag;
 assign offset = addr_pipeline_icache[offset_width+1:2];
 assign index = addr_pipeline_icache[offset_width+index_width+1:offset_width+2];
 assign tag = addr_pipeline_icache[31:offset_width+index_width+2];
+
+wire [offset_width-1:0]poffset;
+wire [index_width-1:0]pindex;
+wire [32-offset_width-index_width-2-1:0]ptag;
+assign poffset = paddr_pipeline_icache[offset_width+1:2];
+assign pindex = paddr_pipeline_icache[offset_width+index_width+1:offset_width+2];
+assign ptag = paddr_pipeline_icache[31:offset_width+index_width+2];
 
 //rquest buffer
 wire [31:0]rbuf_addr,rbuf_opcode;
@@ -136,10 +144,12 @@ Icache_TagV(
     .clk(clk),.rstn(rstn),
 
     .TagV_addr_read(index),
-    .TagV_din_compare(rbuf_tag),
+    // .TagV_din_compare(rbuf_tag),
+    .TagV_din_compare(ptag),
     .hit(hit),
     
-    .TagV_din_write(rbuf_tag),
+    // .TagV_din_write(rbuf_tag),
+    .TagV_din_write(ptag),
     .TagV_addr_write(rbuf_index),
     .TagV_we(TagV_we)
 );
@@ -196,10 +206,15 @@ end
 assign dout_icache_pipeline = (choose_stall) ? data_out_reg : dout1;
 assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : flag1;
 
-//Mem
+//Mem 实地址访存
+reg paddr_reg;
+wire paddr_we;//进入访存之前置1
+always @(posedge clk) begin
+    if(paddr_we)paddr_reg <= paddr_pipeline_icache;
+end
 wire [1+offset_width:0]temp;
 assign temp=0;
-assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
+assign addr_icache_mem = {paddr_reg[31:2+offset_width],temp};
 
 //FSM
 Icache_FSMmain #(
@@ -230,6 +245,8 @@ Icache_FSMmain(
     .FSM_rbuf_opcode(rbuf_opcode),
     .FSM_rbuf_opflag(rbuf_opflag),
     .FSM_rbuf_addr(rbuf_addr),
+
+    .FSM_paddr_we(paddr_we),
     
     //lru
     .FSM_use0(use0),
