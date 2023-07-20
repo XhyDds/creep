@@ -123,7 +123,7 @@ module Memory_Maping_Unit#(
                TLBIDX[31]=1;//NE
                for(i=0;i<=TLB_nex;i=i+1)
                    begin
-                   if((ASID[i]==ASIDin || G[i]==1) && VPPN[i]==TLBEHIin[31:13] && E[i]==1)//E,G?
+                   if((ASID[i]==ASIDin || G[i]==1) && ({VPPN[i],12'b0}>>PS[i])==(TLBEHIin[31:1]>>PS[i]) && E[i]==1)//VPPNlow
                        begin
                        TLBIDX[31]=0;
                        TLBIDX[TLB_n-1:0]=i;//Index
@@ -176,14 +176,14 @@ module Memory_Maping_Unit#(
                     5'h0,5'h1:
                         for(i=0;i<=TLB_nex;i=i+1)
                             begin
-                            V0[i]<=0;V1[i]<=0;
+                            E[i]<=0;
                             end
                     5'h2:
                         for(i=0;i<=TLB_nex;i=i+1)
                             begin
                             if(G[i])//G[i]==1
                                 begin
-                                V0[i]<=0;V1[i]<=0;
+                                E[i]<=0;
                                 end
                             end
                     5'h3:
@@ -191,7 +191,7 @@ module Memory_Maping_Unit#(
                             begin
                             if(~G[i])//G[i]==0
                                 begin
-                                V0[i]<=0;V1[i]<=0;
+                                E[i]<=0;
                                 end
                             end
                     5'h4:
@@ -199,7 +199,7 @@ module Memory_Maping_Unit#(
                             begin
                             if(~G[i] && ASID[i]==rj[9:0])//G[i]==0
                                 begin
-                                V0[i]<=0;V1[i]<=0;
+                                E[i]<=0;
                                 end
                             end
                     5'h5:
@@ -207,10 +207,7 @@ module Memory_Maping_Unit#(
                             begin
                             if(~G[i] && ASID[i]==rj[9:0] && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==0
                                 begin
-                                if(|((rk>>PS[i])&32'b1))//rk[PS[i]]==1
-                                    V1[i]<=0;
-                                else
-                                    V0[i]<=0;
+                                E[i]<=0;
                                 end
                             end
                     5'h6:
@@ -218,10 +215,7 @@ module Memory_Maping_Unit#(
                             begin
                             if((G[i] || ASID[i]==rj[9:0]) && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==1
                                 begin
-                                if(|((rk>>PS[i])&32'b1))//rk[PS[i]]==1
-                                    V1[i]<=0;
-                                else
-                                    V0[i]<=0;
+                                E[i]<=0;
                                 end
                             end
                 
