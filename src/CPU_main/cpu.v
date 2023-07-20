@@ -161,7 +161,7 @@ module core_top (
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�?
+    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�??
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_fifo_id =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_id_reg0 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
@@ -170,7 +170,7 @@ module core_top (
     assign stall_reg_exe0_1 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_0 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_1 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�?
+    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�??
     assign stall_exe1_wb_0 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe1_wb_1 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
 
@@ -692,8 +692,10 @@ module core_top (
         .rstn                     		( rstn                     		),
         .pipeline_divider_type    		( ctr_reg_exe0_0[3:0]    		),
         .pipeline_divider_subtype 		( ctr_reg_exe0_0[11:7] 		),
-        .pipeline_divider_stall   		( stall_exe0_exe1_0   		),
-        .pipeline_divider_flush   		( flush_exe0_exe1_0   		),
+        .pipeline_divider_stall1   		( stall_exe0_exe1_0   		),
+        .pipeline_divider_flush1   		( flush_exe0_exe1_0   		),
+        .pipeline_divider_stall2   		( stall_exe1_wb_0   		),
+        .pipeline_divider_flush2   		( flush_exe1_wb_0   		),
         .pipeline_divider_din1    		( rrj0_forward    		),
         .pipeline_divider_din2    		( rrk0_forward    		),
         .divider_pipeline_stall   		( stall_div0   		),
@@ -710,8 +712,10 @@ module core_top (
         .rstn                     		( rstn                     		),
         .pipeline_divider_type    		( ctr_reg_exe0_1_ALE[3:0]    		),
         .pipeline_divider_subtype 		( ctr_reg_exe0_1_ALE[11:7] 		),
-        .pipeline_divider_stall   		( stall_exe0_exe1_1   		),
-        .pipeline_divider_flush   		( flush_exe0_exe1_1   		),
+        .pipeline_divider_stall1   		( stall_exe0_exe1_1   		),
+        .pipeline_divider_flush1   		( flush_exe0_exe1_1   		),
+        .pipeline_divider_stall2   		( stall_exe1_wb_1   		),
+        .pipeline_divider_flush2   		( flush_exe1_wb_1   		),
         .pipeline_divider_din1    		( rrj1_forward    		),
         .pipeline_divider_din2    		( rrk1_forward    		),
         .divider_pipeline_stall   		( stall_div1   		),
@@ -970,7 +974,7 @@ module core_top (
     // wire [31:0]	test3_dcache;
 
     wire [31:0]	dout_dcache_pipeline;
-    wire 	dcache_pipeline_ready;//无用�?
+    wire 	dcache_pipeline_ready;//无用�??
 
     wire [31:0]	addr_dcache_mem;
     wire [31:0]	dout_dcache_mem;
@@ -1171,7 +1175,7 @@ module core_top (
         .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         
 
-        //当前版本，dcache直接�?
+        //当前版本，dcache直接�??
         .d_wvalid 		( dcache_mem_req & dcache_mem_wr ),//input
         .d_wready 		( d_wready 		),//output reg  
         .d_waddr  		( addr_dcache_mem  		),//input [31:0]
@@ -1569,10 +1573,10 @@ module core_top (
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�?测访存地�?是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?
+    always @(*) begin//�??测访存地�??是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�??
         ctr_reg_exe0_1_ALE=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
-        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越�?
+        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越�??
         else if(ctr_reg_exe0_1[3:0]==5)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
