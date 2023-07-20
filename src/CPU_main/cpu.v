@@ -86,7 +86,7 @@ module core_top (
     pc_reg_exe0_0,pc_reg_exe0_1,
     pc_exe0_exe1_0,pc_exe0_exe1_1,
     pc_exe1_wb_0,pc_exe1_wb_1,
-    aluresult_exe0_exe1_0,aluresult_exe0_exe1_1,
+    result_exe0_exe1_0,result_exe0_exe1_1,
     result_exe1_wb_0,result_exe1_wb_1,
     rrk_reg_exe0_0,rrj_reg_exe0_0,
     rrk_reg_exe0_1,rrj_reg_exe0_1,
@@ -513,19 +513,14 @@ module core_top (
 
     wire [31:0]	dcacheresult;
 
-    // // `ifdef DDMA
-    // // wire [31:0] result_exe0_exe1_1;
-    // // assign result_exe0_exe1_1=(|ctr_exe0_exe1_1[3:0])?dcacheresult:aluresult_exe0_exe1_1;
-    // // `endif
-
     forward u_forward(
         //ports
         .ctr_exe1_wb_0(ctr_exe1_wb_0),
         .ctr_exe1_wb_1(ctr_exe1_wb_1),
         .ctr_exe0_exe1_0(ctr_exe0_exe1_0),
         .ctr_exe0_exe1_1(ctr_exe0_exe1_1),
-        .aluresult_exe0_exe1_0 		( aluresult_exe0_exe1_0 		),
-        .aluresult_exe0_exe1_1 		( aluresult_exe0_exe1_1 		),
+        .result_exe0_exe1_0 		( result_exe0_exe1_0 		),
+        .result_exe0_exe1_1 		( result_exe0_exe1_1 		),
         .result_exe1_wb_0      		( result_exe1_wb_0      		),
         .result_exe1_wb_1      		( result_exe1_wb_1      		),
         .rrj_reg_exe0_0        		( rrj_reg_exe0_0        		),
@@ -538,18 +533,18 @@ module core_top (
         .rrd_reg_exe0_1        		( rrd_reg_exe0_1        		),
         .rd_exe1_wb_0          		( rd_exe1_wb_0          		),
         .rd_exe1_wb_1          		( rd_exe1_wb_1          		),
-        .rj0                   		( rj_reg_exe0_0               		),
-        .rj1                   		( rj_reg_exe0_1               		),
-        .rk0                   		( rk_reg_exe0_0               		),
-        .rk1                   		( rk_reg_exe0_1               		),
-        .rd0(rd_reg_exe0_0),
-        .rd1(rd_reg_exe0_1),
+        .rj0                   		( rj_reg_exe0_0               	),
+        .rj1                   		( rj_reg_exe0_1               	),
+        .rk0                   		( rk_reg_exe0_0               	),
+        .rk1                   		( rk_reg_exe0_1               	),
+        .rd0                        ( rd_reg_exe0_0                 ),
+        .rd1                        ( rd_reg_exe0_1                 ),
         .rrj0                  		( rrj0_forward                  ),
         .rrj1                  		( rrj1_forward                  ),
         .rrk0                  		( rrk0_forward                  ),
         .rrk1                  		( rrk1_forward                  ),
-        .rrd0(rrd0_forward),
-        .rrd1(rrd1_forward)
+        .rrd0                       ( rrd0_forward                  ),
+        .rrd1                       ( rrd1_forward                  )
     );
 
     wire [31:0]	alu1_0;
@@ -557,9 +552,9 @@ module core_top (
     alusrc u_alusrc1_0(
         //ports
         .register0 		( rrj0_forward 		),
+        .register1    	( pc_reg_exe0_0    		),
         .register2 		( 0 		),
         .register3 		( 0 		),
-        .register1    	( pc_reg_exe0_0    		),
         .alusrc_   		( ctr_reg_exe0_0[15:14]   		),
         .alu      		( alu1_0      		)
     );
@@ -569,9 +564,9 @@ module core_top (
     alusrc u_alusrc2_0(
         //ports
         .register0 		( rrk0_forward 		),
+        .register1    	( imm_reg_exe0_0    		),
         .register2 		( rrd0_forward 		),
         .register3 		( 4 		),
-        .register1    	( imm_reg_exe0_0    		),
         .alusrc_   		( ctr_reg_exe0_0[13:12]   		),
         .alu      		( alu2_0      		)
     );
@@ -985,17 +980,17 @@ module core_top (
     dcache_extend u_dcache_extend(
         //ports
         `ifdef DDMA
-        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1      ),
+        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE      ),
         .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
         `endif
 
         `ifdef DCache
-        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE      ),
         .addr_pipeline_dcache    		    ( addr_exe0_exe1 ),
         `endif
 
         `ifdef L2Cache
-        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE      ),
         .addr_pipeline_dcache    		    ( addr_exe0_exe1 ),
         `endif
 
@@ -1478,7 +1473,7 @@ module core_top (
         if(!rstn) begin
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
-            aluresult_exe0_exe1_0 <= 0;
+            result_exe0_exe1_0 <= 0;
             pc_exe0_exe1_0<=0;
             ir_exe0_exe1_0<=0;
             ir_valid_exe0_exe1_0<=0;
@@ -1491,7 +1486,7 @@ module core_top (
         else if(flush_exe0_exe1_0) begin
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
-            aluresult_exe0_exe1_0 <= 0;
+            result_exe0_exe1_0 <= 0;
             pc_exe0_exe1_0<=0;
             ir_exe0_exe1_0<=0;
             ir_valid_exe0_exe1_0<=0;
@@ -1503,7 +1498,7 @@ module core_top (
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
             rd_exe0_exe1_0 <= rd_reg_exe0_0;
-            aluresult_exe0_exe1_0 <= (ctr_reg_exe0_0[3:0]==7)?countresult0:aluresult0;//debug
+            result_exe0_exe1_0 <= (ctr_reg_exe0_0[3:0]==7)?countresult0:aluresult0;
             pc_exe0_exe1_0<=pc_reg_exe0_0;
             ir_exe0_exe1_0<=ir_reg_exe0_0;
             ir_valid_exe0_exe1_0<=ir_valid_reg_exe0_0;
@@ -1518,7 +1513,7 @@ module core_top (
         if(!rstn) begin
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
-            aluresult_exe0_exe1_1<=0;
+            result_exe0_exe1_1<=0;
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
             addr_exe0_exe1<=0;
@@ -1529,7 +1524,7 @@ module core_top (
         else if(flush_exe0_exe1_1|excp_flush) begin
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
-            aluresult_exe0_exe1_1<=0;
+            result_exe0_exe1_1<=0;
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
             addr_exe0_exe1<=0;
@@ -1539,7 +1534,7 @@ module core_top (
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_ALE;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
-            aluresult_exe0_exe1_1<=(ctr_reg_exe0_1_ALE[3:0]==7)?countresult1:aluresult1;//debug
+            result_exe0_exe1_1<=(ctr_reg_exe0_1_ALE[3:0]==7)?countresult1:aluresult1;
             pc_exe0_exe1_1<=pc_reg_exe0_1;
             ir_exe0_exe1_1<=ir_reg_exe0_1;
             addr_exe0_exe1<=addr_pipeline_dcache;
@@ -1554,15 +1549,15 @@ module core_top (
         result0=0;
         result1=0;
         case (ctr_exe0_exe1_0[3:0])
-            0: result0=aluresult_exe0_exe1_0;
+            0: result0=result_exe0_exe1_0;
             1: ;
             2: result0=divresult0;
             4: result0=mulresult0;
-            7: result0=aluresult_exe0_exe1_0;
-            8: result0=aluresult_exe0_exe1_0;
+            7: result0=result_exe0_exe1_0;
+            8: result0=result_exe0_exe1_0;
         endcase
         case (ctr_exe0_exe1_1[3:0])
-            0: result1=aluresult_exe0_exe1_1;
+            0: result1=result_exe0_exe1_1;
             1: ;
             2: result1=divresult1;
             3: result1=privresult;
@@ -1582,8 +1577,8 @@ module core_top (
             6: result1=dcacheresult;//Dcache ONLY
             `endif
 
-            7: result1=aluresult_exe0_exe1_1;
-            8: result1=aluresult_exe0_exe1_1;
+            7: result1=result_exe0_exe1_1;
+            8: result1=result_exe0_exe1_1;
         endcase
     end
 
@@ -1654,17 +1649,6 @@ module core_top (
             countresult_exe1_wb_1<=countresult_exe0_exe1_1;
         end
     end
-
-    // always @(posedge clk or negedge rstn) begin
-    //     if(!rstn) begin
-    //         stall_exe1_wb_0_reg <= 0;
-    //         stall_exe1_wb_1_reg <= 0;
-    //     end
-    //     else begin
-    //         stall_exe1_wb_0_reg <= stall_exe1_wb_0;
-    //         stall_exe1_wb_1_reg <= stall_exe1_wb_1;
-    //     end
-    // end
 
 //L2Cache
 `ifdef L2Cache
@@ -1821,56 +1805,48 @@ L1_L2cache #(
 
 //difftest begin here
 `ifdef DIFFTEST_EN
-    // difftest
-
     //undefined
     wire rand_index0                    =   0;
     wire rand_index1                    =   0;
     wire tlbfill_en                     =   0;
-    // wire excp_flush                     =   0;
-    // wire ertn_flush                     =   0;
-    // wire [5:0]ws_csr_ecode              =   csr_estat_diff_0[21:16];
+    wire            csr_rstat_en_diff   =   0;
+    wire    [31:0]  csr_data_diff       =   0;
     
     // from wb_stage
-    wire     [3:0]  type_exe1_wb      =   ctr_exe1_wb_1[3:0];
-    wire     [3:0]  subtype_exe1_wb   =   ctr_exe1_wb_1[11:7];
     wire            ws_valid_diff0      =   ws_valid0;
     wire            ws_valid_diff1      =   ws_valid1;
-    wire            cnt_inst_diff0      =   ~(|ir_exe1_wb_0[31:15]);
-    wire            cnt_inst_diff1      =   ~(|ir_exe1_wb_1[31:15]);
-    wire    [63:0]  timer_64_diff0      =   countresult_exe1_wb_0;
-    wire    [63:0]  timer_64_diff1      =   countresult_exe1_wb_1;
+    wire            cnt_inst_diff0      =   ctr_exe1_wb_0[23];
+    wire            cnt_inst_diff1      =   ctr_exe1_wb_1[23];
+    wire    [63:0]  timer_64_diff       =   countresult_exe1_wb_1;
 
-    wire     [7:0]  inst_ld_en_diff     =   (type_exe1_wb==5&(subtype_exe1_wb==0|subtype_exe1_wb==1|subtype_exe1_wb==2|subtype_exe1_wb==6|subtype_exe1_wb==7)|type_exe1_wb==6&subtype_exe1_wb==0);
+    // wire     [7:0]  inst_ld_en_diff     =   (type_exe1_wb==5&(subtype_exe1_wb==0|subtype_exe1_wb==1|subtype_exe1_wb==2|subtype_exe1_wb==6|subtype_exe1_wb==7)|type_exe1_wb==6&subtype_exe1_wb==0);
+    wire     [7:0]  inst_ld_en_diff     =   ctr_exe1_wb_1[4];
     wire    [31:0]  ld_paddr_diff       =   paddr_exe1_wb;
     wire    [31:0]  ld_vaddr_diff       =   vaddr_exe1_wb;
 
-    wire    [ 7:0]  inst_st_en_diff     =   (type_exe1_wb==5&(subtype_exe1_wb==3|subtype_exe1_wb==4|subtype_exe1_wb==5)|type_exe1_wb==6&subtype_exe1_wb==1);
+    // wire    [ 7:0]  inst_st_en_diff     =   (type_exe1_wb==5&(subtype_exe1_wb==3|subtype_exe1_wb==4|subtype_exe1_wb==5)|type_exe1_wb==6&subtype_exe1_wb==1);
+    wire    [ 7:0]  inst_st_en_diff     =   ctr_exe1_wb_1[5];
     wire    [31:0]  st_paddr_diff       =   paddr_exe1_wb;
     wire    [31:0]  st_vaddr_diff       =   vaddr_exe1_wb;
     wire    [31:0]  st_data_diff        =   debug1_wb_rf_wdata;
 
-    wire            csr_rstat_en_diff   =   0;
-    wire    [31:0]  csr_data_diff       =   0;
-
-    wire inst_valid_diff0 = ws_valid_diff0;
-    wire inst_valid_diff1 = ws_valid_diff1;
+    wire            inst_valid_diff0    =   ws_valid_diff0;
+    wire            inst_valid_diff1    =   ws_valid_diff1;
 
     reg             cmt_valid0           ;
     reg             cmt_valid1           ;
     reg             cmt_cnt_inst0        ;
     reg             cmt_cnt_inst1        ;
-    reg     [63:0]  cmt_timer_640        ;
-    reg     [63:0]  cmt_timer_641        ;
-    reg     [ 7:0]  cmt_inst_ld_en      ;
-    reg     [31:0]  cmt_ld_paddr        ;
-    reg     [31:0]  cmt_ld_vaddr        ;
-    reg     [ 7:0]  cmt_inst_st_en      ;
-    reg     [31:0]  cmt_st_paddr        ;
-    reg     [31:0]  cmt_st_vaddr        ;
-    reg     [31:0]  cmt_st_data         ;
-    reg             cmt_csr_rstat_en    ;
-    reg     [31:0]  cmt_csr_data        ;
+    reg     [63:0]  cmt_timer_64         ;
+    reg     [ 7:0]  cmt_inst_ld_en       ;
+    reg     [31:0]  cmt_ld_paddr         ;
+    reg     [31:0]  cmt_ld_vaddr         ;
+    reg     [ 7:0]  cmt_inst_st_en       ;
+    reg     [31:0]  cmt_st_paddr         ;
+    reg     [31:0]  cmt_st_vaddr         ;
+    reg     [31:0]  cmt_st_data          ;
+    reg             cmt_csr_rstat_en     ;
+    reg     [31:0]  cmt_csr_data         ;
 
     reg             cmt_wen0             ;
     reg             cmt_wen1             ;
@@ -1883,18 +1859,18 @@ L1_L2cache #(
     reg     [31:0]  cmt_inst0            ;
     reg     [31:0]  cmt_inst1            ;
 
-    reg             cmt_excp_flush      ;
-    reg             cmt_ertn            ;
-    reg     [5:0]   cmt_csr_ecode       ;
-    reg             cmt_tlbfill_en      ;
+    reg             cmt_excp_flush       ;
+    reg             cmt_ertn             ;
+    reg     [5:0]   cmt_csr_ecode        ;
+    reg             cmt_tlbfill_en       ;
     reg     [4:0]   cmt_rand_index0      ;
     reg     [4:0]   cmt_rand_index1      ;
 
     // to difftest debug
-    reg             trap                ;
-    reg     [ 7:0]  trap_code           ;
-    reg     [63:0]  cycleCnt            ;
-    reg     [63:0]  instrCnt            ;
+    reg             trap                 ;
+    reg     [ 7:0]  trap_code            ;
+    reg     [63:0]  cycleCnt             ;
+    reg     [63:0]  instrCnt             ;
 
     // from regfile
 
@@ -1987,7 +1963,7 @@ L1_L2cache #(
 
     always @(posedge aclk) begin
         if (!aresetn) begin
-            {cmt_valid0, cmt_valid1, cmt_cnt_inst0, cmt_cnt_inst1, cmt_timer_640, cmt_timer_641, cmt_inst_ld_en, cmt_ld_paddr, cmt_ld_vaddr, cmt_inst_st_en, cmt_st_paddr, cmt_st_vaddr, cmt_st_data, cmt_csr_rstat_en, cmt_csr_data} <= 0;
+            {cmt_valid0, cmt_valid1, cmt_cnt_inst0, cmt_cnt_inst1, cmt_timer_64, cmt_inst_ld_en, cmt_ld_paddr, cmt_ld_vaddr, cmt_inst_st_en, cmt_st_paddr, cmt_st_vaddr, cmt_st_data, cmt_csr_rstat_en, cmt_csr_data} <= 0;
             {cmt_wen0, cmt_wen1, cmt_wdest0, cmt_wdest1, cmt_wdata0, cmt_wdata1, cmt_pc0, cmt_pc1, cmt_inst0, cmt_inst1} <= 0;
             {trap, trap_code, cycleCnt, instrCnt} <= 0;
         end else if (~trap) begin
@@ -2010,8 +1986,7 @@ L1_L2cache #(
             cmt_rand_index1  <= rand_index1               ;
 
             cmt_tlbfill_en  <= tlbfill_en               ;
-            cmt_timer_640   <= timer_64_diff0           ;
-            cmt_timer_641   <= timer_64_diff1           ;
+            cmt_timer_64    <= timer_64_diff            ;
 
             cmt_inst_ld_en  <= inst_ld_en_diff          ;
             cmt_ld_paddr    <= ld_paddr_diff            ;
@@ -2045,7 +2020,7 @@ L1_L2cache #(
         .is_TLBFILL         (cmt_tlbfill_en ),
         .TLBFILL_index      (cmt_rand_index0 ),
         .is_CNTinst         (cmt_cnt_inst0   ),
-        .timer_64_value     (cmt_timer_640   ),
+        .timer_64_value     (cmt_timer_64    ),
         .wen                (cmt_wen0        ),
         .wdest              (cmt_wdest0      ),
         .wdata              (cmt_wdata0      ),
@@ -2064,7 +2039,7 @@ L1_L2cache #(
         .is_TLBFILL         (cmt_tlbfill_en ),
         .TLBFILL_index      (cmt_rand_index1 ),
         .is_CNTinst         (cmt_cnt_inst1   ),
-        .timer_64_value     (cmt_timer_641   ),
+        .timer_64_value     (cmt_timer_64    ),
         .wen                (cmt_wen1        ),
         .wdest              (cmt_wdest1      ),
         .wdata              (cmt_wdata1      ),

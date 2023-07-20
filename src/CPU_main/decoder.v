@@ -26,10 +26,10 @@ module decoder (
     //for yuanzi, 0:load, 1:store
     //for tiaoxie, 0:jirl, 1:bl
     //for rdcnt, 0:rdcntvl.w, 1:rdcntvh.w, (2:rdcntid)
-    reg memread,memwrite,regwrite,nop,priv;
-    assign control=(valid)?{9'b0,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
+    reg memread,memwrite,regwrite,nop,priv,ifrdc;
+    assign control=(valid)?{8'b0,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
     always @(*) begin
-        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;
+        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;
         if(|pc[1:0]) begin //ADEF 
             type_=liwai;subtype=0;excp_arg='b0_001000; 
         end
@@ -46,11 +46,11 @@ module decoder (
                         'b0000000: 
                             if(ir[14:11]=='b1100) 
                                 if(!ir[10])
-                                    if(|ir[9:5])         begin excp_arg=16'h40;rd=ir[9:5];type_=liwai;subtype=8;regwrite=1; end//RDCNTID
-                                    else if(|ir[4:0])    begin rd=ir[4:0];type_=shizhong;subtype=0;regwrite=1; end//RDCNTVL.W
+                                    if(|ir[9:5])         begin excp_arg=16'h40;rd=ir[9:5];type_=liwai;subtype=8;regwrite=1;ifrdc=1; end//RDCNTID
+                                    else if(|ir[4:0])    begin rd=ir[4:0];type_=shizhong;subtype=0;regwrite=1;ifrdc=1; end//RDCNTVL.W
                                     else                 begin type_=liwai;subtype=0;excp_arg='b001101; end
                                 else 
-                                    if(~|ir[9:5])        begin rd=ir[4:0];type_=shizhong;subtype=1;regwrite=1; end//RDCNTVH.W
+                                    if(~|ir[9:5])        begin rd=ir[4:0];type_=shizhong;subtype=1;regwrite=1;ifrdc=1; end//RDCNTVH.W
                                     else                 begin type_=liwai;subtype=0;excp_arg='b001101; end
                             // else    if(~|ir[14:0])       begin nop=1; end//全0为也是不存在例外！！
                             else                         begin type_=liwai;subtype=0;excp_arg='b001101; end

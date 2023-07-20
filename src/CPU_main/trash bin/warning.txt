@@ -1,0 +1,155 @@
+Start
+The first instruction of core 0 has commited. Difftest enabled.
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c073940 [NEMU]: INVALID INST
+[NEMU]: INVALID INST CODE : 0x 0
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c073994 [NEMU]: INVALID INST
+[NEMU]: INVALID INST CODE : 0x ffffffff
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0739c8 [NEMU]: INVALID INST
+[NEMU]: INVALID INST CODE : 0x f9000000
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0739e0 [NEMU]: INVALID INST
+[NEMU]: INVALID INST CODE : 0x 887b8000
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c073a04 [NEMU]: INVALID INST
+[NEMU]: INVALID INST CODE : 0x 88000200
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c073a1c [NEMU]: INVALID INST
+[NEMU]: INVALID INST CODE : 0x f36e0000
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c073a38 [NEMU]: INVALID INST
+[NEMU]: INVALID INST CODE : 0x 94080000
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x227f9789 [NEMU]: inst fetch, PC = 0x227f9789, not 4 aligned
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x3101bbed [NEMU]: inst fetch, PC = 0x3101bbed, not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x44790977 [NEMU]: inst fetch, PC = 0x44790977, not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x92b0a2c3 [NEMU]: inst fetch, PC = 0x92b0a2c3, not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0xaf9edafa [NEMU]: inst fetch, PC = 0xaf9edafa, not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0xb088f329 [NEMU]: inst fetch, PC = 0xb088f329, not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x827f97ab [NEMU]: inst fetch, PC = 0x827f97ab, not 4 aligned
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c07404c [NEMU]: current mem addr = 0xcfde1 not 4 aligned
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0740d0 [NEMU]: current mem addr = 0xd7dea not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c07414c [NEMU]: current mem addr = 0xd5eca not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074198 [NEMU]: current mem addr = 0xd78bb not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0741f0 [NEMU]: current mem addr = 0xd5bea not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c07423c [NEMU]: current mem addr = 0xd0543 not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c07428c [NEMU]: current mem addr = 0xd6de1 not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074324 [NEMU]: current mem addr = 0xd0c61 not 2 aligned
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0743a8 [NEMU]: current mem addr = 0xd321f not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074424 [NEMU]: current mem addr = 0xd0e53 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074470 [NEMU]: current mem addr = 0xd620d not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0744c8 [NEMU]: current mem addr = 0xd0173 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074514 [NEMU]: current mem addr = 0xd2d35 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074564 [NEMU]: current mem addr = 0xd4145 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0745fc [NEMU]: current mem addr = 0xd0c61 not 2 aligned
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074684 [NEMU]: current mem addr = 0xd321f not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074700 [NEMU]: current mem addr = 0xd0e53 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c07474c [NEMU]: current mem addr = 0xd620d not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0747a4 [NEMU]: current mem addr = 0xd0173 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0747f0 [NEMU]: current mem addr = 0xd2d35 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074840 [NEMU]: current mem addr = 0xd4145 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0748dc [NEMU]: current mem addr = 0xd585f not 2 aligned
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074968 [NEMU]: current mem addr = 0xd2ca3 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c0749e8 [NEMU]: current mem addr = 0xd1529 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074a38 [NEMU]: current mem addr = 0xd301d not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074a94 [NEMU]: current mem addr = 0xd1b53 not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074ae4 [NEMU]: current mem addr = 0xd3c0d not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074b38 [NEMU]: current mem addr = 0xd6b9d not 2 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074bd4 [NEMU]: current mem addr = 0xd8345 not 4 aligned
+warning: INT exception with no interrupt detected
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074c60 [NEMU]: current mem addr = 0xd2a76 not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074ce0 [NEMU]: current mem addr = 0xd8cdb not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074d30 [NEMU]: current mem addr = 0xda319 not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074d8c [NEMU]: current mem addr = 0xd1d2e not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074ddc [NEMU]: current mem addr = 0xd7b61 not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] PC: 0x1c074e30 [NEMU]: current mem addr = 0xd1077 not 4 aligned
+warning: INT exception with no interrupt detected
+[NEMU] This is syscall 0x11, end
+[src/cpu/cpu-exec.c,338,cpu_exec] nemu: HIT GOOD TRAP at pc = 0x1c000130
+[src/cpu/cpu-exec.c,78,monitor_statistic] host time spent = 15,302 us
+[src/cpu/cpu-exec.c,80,monitor_statistic] total guest instructions = 117,315
+[src/cpu/cpu-exec.c,81,monitor_statistic] simulation frequency = 7,666,644 instr/s
+END by Syscall
+total clock is 630946
+
+==============================================================
+total clock             is 630946
+total instruction       is 117358
+instruction per cycle   is 0.186003
+simulation time         is 9.353189 s
+difftest time           is 1.346994 s
+nemu_step time          is 0.023983 s
+verilator eval time     is 0.687114 s
+==============================================================
+
+Terminated at 1261906 ns.
+Test exit.
+Reached test end PC.
+total time is 9470477 us
+make[2]: 离开目录“/home/ubuntu/chiplab/sims/verilator/run_prog/tmp”
+make[1]: 离开目录“/home/ubuntu/chiplab/sims/verilator/run_prog”
