@@ -2,7 +2,8 @@ module L1_L2cache#(
     parameter   I_index_width=2,
                 D_index_width=2,
                 L2_index_width=2,
-                offset_width=2
+                L1_offset_width=2,
+                L2_offset_width=2
 )
 (
     input       clk,rstn,
@@ -40,8 +41,8 @@ module L1_L2cache#(
     //L2-Mem port
     output      [31:0]addr_l2cache_mem_r,
     output      [31:0]addr_l2cache_mem_w,
-    input       [32*(1<<offset_width)-1:0]din_mem_l2cache,
-    output      [32*(1<<offset_width)-1:0]dout_l2cache_mem,
+    input       [32*(1<<L2_offset_width)-1:0]din_mem_l2cache,
+    output      [32*(1<<L2_offset_width)-1:0]dout_l2cache_mem,
     output      l2cache_mem_req_r,
     output      l2cache_mem_req_w,
     output      l2cache_mem_rdy,
@@ -53,7 +54,7 @@ module L1_L2cache#(
      );
 
 wire [31:0]addr_icache_mem;
-wire [32*(1<<offset_width)-1:0]din_mem_icache;
+wire [32*(1<<L1_offset_width)-1:0]din_mem_icache;
 wire icache_mem_req;
 wire [1:0]icache_mem_size;
 wire mem_icache_addrOK;
@@ -61,7 +62,7 @@ wire mem_icache_dataOK;
 
 Icache #(
     .index_width(I_index_width),
-    .offset_width(offset_width)
+    .offset_width(L1_offset_width)
 )
 Icache(
     .clk(clk),
@@ -91,7 +92,7 @@ Icache(
 
 wire [31:0]addr_dcache_mem;
 wire [31:0]dout_dcache_mem;
-wire [32*(1<<offset_width)-1:0]din_mem_dcache;
+wire [32*(1<<L1_offset_width)-1:0]din_mem_dcache;
 wire dcache_mem_req;
 wire dcache_mem_wr;
 wire [1:0]dcache_mem_size;
@@ -101,7 +102,7 @@ wire mem_dcache_dataOK;
 
 Dcache #(
     .index_width(D_index_width),
-    .offset_width(offset_width)
+    .offset_width(L1_offset_width)
 )
 Dcache(
     .clk(clk),
@@ -139,7 +140,7 @@ wire l2cache_opflag;
 wire [31:0]l2cache_opcode;
 //Icache
 wire [31:0]addr_icache_l2cache;
-wire [32*(1<<offset_width)-1:0]dout_l2cache_icache;
+wire [32*(1<<L1_offset_width)-1:0]dout_l2cache_icache;
 wire icache_l2cache_req;
 wire l2cache_icache_addrOK;
 wire l2cache_icache_dataOK;
@@ -153,7 +154,7 @@ assign mem_icache_dataOK = l2cache_icache_dataOK;
 //Dcache
 wire [31:0]addr_dcache_l2cache;
 wire [31:0]din_dcache_l2cache;
-wire [32*(1<<offset_width)-1:0]dout_l2cache_dcache;
+wire [32*(1<<L1_offset_width)-1:0]dout_l2cache_dcache;
 wire dcache_l2cache_req;
 wire dcache_l2cache_wr;
 wire [3:0]dcache_l2cache_wstrb;
@@ -171,7 +172,8 @@ assign mem_dcache_dataOK = l2cache_dcache_dataOK;
 
 L2cache #(
     .index_width(L2_index_width),
-    .offset_width(offset_width)
+    .offset_width(L2_offset_width),
+    .L1_offset_width(L1_offset_width)
 )
 L2cache(
     .clk(clk),
