@@ -1,3 +1,4 @@
+// `define MMU
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -214,8 +215,11 @@ always @(posedge clk) begin
 end
 wire [1+offset_width:0]temp;
 assign temp=0;
-assign addr_icache_mem = {paddr_reg[31:2+offset_width],temp};
-
+`ifdef MMU
+assign addr_dcache_mem = dcache_mem_wr ? paddr_reg:{paddr_reg[31:2+offset_width],temp};
+`else 
+assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};
+`endif
 //FSM
 Icache_FSMmain #(
     .index_width(index_width),

@@ -1,3 +1,4 @@
+// `define MMU
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -211,8 +212,12 @@ always @(posedge clk) begin
 end
 wire [1+offset_width:0]temp;
 assign temp=0;
-assign addr_dcache_mem = dcache_mem_wr ? paddr_reg:{paddr_reg[31:2+offset_width],temp};//读写地址
 assign dout_dcache_mem = rbuf_data;
+`ifdef MMU
+assign addr_dcache_mem = dcache_mem_wr ? paddr_reg:{paddr_reg[31:2+offset_width],temp};
+`else 
+assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};
+`endif
 
 //FSM
 Dcache_FSMmain #(

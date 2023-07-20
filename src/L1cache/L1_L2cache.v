@@ -1,3 +1,4 @@
+// `define MMU
 module L1_L2cache#(
     parameter   I_index_width=2,
                 D_index_width=2,
