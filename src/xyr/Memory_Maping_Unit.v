@@ -54,7 +54,7 @@ module Memory_Maping_Unit#(
     
     wire [31:0]VADDR0,VADDR1;wire [1:0]optype0,optype1;
     reg [31:0]PADDR0,PADDR1;reg [15:0]excp_arg0,excp_arg1;
-    reg [1:0]memtype0,memtype1;reg [31:0]temp0,temp1;
+    reg [1:0]memtype0,memtype1;//reg [31:0]temp0,temp1;
     reg TLB_found0,TLB_found1;reg [5:0] found_ps0,found_ps1;
     reg found_v0,found_d0,found_v1,found_d1;
     reg [1:0] found_mat0,found_plv0,found_mat1,found_plv1;
@@ -207,10 +207,10 @@ module Memory_Maping_Unit#(
                             begin
                             if(~G[i] && ASID[i]==rj[9:0] && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==0
                                 begin
-                                if((rk>>PS[i])&32'b1)//rk[PS[i]]==1
+                                if(|((rk>>PS[i])&32'b1))//rk[PS[i]]==1
                                     V1[i]<=0;
                                 else
-                                    V1[i]<=0;
+                                    V0[i]<=0;
                                 end
                             end
                     5'h6:
@@ -218,10 +218,10 @@ module Memory_Maping_Unit#(
                             begin
                             if((G[i] || ASID[i]==rj[9:0]) && ({VPPN[i],12'b0}>>PS[i])==(rk>>PS[i]+1))//G[i]==1
                                 begin
-                                if((rk>>PS[i])&32'b1)//rk[PS[i]]==1
+                                if(|((rk>>PS[i])&32'b1))//rk[PS[i]]==1
                                     V1[i]<=0;
                                 else
-                                    V1[i]<=0;
+                                    V0[i]<=0;
                                 end
                             end
                 
@@ -235,7 +235,6 @@ module Memory_Maping_Unit#(
     always@(*)
     begin
     TLB_found0=0;
-    temp0=0;
     found_v0=0;found_d0=0;
     found_mat0=0;found_plv0=0;
     found_ppn0=0;found_ps0=0;
@@ -244,18 +243,18 @@ module Memory_Maping_Unit#(
         if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR0,11'b0}>>PS[i]))//去低位比较，VPPN要补13位为正确地址
             begin
             TLB_found0=1;
-            found_ps0=PS[i];temp0={VADDR0,12'b0}>>found_ps0;
-            if(temp0[0]==0)
-                begin
-                found_v0=V0[i];found_d0=D0[i];
-                found_mat0=MAT0[i];found_plv0=PLV0[i];
-                found_ppn0=PPN0[i];
-                end
-            else
+            found_ps0=PS[i];
+            if(|(({VADDR0,12'b0}>>found_ps0)&32'b1))//VLow==1
                 begin
                 found_v0=V1[i];found_d0=D1[i];
                 found_mat0=MAT1[i];found_plv0=PLV1[i];
                 found_ppn0=PPN1[i];
+                end
+            else
+                begin
+                found_v0=V0[i];found_d0=D0[i];
+                found_mat0=MAT0[i];found_plv0=PLV0[i];
+                found_ppn0=PPN0[i];
                 end
             end
         end
@@ -314,7 +313,6 @@ module Memory_Maping_Unit#(
     always@(*)
     begin
     TLB_found1=0;
-    temp1=0;
     found_v1=0;found_d1=0;
     found_mat1=0;found_plv1=0;
     found_ppn1=0;found_ps1=0;
@@ -323,18 +321,18 @@ module Memory_Maping_Unit#(
         if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==({VADDR1,11'b0}>>PS[i]))//去低位比较，VPPN要补13位为正确地址
             begin
             TLB_found1=1;
-            found_ps1=PS[i];temp1={VADDR0,12'b0}>>found_ps1;
-            if(temp1[0]==0)
-                begin
-                found_v1=V0[i];found_d1=D0[i];
-                found_mat1=MAT0[i];found_plv1=PLV0[i];
-                found_ppn1=PPN0[i];
-                end
-            else
+            found_ps1=PS[i];
+            if(|(({VADDR1,12'b0}>>found_ps1)&32'b1))//VLow==1
                 begin
                 found_v1=V1[i];found_d1=D1[i];
                 found_mat1=MAT1[i];found_plv1=PLV1[i];
                 found_ppn1=PPN1[i];
+                end
+            else
+                begin
+                found_v1=V0[i];found_d1=D0[i];
+                found_mat1=MAT0[i];found_plv1=PLV0[i];
+                found_ppn1=PPN0[i];
                 end
             end
         end
