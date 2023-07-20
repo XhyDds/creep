@@ -10,7 +10,8 @@ module fetch_buffer_v2 (
     //[0:31]为pc小，0-后一条指令（[63:32]）无效 1-有效
     output [31:0]ir0,ir1,pc0,pc1,
     output stall_fetch_buffer,valid0,valid1,
-    output [1:0]plv0,plv1
+    output [1:0]plv0,plv1,
+    output [63:0]pre0,pre1
 );
     reg [31:0]buffer[0:15];//15为0，14最新，0最旧，是否会溢出？
     reg [31:0]bufferpc[0:15];

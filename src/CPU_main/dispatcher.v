@@ -3,10 +3,12 @@ module dispatcher (
     input [31:0]imm0,imm1,control0,control1,pc0,pc1,ir0,ir1,
     input [4:0]rk0,rk1,rj0,rj1,rd0,rd1,
     input [15:0]excp_arg0,excp_arg1,
+    input [63:0]pre0,pre1,
     // input INE0,INE1,
     output reg [4:0]rk00,rk11,rj00,rj11,rd00,rd11,
     output reg [31:0]imm00,imm11,control00,control11,pc00,pc11,ir00,ir11,
     output reg [15:0]excp_arg00,excp_arg11,
+    output reg [63:0]pre00,pre11,
     // output reg INE00,INE11,
     output reg if0,if1,valid00,valid11
 );
@@ -68,6 +70,8 @@ module dispatcher (
             ir11=0;
             valid00=0;
             valid11=0;
+            pre00=0;
+            pre11=0;
         end
         else if(!xiangguan&upable&!stall0)begin//不相关且第二条指令为算术指令
             rk00=rk0;
@@ -90,6 +94,8 @@ module dispatcher (
             ir11=ir1;
             valid00=valid0;
             valid11=valid1;
+            pre00=pre0;
+            pre11=pre1;
         end
         // else if(!xiangguan&jiaohuan) begin//特殊情况：算数在前访存在后，交换后发射
         //     rk00=rk1;
@@ -132,6 +138,8 @@ module dispatcher (
             ir11=ir1;
             valid00=0;
             valid11=valid1;
+            pre00=0;
+            pre11=pre1;
         end
     end
 endmodule

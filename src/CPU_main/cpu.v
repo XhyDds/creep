@@ -113,7 +113,7 @@ module core_top (
 
     reg [63:0]ir_if1_fifo;
 
-    reg [63:0]pre_if0_if1,pre_if1_fifo,pre_id_reg_0,pre_id_reg_1,pre_reg_exe_0,pre_reg_exe_1;
+    reg [63:0]pre_mmu_if0,pre_if0_if1,pre_if1_fifo,pre_id_reg_0,pre_id_reg_1,pre_reg_exe0_0,pre_reg_exe0_1;
 
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
     rk_reg_exe0_0,rk_reg_exe0_1,
@@ -186,7 +186,7 @@ module core_top (
     ReturnBuffer#(
         .offset_width       (offset_width)
     )
-    icache_returnbuf(
+    u_icache_returnbuf(
         .clk                (clk),
         .rstn               (rstn),
         .cache_mem_req      (icache_mem_req),
@@ -292,16 +292,18 @@ module core_top (
     //     .flag_reg 		( flag_icache_pipeline 		    )
     // );
 
-    wire [31:0]	pc0;
-    wire [31:0]	pc1;
-    wire [31:0]	ir0;
-    wire [31:0]	ir1;
+    wire    [31:0]	pc0;
+    wire    [31:0]	pc1;
+    wire    [31:0]	ir0;
+    wire    [31:0]	ir1;
     wire 	if0;
     wire 	if1;
     wire    ir_valid0;
     wire    ir_valid1;
     wire    [1:0]PLV0;
     wire    [1:0]PLV1;
+    wire    [63:0]pre0;
+    wire    [63:0]pre1;
     
     fetch_buffer_v2 u_fetch_buffer(
         //ports
@@ -324,7 +326,9 @@ module core_top (
         .stall_fetch_buffer(stall_fetch_buffer),
         .plv            ( PLV_if1_fifo  ),
         .plv0           ( PLV0          ),
-        .plv1           ( PLV1          )
+        .plv1           ( PLV1          ),
+        .pre0           ( pre0          ),
+        .pre1           ( pre1          )
     );
 
     wire [31:0]	control0;
@@ -387,6 +391,8 @@ module core_top (
     wire [31:0] ir11;
     wire ir_valid00;
     wire ir_valid11;
+    wire    [63:0]pre00;
+    wire    [63:0]pre11;
 
     dispatcher u_dispatcher(
         //ports
@@ -431,7 +437,11 @@ module core_top (
         .valid0     		( ir_valid0	        ),
         .valid1     		( ir_valid1	        ),
         .valid00     		( ir_valid00	    ),
-        .valid11     		( ir_valid11	    )
+        .valid11     		( ir_valid11	    ),
+        .pre0(pre0),
+        .pre1(pre1),
+        .pre00(pre00),
+        .pre11(pre11)
     );
 
     wire [31:0]	rrk0_rf;
@@ -770,7 +780,7 @@ module core_top (
     localparam TLB_n=7,TLB_PALEN=32;
 
     wire [8:0]	CRMD;
-    wire [9:0]	ASID;
+    wire [9:0]  ASID;
     wire [31:0]	DMW0;
     wire [31:0]	DMW1;
     assign PLV=CRMD[1:0];
@@ -803,17 +813,19 @@ module core_top (
     wire            excp_flush          ;
     wire            ertn_flush          ;
     wire    [5:0]   ws_csr_ecode        ;
+
     wire    [TLB_n-1:0] CSR_rand_index1 ;
     wire            CSR_tlbfill_en      ;
-    wire    [31:0]  TLBIDX              ;
-    wire    [31:0]  TLBEHI              ;
-    wire    [31:0]  TLBELO0             ;
-    wire    [31:0]  TLBELO1             ;
-    wire     [9:0]  ASID                ;
-    wire    [31:0]  TLBIDX              ;
-    wire    [31:0]  TLBEHI              ;
-    wire    [31:0]  TLBELO0             ;
-    wire    [31:0]  TLBELO1             ;
+
+    wire    [31:0]  CSR_MMU_TLBIDX ;
+    wire    [31:0]  CSR_MMU_TLBEHI ;
+    wire    [31:0]  CSR_MMU_TLBELO0;
+    wire    [31:0]  CSR_MMU_TLBELO1;
+    wire    [31:0]  MMU_CSR_TLBIDX ;
+    wire    [31:0]  MMU_CSR_TLBEHI ;
+    wire    [31:0]  MMU_CSR_TLBELO0;
+    wire    [31:0]  MMU_CSR_TLBELO1;
+    wire     [9:0]  MMU_CSR_ASID   ;
     
     CSR_control #(
         .TLB_n(TLB_n),
@@ -853,15 +865,15 @@ module core_top (
         .CSR_pipeline_DMW0      		( DMW0      		 ),
         .CSR_pipeline_DMW1      		( DMW1      		 ),
         
-        .CSR_pipeline_TLBIDX            ( TLBIDX             ),
-        .CSR_pipeline_TLBEHI            ( TLBEHI             ),
-        .CSR_pipeline_TLBELO0           ( TLBELO0            ),
-        .CSR_pipeline_TLBELO1           ( TLBELO1            ),
-        .pipeline_CSR_TLBIDX            ( TLBIDX             ),
-        .pipeline_CSR_TLBEHI            ( TLBEHI             ),
-        .pipeline_CSR_TLBELO0           ( TLBELO0            ),
-        .pipeline_CSR_TLBELO1           ( TLBELO1            ),
-        .pipeline_CSR_ASID              ( ASID               ),
+        .CSR_pipeline_TLBIDX            ( CSR_MMU_TLBIDX  ),
+        .CSR_pipeline_TLBEHI            ( CSR_MMU_TLBEHI  ),
+        .CSR_pipeline_TLBELO0           ( CSR_MMU_TLBELO0 ),
+        .CSR_pipeline_TLBELO1           ( CSR_MMU_TLBELO1 ),
+        .pipeline_CSR_TLBIDX            ( MMU_CSR_TLBIDX  ),
+        .pipeline_CSR_TLBEHI            ( MMU_CSR_TLBEHI  ),
+        .pipeline_CSR_TLBELO0           ( MMU_CSR_TLBELO0 ),
+        .pipeline_CSR_TLBELO1           ( MMU_CSR_TLBELO1 ),
+        .pipeline_CSR_ASID              ( MMU_CSR_ASID    ),
         
         //debug
         .excp_flush                     ( excp_flush         ),
@@ -922,15 +934,15 @@ module core_top (
         .pipeline_MMU_DMW0              ( DMW0                          ),
         .pipeline_MMU_DMW1              ( DMW1                          ),
     
-        .MMU_pipeline_TLBIDX    		( TLBIDX                        ),
-        .MMU_pipeline_TLBEHI    		( TLBEHI                        ),
-        .MMU_pipeline_TLBELO0   		( TLBELO0                       ),
-        .MMU_pipeline_TLBELO1   		( TLBELO1                       ),
-        .MMU_pipeline_ASID      		( ASID                          ),
-        .pipeline_MMU_TLBIDX    		( TLBIDX                        ),
-        .pipeline_MMU_TLBEHI    		( TLBEHI                        ),
-        .pipeline_MMU_TLBELO0   		( TLBELO0                       ),
-        .pipeline_MMU_TLBELO1   		( TLBELO1                       ),
+        .MMU_pipeline_TLBIDX    		( MMU_CSR_TLBIDX  ),
+        .MMU_pipeline_TLBEHI    		( MMU_CSR_TLBEHI  ),
+        .MMU_pipeline_TLBELO0   		( MMU_CSR_TLBELO0 ),
+        .MMU_pipeline_TLBELO1   		( MMU_CSR_TLBELO1 ),
+        .MMU_pipeline_ASID      		( MMU_CSR_ASID    ),
+        .pipeline_MMU_TLBIDX    		( CSR_MMU_TLBIDX  ),
+        .pipeline_MMU_TLBEHI    		( CSR_MMU_TLBEHI  ),
+        .pipeline_MMU_TLBELO0   		( CSR_MMU_TLBELO0 ),
+        .pipeline_MMU_TLBELO1   		( CSR_MMU_TLBELO1 ),
 
         .pipeline_MMU_optype0   		( 0 	),//fetch
         .pipeline_MMU_VADDR0    		( pc    ),
@@ -1274,8 +1286,18 @@ module core_top (
         else if(!stall_pc|ifbr0|ifbr1|ifpriv) pc<=npc;
     end
 
-    `ifdef ICache
+    //MMU-IF0
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            pre_mmu_if0 <= 0;
+        end
+        else begin
+            pre_mmu_if0 <= {taken_pdc,kind_pdc,npc_pdc};
+        end
+    end
+
     //IF0-IF1 Icache ONLY
+    `ifdef ICache
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             pc_if0_if1<=0;
@@ -1324,11 +1346,11 @@ module core_top (
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
-            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;
+            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;pre_if1_fifo<=0;
         end
         else if(stall_if1_fifo);
         else if(flush_if1_fifo|ifflush_if1_fifo)begin
-            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;
+            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;pre_if1_fifo<=0;
         end
         else begin
 
@@ -1343,8 +1365,9 @@ module core_top (
             `endif
 
             `ifdef IDMA
-            pc_if1_fifo<=pc;//DMA ONLY
+            pc_if1_fifo<=MMU_pipeline_PADDR0;//DMA ONLY
             PLV_if1_fifo<=PLV;
+            pre_if1_fifo<=pre_mmu_if0;
             `endif
 
             ir_if1_fifo<=dout_icache_pipeline;
@@ -1368,6 +1391,7 @@ module core_top (
             pc_id_reg_0<=0;
             ir_id_reg_0<=0;
             ir_valid_id_reg_0<=0;
+            pre_id_reg_0<=0;
         end
         else if(stall_id_reg0);
         else if(flush_id_reg0)begin
@@ -1380,6 +1404,7 @@ module core_top (
             pc_id_reg_0<=0;
             ir_id_reg_0<=0;
             ir_valid_id_reg_0<=0;
+            pre_id_reg_0<=0;
         end
         else begin
             ctr_id_reg_0 <= control00;
@@ -1391,6 +1416,7 @@ module core_top (
             pc_id_reg_0<=pc00;
             ir_id_reg_0<=ir00;
             ir_valid_id_reg_0<=ir_valid00;
+            pre_id_reg_0<=pre00;
         end
     end
 
@@ -1405,6 +1431,7 @@ module core_top (
             pc_id_reg_1<=0;
             ir_id_reg_1<=0;
             ir_valid_id_reg_1<=0;
+            pre_id_reg_1<=0;
         end
         else if(stall_id_reg1);
         else if(flush_id_reg1) begin
@@ -1417,6 +1444,7 @@ module core_top (
             pc_id_reg_1<=0;
             ir_id_reg_1<=0;
             ir_valid_id_reg_1<=0;
+            pre_id_reg_1<=0;
         end
         else begin
             ctr_id_reg_1 <= control11;
@@ -1428,6 +1456,7 @@ module core_top (
             pc_id_reg_1<=pc11;
             ir_id_reg_1<=ir11;
             ir_valid_id_reg_1<=ir_valid11;
+            pre_id_reg_1<=pre11;
         end
     end
 
@@ -1446,6 +1475,7 @@ module core_top (
             pc_reg_exe0_0<=0;
             ir_reg_exe0_0<=0;
             ir_valid_reg_exe0_0<=0;
+            pre_reg_exe0_0<=0;
         end
         else if(stall_reg_exe0_0);
         else if(flush_reg_exe0_0) begin
@@ -1461,6 +1491,7 @@ module core_top (
             pc_reg_exe0_0<=0;
             ir_reg_exe0_0<=0;
             ir_valid_reg_exe0_0<=0;
+            pre_reg_exe0_0<=0;
         end
         else begin
             ctr_reg_exe0_0 <= ctr_id_reg_0;
@@ -1475,6 +1506,7 @@ module core_top (
             pc_reg_exe0_0<=pc_id_reg_0;
             ir_reg_exe0_0<=ir_id_reg_0;
             ir_valid_reg_exe0_0<=ir_valid_id_reg_0;
+            pre_reg_exe0_0<=pre_id_reg_0;
         end
     end
 
@@ -1492,6 +1524,7 @@ module core_top (
             pc_reg_exe0_1<=0;
             ir_reg_exe0_1<=0;
             ir_valid_reg_exe0_1<=0;
+            pre_reg_exe0_1<=0;
         end
         else if(stall_reg_exe0_1);
         else if(flush_reg_exe0_1) begin
@@ -1507,6 +1540,7 @@ module core_top (
             pc_reg_exe0_1<=0;
             ir_reg_exe0_1<=0;
             ir_valid_reg_exe0_1<=0;
+            pre_reg_exe0_1<=0;
         end
         else begin
             ctr_reg_exe0_1 <= ctr_id_reg_1;
@@ -1521,6 +1555,7 @@ module core_top (
             pc_reg_exe0_1<=pc_id_reg_1;
             ir_reg_exe0_1<=ir_id_reg_1;
             ir_valid_reg_exe0_1<=ir_valid_id_reg_1;
+            pre_reg_exe0_1<=pre_id_reg_1;
         end
     end
 
