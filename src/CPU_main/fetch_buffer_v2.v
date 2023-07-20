@@ -4,6 +4,7 @@ module fetch_buffer_v2 (
     input if0,if1,icache_valid,
     input [1:0]plv,
     input [63:0]irin,
+    // input [63:0]
     input flag,
     //flag==1表示2个有效，flag==0表示1个有效
     //[0:31]为pc小，0-后一条指令（[63:32]）无效 1-有效

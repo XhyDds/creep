@@ -109,11 +109,12 @@ always @(*) begin
             else next_state=Idle;
         end
         Lookup:begin
-            if(fStall_outside)next_state = Lookup;
-            else if((!hit0)&&(!hit1))begin
+            // if(fStall_outside)next_state = Lookup;
+            if((!hit0)&&(!hit1))begin
                 if(flush_outside)next_state=Flush;
                 else next_state=Miss_r;
             end
+            else if(fStall_outside)next_state = Lookup;
             else if(pipeline_icache_valid)begin
                 if(flush_outside)next_state=Flush;
                 else if(opflag)next_state=Operation;
@@ -143,7 +144,8 @@ always @(*) begin
         Miss_r_waitdata:begin
             if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
             else begin//数据可信赖，内存准备写
-                if(fStall_outside)next_state=Stall;
+                // if(fStall_outside)next_state=Stall;
+                if(0)next_state=Stall;
                 else begin
                     if(pipeline_icache_valid)begin
                         if(opflag)next_state=Operation;

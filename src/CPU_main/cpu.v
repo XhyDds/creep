@@ -112,6 +112,9 @@ module core_top (
     reg [15:0]excp_arg_exe0_exe1_1_excp=0;
 
     reg [63:0]ir_if1_fifo;
+
+    reg [63:0]pre_if0_if1,pre_if1_fifo,pre_id_reg_0,pre_id_reg_1,pre_reg_exe_0,pre_reg_exe_1;
+
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
     rk_reg_exe0_0,rk_reg_exe0_1,
     rj_reg_exe0_0,rj_reg_exe0_1,
@@ -157,7 +160,7 @@ module core_top (
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�?
+    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�?
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_fifo_id =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_id_reg0 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
@@ -166,7 +169,7 @@ module core_top (
     assign stall_reg_exe0_1 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_0 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_1 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�?
+    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�?
     assign stall_exe1_wb_0 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe1_wb_1 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
 
@@ -206,6 +209,8 @@ module core_top (
     wire [31:0]	addr_icache_mem;
     wire [1:0]	icache_mem_size;
 
+    wire [31:0]	MMU_pipeline_PADDR0;
+
     `ifdef IDMA
     Icache_DMA #(
         .index_width  		( 4 		),
@@ -220,7 +225,8 @@ module core_top (
         // .test3                  		( test3_icache           		),
 
         // .ifibar(ifibar0|ifibar1),
-        .addr_pipeline_icache   		( (|pc[1:0])|(pc[31]&PLV!=0)?0:pc),
+        // .addr_pipeline_icache   		( (|pc[1:0])|(pc[31]&PLV!=0)?0:pc),
+        .addr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])|(MMU_pipeline_PADDR0[31]&PLV!=0)?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
         .pipeline_icache_valid  		( 1  		),
@@ -799,6 +805,15 @@ module core_top (
     wire    [5:0]   ws_csr_ecode        ;
     wire    [TLB_n-1:0] CSR_rand_index1 ;
     wire            CSR_tlbfill_en      ;
+    wire    [31:0]  TLBIDX              ;
+    wire    [31:0]  TLBEHI              ;
+    wire    [31:0]  TLBELO0             ;
+    wire    [31:0]  TLBELO1             ;
+    wire     [9:0]  ASID                ;
+    wire    [31:0]  TLBIDX              ;
+    wire    [31:0]  TLBEHI              ;
+    wire    [31:0]  TLBELO0             ;
+    wire    [31:0]  TLBELO1             ;
     
     CSR_control #(
         .TLB_n(TLB_n),
@@ -830,29 +845,29 @@ module core_top (
         .pipeline_CSR_excp_arg1 		( excp_arg_exe0_exe1_1_excp     ),
         .pipeline_CSR_evaddr1   		( addr_exe0_exe1		),
 
-        .pipeline_CSR_ESTAT     		( 0     		    ),
+        .pipeline_CSR_ESTAT     		( 0     		     ),
         // .CSR_pipeline_clk_stall 		( stall_priv_idle 		        ),
-        .CSR_pipeline_CRMD      		( CRMD      		),
-        .CSR_pipeline_LLBit     		( LLbit     		),
-        .CSR_pipeline_ASID      		( ASID      		),
-        .CSR_pipeline_DMW0      		( DMW0      		),
-        .CSR_pipeline_DMW1      		( DMW1      		),
+        .CSR_pipeline_CRMD      		( CRMD      		 ),
+        .CSR_pipeline_LLBit     		( LLbit     		 ),
+        .CSR_pipeline_ASID      		( ASID      		 ),
+        .CSR_pipeline_DMW0      		( DMW0      		 ),
+        .CSR_pipeline_DMW1      		( DMW1      		 ),
         
-        .CSR_pipeline_TLBIDX            (),
-        .CSR_pipeline_TLBEHI(),
-        .CSR_pipeline_TLBELO0(),
-        .CSR_pipeline_TLBELO1(),
-        .pipeline_CSR_TLBIDX(),
-        .pipeline_CSR_TLBEHI(),
-        .pipeline_CSR_TLBELO0(),
-        .pipeline_CSR_TLBELO1(),
-        .pipeline_CSR_ASID(),
+        .CSR_pipeline_TLBIDX            ( TLBIDX             ),
+        .CSR_pipeline_TLBEHI            ( TLBEHI             ),
+        .CSR_pipeline_TLBELO0           ( TLBELO0            ),
+        .CSR_pipeline_TLBELO1           ( TLBELO1            ),
+        .pipeline_CSR_TLBIDX            ( TLBIDX             ),
+        .pipeline_CSR_TLBEHI            ( TLBEHI             ),
+        .pipeline_CSR_TLBELO0           ( TLBELO0            ),
+        .pipeline_CSR_TLBELO1           ( TLBELO1            ),
+        .pipeline_CSR_ASID              ( ASID               ),
         
         //debug
         .excp_flush                     ( excp_flush         ),
         .ertn_flush                     ( ertn_flush         ),
-        .rand_index1                    (CSR_rand_index1     ),
-        .tlbfill_en                     (CSR_tlbfill_en      ),
+        .rand_index1                    ( CSR_rand_index1    ),
+        .tlbfill_en                     ( CSR_tlbfill_en     ),
         .ws_csr_ecode                   ( ws_csr_ecode       ),
         .csr_crmd_diff_0                ( csr_crmd_diff_0    ),
         .csr_prmd_diff_0                ( csr_prmd_diff_0    ),
@@ -881,7 +896,14 @@ module core_top (
         .csr_pgdl_diff_0                ( csr_pgdl_diff_0    ),
         .csr_pgdh_diff_0                ( csr_pgdh_diff_0    )
     );
-    
+
+    wire [15:0]	MMU_pipeline_excp_arg0;
+    wire [1:0]	MMU_pipeline_memtype0;
+
+    wire [31:0]	MMU_pipeline_PADDR1;
+    wire [15:0]	MMU_pipeline_excp_arg1;
+    wire [1:0]	MMU_pipeline_memtype1;
+
     Memory_Maping_Unit #(
     .TLB_n(TLB_n),
     .TLB_PALEN(TLB_PALEN),
@@ -890,39 +912,37 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .pipeline_MMU_type              (ctr_reg_exe0_1_ALE[3:0]        ),
-        .pipeline_MMU_subtype           (ctr_reg_exe0_1_ALE[11:7]       ),
-        .pipeline_MMU_excp_arg		    (xcp_arg_reg_exe0_1_excp        ),
-        .pipeline_MMU_rj                (rrj1_forward                   ),
-        .pipeline_MMU_rk                (rrk1_forward                   ),
-        .pipeline_MMU_CRMD              (CRMD                           ),
-        .pipeline_MMU_ASID              (ASID                           ),
-        .pipeline_MMU_DMW0              (DMW0                           ),
-        .pipeline_MMU_DMW1              (DMW1                           ),
+        .pipeline_MMU_type              ( ctr_reg_exe0_1_ALE[3:0]       ),
+        .pipeline_MMU_subtype           ( ctr_reg_exe0_1_ALE[11:7]      ),
+        .pipeline_MMU_excp_arg		    ( excp_arg_reg_exe0_1_excp       ),
+        .pipeline_MMU_rj                ( rrj1_forward                  ),
+        .pipeline_MMU_rk                ( rrk1_forward                  ),
+        .pipeline_MMU_CRMD              ( CRMD                          ),
+        .pipeline_MMU_ASID              ( ASID                          ),
+        .pipeline_MMU_DMW0              ( DMW0                          ),
+        .pipeline_MMU_DMW1              ( DMW1                          ),
     
-        .MMU_pipeline_TLBIDX(),
-    1:0] MMU_pipeline_TLBEHI,
-    1:0] MMU_pipeline_TLBELO0,
-    1:0] MMU_pipeline_TLBELO1,
-    :0] MMU_pipeline_ASID,
-    :0] pipeline_MMU_TLBIDX,
-    :0] pipeline_MMU_TLBEHI,
-    :0] pipeline_MMU_TLBELO0,
-    :0] pipeline_MMU_TLBELO1,
+        .MMU_pipeline_TLBIDX    		( TLBIDX                        ),
+        .MMU_pipeline_TLBEHI    		( TLBEHI                        ),
+        .MMU_pipeline_TLBELO0   		( TLBELO0                       ),
+        .MMU_pipeline_TLBELO1   		( TLBELO1                       ),
+        .MMU_pipeline_ASID      		( ASID                          ),
+        .pipeline_MMU_TLBIDX    		( TLBIDX                        ),
+        .pipeline_MMU_TLBEHI    		( TLBEHI                        ),
+        .pipeline_MMU_TLBELO0   		( TLBELO0                       ),
+        .pipeline_MMU_TLBELO1   		( TLBELO1                       ),
 
-    
-    0] pipeline_MMU_optype0,//0-fetch 1-load 2-store
-    :0] pipeline_MMU_VADDR0,
-    1:0] MMU_pipeline_PADDR0,
-    5:0] MMU_pipeline_excp_arg0,//valid,subcode,code
-    :0] MMU_pipeline_memtype0,
-    
-    0] pipeline_MMU_optype1,//0-fetch 1-load 2-store
-    :0] pipeline_MMU_VADDR1,
-    1:0] MMU_pipeline_PADDR1,
-    5:0] MMU_pipeline_excp_arg1,
-    :0] MMU_pipeline_memtype1
-    
+        .pipeline_MMU_optype0   		( 0 	),//fetch
+        .pipeline_MMU_VADDR0    		( pc    ),
+        .MMU_pipeline_PADDR0    		( MMU_pipeline_PADDR0	        ),
+        .MMU_pipeline_excp_arg0 		( MMU_pipeline_excp_arg0        ),
+        .MMU_pipeline_memtype0  		( MMU_pipeline_memtype0     ),//悬空
+
+        .pipeline_MMU_optype1   		( type_pipeline_dcache?2:1 		),
+        .pipeline_MMU_VADDR1    		( addr_pipeline_dcache 		    ),
+        .MMU_pipeline_PADDR1    		( MMU_pipeline_PADDR1 		    ),
+        .MMU_pipeline_excp_arg1 		( MMU_pipeline_excp_arg1 		),
+        .MMU_pipeline_memtype1  		( MMU_pipeline_memtype1 	) //悬空
     );
 
     // wire [31:0]	test1_dcache;
@@ -930,7 +950,7 @@ module core_top (
     // wire [31:0]	test3_dcache;
 
     wire [31:0]	dout_dcache_pipeline;
-    wire 	dcache_pipeline_ready;//无用�?
+    wire 	dcache_pipeline_ready;//无用�?
 
     wire [31:0]	addr_dcache_mem;
     wire [31:0]	dout_dcache_mem;
@@ -956,7 +976,7 @@ module core_top (
         // .test2                  		( test2_dcache           		),
         // .test3                  		( test3_dcache           		),
 
-        .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
+        .addr_pipeline_dcache   		( MMU_pipeline_PADDR1           ),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
@@ -1131,12 +1151,12 @@ module core_top (
         .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         
 
-        //当前版本，dcache直接�?
+        //当前版本，dcache直接�?
         .d_wvalid 		( dcache_mem_req & dcache_mem_wr ),//input
         .d_wready 		( d_wready 		),//output reg  
         .d_waddr  		( addr_dcache_mem  		),//input [31:0]
         .d_wdata  		( dout_dcache_mem  		),//input [31:0]
-        .d_wstrb  		( dcache_mem_wstrb  		),//input [3:0] 字节选�?�位
+        .d_wstrb  		( dcache_mem_wstrb  		),//input [3:0] 字节选�?�位
         .d_wlast  		( 1'b1  		),//input       
         .d_wsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         .d_wlen   		( 8'b0   		),//input [7:0] 
@@ -1508,10 +1528,10 @@ module core_top (
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�?测访存地�?是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?
+    always @(*) begin//�?测访存地�?是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?
         ctr_reg_exe0_1_ALE=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
-        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越�?
+        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越�?
         else if(ctr_reg_exe0_1[3:0]==5)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end

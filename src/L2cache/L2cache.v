@@ -3,7 +3,7 @@
 module L2cache#(
     parameter   index_width=2,
                 offset_width=2,
-                L1offset_width=2,//两者相等
+                L1_offset_width=2,//两者相等
                 way=4
 )(
     //四路 写回写分配
@@ -16,7 +16,7 @@ module L2cache#(
 
     //Icache port
     input       [31:0]addr_icache_l2cache,
-    output      [32*(1<<L1offset_width)-1:0]dout_l2cache_icache,
+    output      [32*(1<<L1_offset_width)-1:0]dout_l2cache_icache,
     input       icache_l2cache_req,
     output      l2cache_icache_addrOK,
     output      l2cache_icache_dataOK,
@@ -24,7 +24,7 @@ module L2cache#(
     //Dcache port
     input       [31:0]addr_dcache_l2cache,
     input       [31:0]din_dcache_l2cache,//L1写直达
-    output      [32*(1<<L1offset_width)-1:0]dout_l2cache_dcache,
+    output      [32*(1<<L1_offset_width)-1:0]dout_l2cache_dcache,
     input       dcache_l2cache_req,
     input       dcache_l2cache_wr,  //0-read 1-write
     input       [3:0]dcache_l2cache_wstrb,
@@ -48,7 +48,7 @@ module L2cache#(
 //仲裁逻辑：Dcache优先
 wire [31:0]addr_l1cache_l2cache;
 wire [31:0]din_l1cache_l2cache;
-reg [32*(1<<L1offset_width)-1:0]dout_l2cache_l1cache;
+reg [32*(1<<L1_offset_width)-1:0]dout_l2cache_l1cache;
 wire [3:0]l1cache_l2cache_wstrb;
 reg [1:0]from;//0-No 1-I 2-Dr 3-Dw
 always @(*) begin
@@ -202,23 +202,31 @@ L2cache_Dirtytable(
 //data choose
 wire [1:0]choose_way;
 wire choose_return;
+reg [32*(1<<offset_width)-1:0]line;
 always @(*) begin
-    if(choose_return)dout_l2cache_l1cache = din_mem_l2cache;
+    if(choose_return)line = din_mem_l2cache;
     else begin
         case (choose_way)
-            2'd0: dout_l2cache_l1cache = data0;
-            2'd1: dout_l2cache_l1cache = data1;
-            2'd2: dout_l2cache_l1cache = data2;
-            2'd3: dout_l2cache_l1cache = data3;
-            default: dout_l2cache_l1cache = 64'h1234ABCD;
+            2'd0: line = data0;
+            2'd1: line = data1;
+            2'd2: line = data2;
+            2'd3: line = data3;
+            default: line = 64'h1234ABCD;
         endcase
     end
 end
-
+wire [offset_width - L1_offset_width -1 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
+always @(*) begin
+    case (choose_word)
+        // 1'd0: dout_l2cache_l1cache = line[63:0];
+        // 1'd1: dout_l2cache_l1cache = line[127:64];
+        default: dout_l2cache_l1cache = line;
+    endcase
+end
 //Mem
 assign addr_l2cache_mem_r = {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
 assign addr_l2cache_mem_w = {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
-assign dout_l2cache_mem = dout_l2cache_l1cache;//
+assign dout_l2cache_mem = line;//
 
 //FSM
 L2cache_FSMmain #(
