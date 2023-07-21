@@ -27,7 +27,7 @@ module decoder (
     //for tiaoxie, 0:jirl, 1:bl
     //for rdcnt, 0:rdcntvl.w, 1:rdcntvh.w, (2:rdcntid)
     reg memread,memwrite,regwrite,nop,priv,ifrdc;
-    assign control=(valid)?{8'b0,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
+    assign control=(valid)?{1'b1,7'b0,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
     always @(*) begin
         rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;
         if(|pc[1:0]) begin //ADEF 

@@ -152,8 +152,8 @@ module core_top (
     assign flush_id_reg1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
     assign flush_reg_exe0_0 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
     assign flush_reg_exe0_1 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
-    assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1;
-    assign flush_exe0_exe1_1 =  0;
+    assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1|ifbr0;
+    assign flush_exe0_exe1_1 =  ifbr1;
     assign flush_exe1_wb_0 =    0;
     assign flush_exe1_wb_1 =    0;
 
@@ -735,6 +735,7 @@ module core_top (
         //ports
         .ctr      		( ctr_reg_exe0_0      		),
         .pc       		( pc_reg_exe0_0       		),
+        .npc_pdc        ( {pre_reg_exe0_0[28:0],3'b0}            ),
         .imm      		( imm_reg_exe0_0      		),
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		),
@@ -748,6 +749,7 @@ module core_top (
         //ports
         .ctr      		( ctr_reg_exe0_1_excp      		),
         .pc       		( pc_reg_exe0_1       		),
+        .npc_pdc        ( {pre_reg_exe0_1[28:0],3'b0}            ),
         .imm      		( imm_reg_exe0_1      		),
         .zero     		( zero1     		),
         .ifbr     		( ifbr1    		),
@@ -1203,6 +1205,10 @@ module core_top (
 
     `endif
 
+    wire [28:0]npc_pdc;
+    wire [2:0]kind_pdc;
+    wire taken_pdc;
+    wire [1:0]choice_pdc;
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
@@ -1230,6 +1236,7 @@ module core_top (
         .npc_pdc     		( npc_pdc     		),
         .kind_pdc    		( kind_pdc    		),
         .taken_pdc   		( taken_pdc   		),
+        .choice_pdc  		( choice_pdc  		),
 
         .pc          		( pc          		)
     );
@@ -1562,7 +1569,7 @@ module core_top (
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�??测访存地�??是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�??
+    always @(*) begin//检测访存地址是否对齐，特权指令是否内核态，否则将访存指令变为例外指令
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
         if(ctr_reg_exe0_1[23]&(|PLV)) begin 
@@ -2170,7 +2177,7 @@ L1_L2cache #(
         .excp_valid         (cmt_excp_flush ),
         .eret               (cmt_ertn       ),
         .intrNo             (csr_estat_diff_0[12:2]),
-        // .cause              (cmt_csr_ecode  ),
+        .cause              (cmt_csr_ecode  ),
         .exceptionPC        (0              ),
         .exceptionInst      (0              )
     );
