@@ -73,6 +73,7 @@ module Dcache_FSMmain#(
     output      [way-1:0]FSM_TagV_we,//两个相同
     output reg  FSM_Data_replace,
     output reg  [way-1:0]FSM_TagV_unvalid,
+    output reg  [1:0]FSM_TagV_init,
     // output reg  FSM_way_select,
 
     //dirty 暂无
@@ -236,6 +237,7 @@ always @(*) begin
     FSM_choose_return = 0;
     FSM_Data_replace = 0;
     FSM_choose_word = FSM_rbuf_addr[2+offset_width-1:2];
+    FSM_TagV_init = 0;
     case (state)
         Idle:begin
             case (next_state)
@@ -319,11 +321,17 @@ always @(*) begin
             endcase
         end
         Operation:begin
-            case (next_state)
-                default:begin
-                    
-                end
-            endcase
+            if(FSM_rbuf_opcode[4:3] == 2'd0)begin
+                FSM_TagV_init = {1'b1,FSM_rbuf_addr[0]};
+            end
+            else if(FSM_rbuf_opcode[4:3] == 2'd1)begin
+                if(!FSM_rbuf_addr[0])FSM_TagV_unvalid = 2'b01;
+                else FSM_TagV_unvalid = 2'b10;
+            end
+            else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
+                if(hit0)FSM_TagV_unvalid = 2'b01;
+                else if(hit1)FSM_TagV_unvalid = 2'b10;
+            end    
         end
         Hit_w:begin
             dcache_mem_wr=1;//conbination

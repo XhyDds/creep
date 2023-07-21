@@ -31,7 +31,7 @@ module L2cache_FSMmain#(
 
     //上下游信号
     input       [1:0]from,
-    input       l2cache_opflag,
+    input       pipeline_l2cache_opflag,
     output reg  l2cache_icache_addrOK,
     output reg  l2cache_icache_dataOK,
     output reg  l2cache_dcache_addrOK,
@@ -50,7 +50,9 @@ module L2cache_FSMmain#(
     output reg  FSM_rbuf_we,
     input       [1:0]FSM_rbuf_from,
     input       [31:0]FSM_rbuf_opcode,
+    input       [31:0]FSM_rbuf_opaddr,
     input       FSM_rbuf_SUC,
+    input       FSM_rbuf_opflag,
     
     //PLRU
     output reg  [way-1:0]FSM_use,
@@ -64,6 +66,7 @@ module L2cache_FSMmain#(
     output reg  FSM_Data_replace,
     output reg  [1:0]FSM_TagV_way_select,
     output reg  FSM_Data_writeback,
+    output reg  [2:0]FSM_TagV_init,
 
     //Dirtytable
     input       FSM_Dirty,
@@ -75,7 +78,7 @@ module L2cache_FSMmain#(
     output reg  FSM_choose_return
     );
 wire opflag;
-assign opflag=l2cache_opflag;
+assign opflag=pipeline_l2cache_opflag;
 
 reg [4:0]state;
 reg [4:0]next_state;
@@ -121,11 +124,17 @@ always @(*) begin
         end
         checkDirty:begin
             if(FSM_Dirty)next_state = writeback;
-            else next_state = replace1;
+            else begin
+                if(!FSM_rbuf_opflag)next_state = replace1;
+                else next_state = Idle;
+            end
         end
         writeback:begin
             if(!mem_l2cache_addrOK_w)next_state = writeback;
-            else next_state = replace1;
+            else begin
+                if(!FSM_rbuf_opflag)next_state = replace1;
+                else next_state = Idle;//只需要完成脏块写回
+            end
         end
         replace1:begin
             if(mem_l2cache_addrOK_r|mem_l2cache_dataOK)next_state = replace2;
@@ -152,7 +161,16 @@ always @(*) begin
             next_state = Idle;
         end
         Operation:begin
-            next_state = Idle;
+            if(FSM_rbuf_opcode[4:3] == 2'd0)begin//Tag、valid置零
+                next_state = Idle;
+            end
+            else if(FSM_rbuf_opcode[4:3] == 2'd1)begin//valid置零并写回
+                next_state = checkDirty;
+            end
+            else if(FSM_rbuf_opcode[4:3] == 2'd2)begin//先命中，其他同二
+                if((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3]))next_state =Idle;
+                else next_state = checkDirty;
+            end
         end
         default:next_state = Idle; 
     endcase
@@ -160,6 +178,17 @@ end
 reg [1:0]FSM_way_sel_d_reg;
 always @(posedge clk) begin
     FSM_way_sel_d_reg <= FSM_way_sel_d;
+end
+reg hit_record_we;
+reg [1:0]hit_record;
+always @(posedge clk) begin
+    if(hit_record_we)begin
+        if(FSM_hit[0])hit_record <= 2'b00;
+        else if(FSM_hit[1])hit_record <= 2'b01;
+        else if(FSM_hit[2])hit_record <= 2'b10;
+        else if(FSM_hit[3])hit_record <= 2'b11;
+        else hit_record <= 2'b00;
+    end
 end
 always @(*) begin
     l2cache_icache_addrOK = 0;
@@ -180,6 +209,8 @@ always @(*) begin
     FSM_Dirtytable_set1 = 0;
     FSM_choose_way = 0;
     FSM_choose_return = 0;
+    FSM_TagV_init = 0;
+    hit_record_we = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             if(!FSM_rbuf_SUC)l2cache_dcache_addrOK = 1;//Dcache优先
@@ -192,7 +223,27 @@ always @(*) begin
                 FSM_rbuf_we = 1;
             end
             end
+        Operation:begin
+            if(FSM_rbuf_opcode[4:3] == 2'd0)begin//Tag、valid置零
+                FSM_TagV_init = {1'b1,FSM_rbuf_opaddr[1:0]};
+            end
+            else if(FSM_rbuf_opcode[4:3] == 2'd1)begin
+                if(FSM_rbuf_opaddr[1:0] == 2'd0)FSM_TagV_unvalid = 4'b0001;
+                else if(FSM_rbuf_opaddr[1:0] == 2'd1)FSM_TagV_unvalid = 4'b0010;
+                else if(FSM_rbuf_opaddr[1:0] == 2'd2)FSM_TagV_unvalid = 4'b0100;
+                else FSM_TagV_unvalid = 4'b1000;
+            end
+            else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
+                hit_record_we = 1;
+                if(FSM_hit[0])FSM_TagV_unvalid = 4'b0001;
+                else if(FSM_hit[1])FSM_TagV_unvalid = 4'b0010;
+                else if(FSM_hit[2])FSM_TagV_unvalid = 4'b0100;
+                else if(FSM_hit[3])FSM_TagV_unvalid = 4'b1000;
+                else FSM_TagV_unvalid = 4'b0000;
+            end
+        end
         SUC_w:begin
+            l2cache_mem_req_w = 1;
             if(next_state == Idle)l2cache_dcache_addrOK = 1;
         end
         Lookup:begin
@@ -254,8 +305,14 @@ always @(*) begin
         end
         checkDirty:begin
             // l2cache_mem_req_r = 1;   //串行并行
-            if(FSM_rbuf_from == 2'b01)FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
-            else FSM_Dirtytable_way_select = FSM_way_sel_d;
+            if(!FSM_rbuf_opflag)begin
+                if(FSM_rbuf_from == 2'b01)FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
+                else FSM_Dirtytable_way_select = FSM_way_sel_d;
+            end
+            else begin
+                if(FSM_rbuf_opcode[4:3] == 2'd1)FSM_Dirtytable_way_select = FSM_rbuf_opaddr[1:0];
+                else if(FSM_rbuf_opcode[4:3] == 2'd2)FSM_Dirtytable_way_select = hit_record;
+            end
             FSM_Data_writeback = 1;
         end
         writeback:begin
@@ -263,13 +320,25 @@ always @(*) begin
             if(next_state == writeback)FSM_Data_writeback = 1;//用rbuf_index读tag
             else FSM_Data_writeback = 0;
             l2cache_mem_req_w = 1;
-            if(FSM_rbuf_from == 2'b01)begin
-                FSM_choose_way = {1'b0,FSM_way_sel_i};//选择写数据
-                FSM_TagV_way_select = {1'b0,FSM_way_sel_i};//选择写地址
+            if(!FSM_rbuf_opflag)begin
+                if(FSM_rbuf_from == 2'b01)begin
+                    FSM_choose_way = {1'b0,FSM_way_sel_i};//选择写数据
+                    FSM_TagV_way_select = {1'b0,FSM_way_sel_i};//选择写地址
+                end
+                else begin
+                    FSM_choose_way = FSM_way_sel_d;
+                    FSM_TagV_way_select = FSM_way_sel_d;
+                end
             end
             else begin
-                FSM_choose_way = FSM_way_sel_d;
-                FSM_TagV_way_select = FSM_way_sel_d;
+                if(FSM_rbuf_opcode[4:3] == 2'd1)begin
+                    FSM_choose_way = FSM_rbuf_opaddr[1:0];
+                    FSM_TagV_way_select = FSM_rbuf_opaddr[1:0];
+                end
+                else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
+                    FSM_choose_way = hit_record;
+                    FSM_TagV_way_select = hit_record;
+                end
             end
         end
         replace1:begin

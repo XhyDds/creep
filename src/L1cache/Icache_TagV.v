@@ -31,6 +31,8 @@ module Icache_TagV#(
     input       [data_width-1:0]TagV_din_compare,//用于比较
     output      [way-1:0]hit,
 
+    input       TagV_ibar,
+    input       [1:0]TagV_init,
     input       [data_width-1:0]TagV_din_write,
     input       [addr_width-1:0]TagV_addr_write,
     input       [way-1:0]TagV_unvalid,
@@ -43,10 +45,20 @@ reg [(1<<addr_width)-1:0]valid0;
 reg [(1<<addr_width)-1:0]valid1;
 
 always @(posedge clk) begin
-    if(TagV_unvalid[0])valid0[TagV_addr_write] <= 0;
-    else if(TagV_we[0])valid0[TagV_addr_write] <= 1;
-    if(TagV_unvalid[1])valid0[TagV_addr_write] <= 0;
-    else if(TagV_we[1])valid1[TagV_addr_write] <= 1;
+    if(TagV_ibar)begin
+        valid0<=0;
+        valid1<=0;
+    end
+    else if(TagV_init[1])begin
+        if(!TagV_init[0])valid0[TagV_addr_write] <= 0;
+        else valid1[TagV_addr_write] <= 0;
+    end
+    else begin
+        if(TagV_unvalid[0])valid0[TagV_addr_write] <= 0;
+        else if(TagV_we[0])valid0[TagV_addr_write] <= 1;
+        if(TagV_unvalid[1])valid1[TagV_addr_write] <= 0;
+        else if(TagV_we[1])valid1[TagV_addr_write] <= 1;
+    end
 end
 
 bram #(
@@ -57,8 +69,8 @@ way0(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
-    .din(TagV_din_write),
-    .we(TagV_we[0]),
+    .din((TagV_init == 2'b10) ? 0:TagV_din_write),
+    .we(TagV_we[0] || (TagV_init == 2'b10)),
 
     .raddr(TagV_addr_read),
     .dout(TagV_data[0])
@@ -72,8 +84,8 @@ way1(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
-    .din(TagV_din_write),
-    .we(TagV_we[1]),
+    .din((TagV_init == 2'b11) ? 0:TagV_din_write),
+    .we(TagV_we[1] || (TagV_init == 2'b11)),
 
     .raddr(TagV_addr_read),
     .dout(TagV_data[1])

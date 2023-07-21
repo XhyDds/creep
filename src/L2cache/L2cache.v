@@ -11,8 +11,9 @@ module L2cache#(
     input       clk,rstn,
     
     //op port
-    input       l2cache_opflag,
-    input       [31:0]l2cache_opcode,
+    input       pipeline_l2cache_opflag,
+    input       [31:0]pipeline_l2cache_opcode,
+    input       [31:0]addr_pipeline_l2cache,
 
     //Icache port
     input       [31:0]addr_icache_l2cache,
@@ -81,7 +82,7 @@ assign index = addr_l1cache_l2cache[offset_width+index_width+1:offset_width+2];
 assign tag = addr_l1cache_l2cache[31:offset_width+index_width+2];
 
 //request buffer
-wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode;
+wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_opaddr;
 wire [3:0]rbuf_wstrb;
 wire [1:0]rbuf_from;
 wire rbuf_opflag,rbuf_we,rbuf_SUC;
@@ -104,10 +105,10 @@ L2cache_rbuf L2cache_rbuf(
     .data(din_l1cache_l2cache),
     .rbuf_data(rbuf_data),
 
-    .opcode(l2cache_opcode),
+    .opcode(pipeline_l2cache_opcode),
     .rbuf_opcode(rbuf_opcode),
 
-    .opflag(l2cache_opflag),
+    .opflag(pipeline_l2cache_opflag),
     .rbuf_opflag(rbuf_opflag),
     
     .from(from),
@@ -117,7 +118,10 @@ L2cache_rbuf L2cache_rbuf(
     .rbuf_wstrb(rbuf_wstrb),
 
     .SUC(l1cache_l2cache_SUC),
-    .rbuf_SUC(rbuf_SUC)
+    .rbuf_SUC(rbuf_SUC),
+
+    .opaddr(addr_pipeline_l2cache),
+    .rbuf_opaddr(rbuf_opaddr)
 );
 
 assign l2cache_mem_wstrb = rbuf_wstrb;
@@ -172,6 +176,7 @@ L2cache_Data(
 //Tag
 wire [way-1:0]TagV_we,hit,TagV_unvalid;
 wire [1:0]TagV_way_select;
+wire [2:0]TagV_init;
 wire [32-2-index_width-offset_width-1:0]TagV_dout;
 assign TagV_we = Data_we;
 L2cache_TagV #(
@@ -189,6 +194,7 @@ L2cache_TagV(
     .TagV_way_select(TagV_way_select),
     .TagV_dout(TagV_dout),
     
+    .TagV_init(TagV_init),
     .TagV_din_write(rbuf_tag),
     .TagV_addr_write(rbuf_index),
     .TagV_unvalid(TagV_unvalid),
@@ -237,8 +243,8 @@ always @(*) begin
 end
 //Mem
 assign addr_l2cache_mem_r = {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
-assign addr_l2cache_mem_w = {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
-assign dout_l2cache_mem = line;//
+assign addr_l2cache_mem_w = rbuf_SUC ? rbuf_addr : {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
+assign dout_l2cache_mem = rbuf_SUC ? rbuf_data : line;//
 assign l2cache_mem_SUC = rbuf_SUC;
 
 //FSM
@@ -252,7 +258,7 @@ L2cache_FSMmain(
 
     //req for L1(pipe)
     .from(from),
-    .l2cache_opflag(l2cache_opflag),
+    .pipeline_l2cache_opflag(pipeline_l2cache_opflag),
     .l2cache_icache_addrOK(l2cache_icache_addrOK),
     .l2cache_icache_dataOK(l2cache_icache_dataOK),
     .l2cache_dcache_addrOK(l2cache_dcache_addrOK),
@@ -271,7 +277,8 @@ L2cache_FSMmain(
     .FSM_rbuf_from(rbuf_from),
     .FSM_rbuf_opcode(rbuf_opcode),
     .FSM_rbuf_SUC(rbuf_SUC),
-    // .FSM_rbuf_opflag(rbuf_opflag),
+    .FSM_rbuf_opaddr(rbuf_opaddr),
+    .FSM_rbuf_opflag(rbuf_opflag),
 
     //PLRU
     .FSM_use(use1),
@@ -285,6 +292,7 @@ L2cache_FSMmain(
     .FSM_TagV_way_select(TagV_way_select),
     .FSM_Data_writeback(Data_writeback),
     .FSM_TagV_unvalid(TagV_unvalid),
+    .FSM_TagV_init(TagV_init),
 
     //Dirtytable
     .FSM_Dirtytable_way_select(Dirtytable_way_select),

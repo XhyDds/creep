@@ -63,6 +63,8 @@ module Icache_FSMmain#(
     output reg  [way-1:0]FSM_Data_we,
     output      [way-1:0]FSM_TagV_we,//两个相同
     output reg  [way-1:0]FSM_TagV_unvalid,
+    output reg  FSM_TagV_ibar,
+    output reg  [1:0]FSM_TagV_init,
     // output reg  FSM_way_select,
 
     //dirty 暂无
@@ -198,6 +200,8 @@ always @(*) begin
     FSM_choose_return = 0;
     FSM_choose_word = FSM_rbuf_addr[2+offset_width-1:2];
     FSM_send_nop = 0;
+    FSM_TagV_init = 2'b0;
+    FSM_TagV_ibar = 0;
     case (state)
         Idle:begin
             case (next_state)
@@ -263,11 +267,18 @@ always @(*) begin
             FSM_rbuf_we=1;
         end
         Operation:begin
-            case (next_state)
-                default:begin
-                    
-                end
-            endcase
+            if(FSM_rbuf_opcode[31])FSM_TagV_ibar = 1;
+            else if(FSM_rbuf_opcode[4:3] == 2'd0)begin
+                FSM_TagV_init = {1'b1,FSM_rbuf_addr[0]};
+            end
+            else if(FSM_rbuf_opcode[4:3] == 2'd1)begin
+                if(!FSM_rbuf_addr[0])FSM_TagV_unvalid = 2'b01;
+                else FSM_TagV_unvalid = 2'b10;
+            end
+            else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
+                if(hit0)FSM_TagV_unvalid = 2'b01;
+                else if(hit1)FSM_TagV_unvalid = 2'b10;
+            end
         end
         Miss_r:begin
             icache_mem_req=1;
