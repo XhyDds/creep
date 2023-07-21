@@ -58,6 +58,7 @@ module Dcache_FSMmain#(
     input       [31:0]FSM_rbuf_addr,
     input       FSM_rbuf_type,//0-read  1-write
     input       [3:0]FSM_rbuf_wstrb,
+    input       FSM_rbuf_SUC,//强序非缓存
 
     //paddr寄存器
     output reg  FSM_paddr_we,
@@ -71,6 +72,7 @@ module Dcache_FSMmain#(
     output reg  [way-1:0]FSM_Data_we,
     output      [way-1:0]FSM_TagV_we,//两个相同
     output reg  FSM_Data_replace,
+    output reg  [way-1:0]FSM_TagV_unvalid,
     // output reg  FSM_way_select,
 
     //dirty 暂无
@@ -104,7 +106,6 @@ assign opflag=pipeline_dcache_opflag;
 // wire opflag_rbuf;
 // assign opflag_rbuf=FSM_rbuf_opflag;
 
-
 reg [4:0]state;
 reg [4:0]next_state;//需要响应stall吗？？
 localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Stall=5'd6,Operation=5'd7,Hit_w=5'd8,Hit_w1=5'd9;
@@ -122,25 +123,31 @@ always @(*) begin
             else next_state=Idle;
         end
         Lookup:begin
-            `ifdef DMA
-            if(1)begin
-                if(!FSM_rbuf_type)next_state=Miss_r;//0-read
-                else next_state=Miss_w;
+            if(FSM_rbuf_SUC)begin//若hit则置无效
+                if(FSM_rbuf_type)next_state = Miss_r;
+                else next_state = Miss_w;
             end
-            `else 
-            if((!hit0)&&(!hit1))begin
-                if(!FSM_rbuf_type)next_state=Miss_r;//0-read
-                else next_state=Miss_w;
-            end
-            `endif
-            else if(!FSM_rbuf_type)begin
-                if(pipeline_dcache_valid)begin
-                    if(opflag)next_state=Operation;
-                    else next_state=Lookup;
+            else begin
+                `ifdef DMA
+                if(1)begin
+                    if(!FSM_rbuf_type)next_state=Miss_r;//0-read
+                    else next_state=Miss_w;
                 end
-                else next_state=Idle;
+                `else 
+                if((!hit0)&&(!hit1))begin//强制缺失
+                    if(!FSM_rbuf_type)next_state=Miss_r;//0-read
+                    else next_state=Miss_w;
+                end
+                `endif
+                else if(!FSM_rbuf_type)begin//r
+                    if(pipeline_dcache_valid)begin
+                        if(opflag)next_state=Operation;
+                        else next_state=Lookup;
+                    end
+                    else next_state=Idle;
+                end
+                else next_state = Hit_w;//r
             end
-            else next_state = Hit_w;
         end
         Operation:begin
             next_state=Idle;
@@ -193,7 +200,7 @@ always @(*) begin
                 end
             end
         end
-        Miss_w:begin
+        Miss_w:begin//若强序写 addrOK是dataOK
             if(!mem_dcache_addrOK)next_state=Miss_w;
             else begin
                 if(pipeline_dcache_valid)begin
@@ -224,6 +231,7 @@ always @(*) begin
     FSM_use0 = 0;
     FSM_use1 = 0;
     FSM_Data_we = 2'd0;
+    FSM_TagV_unvalid = 2'd0;
     FSM_choose_way = 0;
     FSM_choose_return = 0;
     FSM_Data_replace = 0;
@@ -244,62 +252,35 @@ always @(*) begin
             endcase
         end
         Lookup:begin
+            if(FSM_rbuf_SUC)begin
+                if(hit0)FSM_TagV_unvalid = 2'b01;
+                else if(hit1)FSM_TagV_unvalid = 2'b10;
+            end
             case (next_state)
                 Miss_r:begin
-                    // dcache_mem_req=1;
                     FSM_paddr_we = 1;
                     dcache_mem_wr=0;
-                    // dcache_mem_size=2'd2;
-                    // dcache_mem_wstrb=4'b0000;
                 end
                 Miss_w:begin
-                    // dcache_mem_req=1;
                     dcache_mem_wr=1;
                     FSM_paddr_we = 1;
-                    // dcache_mem_size=2'd2;
-                    // dcache_mem_wstrb=4'b1111;
-
-                    //写Miss的时候同时写入主存和cache   //7.13：需要先调块？？好像又不用了 不写cache了直接写主存
-
-                    // if(FSM_wal_sel_lru==1'd0)begin
-                    //     FSM_Data_we[0]=1;
-                    //     FSM_use0=1;
-                    // end
-                    // else if(FSM_wal_sel_lru==1'd1)begin
-                    //     FSM_Data_we[1]=1;
-                    //     FSM_use1=1;
-                    // end
                 end
                 Lookup:begin//命中
                     //接着流
                     dcache_pipeline_ready=1;
                     FSM_rbuf_we=1;
-                    // if(!FSM_rbuf_type)begin//读
-                        if(hit0)begin
-                            FSM_choose_way=0;
-                            FSM_use0=1;
-                        end
-                        else if(hit1)begin
-                            FSM_choose_way=1;
-                            FSM_use1=1;
-                        end
-                    // end
-                    // else begin//写
-                    //     if(hit0)begin
-                    //         FSM_Data_we[0]=1;//这个Data的使能和Tag是相同的
-                    //         FSM_use0=1;
-                    //     end
-                    //     else if(hit1)begin
-                    //         FSM_Data_we[1]=1;
-                    //         FSM_use1=1;
-                    //     end
-                    // end
+                    if(hit0)begin
+                        FSM_choose_way=0;
+                        FSM_use0=1;
+                    end
+                    else if(hit1)begin
+                        FSM_choose_way=1;
+                        FSM_use1=1;
+                    end
                 end
                 Hit_w:begin
                     dcache_mem_req=1;
                     dcache_mem_wr=1;
-                    // dcache_mem_size=2'd2;
-                    // dcache_mem_wstrb=4'b1111;
                     if(hit0)begin
                         FSM_Data_we[0]=1;
                         FSM_use0=1;
@@ -367,33 +348,22 @@ always @(*) begin
         Miss_r:begin
             dcache_mem_wr=0;//conbination
             dcache_mem_req=1;
-            // case (next_state)
-            //     Miss_r:begin
-            //         dcache_mem_req=1;
-            //         // dcache_mem_size=2'd2;
-            //         // dcache_mem_wstrb=4'b0000;
-            //     end
-            //     Miss_r_waitdata:begin
-            //         //nothing
-            //     end
-            //     default:begin
-                    
-            //     end
-            // endcase
         end
         Miss_r_waitdata:begin
             if(next_state != Miss_r_waitdata)begin
                 FSM_Data_replace=1;
                 FSM_rbuf_we=1;
-                FSM_choose_return=1;//这是必须的
-                dcache_pipeline_ready=1;//5.30改动
-                if(FSM_wal_sel_lru==1'd0)begin
-                    FSM_Data_we[0]=1;
-                    FSM_use0=1;
-                end
-                else if(FSM_wal_sel_lru==1'd1)begin
-                    FSM_Data_we[1]=1;
-                    FSM_use1=1;
+                FSM_choose_return=1;
+                dcache_pipeline_ready=1;
+                if(!FSM_rbuf_SUC)begin//强序读不需要写入cache
+                    if(FSM_wal_sel_lru==1'd0)begin
+                        FSM_Data_we[0]=1;
+                        FSM_use0=1;
+                    end
+                    else if(FSM_wal_sel_lru==1'd1)begin
+                        FSM_Data_we[1]=1;
+                        FSM_use1=1;
+                    end
                 end
             end
             else begin
@@ -405,9 +375,7 @@ always @(*) begin
             dcache_mem_req=1;
             case (next_state)
                 Miss_w:begin
-                    // dcache_mem_req=1;
-                    // dcache_mem_size=2'd2;
-                    // dcache_mem_wstrb=4'b1111;
+
                 end
                 Lookup:begin
                     dcache_pipeline_ready=1;

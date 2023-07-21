@@ -18,6 +18,7 @@ module L2cache#(
     input       [31:0]addr_icache_l2cache,
     output      [32*(1<<L1_offset_width)-1:0]dout_l2cache_icache,
     input       icache_l2cache_req,
+    input       icache_l2cache_SUC,
     output      l2cache_icache_addrOK,
     output      l2cache_icache_dataOK,
 
@@ -26,6 +27,7 @@ module L2cache#(
     input       [31:0]din_dcache_l2cache,//L1写直达
     output      [32*(1<<L1_offset_width)-1:0]dout_l2cache_dcache,
     input       dcache_l2cache_req,
+    input       dcache_l2cache_SUC,
     input       dcache_l2cache_wr,  //0-read 1-write
     input       [3:0]dcache_l2cache_wstrb,
     output      l2cache_dcache_addrOK,
@@ -39,6 +41,7 @@ module L2cache#(
     output      l2cache_mem_req_r,
     output      l2cache_mem_req_w,
     output      l2cache_mem_rdy,
+    output      l2cache_mem_SUC,
     output      [3:0]l2cache_mem_wstrb,
     input       mem_l2cache_addrOK_r,
     input       mem_l2cache_addrOK_w, 
@@ -51,12 +54,17 @@ wire [31:0]din_l1cache_l2cache;
 reg [32*(1<<L1_offset_width)-1:0]dout_l2cache_l1cache;
 wire [3:0]l1cache_l2cache_wstrb;
 reg [1:0]from;//0-No 1-I 2-Dr 3-Dw
+reg l1cache_l2cache_SUC;
 always @(*) begin
     if(dcache_l2cache_req)begin
         if(!dcache_l2cache_wr)from = 2'd2;
         else from = 2'd3;
+        l1cache_l2cache_SUC = dcache_l2cache_SUC;
     end
-    else if(icache_l2cache_req)from = 2'd1;
+    else if(icache_l2cache_req)begin
+        from = 2'd1;
+        l1cache_l2cache_SUC = icache_l2cache_SUC;
+    end
     else from = 2'd0;
 end
 assign addr_l1cache_l2cache = from[1] ? addr_dcache_l2cache : addr_icache_l2cache;
@@ -76,7 +84,7 @@ assign tag = addr_l1cache_l2cache[31:offset_width+index_width+2];
 wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode;
 wire [3:0]rbuf_wstrb;
 wire [1:0]rbuf_from;
-wire rbuf_opflag,rbuf_we;
+wire rbuf_opflag,rbuf_we,rbuf_SUC;
 
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
@@ -106,7 +114,10 @@ L2cache_rbuf L2cache_rbuf(
     .rbuf_from(rbuf_from),
         
     .wstrb(l1cache_l2cache_wstrb),
-    .rbuf_wstrb(rbuf_wstrb)
+    .rbuf_wstrb(rbuf_wstrb),
+
+    .SUC(l1cache_l2cache_SUC),
+    .rbuf_SUC(rbuf_SUC)
 );
 
 assign l2cache_mem_wstrb = rbuf_wstrb;
@@ -159,7 +170,7 @@ L2cache_Data(
 );
 
 //Tag
-wire [way-1:0]TagV_we,hit;
+wire [way-1:0]TagV_we,hit,TagV_unvalid;
 wire [1:0]TagV_way_select;
 wire [32-2-index_width-offset_width-1:0]TagV_dout;
 assign TagV_we = Data_we;
@@ -180,6 +191,7 @@ L2cache_TagV(
     
     .TagV_din_write(rbuf_tag),
     .TagV_addr_write(rbuf_index),
+    .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
 );
 
@@ -227,6 +239,7 @@ end
 assign addr_l2cache_mem_r = {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
 assign addr_l2cache_mem_w = {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
 assign dout_l2cache_mem = line;//
+assign l2cache_mem_SUC = rbuf_SUC;
 
 //FSM
 L2cache_FSMmain #(
@@ -257,6 +270,7 @@ L2cache_FSMmain(
     .FSM_rbuf_we(rbuf_we),
     .FSM_rbuf_from(rbuf_from),
     .FSM_rbuf_opcode(rbuf_opcode),
+    .FSM_rbuf_SUC(rbuf_SUC),
     // .FSM_rbuf_opflag(rbuf_opflag),
 
     //PLRU
@@ -270,6 +284,7 @@ L2cache_FSMmain(
     .FSM_Data_replace(Data_replace),//为1时替换整行，否则对word操作
     .FSM_TagV_way_select(TagV_way_select),
     .FSM_Data_writeback(Data_writeback),
+    .FSM_TagV_unvalid(TagV_unvalid),
 
     //Dirtytable
     .FSM_Dirtytable_way_select(Dirtytable_way_select),

@@ -25,11 +25,16 @@ module Dcache_rbuf
     input clk,rstn,rbuf_we,
     input [31:0]addr,data,opcode,pc,
     output reg [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc,
-    input opflag,type1,
+    input opflag,type1,SUC,
     output reg rbuf_opflag,rbuf_type,
+    output rbuf_SUC,
     input [3:0]wstrb,
     output reg [3:0]rbuf_wstrb
     );
+reg we_reg,rbuf_SUC1;
+always @(posedge clk) begin
+    we_reg <= rbuf_we;
+end
 always @(posedge clk,negedge rstn) begin
     if(!rstn)begin
         rbuf_addr<=0;
@@ -49,5 +54,12 @@ always @(posedge clk,negedge rstn) begin
         rbuf_type<=type1;
         rbuf_pc<=pc;
     end
+    if(!rstn)begin
+        rbuf_SUC1<=0;
+    end
+    else if(we_reg)begin
+        rbuf_SUC1<=SUC;
+    end
 end
+assign rbuf_SUC = rbuf_SUC1|SUC;
 endmodule
