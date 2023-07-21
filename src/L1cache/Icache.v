@@ -172,8 +172,8 @@ always @(*) begin
     end
 end
 always @(*) begin
-    case (choose_word[1:0])
-        2'b00:begin
+    case (choose_word)
+        'd0:begin
             data_out = data_line[63:0];
             data_flag=1;
         end
