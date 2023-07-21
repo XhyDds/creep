@@ -15,6 +15,7 @@ module L1_L2cache#(
     output      [63:0]dout_icache_pipeline,//双发射 [31:0]是给定地址处的指令
     output      [31:0]pc_icache_pipeline,
     output      flag_icache_pipeline,//0-后一条指令（[63:32]）无效 1-有效
+    input       SUC_pipeline_icache,
 
     input       pipeline_icache_valid,
     output      icache_pipeline_ready,
@@ -31,6 +32,7 @@ module L1_L2cache#(
     input       [31:0]pcin_pipeline_dcache,
     output      [31:0]dout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
+    input       SUC_pipeline_dcache,
 
     input       pipeline_dcache_valid,
     output      dcache_pipeline_ready,
@@ -49,7 +51,7 @@ module L1_L2cache#(
     output      l2cache_mem_req_r,
     output      l2cache_mem_req_w,
     output      l2cache_mem_rdy,
-    // output      [1:0]l2cache_mem_size,
+    output      l2cache_mem_SUC,
     output      [3:0]l2cache_mem_wstrb,
     input       mem_l2cache_addrOK_r,
     input       mem_l2cache_addrOK_w, 
@@ -59,6 +61,7 @@ module L1_L2cache#(
 wire [31:0]addr_icache_mem;
 wire [32*(1<<L1_offset_width)-1:0]din_mem_icache;
 wire icache_mem_req;
+wire icache_mem_SUC;
 wire [1:0]icache_mem_size;
 wire mem_icache_addrOK;
 wire mem_icache_dataOK;
@@ -76,6 +79,7 @@ Icache(
     .dout_icache_pipeline(dout_icache_pipeline),
     .pc_icache_pipeline(pc_icache_pipeline),
     .flag_icache_pipeline(flag_icache_pipeline),
+    .SUC_pipeline_icache(SUC_pipeline_icache),
 
     .pipeline_icache_valid(pipeline_icache_valid),
     .icache_pipeline_ready(icache_pipeline_ready),
@@ -89,6 +93,7 @@ Icache(
     .din_mem_icache(din_mem_icache),
 
     .icache_mem_req(icache_mem_req),
+    .icache_mem_SUC(icache_mem_SUC),
     .icache_mem_size(icache_mem_size),
     .mem_icache_addrOK(mem_icache_addrOK),
     .mem_icache_dataOK(mem_icache_dataOK)
@@ -98,6 +103,7 @@ wire [31:0]addr_dcache_mem;
 wire [31:0]dout_dcache_mem;
 wire [32*(1<<L1_offset_width)-1:0]din_mem_dcache;
 wire dcache_mem_req;
+wire dcache_mem_SUC;
 wire dcache_mem_wr;
 wire [1:0]dcache_mem_size;
 wire [3:0]dcache_mem_wstrb;
@@ -118,6 +124,7 @@ Dcache(
     .pcin_pipeline_dcache(pcin_pipeline_dcache),
     .dout_dcache_pipeline(dout_dcache_pipeline),
     .type_pipeline_dcache(type_pipeline_dcache),
+    .SUC_pipeline_dcache(SUC_pipeline_dcache),
 
     .pipeline_dcache_valid(pipeline_dcache_valid),
     .dcache_pipeline_ready(dcache_pipeline_ready),
@@ -134,6 +141,7 @@ Dcache(
 
     .dcache_mem_req(dcache_mem_req),
     .dcache_mem_wr(dcache_mem_wr),
+    .dcache_mem_SUC(dcache_mem_SUC),
     .dcache_mem_size(dcache_mem_size),
     .dcache_mem_wstrb(dcache_mem_wstrb),
     .mem_dcache_addrOK(mem_dcache_addrOK),
@@ -149,12 +157,14 @@ wire [32*(1<<L1_offset_width)-1:0]dout_l2cache_icache;
 wire icache_l2cache_req;
 wire l2cache_icache_addrOK;
 wire l2cache_icache_dataOK;
+wire icache_l2cache_SUC;
 
 assign addr_icache_l2cache = addr_icache_mem;
 assign din_mem_icache = dout_l2cache_icache;
 assign icache_l2cache_req = icache_mem_req;
 assign mem_icache_addrOK = l2cache_icache_addrOK;
 assign mem_icache_dataOK = l2cache_icache_dataOK;
+assign icache_l2cache_SUC = icache_mem_SUC;
 
 //Dcache
 wire [31:0]addr_dcache_l2cache;
@@ -165,6 +175,7 @@ wire dcache_l2cache_wr;
 wire [3:0]dcache_l2cache_wstrb;
 wire l2cache_dcache_addrOK;
 wire l2cache_dcache_dataOK;
+wire dcache_l2cache_SUC;
 
 assign addr_dcache_l2cache = addr_dcache_mem;
 assign din_dcache_l2cache = dout_dcache_mem;
@@ -174,6 +185,7 @@ assign dcache_l2cache_wr = dcache_mem_wr;
 assign dcache_l2cache_wstrb = dcache_mem_wstrb;
 assign mem_dcache_addrOK = l2cache_dcache_addrOK;
 assign mem_dcache_dataOK = l2cache_dcache_dataOK;
+assign dcache_l2cache_SUC = dcache_mem_SUC;
 
 L2cache #(
     .index_width(L2_index_width),
@@ -190,6 +202,7 @@ L2cache(
     .addr_icache_l2cache(addr_icache_l2cache),
     .dout_l2cache_icache(dout_l2cache_icache),
     .icache_l2cache_req(icache_l2cache_req),
+    .icache_l2cache_SUC(icache_l2cache_SUC),
     .l2cache_icache_addrOK(l2cache_icache_addrOK),
     .l2cache_icache_dataOK(l2cache_icache_dataOK),
     
@@ -198,6 +211,7 @@ L2cache(
     .dout_l2cache_dcache(dout_l2cache_dcache),
     .dcache_l2cache_req(dcache_l2cache_req),
     .dcache_l2cache_wr(dcache_l2cache_wr),
+    .dcache_l2cache_SUC(dcache_l2cache_SUC),
     .dcache_l2cache_wstrb(dcache_l2cache_wstrb),
     .l2cache_dcache_addrOK(l2cache_dcache_addrOK),
     .l2cache_dcache_dataOK(l2cache_dcache_dataOK),
@@ -209,7 +223,7 @@ L2cache(
     .l2cache_mem_req_r(l2cache_mem_req_r),
     .l2cache_mem_req_w(l2cache_mem_req_w),
     .l2cache_mem_rdy(l2cache_mem_rdy),
-    // .l2cache_mem_size(l2cache_mem_size),
+    .l2cache_mem_SUC(l2cache_mem_SUC),
     .l2cache_mem_wstrb(l2cache_mem_wstrb),
     .mem_l2cache_addrOK_r(mem_l2cache_addrOK_r),
     .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),

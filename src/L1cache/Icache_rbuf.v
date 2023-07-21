@@ -27,9 +27,14 @@ module Icache_rbuf#(
     input clk,rstn,rbuf_we,rbuf_stall,
     input [31:0]addr,opcode,
     output reg [31:0]rbuf_addr,rbuf_opcode,
-    input opflag,
-    output reg rbuf_opflag
+    input opflag,SUC,
+    output reg rbuf_opflag,
+    output rbuf_SUC
     );
+reg we_reg,rbuf_SUC1;
+always @(posedge clk) begin
+    we_reg <= rbuf_we;
+end
 always @(posedge clk,negedge rstn) begin
     if(!rstn)begin
         rbuf_addr<=0;
@@ -41,5 +46,12 @@ always @(posedge clk,negedge rstn) begin
         rbuf_opcode<=opcode;
         rbuf_opflag<=opflag;
     end
+    if(!rstn)begin
+        rbuf_SUC1<=0;
+    end
+    else if(we_reg)begin
+        rbuf_SUC1<=SUC;
+    end
 end
+assign rbuf_SUC = rbuf_SUC1|SUC;
 endmodule

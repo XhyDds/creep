@@ -33,6 +33,7 @@ module Dcache_TagV#(
 
     input       [data_width-1:0]TagV_din_write,
     input       [addr_width-1:0]TagV_addr_write,
+    input       [way-1:0]TagV_unvalid,
     input       [way-1:0]TagV_we
     // input       TagV_way_select
     );
@@ -53,8 +54,10 @@ reg [(1<<addr_width)-1:0]valid1;
 // end
 
 always @(posedge clk) begin
-    if(TagV_we[0])valid0[TagV_addr_write]<=1;
-    if(TagV_we[1])valid1[TagV_addr_write]<=1;
+    if(TagV_unvalid[0])valid0[TagV_addr_write] <= 0;
+    else if(TagV_we[0])valid0[TagV_addr_write] <= 1;
+    if(TagV_unvalid[1])valid0[TagV_addr_write] <= 0;
+    else if(TagV_we[1])valid1[TagV_addr_write] <= 1;
 end
 
 bram #(

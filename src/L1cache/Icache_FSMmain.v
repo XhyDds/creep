@@ -49,6 +49,7 @@ module Icache_FSMmain#(
     input       [31:0]FSM_rbuf_opcode,
     input       FSM_rbuf_opflag,//好像不需要
     input       [31:0]FSM_rbuf_addr,
+    input       FSM_rbuf_SUC,
 
     //paddr寄存器
     output reg  FSM_paddr_we,
@@ -61,6 +62,7 @@ module Icache_FSMmain#(
     input       [way-1:0]FSM_hit,
     output reg  [way-1:0]FSM_Data_we,
     output      [way-1:0]FSM_TagV_we,//两个相同
+    output reg  [way-1:0]FSM_TagV_unvalid,
     // output reg  FSM_way_select,
 
     //dirty 暂无
@@ -113,24 +115,29 @@ always @(*) begin
             else next_state=Idle;
         end
         Lookup:begin
-            `ifdef DMA
-            if(1)begin
-                if(flush_outside)next_state=Flush;
-                else next_state=Miss_r;
+            if(FSM_rbuf_SUC)begin
+                next_state = Miss_r;
             end
-            `else
-            if((!hit0)&&(!hit1))begin
-                if(flush_outside)next_state=Flush;
-                else next_state=Miss_r;
+            else begin
+                `ifdef DMA
+                if(1)begin
+                    if(flush_outside)next_state=Flush;
+                    else next_state=Miss_r;
+                end
+                `else
+                if((!hit0)&&(!hit1))begin
+                    if(flush_outside)next_state=Flush;
+                    else next_state=Miss_r;
+                end
+                `endif
+                else if(fStall_outside)next_state = Lookup;
+                else if(pipeline_icache_valid)begin
+                    if(flush_outside)next_state=Flush;
+                    else if(opflag)next_state=Operation;
+                    else next_state=Lookup;
+                end
+                else next_state=Idle;
             end
-            `endif
-            else if(fStall_outside)next_state = Lookup;
-            else if(pipeline_icache_valid)begin
-                if(flush_outside)next_state=Flush;
-                else if(opflag)next_state=Operation;
-                else next_state=Lookup;
-            end
-            else next_state=Idle;
         end
         Flush:begin
             if(flush_outside)begin
@@ -207,6 +214,10 @@ always @(*) begin
             endcase
         end
         Lookup:begin
+            if(FSM_rbuf_SUC)begin
+                if(hit0)FSM_TagV_unvalid = 2'b01;
+                else if(hit1)FSM_TagV_unvalid = 2'b10;
+            end
             case (next_state)
                 Miss_r:begin
                     // icache_mem_req=1;
@@ -262,11 +273,10 @@ always @(*) begin
             icache_mem_req=1;
             case (next_state)
                 Miss_r:begin
-                    // icache_mem_req=1;
                     icache_mem_size=2'd2;
                 end
                 Miss_r_waitdata:begin
-                    //nothing
+
                 end
                 default:begin
                     
@@ -276,58 +286,66 @@ always @(*) begin
         Miss_r_waitdata:begin
             case (next_state)
                 Miss_r_waitdata:begin
-                    //nothing
+                    
                 end
                 Lookup:begin//这一拍是dataOK
                     FSM_rbuf_we=1;
                     FSM_choose_return=1;//前递
                     icache_pipeline_ready=1;
-                    if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we=2'b01;
-                        FSM_use0=1;
-                    end
-                    else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we=2'b10;
-                        FSM_use1=1;
+                    if(!FSM_rbuf_SUC)begin
+                        if(FSM_wal_sel_lru==1'd0)begin
+                            FSM_Data_we=2'b01;
+                            FSM_use0=1;
+                        end
+                        else if(FSM_wal_sel_lru==1'd1)begin
+                            FSM_Data_we=2'b10;
+                            FSM_use1=1;
+                        end
                     end
                 end
                 Idle:begin
                     FSM_rbuf_we=1;
                     FSM_choose_return=1;//前递
                     icache_pipeline_ready=1;
-                    if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we=2'b01;
-                        FSM_use0=1;
-                    end
-                    else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we=2'b10;
-                        FSM_use1=1;
+                    if(!FSM_rbuf_SUC)begin
+                        if(FSM_wal_sel_lru==1'd0)begin
+                            FSM_Data_we=2'b01;
+                            FSM_use0=1;
+                        end
+                        else if(FSM_wal_sel_lru==1'd1)begin
+                            FSM_Data_we=2'b10;
+                            FSM_use1=1;
+                        end
                     end
                 end
                 Operation:begin
                     FSM_rbuf_we=1;
                     FSM_choose_return=1;//前递
                     // icache_pipeline_ready=1;//???
-                    if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we=2'b01;
-                        FSM_use0=1;
-                    end
-                    else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we=2'b10;
-                        FSM_use1=1;
+                    if(!FSM_rbuf_SUC)begin
+                        if(FSM_wal_sel_lru==1'd0)begin
+                            FSM_Data_we=2'b01;
+                            FSM_use0=1;
+                        end
+                        else if(FSM_wal_sel_lru==1'd1)begin
+                            FSM_Data_we=2'b10;
+                            FSM_use1=1;
+                        end
                     end
                 end
                 Stall:begin
                     FSM_rbuf_we=1;
                     FSM_choose_return=1;//这是必须的
                     icache_pipeline_ready=1;
-                    if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we=2'b01;
-                        FSM_use0=1;
-                    end
-                    else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we=2'b10;
-                        FSM_use1=1;
+                    if(!FSM_rbuf_SUC)begin
+                        if(FSM_wal_sel_lru==1'd0)begin
+                            FSM_Data_we=2'b01;
+                            FSM_use0=1;
+                        end
+                        else if(FSM_wal_sel_lru==1'd1)begin
+                            FSM_Data_we=2'b10;
+                            FSM_use1=1;
+                        end
                     end
                 end
                 default:begin

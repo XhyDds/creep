@@ -36,6 +36,7 @@ module L2cache_TagV#(
 
     input       [data_width-1:0]TagV_din_write,
     input       [addr_width-1:0]TagV_addr_write,
+    input       [way-1:0]TagV_unvalid,
     input       [way-1:0]TagV_we
     );
 wire [data_width-1:0]TagV_data[way-1:0];
@@ -48,10 +49,14 @@ assign valid={valid3[TagV_addr_write],valid2[TagV_addr_write],valid1[TagV_addr_w
 assign TagV_dout=TagV_data[TagV_way_select];
 
 always @(posedge clk) begin
-    if(TagV_we[0])valid0[TagV_addr_write]<=1;
-    if(TagV_we[1])valid1[TagV_addr_write]<=1;
-    if(TagV_we[2])valid2[TagV_addr_write]<=1;
-    if(TagV_we[3])valid3[TagV_addr_write]<=1;
+    if(TagV_unvalid[0])valid0[TagV_addr_write] <= 0;
+    else if(TagV_we[0])valid0[TagV_addr_write] <= 1;
+    if(TagV_unvalid[1])valid0[TagV_addr_write] <= 0;
+    else if(TagV_we[1])valid1[TagV_addr_write] <= 1;
+    if(TagV_unvalid[2])valid0[TagV_addr_write] <= 0;
+    else if(TagV_we[2])valid0[TagV_addr_write] <= 1;
+    if(TagV_unvalid[3])valid0[TagV_addr_write] <= 0;
+    else if(TagV_we[3])valid1[TagV_addr_write] <= 1;
 end
 
 bram #(

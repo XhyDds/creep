@@ -27,13 +27,14 @@ module L2cache_rbuf#(
     input clk,rstn,rbuf_we,
     input [31:0]addr,data,opcode,
     output reg [31:0]rbuf_addr,rbuf_data,rbuf_opcode,
-    input opflag,
-    output reg rbuf_opflag,
+    input opflag,SUC,//L1给L2的SUC是同步的
+    output reg rbuf_opflag,rbuf_SUC,
     input [3:0]wstrb,
     output reg [3:0]rbuf_wstrb,
     input [1:0]from,//0-No 1-I 2-Dr 3-Dw
     output reg[1:0]rbuf_from
     );
+reg rbuf_SUC1;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)begin
         rbuf_addr <= 0;
@@ -42,6 +43,7 @@ always @(posedge clk,negedge rstn) begin
         rbuf_opflag <= 0;
         rbuf_wstrb <= 0;
         rbuf_from <= 0;
+        rbuf_SUC1 <= 0;
     end
     else if(rbuf_we)begin
         rbuf_addr <= addr;
@@ -50,6 +52,10 @@ always @(posedge clk,negedge rstn) begin
         rbuf_opflag <= opflag;
         rbuf_wstrb <= wstrb;
         rbuf_from <= from;
+        rbuf_SUC1 <= SUC;
     end
+end
+always @(*) begin
+    rbuf_SUC = rbuf_SUC1|SUC;
 end
 endmodule
