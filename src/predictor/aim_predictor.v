@@ -20,12 +20,12 @@ module aim_predictor#(
     input  [bh_width-1:0] pc_bh_hashed,
     input  [ADDR_WIDTH-1:0] pc
 );
-    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,CALL = 3'd2,RET = 3'd3,INDIRECT_JUMP = 3'd4,OTHER_JUMP = 3'd5;
+    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
 
     wire taken_b;
-    wire taken_g;
+    wire taken_g;       
 
-    wire try_to_pdc=(kind_ex==DIRECT_JUMP||kind_ex==INDIRECT_JUMP||kind_ex==OTHER_JUMP);
+    wire try_to_pdc=(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP);
 
     bpht#(
         .bh_width(bh_width)
@@ -67,9 +67,10 @@ module aim_predictor#(
         case (kind_pdc)
             NOT_JUMP:       taken_pdc=0;
             DIRECT_JUMP:    taken_pdc=choice_b_g?taken_g:taken_b; 
+            JUMP:           taken_pdc=1;
             CALL:           taken_pdc=1;
             RET:            taken_pdc=1;
-            INDIRECT_JUMP:  taken_pdc=choice_b_g?taken_g:taken_b;
+            INDIRECT_JUMP:  taken_pdc=1;
             OTHER_JUMP:     taken_pdc=choice_b_g?taken_g:taken_b;
             default:        taken_pdc=0;
         endcase

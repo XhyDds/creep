@@ -31,6 +31,8 @@ module l2_axi_package #(
     input      l2cache_mem_req_w,
     output     mem_l2cache_addrOK_w, 
     input      [3:0]l2cache_mem_wstrb,//悬空
+    //直接访存标志
+    input      dma_sign,
 
     //AXI interface 
     //read reqest

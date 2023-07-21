@@ -1250,8 +1250,6 @@ module core_top (
     );
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,CALL = 3'd2,RET = 3'd3,INDIRECT_JUMP = 3'd4,OTHER_JUMP = 3'd5;
 
-    wire try_to_pdc=(kind_ex==DIRECT_JUMP||kind_ex==INDIRECT_JUMP||kind_ex==OTHER_JUMP);
-
     assign mis_pdc={(npc_ex!=npc_pdc_ex),(kind_ex!=kind_pdc_ex),(taken_real!=taken_pdc_ex)};
 
     assign choice_real={choice_real_btb_ras,choice_real_g_h};

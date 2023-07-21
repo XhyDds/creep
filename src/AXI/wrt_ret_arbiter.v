@@ -20,7 +20,9 @@ module wrt_ret_arbiter#(
     input       mem_arbiter_addrOK,
     input       mem_arbiter_dataOK,
     input       [(1<<offset_width)*32-1:0]dout_mem_arbiter,
-    output      cache_mem_rdy
+    output      cache_mem_rdy,
+    //直接访存
+    input       dma_sign
 );
     assign cache_mem_rdy = l2cache_mem_rdy;
     //state_machine
