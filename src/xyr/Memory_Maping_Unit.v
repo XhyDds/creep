@@ -188,9 +188,11 @@ module Memory_Maping_Unit#(
         begin
         PS[Index]<=TLBIDXin[29:24];
         VPPN[Index]<=TLBEHIin[31:13];
-        {MAT0[Index],PLV0[Index],D0[Index],V0[Index]}<=TLBELO0[5:0];
-        {MAT1[Index],PLV1[Index],D1[Index],V1[Index]}<=TLBELO1[5:0];
-        G[Index]<=TLBELO1[6]&TLBELO0[6];
+        {MAT0[Index],PLV0[Index],D0[Index],V0[Index]}<=TLBELO0in[5:0];
+        PPN0[Index]<=TLBELO0in[TLB_PALEN-5:8];
+        {MAT1[Index],PLV1[Index],D1[Index],V1[Index]}<=TLBELO1in[5:0];
+        PPN1[Index]<=TLBELO1in[TLB_PALEN-5:8];
+        G[Index]<=TLBELO1in[6]&TLBELO0in[6];
         ASID[Index]<=ASIDin;
         end
     end
