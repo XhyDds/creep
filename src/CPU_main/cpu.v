@@ -2,9 +2,10 @@
 // `define DDMA
 // `define predictor
 `define MMU
-`define ICache
-`define DCache
-// `define L2Cache
+// `define ICache
+// `define DCache
+`define L2Cache
+`define DMA  //选择L2Cache后 再选DMA
 module core_top (
     input           aclk,
     input           aresetn,
@@ -1795,6 +1796,7 @@ L1_L2cache #(
         // .ifibar(ifibar0|ifibar1),
         //  Icache
         .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
+        .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
         .pipeline_icache_valid  		( 1  		),
@@ -1806,6 +1808,7 @@ L1_L2cache #(
 
         //  Dcache
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
+        .paddr_pipeline_dcache   		( MMU_pipeline_VADDR1   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
