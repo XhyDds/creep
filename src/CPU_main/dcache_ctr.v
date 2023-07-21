@@ -139,5 +139,9 @@ module dcache_ctr (
                     din_pipeline_dcache=rrd1_forward; pipeline_dcache_wstrb='b1111; 
                 end
             endcase
+        else if(type_==9) begin
+            pipeline_dcache_opcode={1'b1,31'b0};
+            pipeline_dcache_opflag=1;
+        end
     end
 endmodule

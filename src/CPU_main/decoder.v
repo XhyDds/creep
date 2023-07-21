@@ -8,6 +8,8 @@ module decoder (
     output reg [31:0]imm,
     output reg [15:0]excp_arg
 );
+    localparam NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
+    //dj 条件跳转   j 无条件跳转   call bl jirl rd=1   ret jirl rd=0 rj=1 offset=0   ij jirl other
     localparam yu=0,huo=1,huofei=2,yihuo=3,jia=4,jian=5,zuoyi=6,youyi=7,ssyouyi=8,sxiaoyu=9,xiaoyu=10,tong1=11,tong2=12;
     localparam alu=0,tiao=1,cheng=4,chu=2,liwai=3,dcache=5,yuanzi=6,shizhong=7,tiaoxie=8;
     reg [1:0]pcsrc;//1:br, 0:writeback, 2:predecoder, 3:predictor
@@ -27,9 +29,10 @@ module decoder (
     //for tiaoxie, 0:jirl, 1:bl
     //for rdcnt, 0:rdcntvl.w, 1:rdcntvh.w, (2:rdcntid)
     reg memread,memwrite,regwrite,nop,priv,ifrdc;
-    assign control=(valid)?{1'b1,7'b0,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
+    reg [2:0] kind;
+    assign control=(valid)?{1'b1,4'b0,kind,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
     always @(*) begin
-        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;
+        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;kind=NOT_JUMP;
         if(|pc[1:0]) begin //ADEF 
             type_=liwai;subtype=0;excp_arg='b0_001000; 
         end
@@ -206,23 +209,26 @@ module decoder (
                                 imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];excp_arg={11'b0,ir[4:0]};type_=dcache;subtype=8;priv=(ir[4:3]!=2);
                             end
                         'b01: 
-                            if(ir[21:17]=='b00100&ir[9:0]=='b0000000000)
+                            if(ir[21:17]=='b00100)
                             case (ir[16:15])
                                 'b00: 
-                                    case (ir[14:10])
-                                        'b01010: begin type_=10;subtype=1; end//TLBSRCH
-                                        'b01011: begin type_=10;subtype=2; end//TLBRD
-                                        'b01100: begin type_=10;subtype=3; end//TLBWR
-                                        'b01101: begin type_=10;subtype=4; end//TLBFILL
-                                        'b01110: begin type_=liwai;subtype=6;priv=1; end //ERTN
-                                        default: begin type_=liwai;subtype=0;excp_arg='b001101; end
-                                    endcase
+                                    if (ir[9:0]=='b0000000000)
+                                        case (ir[14:10])
+                                            'b01010: begin type_=10;subtype=1; end//TLBSRCH
+                                            'b01011: begin type_=10;subtype=2; end//TLBRD
+                                            'b01100: begin type_=10;subtype=3; end//TLBWR
+                                            'b01101: begin type_=10;subtype=4; end//TLBFILL
+                                            'b01110: begin type_=liwai;subtype=6;priv=1; end //ERTN
+                                            default: begin type_=liwai;subtype=0;excp_arg='b001101; end
+                                        endcase
+                                    else begin type_=liwai;subtype=0;excp_arg='b001101; end
                                 'b01: begin  //IDLE
                                     type_=liwai;subtype=7;excp_arg={1'b0,ir[14:0]};priv=1;
                                 end
-                                'b11: begin 
-                                    type_=11;subtype=5;rk=ir[14:10];rj=ir[9:5];excp_arg={11'b0,ir[4:0]};priv=1; 
-                                end//INVTLB
+                                'b11: begin //INVTLB
+                                    if(ir[4:0]<7) begin type_=11;subtype=5;rk=ir[14:10];rj=ir[9:5];excp_arg={11'b0,ir[4:0]};priv=1; end
+                                    else begin type_=liwai;subtype=0;excp_arg='b001101; end
+                                end
                                 default: begin type_=liwai;subtype=0;excp_arg='b001101; end
                             endcase
                             else begin type_=liwai;subtype=0;excp_arg='b001101; end
@@ -302,39 +308,39 @@ module decoder (
         'b010011: //JIRL
             begin 
                 imm={{14{ir[25]}},ir[25:10],2'b0};type_=tiaoxie;subtype=0;regwrite=1;pcsrc=1;
-                aluop=jia;alusrc1=1;alusrc2=3;rj=ir[9:5];rd=ir[4:0];
+                aluop=jia;alusrc1=1;alusrc2=3;rj=ir[9:5];rd=ir[4:0];kind=(rd==0&rj==1&ir[25:10]==0)?RET:(rd==1?CALL:INDIRECT_JUMP);
             end
         'b010100: //B
             begin 
-                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiao;subtype=0;pcsrc=1;
+                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiao;subtype=0;pcsrc=1;kind=JUMP;
             end
         'b010101: //BL
             begin 
-                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiaoxie;subtype=1;regwrite=1;pcsrc=1;aluop=jia;alusrc1=1;alusrc2=3;rd=1;
+                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiaoxie;subtype=1;regwrite=1;pcsrc=1;aluop=jia;alusrc1=1;alusrc2=3;rd=1;kind=CALL;
             end
         'b010110: //BEQ
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=1;pcsrc=1;aluop=jian;alusrc2=2;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=1;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;
             end
         'b010111: //BNE
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=2;pcsrc=1;aluop=jian;alusrc2=2;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=2;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;
             end
         'b011000: //BLT
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=3;pcsrc=1;aluop=sxiaoyu;alusrc2=2;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=3;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;
             end
         'b011001: //BGE
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=4;pcsrc=1;aluop=sxiaoyu;alusrc2=2;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=4;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;
             end
         'b011010: //BLTU
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=5;pcsrc=1;aluop=xiaoyu;alusrc2=2;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=5;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;
             end
         'b011011: //BGEU
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;alusrc2=2;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;
             end
         default: begin type_=liwai;subtype=0;excp_arg='b001101; end
         endcase

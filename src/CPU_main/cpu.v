@@ -1120,7 +1120,6 @@ module core_top (
 
     //AXI
     `ifndef L2Cache
-
     axi_arbiter u_axi_arbiter(
         //ports
         .clk      		( clk      		),
@@ -1202,26 +1201,34 @@ module core_top (
         .bvalid   		( bvalid   		),
         .bready   		( bready   		)
     );
-
-
     `endif
+
     //传给流水线，寄存
     wire [28:0]npc_pdc;
     wire [2:0]kind_pdc;
     wire taken_pdc;
     wire [1:0]choice_pdc;
     //流水线需要传出的信号
-    wire [2:0]kind_ex;
-    wire [28:0]npc_ex;
-    wire [28:0]npc_pdc_ex;//寄存
-    wire [2:0]kind_pdc_ex;//寄存
-    wire taken_pdc_ex;//寄存
-    wire [1:0]choice_pdc_ex;//寄存
+    wire [2:0]kind_ex=!ifpriv&ifbr1?ctr_reg_exe0_1[26:24]:ctr_reg_exe0_0[26:24];
+    wire [28:0]npc_ex=!ifpriv&ifbr1?pc_br1[31:3]:pc_br0[31:3];
+    wire [28:0]pc_ex=!ifpriv&ifbr1?pc_reg_exe0_1[31:3]:pc_reg_exe0_0[31:3];
+    wire [28:0]npc_pdc_ex=!ifpriv&ifbr1?pre_reg_exe0_1[28:0]:pre_reg_exe0_0[28:0];//寄存
+    wire [2:0]kind_pdc_ex=!ifpriv&ifbr1?pre_reg_exe0_1[31:29]:pre_reg_exe0_0[31:29];//寄存
+    wire taken_pdc_ex=!ifpriv&ifbr1?pre_reg_exe0_1[32]:pre_reg_exe0_0[32];//寄存
+    wire [1:0]choice_pdc_ex=!ifpriv&ifbr1?pre_reg_exe0_1[34:33]:pre_reg_exe0_0[34:33];//寄存
     //已经处理过的信号
     wire [2:0]mis_pdc;
     wire taken_real;
     wire [1:0]choice_real;
-
+    wire choice_real_btb_ras;
+    wire choice_real_g_h;
+    wire try_to_pdc;
+    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
+    assign try_to_pdc=(kind_ex==DIRECT_JUMP||kind_ex==INDIRECT_JUMP||kind_ex==OTHER_JUMP);
+    assign mis_pdc={(npc_ex!=npc_pdc_ex),(kind_ex!=kind_pdc_ex),(taken_real!=taken_pdc_ex)};
+    assign choice_real={choice_real_btb_ras,choice_real_g_h};
+    assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc_ex[1]:choice_pdc_ex[1];
+    assign choice_real_g_h=mis_pdc[0]?~choice_pdc_ex[1]:choice_pdc_ex[1];
 
     predictor #(
         .k_width       		( 14   		),
@@ -1234,7 +1241,7 @@ module core_top (
         .clk         		( clk         		),
         .rstn        		( rstn        		),
 
-        .pc_ex       		( ifbr1?pc_reg_exe0_1[31:3]:pc_reg_exe0_0[31:3] ),
+        .pc_ex       		( pc_ex             ),
         .mis_pdc     		( mis_pdc     		),
         .npc_ex      		( npc      		    ),
         .kind_ex     		( kind_ex     		),
@@ -1248,19 +1255,6 @@ module core_top (
 
         .pc          		( pc          		)
     );
-    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,CALL = 3'd2,RET = 3'd3,INDIRECT_JUMP = 3'd4,OTHER_JUMP = 3'd5;
-
-    wire try_to_pdc=(kind_ex==DIRECT_JUMP||kind_ex==INDIRECT_JUMP||kind_ex==OTHER_JUMP);
-
-    assign mis_pdc={(npc_ex!=npc_pdc_ex),(kind_ex!=kind_pdc_ex),(taken_real!=taken_pdc_ex)};
-
-    assign choice_real={choice_real_btb_ras,choice_real_g_h};
-
-    wire choice_real_btb_ras;
-    wire choice_real_g_h;
-
-    assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc_ex[1]:choice_pdc_ex[1];
-    assign choice_real_g_h=mis_pdc[0]?~choice_pdc_ex[1]:choice_pdc_ex[1];
 
     //PC
     wire ifflush_if1_fifo;
@@ -1313,7 +1307,8 @@ module core_top (
             pre_mmu_if0 <= 0;
         end
         else begin
-            pre_mmu_if0 <= {taken_pdc,kind_pdc,npc_pdc};
+            pre_mmu_if0 <= {28'b0,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //35:33 32 31:29 28:0
         end
     end
 
@@ -2199,7 +2194,7 @@ L1_L2cache #(
         .excp_valid         (cmt_excp_flush ),
         .eret               (cmt_ertn       ),
         .intrNo             (csr_estat_diff_0[12:2]),
-        .cause              (cmt_csr_ecode  ),
+        // .cause              (cmt_csr_ecode  ),
         .exceptionPC        (0              ),
         .exceptionInst      (0              )
     );
