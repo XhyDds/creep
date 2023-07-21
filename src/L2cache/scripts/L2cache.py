@@ -1,9 +1,20 @@
-`timescale 1ns / 1ps
+# L1_offset_width=2
+# offset_width=2
+with open('config.txt','r') as file:
+    config=file.read()
+for line in config.split('\n'):
+    if line.startswith('L1_offset_width'):
+        L1_offset_width=int(line.split('=')[1])
+    elif line.startswith('L2_offset_width'):
+        offset_width=int(line.split('=')[1])
+L1_offset=1<<L1_offset_width
+offset=1<<offset_width
+code='''`timescale 1ns / 1ps
 
 module L2cache#(
     parameter   index_width=2,
-                offset_width=2,
-                L1_offset_width=2,//两者相等
+                offset_width='''+str(offset_width)+''',
+                L1_offset_width='''+str(L1_offset_width)+''',//两者相等
                 way=4
 )(
     //四路 写回写分配
@@ -215,18 +226,27 @@ always @(*) begin
         endcase
     end
 end
-wire [offset_width - L1_offset_width -1 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
+'''
+if offset_width == L1_offset_width :
+    code+='''
+assign dout_l2cache_l1cache = line;'''
+else:
+    choose_word_len=1<<(offset_width - L1_offset_width-1)
+    code+='''
+wire ['''+str(choose_word_len)+''' : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
 always @(*) begin
-    case (choose_word)
-        // 1'd0: dout_l2cache_l1cache = line[63:0];
-        // 1'd1: dout_l2cache_l1cache = line[127:64];
+    case (choose_word)'''
+    l1_word_len=32*(1<<L1_offset_width)
+    for i in range(choose_word_len*2):
+        code+='''
+        '''+str(choose_word_len)+''''d'''+str(i)+''': dout_l2cache_l1cache = line['''+str((i+1)*l1_word_len-1)+''':'''+str(i*l1_word_len)+'''];'''
+code+='''
         default: dout_l2cache_l1cache = line;
     endcase
 end
 //Mem
 assign addr_l2cache_mem_r = {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
 assign addr_l2cache_mem_w = {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
-assign dout_l2cache_mem = line;//
 
 //FSM
 L2cache_FSMmain #(
@@ -283,3 +303,7 @@ L2cache_FSMmain(
     
 );
 endmodule
+'''
+# print(code)
+with open('L2cache.v','w+') as f:
+    f.write(code)
