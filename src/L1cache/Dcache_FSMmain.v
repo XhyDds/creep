@@ -58,6 +58,7 @@ module Dcache_FSMmain#(
     input       [31:0]FSM_rbuf_addr,
     input       FSM_rbuf_type,//0-read  1-write
     input       [3:0]FSM_rbuf_wstrb,
+    input       FSM_rbuf_SUC,//强序非缓存
 
     //paddr寄存器
     output reg  FSM_paddr_we,
@@ -71,6 +72,7 @@ module Dcache_FSMmain#(
     output reg  [way-1:0]FSM_Data_we,
     output      [way-1:0]FSM_TagV_we,//两个相同
     output reg  FSM_Data_replace,
+    output reg  FSM_Tag_unvalid,
     // output reg  FSM_way_select,
 
     //dirty 暂无
