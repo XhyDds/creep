@@ -1,4 +1,4 @@
-module CSR_control#(
+module CSR_control#(//tlbfill bug?
 parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 )(
     input clk,rstn,
@@ -142,7 +142,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             begin
             csr_tlbidx_diff_0=0;
             csr_tlbidx_diff_0[TLB_n-1:0]=TLBIDX_Index;
-            rand_index1=randnum[TLB_n-1:0];
+            //rand_index1=randnum[TLB_n-1:0];
+            rand_index1=0;
             csr_tlbidx_diff_0[29:24]=TLBIDX_PS;
             csr_tlbidx_diff_0[31]=TLBIDX_NE;
             end
@@ -325,7 +326,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 flushout=1; 
                 if(ecode==TLBR)
                     TLBIDXout[31]=0;//NE=0,E=1
-                TLBIDXout[TLB_n-1:0]=randnum[TLB_n-1:0];
+                //TLBIDXout[TLB_n-1:0]=randnum[TLB_n-1:0];
+                TLBIDXout[TLB_n-1:0]=0;
                 end
                       
         endcase
