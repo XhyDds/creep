@@ -77,7 +77,7 @@ module core_top (
     parameter offset_width = 2;
 
     reg [31:0]pc,npc,
-    ctr_id_reg_0,ctr_id_reg_1,ctr_reg_exe0_1_ALE,
+    ctr_id_reg_0,ctr_id_reg_1,ctr_reg_exe0_1_excp,
     ctr_reg_exe0_0,ctr_reg_exe0_1,
     ctr_exe0_exe1_0,ctr_exe0_exe1_1,
     ctr_exe1_wb_0,ctr_exe1_wb_1,
@@ -128,9 +128,6 @@ module core_top (
     reg icache_valid_if1_fifo,flag_if1_fifo;
 
     reg [63:0]countresult_exe1_wb_0,countresult_exe1_wb_1,countresult_exe0_exe1_0,countresult_exe0_exe1_1;
-    
-    //TLB
-    // wire tlbexcp=0,tlbcode=0,tlbsubcode=0;
 
     //PRIV
     wire LLbit;
@@ -241,10 +238,10 @@ module core_top (
         .rstn                   		( rstn                   		),
 
         // .ifibar(ifibar0|ifibar1),
-        .addr_pipeline_icache   		( (|pc[1:0])|(pc[31]&PLV!=0)?0:pc),
+        .addr_pipeline_icache   		( (|pc[1:0])?0:pc),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_valid  		( valid_rstn  		),
+        .pipeline_icache_valid  		( 1  		),
         .icache_pipeline_ready  		( icache_pipeline_ready  		),//
         .pipeline_icache_opcode 		( 0 		),
         .pipeline_icache_opflag 		( 0 		),
@@ -595,7 +592,7 @@ module core_top (
         .register2 		( 0 		),
         .register3 		( 0 		),
         .register1    	( pc_reg_exe0_1    		),
-        .alusrc_   		( ctr_reg_exe0_1_ALE[15:14]   		),
+        .alusrc_   		( ctr_reg_exe0_1_excp[15:14]   		),
         .alu      		( alu1_1      		)
     );
 
@@ -607,7 +604,7 @@ module core_top (
         .register2 		( rrd1_forward 		),
         .register3 		( 4 		),
         .register1    	( imm_reg_exe0_1    		),
-        .alusrc_   		( ctr_reg_exe0_1_ALE[13:12]   		),
+        .alusrc_   		( ctr_reg_exe0_1_excp[13:12]   		),
         .alu      		( alu2_1      		)
     );
 
@@ -630,7 +627,7 @@ module core_top (
         //ports
         .alu1      		( alu1_1      		),
         .alu2      		( alu2_1      		),
-        .ctr       		( ctr_reg_exe0_1_ALE       		),
+        .ctr       		( ctr_reg_exe0_1_excp       		),
         .aluresult 		( aluresult1		),
         .zero      		( zero1     		)
     );
@@ -645,7 +642,7 @@ module core_top (
         .rstn 		    ( rstn 		),
         .ctr0  		    ( ctr_reg_exe0_0  	),
         .countresult0 	( countresult0		),
-        .ctr1  		    ( ctr_reg_exe0_1_ALE),
+        .ctr1  		    ( ctr_reg_exe0_1_excp),
         .countresult1 	( countresult1		),
         .countresult    ( countresult		)
     );
@@ -673,8 +670,8 @@ module core_top (
         .rstn                        		( rstn                        		),
         .pipeline_muitiplier_flush   		( flush_exe0_exe1_1   		),
         .pipeline_muitiplier_stall   		( stall_exe0_exe1_1   		),
-        // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_1_ALE[3:0] 		),
-        .pipeline_muitiplier_subtype 		( ctr_reg_exe0_1_ALE[11:7] 		),
+        // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_1_excp[3:0] 		),
+        .pipeline_muitiplier_subtype 		( ctr_reg_exe0_1_excp[11:7] 		),
         .pipeline_muitiplier_din1    		( rrj1_forward    		),
         .pipeline_muitiplier_din2    		( rrk1_forward    		),
         .muitiplier_pipeline_dout    		( mulresult1    		)
@@ -708,8 +705,8 @@ module core_top (
         //ports
         .clk                      		( clk                      		),
         .rstn                     		( rstn                     		),
-        .pipeline_divider_type    		( ctr_reg_exe0_1_ALE[3:0]    		),
-        .pipeline_divider_subtype 		( ctr_reg_exe0_1_ALE[11:7] 		),
+        .pipeline_divider_type    		( ctr_reg_exe0_1_excp[3:0]    		),
+        .pipeline_divider_subtype 		( ctr_reg_exe0_1_excp[11:7] 		),
         .pipeline_divider_stall1   		( stall_exe0_exe1_1   		),
         .pipeline_divider_flush1   		( flush_exe0_exe1_1   		),
         .pipeline_divider_stall2   		( stall_exe1_wb_1   		),
@@ -728,7 +725,7 @@ module core_top (
 
     ibar u_ibar1(
         //ports
-        .ctr        	( ctr_reg_exe0_1_ALE        		),
+        .ctr        	( ctr_reg_exe0_1_excp        		),
         .ifibar 		( ifibar1 		)
     );
 
@@ -749,7 +746,7 @@ module core_top (
 
     br u_br1(
         //ports
-        .ctr      		( ctr_reg_exe0_1_ALE      		),
+        .ctr      		( ctr_reg_exe0_1_excp      		),
         .pc       		( pc_reg_exe0_1       		),
         .imm      		( imm_reg_exe0_1      		),
         .zero     		( zero1     		),
@@ -771,7 +768,7 @@ module core_top (
         .excp_arg_reg_exe0_1_excp       ( excp_arg_reg_exe0_1_excp      ),
         .rrj1_forward         		    ( rrj1_forward         		    ),
         .imm_reg_exe0_1         		( imm_reg_exe0_1         		),
-        .ctr_reg_exe0_1         		( ctr_reg_exe0_1_ALE         	),
+        .ctr_reg_exe0_1         		( ctr_reg_exe0_1_excp         	),
         .rrd1_forward          		    ( rrd1_forward          		),
         .addr_pipeline_dcache   		( addr_pipeline_dcache   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
@@ -844,8 +841,8 @@ module core_top (
         .CSR_pipeline_clk_stall     	( stall_priv     		        ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
         .CSR_pipeline_outpc     		( pc_priv     		            ),
-        .pipeline_CSR_type      		( ctr_reg_exe0_1_ALE[3:0]     	),
-        .pipeline_CSR_subtype   		( ctr_reg_exe0_1_ALE[11:7]     	),
+        .pipeline_CSR_type      		( ctr_reg_exe0_1_excp[3:0]     	),
+        .pipeline_CSR_subtype   		( ctr_reg_exe0_1_excp[11:7]     	),
         .pipeline_CSR_din       		( rrd1_forward       		    ),
         .pipeline_CSR_mask      		( rrj1_forward      		    ),
         .CSR_pipeline_dout      		( privresult      		        ),
@@ -934,8 +931,8 @@ module core_top (
         .pipeline_MMU_flush1            ( flush_reg_exe0_0              ),
         .pipeline_MMU_stallw            ( 0                             ),
         .pipeline_MMU_flushw            ( 0                             ),
-        .pipeline_MMU_type              ( ctr_reg_exe0_1_ALE[3:0]       ),
-        .pipeline_MMU_subtype           ( ctr_reg_exe0_1_ALE[11:7]      ),
+        .pipeline_MMU_type              ( ctr_reg_exe0_1_excp[3:0]       ),
+        .pipeline_MMU_subtype           ( ctr_reg_exe0_1_excp[11:7]      ),
         .pipeline_MMU_excp_arg		    ( excp_arg_reg_exe0_1_excp      ),
         .pipeline_MMU_rj                ( rrj1_forward                  ),
         .pipeline_MMU_rk                ( rrk1_forward                  ),
@@ -991,7 +988,7 @@ module core_top (
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
 
-        .addr_pipeline_dcache   		( MMU_pipeline_PADDR1           ),
+        .addr_pipeline_dcache   		( addr_pipeline_dcache           ),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
@@ -1077,15 +1074,15 @@ module core_top (
 
     dcache_extend u_dcache_extend(
         //ports
-        // `ifdef DDMA
-        // .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE   ),
-        // .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
-        // `endif
-
         `ifdef DDMA
-        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
-        .addr_pipeline_dcache    		    ( addr_exe0_exe1       ),
+        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_excp   ),
+        .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
         `endif
+
+        // `ifdef DDMA
+        // .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        // .addr_pipeline_dcache    		    ( addr_exe0_exe1       ),
+        // `endif
 
         `ifdef DCache
         .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
@@ -1263,9 +1260,8 @@ module core_top (
 `endif
 `ifndef predictor
         `ifdef IDMA
-        // else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY
-        // else npc=pc;
-        else npc=pc+8;
+        else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY
+        else npc=pc;//未接入mmu
         `endif
 
         `ifdef ICache
@@ -1285,14 +1281,14 @@ module core_top (
     end
 
     // //MMU-IF0
-    // always @(posedge clk or negedge rstn) begin
-    //     if(!rstn) begin
-    //         pre_mmu_if0 <= 0;
-    //     end
-    //     else begin
-    //         pre_mmu_if0 <= {taken_pdc,kind_pdc,npc_pdc};
-    //     end
-    // end
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) begin
+            pre_mmu_if0 <= 0;
+        end
+        else begin
+            pre_mmu_if0 <= {taken_pdc,kind_pdc,npc_pdc};
+        end
+    end
 
     //IF0-IF1 Icache ONLY
     `ifdef ICache
@@ -1300,15 +1296,18 @@ module core_top (
         if(!rstn) begin
             pc_if0_if1<=0;
             PLV_if0_if1<=0;
+            pre_if0_if1<=0;
         end
         else if(stall_if0_if1);
         else if(flush_if0_if1) begin
             pc_if0_if1<=0;
             PLV_if0_if1<=0;
+            pre_if0_if1<=0;
         end
         else begin
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
+            pre_if0_if1<={taken_pdc,kind_pdc,npc_pdc};
         end
     end
     `endif
@@ -1353,24 +1352,26 @@ module core_top (
         else begin
 
             `ifdef ICache
-            pc_if1_fifo<=pc_icache_pipeline;//Icache ONLY
+            pc_if1_fifo<=pc_if0_if1;//Icache ONLY
             PLV_if1_fifo<=PLV_if0_if1;
+            pre_if1_fifo<=pre_if0_if1;
             `endif
 
             `ifdef L2Cache
-            pc_if1_fifo<=pc_icache_pipeline;//Icache ONLY
+            pc_if1_fifo<=pc_if0_if1;//Icache ONLY
             PLV_if1_fifo<=PLV_if0_if1;
+            pre_if1_fifo<=pre_if0_if1;
             `endif
 
             `ifdef IDMA
-            pc_if1_fifo<=MMU_pipeline_PADDR0;//DMA ONLY
+            pc_if1_fifo<=pc;//DMA ONLY
             PLV_if1_fifo<=PLV;
+            pre_if1_fifo<={taken_pdc,kind_pdc,npc_pdc};
             `endif
 
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_ready;
             flag_if1_fifo<=flag_icache_pipeline;
-            pre_if1_fifo<={taken_pdc,kind_pdc,npc_pdc};
         end
     end
 
@@ -1562,27 +1563,28 @@ module core_top (
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
     always @(*) begin//�??测访存地�??是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�??
-        ctr_reg_exe0_1_ALE=ctr_reg_exe0_1;
+        ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
-        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越�??
+        if(ctr_reg_exe0_1[23]&(|PLV)) begin 
+            ctr_reg_exe0_1_excp=liwai;
+            excp_arg_reg_exe0_1_excp=excp_argIPE; 
+        end//用户态访问越界
         else if(ctr_reg_exe0_1[3:0]==5)
             case (ctr_reg_exe0_1[11:7])
-                1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
-                2: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
-                4: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
-                5: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
-                7: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                2: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                4: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                5: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                7: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
             endcase
         else if(ctr_reg_exe0_1[3:0]==6)
             case (ctr_id_reg_1[11:7])//fot yuanzi, 0:load, 1:store
-                0: if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
-                1: if(LLbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                0: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                1: if(LLbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
             endcase
     end
-
-    // `ifdef DDMA
-    // reg [31:0]dcacheresult_reg;//DMA ONLY
-    // `endif
+    
+    reg [31:0]dcacheresult_reg;//DMA ONLY
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
@@ -1593,9 +1595,7 @@ module core_top (
             ir_exe0_exe1_0<=0;
             ir_valid_exe0_exe1_0<=0;
             countresult_exe0_exe1_0<=0;
-            // `ifdef DDMA
-            // dcacheresult_reg<=0;//DMA ONLY
-            // `endif
+            dcacheresult_reg<=0;//DMA ONLY
         end
         else if(stall_exe0_exe1_0);
         else if(flush_exe0_exe1_0) begin
@@ -1606,9 +1606,7 @@ module core_top (
             ir_exe0_exe1_0<=0;
             ir_valid_exe0_exe1_0<=0;
             countresult_exe0_exe1_0<=0;
-            // `ifdef DDMA
-            // dcacheresult_reg<=0;//DMA ONLY
-            // `endif
+            dcacheresult_reg<=0;//DMA ONLY
         end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
@@ -1618,9 +1616,7 @@ module core_top (
             ir_exe0_exe1_0<=ir_reg_exe0_0;
             ir_valid_exe0_exe1_0<=ir_valid_reg_exe0_0;
             countresult_exe0_exe1_0<=countresult;
-            // `ifdef DDMA
-            // dcacheresult_reg<=dcacheresult;//DMA ONLY
-            // `endif
+            dcacheresult_reg<=dcacheresult;//DMA ONLY
         end
     end
 
@@ -1647,9 +1643,9 @@ module core_top (
             countresult_exe0_exe1_1<=0;
         end
         else begin
-            ctr_exe0_exe1_1 <= ctr_reg_exe0_1_ALE;
+            ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
-            result_exe0_exe1_1<=(ctr_reg_exe0_1_ALE[3:0]==7)?countresult1:aluresult1;
+            result_exe0_exe1_1<=(ctr_reg_exe0_1_excp[3:0]==7)?countresult1:aluresult1;
             pc_exe0_exe1_1<=pc_reg_exe0_1;
             ir_exe0_exe1_1<=ir_reg_exe0_1;
             addr_exe0_exe1<=addr_pipeline_dcache;
@@ -1677,15 +1673,15 @@ module core_top (
             2: result1=divresult1;
             3: result1=privresult;
             4: result1=mulresult1;
-            // `ifdef DDMA
-            // 5: result1=dcacheresult_reg;//DMA ONLY
-            // 6: result1=dcacheresult_reg;//DMA ONLY
-            // `endif
-
             `ifdef DDMA
-            5: result1=dcacheresult;//DMA ONLY
-            6: result1=dcacheresult;//DMA ONLY
+            5: result1=dcacheresult_reg;//DMA ONLY
+            6: result1=dcacheresult_reg;//DMA ONLY
             `endif
+
+            // `ifdef DDMA //mmu
+            // 5: result1=dcacheresult;//DMA ONLY
+            // 6: result1=dcacheresult;//DMA ONLY
+            // `endif
 
             `ifdef DCache
             5: result1=dcacheresult;//Dcache ONLY
@@ -2175,7 +2171,6 @@ L1_L2cache #(
         .eret               (cmt_ertn       ),
         .intrNo             (csr_estat_diff_0[12:2]),
         // .cause              (cmt_csr_ecode  ),
-        .cause              (0              ),
         .exceptionPC        (0              ),
         .exceptionInst      (0              )
     );

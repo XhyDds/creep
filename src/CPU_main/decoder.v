@@ -33,10 +33,10 @@ module decoder (
         if(|pc[1:0]) begin //ADEF 
             type_=liwai;subtype=0;excp_arg='b0_001000; 
         end
-        else 
-        if(pc[31]&PLV!=0) begin //ADEM 
-            type_=liwai;subtype=0;excp_arg='b1_001000; 
-        end
+        // else 
+        // if(pc[31]&PLV!=0) begin //ADEM 
+        //     type_=liwai;subtype=0;excp_arg='b1_001000; 
+        // end
         else 
         case (ir[31:26])
         'b000000: 
