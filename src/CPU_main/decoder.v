@@ -208,22 +208,21 @@ module decoder (
                         'b01: 
                             if(ir[21:17]=='b00100&ir[9:0]=='b0000000000)
                             case (ir[16:15])
-                                00: 
+                                'b00: 
                                     case (ir[14:10])
-                                        // 'b01010: if(PLV==0) ; else begin type_=liwai;subtype=0;excp_arg='b001110; end//TLBSRCH
-                                        // 'b01011: if(PLV==0) ; else begin type_=liwai;subtype=0;excp_arg='b001110; end//TLBRD
-                                        // 'b01100: if(PLV==0) ; else begin type_=liwai;subtype=0;excp_arg='b001110; end//TLBWR
-                                        // 'b01101: if(PLV==0) ; else begin type_=liwai;subtype=0;excp_arg='b001110; end//TLBFILL
-                                        'b01110: 
-                                        begin  //ERTN
-                                            type_=liwai;subtype=6;priv=1;
-                                        end
+                                        'b01010: begin type_=10;subtype=1; end//TLBSRCH
+                                        'b01011: begin type_=10;subtype=2; end//TLBRD
+                                        'b01100: begin type_=10;subtype=3; end//TLBWR
+                                        'b01101: begin type_=10;subtype=4; end//TLBFILL
+                                        'b01110: begin type_=liwai;subtype=6;priv=1; end //ERTN
                                         default: begin type_=liwai;subtype=0;excp_arg='b001101; end
                                     endcase
-                                01: begin  //IDLE
+                                'b01: begin  //IDLE
                                     type_=liwai;subtype=7;excp_arg={1'b0,ir[14:0]};priv=1;
                                 end
-                                // 11: begin type_=liwai;subtype=0;excp_arg='b001110;priv=1; end//INVTLB
+                                'b11: begin 
+                                    type_=11;subtype=5;rk=ir[14:10];rj=ir[9:5];excp_arg={11'b0,ir[4:0]};priv=1; 
+                                end//INVTLB
                                 default: begin type_=liwai;subtype=0;excp_arg='b001101; end
                             endcase
                             else begin type_=liwai;subtype=0;excp_arg='b001101; end
@@ -290,9 +289,6 @@ module decoder (
                         imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type_=dcache;subtype=7;regwrite=1;memread=1;
                     end
                 'b1011: nop=1;//PRELD
-                //     begin
-                //         imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];hint=ir[4:0];
-                //     end
                 default: begin type_=liwai;subtype=0;excp_arg='b001101; end
             endcase
         'b001110: 
@@ -303,7 +299,6 @@ module decoder (
                     default: begin type_=liwai;subtype=0;excp_arg='b001101; end
                 endcase
             else begin type_=liwai;subtype=0;excp_arg='b001101; end
-        // 'b010010: ;
         'b010011: //JIRL
             begin 
                 imm={{14{ir[25]}},ir[25:10],2'b0};type_=tiaoxie;subtype=0;regwrite=1;pcsrc=1;

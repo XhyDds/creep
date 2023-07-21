@@ -208,7 +208,7 @@ assign dout_icache_pipeline = (choose_stall) ? data_out_reg : dout1;
 assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : flag1;
 
 //Mem 实地址访存
-reg paddr_reg;
+reg [31:0]paddr_reg;
 wire paddr_we;//进入访存之前置1
 always @(posedge clk) begin
     if(paddr_we)paddr_reg <= paddr_pipeline_icache;
@@ -216,9 +216,9 @@ end
 wire [1+offset_width:0]temp;
 assign temp=0;
 `ifdef MMU
-assign addr_dcache_mem = {paddr_reg[31:2+offset_width],temp};
+assign addr_icache_mem = {paddr_reg[31:2+offset_width],temp};
 `else 
-assign addr_dcache_mem = {rbuf_addr[31:2+offset_width],temp};
+assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
 `endif
 //FSM
 Icache_FSMmain #(

@@ -1,8 +1,9 @@
-`define IDMA
-`define DDMA
+// `define IDMA
+// `define DDMA
 // `define predictor
-// `define ICache
-// `define DCache
+`define MMU
+`define ICache
+`define DCache
 // `define L2Cache
 module core_top (
     input           aclk,
@@ -129,7 +130,7 @@ module core_top (
     reg [63:0]countresult_exe1_wb_0,countresult_exe1_wb_1,countresult_exe0_exe1_0,countresult_exe0_exe1_1;
     
     //TLB
-    wire tlbexcp=0,tlbcode=0,tlbsubcode=0;
+    // wire tlbexcp=0,tlbcode=0,tlbsubcode=0;
 
     //PRIV
     wire LLbit;
@@ -161,7 +162,7 @@ module core_top (
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�??
+    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�??
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_fifo_id =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_id_reg0 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
@@ -170,7 +171,7 @@ module core_top (
     assign stall_reg_exe0_1 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_0 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_1 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�??
+    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死锁
     assign stall_exe1_wb_0 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe1_wb_1 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
 
@@ -180,7 +181,6 @@ module core_top (
     wire 	    icache_mem_req;
     wire [32*(1<<offset_width)-1:0]     din_mem_icache;
     wire    i_rready;
-    // wire    i_rvalid;
     wire    [31:0] i_rdata;
     wire    i_rlast;
 
@@ -199,9 +199,26 @@ module core_top (
     );
 
     //ICache
-    // wire [31:0]	test1_icache;
-    // wire [31:0]	test2_icache;
-    // wire [31:0]	test3_icache;
+
+    // reg valid_rstn;
+    // always @(posedge clk or negedge rstn) begin
+    //     if(!rstn) begin
+    //         valid_rstn <= 0;
+    //     end
+    //     else begin
+    //         valid_rstn <= 1;
+    //     end
+    // end
+
+    // reg rstn_reg;
+    // always @(posedge clk or negedge rstn) begin
+    //     if(!rstn) begin
+    //         rstn_reg <= 0;
+    //     end
+    //     else begin
+    //         rstn_reg <= 1;
+    //     end
+    // end
 
     wire [63:0]	dout_icache_pipeline;
     wire 	    flag_icache_pipeline;
@@ -211,6 +228,7 @@ module core_top (
     wire [1:0]	icache_mem_size;
 
     wire [31:0]	MMU_pipeline_PADDR0;
+    wire [31:0] pc_icache_pipeline;
 
     `ifdef IDMA
     Icache_DMA #(
@@ -221,16 +239,12 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        // .test1                  		( test1_icache           		),
-        // .test2                  		( test2_icache           		),
-        // .test3                  		( test3_icache           		),
 
         // .ifibar(ifibar0|ifibar1),
-        // .addr_pipeline_icache   		( (|pc[1:0])|(pc[31]&PLV!=0)?0:pc),
-        .addr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])|(MMU_pipeline_PADDR0[31]&PLV!=0)?0:MMU_pipeline_PADDR0),
+        .addr_pipeline_icache   		( (|pc[1:0])|(pc[31]&PLV!=0)?0:pc),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_valid  		( 1  		),
+        .pipeline_icache_valid  		( valid_rstn  		),
         .icache_pipeline_ready  		( icache_pipeline_ready  		),//
         .pipeline_icache_opcode 		( 0 		),
         .pipeline_icache_opflag 		( 0 		),
@@ -254,13 +268,12 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        // .test1                  		( test1_icache           		),
-        // .test2                  		( test2_icache           		),
-        // .test3                  		( test3_icache           		),
 
         // .ifibar(ifibar0|ifibar1),
-        .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
+        .addr_pipeline_icache   		( (|pc[1:0])?0:pc),
+        .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
+        .pc_icache_pipeline   		    ( pc_icache_pipeline   		),
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
         .pipeline_icache_valid  		( 1  		),
         .icache_pipeline_ready  		( icache_pipeline_ready  		),//
@@ -277,21 +290,6 @@ module core_top (
         .mem_icache_dataOK      		( mem_icache_dataOK      		)
     );
     `endif
-
-    // wire [63:0]	dout_icache_pipeline;
-    // wire 	flag_icache_pipeline,icache_pipeline_ready;
-
-    // icache_testonly u_icache_testonly(
-    //     //ports
-    //     .flush(flush_if0_if1),
-    //     .stall(stall_if0_if1),
-    //     .icache_valid_reg(icache_pipeline_ready),
-    //     .clk      		( clk      		),
-    //     .rstn     		( rstn     		),
-    //     .pc       		( |pc[1:0]?0:pc  ),
-    //     .ir_reg   		( dout_icache_pipeline   		    ),
-    //     .flag_reg 		( flag_icache_pipeline 		    )
-    // );
 
     wire    [31:0]	pc0;
     wire    [31:0]	pc1;
@@ -969,12 +967,8 @@ module core_top (
         .MMU_pipeline_memtype1  		( MMU_pipeline_memtype1 	) //悬空
     );
 
-    // wire [31:0]	test1_dcache;
-    // wire [31:0]	test2_dcache;
-    // wire [31:0]	test3_dcache;
-
     wire [31:0]	dout_dcache_pipeline;
-    wire 	dcache_pipeline_ready;//无用�??
+    wire 	dcache_pipeline_ready;//无用?
 
     wire [31:0]	addr_dcache_mem;
     wire [31:0]	dout_dcache_mem;
@@ -996,9 +990,6 @@ module core_top (
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        // .test1                  		( test1_dcache           		),
-        // .test2                  		( test2_dcache           		),
-        // .test3                  		( test3_dcache           		),
 
         .addr_pipeline_dcache   		( MMU_pipeline_PADDR1           ),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
@@ -1034,6 +1025,7 @@ module core_top (
         .rstn                   		( rstn                   		),
 
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
+        .paddr_pipeline_dcache   		( MMU_pipeline_VADDR1   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
@@ -1085,9 +1077,14 @@ module core_top (
 
     dcache_extend u_dcache_extend(
         //ports
+        // `ifdef DDMA
+        // .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE   ),
+        // .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
+        // `endif
+
         `ifdef DDMA
-        .ctr_exe0_exe1_1             		( ctr_reg_exe0_1_ALE   ),
-        .addr_pipeline_dcache    		    ( addr_pipeline_dcache ),
+        .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
+        .addr_pipeline_dcache    		    ( addr_exe0_exe1       ),
         `endif
 
         `ifdef DCache
@@ -1104,16 +1101,6 @@ module core_top (
         .dout_dcache_pipeline_extend 		( dcacheresult 		   ),
         .din_pipeline_dcache                ( din_pipeline_dcache )
     );
-
-    // wire [31:0]	dcacheresult;
-
-    // dcache_testonly u_dcache_testonly(
-    //     //ports
-    //     .clk      		( clk      		),
-    //     .rstn     		( rstn     		),
-    //     .addr     		( rrj1_forward+imm_reg_exe0_1 ),
-    //     .data_reg 		( dcacheresult  )
-    // );
 
     writeback u_writeback(
         //ports
@@ -1175,7 +1162,7 @@ module core_top (
         .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         
 
-        //当前版本，dcache直接�??
+        //当前版本，dcache直接�??
         .d_wvalid 		( dcache_mem_req & dcache_mem_wr ),//input
         .d_wready 		( d_wready 		),//output reg  
         .d_waddr  		( addr_dcache_mem  		),//input [31:0]
@@ -1276,8 +1263,9 @@ module core_top (
 `endif
 `ifndef predictor
         `ifdef IDMA
-        else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY
-        else npc=pc;
+        // else if(!ifflush_if1_fifo)npc=pc+8;//DMA ONLY
+        // else npc=pc;
+        else npc=pc+8;
         `endif
 
         `ifdef ICache
@@ -1296,15 +1284,15 @@ module core_top (
         else if(!stall_pc|ifbr0|ifbr1|ifpriv) pc<=npc;
     end
 
-    //MMU-IF0
-    always @(posedge clk or negedge rstn) begin
-        if(!rstn) begin
-            pre_mmu_if0 <= 0;
-        end
-        else begin
-            pre_mmu_if0 <= {taken_pdc,kind_pdc,npc_pdc};
-        end
-    end
+    // //MMU-IF0
+    // always @(posedge clk or negedge rstn) begin
+    //     if(!rstn) begin
+    //         pre_mmu_if0 <= 0;
+    //     end
+    //     else begin
+    //         pre_mmu_if0 <= {taken_pdc,kind_pdc,npc_pdc};
+    //     end
+    // end
 
     //IF0-IF1 Icache ONLY
     `ifdef ICache
@@ -1365,24 +1353,24 @@ module core_top (
         else begin
 
             `ifdef ICache
-            pc_if1_fifo<=pc_if0_if1;//Icache ONLY
+            pc_if1_fifo<=pc_icache_pipeline;//Icache ONLY
             PLV_if1_fifo<=PLV_if0_if1;
             `endif
 
             `ifdef L2Cache
-            pc_if1_fifo<=pc_if0_if1;//Icache ONLY
+            pc_if1_fifo<=pc_icache_pipeline;//Icache ONLY
             PLV_if1_fifo<=PLV_if0_if1;
             `endif
 
             `ifdef IDMA
             pc_if1_fifo<=MMU_pipeline_PADDR0;//DMA ONLY
             PLV_if1_fifo<=PLV;
-            pre_if1_fifo<=pre_mmu_if0;
             `endif
 
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_ready;
             flag_if1_fifo<=flag_icache_pipeline;
+            pre_if1_fifo<={taken_pdc,kind_pdc,npc_pdc};
         end
     end
 
@@ -1573,10 +1561,10 @@ module core_top (
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�??测访存地�??是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�??
+    always @(*) begin//�??测访存地�??是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�??
         ctr_reg_exe0_1_ALE=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
-        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越�??
+        if(ctr_reg_exe0_1[23]&(|PLV)) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argIPE; end//用户态访问越�??
         else if(ctr_reg_exe0_1[3:0]==5)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_ALE=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1592,9 +1580,9 @@ module core_top (
             endcase
     end
 
-    `ifdef DDMA
-    reg [31:0]dcacheresult_reg;//DMA ONLY
-    `endif
+    // `ifdef DDMA
+    // reg [31:0]dcacheresult_reg;//DMA ONLY
+    // `endif
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
@@ -1605,9 +1593,9 @@ module core_top (
             ir_exe0_exe1_0<=0;
             ir_valid_exe0_exe1_0<=0;
             countresult_exe0_exe1_0<=0;
-            `ifdef DDMA
-            dcacheresult_reg<=0;//DMA ONLY
-            `endif
+            // `ifdef DDMA
+            // dcacheresult_reg<=0;//DMA ONLY
+            // `endif
         end
         else if(stall_exe0_exe1_0);
         else if(flush_exe0_exe1_0) begin
@@ -1618,9 +1606,9 @@ module core_top (
             ir_exe0_exe1_0<=0;
             ir_valid_exe0_exe1_0<=0;
             countresult_exe0_exe1_0<=0;
-            `ifdef DDMA
-            dcacheresult_reg<=0;//DMA ONLY
-            `endif
+            // `ifdef DDMA
+            // dcacheresult_reg<=0;//DMA ONLY
+            // `endif
         end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
@@ -1630,9 +1618,9 @@ module core_top (
             ir_exe0_exe1_0<=ir_reg_exe0_0;
             ir_valid_exe0_exe1_0<=ir_valid_reg_exe0_0;
             countresult_exe0_exe1_0<=countresult;
-            `ifdef DDMA
-            dcacheresult_reg<=dcacheresult;//DMA ONLY
-            `endif
+            // `ifdef DDMA
+            // dcacheresult_reg<=dcacheresult;//DMA ONLY
+            // `endif
         end
     end
 
@@ -1689,9 +1677,14 @@ module core_top (
             2: result1=divresult1;
             3: result1=privresult;
             4: result1=mulresult1;
+            // `ifdef DDMA
+            // 5: result1=dcacheresult_reg;//DMA ONLY
+            // 6: result1=dcacheresult_reg;//DMA ONLY
+            // `endif
+
             `ifdef DDMA
-            5: result1=dcacheresult_reg;//DMA ONLY
-            6: result1=dcacheresult_reg;//DMA ONLY
+            5: result1=dcacheresult;//DMA ONLY
+            6: result1=dcacheresult;//DMA ONLY
             `endif
 
             `ifdef DCache
@@ -2201,7 +2194,7 @@ L1_L2cache #(
         .clock              (aclk           ),
         .coreid             (0              ),
         .index              (0              ),
-        .valid              (cmt_inst_st_en ),
+        // .valid              (cmt_inst_st_en ),
         .storePAddr         (cmt_st_paddr   ),
         .storeVAddr         (cmt_st_vaddr   ),
         .storeData          (cmt_st_data    )
@@ -2211,7 +2204,7 @@ L1_L2cache #(
         .clock              (aclk           ),
         .coreid             (0              ),
         .index              (0              ),
-        .valid              (cmt_inst_ld_en ),
+        // .valid              (cmt_inst_ld_en ),
         .paddr              (cmt_ld_paddr   ),
         .vaddr              (cmt_ld_vaddr   )
     );

@@ -205,7 +205,7 @@ always @(*) begin
 end
 
 //Mem
-reg paddr_reg;
+reg [31:0]paddr_reg;
 wire paddr_we;//进入访存之前置1
 always @(posedge clk) begin
     if(paddr_we)paddr_reg <= paddr_pipeline_dcache;
