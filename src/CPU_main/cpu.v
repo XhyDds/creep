@@ -1205,29 +1205,36 @@ module core_top (
 
 
     `endif
-
+    //传给流水线，寄存
     wire [28:0]npc_pdc;
     wire [2:0]kind_pdc;
     wire taken_pdc;
     wire [1:0]choice_pdc;
+    //流水线需要传出的信号
+    wire [2:0]kind_ex;
+    wire [28:0]npc_ex;
+    wire [28:0]npc_pdc_ex;//寄存
+    wire [2:0]kind_pdc_ex;//寄存
+    wire taken_pdc_ex;//寄存
+    wire [1:0]choice_pdc_ex;//寄存
+    //已经处理过的信号
+    wire [2:0]mis_pdc;
+    wire taken_real;
+    wire [1:0]choice_real;
+
+
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
         .stack_len     		( 16   		),
         .queue_len     		( 16   		),
-        .ADDR_WIDTH    		( 29   		),
-        .NOT_JUMP      		( 3'd0 		),
-        .DIRECT_JUMP   		( 3'd1 		),
-        .CALL          		( 3'd2 		),
-        .RET           		( 3'd3 		),
-        .INDIRECT_JUMP 		( 3'd4 		),
-        .OTHER_JUMP    		( 3'd5 		))
+        .ADDR_WIDTH    		( 29   		))
     u_predictor(
         //ports
         .clk         		( clk         		),
         .rstn        		( rstn        		),
 
-        .pc_ex       		( ifbr1?pc_reg_exe0_1:pc_reg_exe0_0 ),
+        .pc_ex       		( ifbr1?pc_reg_exe0_1[31:3]:pc_reg_exe0_0[31:3] ),
         .mis_pdc     		( mis_pdc     		),
         .npc_ex      		( npc      		    ),
         .kind_ex     		( kind_ex     		),
@@ -1241,7 +1248,19 @@ module core_top (
 
         .pc          		( pc          		)
     );
+    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,CALL = 3'd2,RET = 3'd3,INDIRECT_JUMP = 3'd4,OTHER_JUMP = 3'd5;
 
+    wire try_to_pdc=(kind_ex==DIRECT_JUMP||kind_ex==INDIRECT_JUMP||kind_ex==OTHER_JUMP);
+
+    assign mis_pdc={(npc_ex!=npc_pdc_ex),(kind_ex!=kind_pdc_ex),(taken_real!=taken_pdc_ex)};
+
+    assign choice_real={choice_real_btb_ras,choice_real_g_h};
+
+    wire choice_real_btb_ras;
+    wire choice_real_g_h;
+
+    assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc_ex[1]:choice_pdc_ex[1];
+    assign choice_real_g_h=mis_pdc[0]?~choice_pdc_ex[1]:choice_pdc_ex[1];
 
     //PC
     wire ifflush_if1_fifo;
