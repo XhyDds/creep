@@ -1,7 +1,7 @@
 /// 此模块负责仲裁读取的数据来自writebuf还是来自returnbuf(axi).
 /// 先从writebuf读取，如果writebuf没有数据，再从returnbuf读取。
 
-module wrt_ret_arbiter#(
+module read_arbiter#(
     parameter offset_width = 2
 )(
     input       clk,
@@ -39,7 +39,9 @@ module wrt_ret_arbiter#(
         case (crt)
             IDLE: begin
                 if(l2cache_mem_req_r) begin
-                    if(query_ok)
+                    if(dma_sign)
+                        nxt = RET_AR;
+                    else if(query_ok)
                         nxt = WRT_AR;
                     else
                         nxt = RET_AR;
