@@ -22,7 +22,8 @@ module predictor #(
     output taken_pdc,
     output [1:0]choice_pdc,     //1:btb/ras  0:g/h
     //当前
-    input [ADDR_WIDTH-1:0]pc
+    input [ADDR_WIDTH-1:0]pc,
+    output[ADDR_WIDTH-1:0]npc_test
 );
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
 
@@ -196,7 +197,8 @@ module predictor #(
         .taken_pdc(taken_pdc),
         .choice_btb_ras(choice_pdc_btb_ras),
         .pc_gh_hashed(pc_gh_hashed),
-        .pc(pc)
+        .pc(pc),
+        .npc_test(npc_test)
     );
 
 

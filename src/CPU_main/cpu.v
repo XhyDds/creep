@@ -1230,6 +1230,8 @@ module core_top (
     assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc_ex[1]:choice_pdc_ex[1];
     assign choice_real_g_h=mis_pdc[0]?~choice_pdc_ex[1]:choice_pdc_ex[1];
 
+    wire [29:0]npc_test;
+
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
@@ -1253,7 +1255,8 @@ module core_top (
         .taken_pdc   		( taken_pdc   		),
         .choice_pdc  		( choice_pdc  		),
 
-        .pc          		( pc          		)
+        .pc          		( pc          		),
+        .npc_test           ( npc_test          )
     );
 
     //PC
