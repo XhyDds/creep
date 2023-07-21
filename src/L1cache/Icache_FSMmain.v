@@ -1,3 +1,4 @@
+// `define DMA
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -112,11 +113,17 @@ always @(*) begin
             else next_state=Idle;
         end
         Lookup:begin
-            // if(fStall_outside)next_state = Lookup;
+            `ifdef DMA
+            if(1)begin
+                if(flush_outside)next_state=Flush;
+                else next_state=Miss_r;
+            end
+            `else
             if((!hit0)&&(!hit1))begin
                 if(flush_outside)next_state=Flush;
                 else next_state=Miss_r;
             end
+            `endif
             else if(fStall_outside)next_state = Lookup;
             else if(pipeline_icache_valid)begin
                 if(flush_outside)next_state=Flush;

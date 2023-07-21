@@ -1,4 +1,5 @@
 // `define onlyDcache
+// `define DMA
 `define withL2cache
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
@@ -121,10 +122,17 @@ always @(*) begin
             else next_state=Idle;
         end
         Lookup:begin
+            `ifdef DMA
+            if(1)begin
+                if(!FSM_rbuf_type)next_state=Miss_r;//0-read
+                else next_state=Miss_w;
+            end
+            `else 
             if((!hit0)&&(!hit1))begin
                 if(!FSM_rbuf_type)next_state=Miss_r;//0-read
                 else next_state=Miss_w;
             end
+            `endif
             else if(!FSM_rbuf_type)begin
                 if(pipeline_dcache_valid)begin
                     if(opflag)next_state=Operation;

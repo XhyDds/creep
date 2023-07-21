@@ -1,3 +1,4 @@
+// `define DMA
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -90,9 +91,15 @@ always @(*) begin
             else next_state = Idle;
         end 
         Lookup:begin
+            `ifdef DMA
+            if(1)begin
+                next_state = checkDirty;
+            end
+            `else 
             if((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3]))begin
                 next_state = checkDirty;
             end
+            `endif
             else begin
                 // if(opflag)next_state = Operation;
                 // else if(from)next_state = Lookup;
