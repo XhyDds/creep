@@ -34,6 +34,7 @@ module L2cache_TagV#(
     output      [way-1:0]hit,
     output      [way-1:0]valid,
 
+    input       [2:0]TagV_init,
     input       [data_width-1:0]TagV_din_write,
     input       [addr_width-1:0]TagV_addr_write,
     input       [way-1:0]TagV_unvalid,
@@ -49,14 +50,22 @@ assign valid={valid3[TagV_addr_write],valid2[TagV_addr_write],valid1[TagV_addr_w
 assign TagV_dout=TagV_data[TagV_way_select];
 
 always @(posedge clk) begin
-    if(TagV_unvalid[0])valid0[TagV_addr_write] <= 0;
-    else if(TagV_we[0])valid0[TagV_addr_write] <= 1;
-    if(TagV_unvalid[1])valid0[TagV_addr_write] <= 0;
-    else if(TagV_we[1])valid1[TagV_addr_write] <= 1;
-    if(TagV_unvalid[2])valid0[TagV_addr_write] <= 0;
-    else if(TagV_we[2])valid0[TagV_addr_write] <= 1;
-    if(TagV_unvalid[3])valid0[TagV_addr_write] <= 0;
-    else if(TagV_we[3])valid1[TagV_addr_write] <= 1;
+    if(TagV_init[2])begin
+        if(TagV_init[1:0] == 2'd0)valid0[TagV_addr_write] <= 0;
+        else if(TagV_init[1:0] == 2'd1)valid1[TagV_addr_write] <= 0;
+        else if(TagV_init[1:0] == 2'd2)valid2[TagV_addr_write] <= 0;
+        else valid3[TagV_addr_write] <= 0;
+    end
+    else begin
+        if(TagV_unvalid[0])valid0[TagV_addr_write] <= 0;
+        else if(TagV_we[0])valid0[TagV_addr_write] <= 1;
+        if(TagV_unvalid[1])valid1[TagV_addr_write] <= 0;
+        else if(TagV_we[1])valid1[TagV_addr_write] <= 1;
+        if(TagV_unvalid[2])valid2[TagV_addr_write] <= 0;
+        else if(TagV_we[2])valid2[TagV_addr_write] <= 1;
+        if(TagV_unvalid[3])valid3[TagV_addr_write] <= 0;
+        else if(TagV_we[3])valid3[TagV_addr_write] <= 1;
+    end
 end
 
 bram #(
@@ -67,8 +76,8 @@ way0(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
-    .din(TagV_din_write),
-    .we(TagV_we[0]),
+    .din((TagV_init == 3'b100) ? 0:TagV_din_write),
+    .we(TagV_we[0] || (TagV_init == 3'b100)),
 
     .raddr(TagV_addr_read),
     .dout(TagV_data[0])
@@ -82,8 +91,8 @@ way1(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
-    .din(TagV_din_write),
-    .we(TagV_we[1]),
+    .din((TagV_init == 3'b101) ? 0:TagV_din_write),
+    .we(TagV_we[1] || (TagV_init == 3'b101)),
 
     .raddr(TagV_addr_read),
     .dout(TagV_data[1])
@@ -97,8 +106,8 @@ way2(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
-    .din(TagV_din_write),
-    .we(TagV_we[2]),
+    .din((TagV_init == 3'b110) ? 0:TagV_din_write),
+    .we(TagV_we[2] || (TagV_init == 3'b110)),
 
     .raddr(TagV_addr_read),
     .dout(TagV_data[2])
@@ -111,9 +120,9 @@ bram #(
 way3(
     .clk(clk),
 
-    .waddr(TagV_addr_write),//写口
+    .waddr((TagV_init == 3'b111) ? 0:TagV_addr_write),//写口
     .din(TagV_din_write),
-    .we(TagV_we[3]),
+    .we(TagV_we[3] || (TagV_init == 3'b111)),
 
     .raddr(TagV_addr_read),
     .dout(TagV_data[3])

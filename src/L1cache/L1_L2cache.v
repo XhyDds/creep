@@ -43,6 +43,11 @@ module L1_L2cache#(
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
     output      dcache_pipeline_stall,//stall form dcache     不知道可不可以用ready代替，先留着
 
+    //L2-pipeline port
+    input       [31:0]addr_pipeline_l2cache,
+    input       pipeline_l2cache_opflag,
+    input       [31:0]pipeline_l2cache_opcode,
+
     //L2-Mem port
     output      [31:0]addr_l2cache_mem_r,
     output      [31:0]addr_l2cache_mem_w,
@@ -149,8 +154,6 @@ Dcache(
 
 );
 
-wire l2cache_opflag;
-wire [31:0]l2cache_opcode;
 //Icache
 wire [31:0]addr_icache_l2cache;
 wire [32*(1<<L1_offset_width)-1:0]dout_l2cache_icache;
@@ -196,8 +199,9 @@ L2cache(
     .clk(clk),
     .rstn(rstn),
 
-    .l2cache_opflag(l2cache_opflag),
-    .l2cache_opcode(l2cache_opcode),
+    .pipeline_l2cache_opflag(pipeline_l2cache_opflag),
+    .pipeline_l2cache_opcode(pipeline_l2cache_opcode),
+    .addr_pipeline_l2cache(addr_pipeline_l2cache),
 
     .addr_icache_l2cache(addr_icache_l2cache),
     .dout_l2cache_icache(dout_l2cache_icache),

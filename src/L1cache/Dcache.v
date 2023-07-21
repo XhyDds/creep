@@ -166,6 +166,7 @@ Dcache_Data(
 
 //Tag
 wire [way-1:0]TagV_we,hit,TagV_unvalid;
+wire [1:0]TagV_init;
 Dcache_TagV #(
     .addr_width(index_width),
     .data_width(32-2-index_width-offset_width),
@@ -179,6 +180,7 @@ Dcache_TagV(
     .TagV_din_compare(ptag),
     .hit(hit),
     
+    .TagV_init(TagV_init),
     // .TagV_din_write(rbuf_tag),
     .TagV_din_write(ptag),
     .TagV_addr_write(rbuf_index),
@@ -275,6 +277,7 @@ Dcache_FSMmain1(
     .FSM_Data_replace(Data_replace),//为1时替换整行，否则对word操作
     .FSM_TagV_we(TagV_we),
     .FSM_TagV_unvalid(TagV_unvalid),
+    .FSM_TagV_init(TagV_init),
 
     //data choose
     .FSM_choose_way(choose_way),
