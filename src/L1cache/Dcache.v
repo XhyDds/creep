@@ -195,7 +195,7 @@ always @(*) begin
     end
 end
 always @(*) begin
-    case (choose_word[1:0])
+    case (choose_word)
         2'b00: data_out = data_line[31:0];
         2'b01: data_out = data_line[63:32];
         2'b10: data_out = data_line[95:64];
