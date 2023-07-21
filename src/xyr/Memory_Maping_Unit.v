@@ -99,7 +99,8 @@ module Memory_Maping_Unit#(
     assign rj=pipeline_MMU_rj,rk=pipeline_MMU_rk;
     assign op=pipeline_MMU_excp_arg[4:0];
     
-    wire exe;wire [TLB_n-1:0] Index,Index_tlbsch,Index_look0,Index_look1;
+    wire exe;//reg exe_reg;
+    wire [TLB_n-1:0] Index,Index_tlbsch,Index_look0,Index_look1;
     reg [TLB_nex:0] found_tlbsch,look0,look1;
     assign exe=(type_==MMU||type_==PRIV_MMU);
     assign Index=TLBIDXin[TLB_n-1:0];
@@ -114,14 +115,14 @@ module Memory_Maping_Unit#(
         begin
         TLBIDXout<=0;TLBEHIout<=0;
         TLBELO0out<=0;TLBELO1out<=0;
-        ASIDout<=0;
+        ASIDout<=0;//exe_reg<=0;
         optype0_reg<=0;optype1_reg<=0;
         end
     else if(~stallw)
         begin
         TLBIDXout<=TLBIDX;TLBEHIout<=TLBEHI;
         TLBELO0out<=TLBELO0;TLBELO1out<=TLBELO1;
-        ASIDout<=ASIDrd;
+        ASIDout<=ASIDrd;//exe_reg<=exe;
         optype0_reg<=optype0;optype1_reg<=optype1;
         end
     end
@@ -174,7 +175,7 @@ module Memory_Maping_Unit#(
                    TLBEHI[31:13]=0;
                    TLBELO0=0;
                    TLBELO1=0;
-                   TLBIDX=0;
+                   TLBIDX[30:0]=0;
                    ASIDrd=0;
                    end
        endcase 
@@ -202,7 +203,7 @@ module Memory_Maping_Unit#(
         if(exe && ~stallw)
             if(Index==j && (subtype==TLBWR || subtype==TLBFILL))
                 begin
-                E[Index]<=~TLBIDXin[31];
+                E[j]<=~TLBIDXin[31];
                 end
             else if(subtype==INVTLB)
                 begin
