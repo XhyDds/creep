@@ -38,6 +38,7 @@ module Icache#(
     output      [63:0]dout_icache_pipeline,//双发射 [31:0]是给定地址处的指令
     output      [31:0]pc_icache_pipeline,
     output      flag_icache_pipeline,//0-后一条指令（[63:32]）无效 1-有效
+    input       SUC_pipeline_icache,
 
     input       pipeline_icache_valid,
     output      icache_pipeline_ready,
@@ -52,6 +53,7 @@ module Icache#(
     input       [32*(1<<offset_width)-1:0]din_mem_icache,
 
     output      icache_mem_req,
+    output      icache_mem_SUC,
     output      [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
     input       mem_icache_addrOK,
     input       mem_icache_dataOK
@@ -94,7 +96,10 @@ Icache_rbuf Icache_rbuf(
     .rbuf_opcode(rbuf_opcode),
 
     .opflag(pipeline_icache_opflag),
-    .rbuf_opflag(rbuf_opflag)
+    .rbuf_opflag(rbuf_opflag),
+
+    .SUC(SUC_pipeline_icache),
+    .rbuf_SUC(rbuf_SUC)
 );
 assign pc_icache_pipeline = rbuf_addr;
 
@@ -135,7 +140,7 @@ Icache_Data(
 );
 
 //Tag
-wire [way-1:0]TagV_we,hit;
+wire [way-1:0]TagV_we,hit,TagV_unvalid;
 Icache_TagV #(
     .addr_width(index_width),
     .data_width(32-2-index_width-offset_width),
@@ -152,6 +157,7 @@ Icache_TagV(
     // .TagV_din_write(rbuf_tag),
     .TagV_din_write(ptag),
     .TagV_addr_write(rbuf_index),
+    .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
 );
 
@@ -215,11 +221,13 @@ always @(posedge clk) begin
 end
 wire [1+offset_width:0]temp;
 assign temp=0;
+assign icache_mem_SUC = rbuf_SUC;
 `ifdef MMU
 assign addr_icache_mem = {paddr_reg[31:2+offset_width],temp};
 `else 
 assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
 `endif
+
 //FSM
 Icache_FSMmain #(
     .index_width(index_width),
@@ -249,6 +257,7 @@ Icache_FSMmain(
     .FSM_rbuf_opcode(rbuf_opcode),
     .FSM_rbuf_opflag(rbuf_opflag),
     .FSM_rbuf_addr(rbuf_addr),
+    .FSM_rbuf_SUC(rbuf_SUC),
 
     .FSM_paddr_we(paddr_we),
     
@@ -261,6 +270,7 @@ Icache_FSMmain(
     .FSM_hit(hit),
     .FSM_Data_we(Data_we),
     .FSM_TagV_we(TagV_we),
+    .FSM_TagV_unvalid(TagV_unvalid),
 
     //data choose
     // .FSM_choose_stall(choose_stall),
