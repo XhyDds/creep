@@ -2,10 +2,10 @@
 // `define DDMA
 // `define predictor
 `define MMU
-// `define ICache
-// `define DCache
-`define L2Cache
-`define DMA  //选择L2Cache后 再选DMA
+`define ICache
+`define DCache
+// `define L2Cache
+// `define DMA  //选择L2Cache后 再选DMA
 module core_top (
     input           aclk,
     input           aresetn,
@@ -153,8 +153,8 @@ module core_top (
     assign flush_id_reg1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
     assign flush_reg_exe0_0 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
     assign flush_reg_exe0_1 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0;
-    assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1|ifbr0;
-    assign flush_exe0_exe1_1 =  ifbr1;
+    assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1;
+    assign flush_exe0_exe1_1 =  0;
     assign flush_exe1_wb_0 =    0;
     assign flush_exe1_wb_1 =    0;
 
