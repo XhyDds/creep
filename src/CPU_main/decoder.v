@@ -28,11 +28,11 @@ module decoder (
     //for yuanzi, 0:load, 1:store
     //for tiaoxie, 0:jirl, 1:bl
     //for rdcnt, 0:rdcntvl.w, 1:rdcntvh.w, (2:rdcntid)
-    reg memread,memwrite,regwrite,nop,priv,ifrdc;
+    reg memread,memwrite,regwrite,nop,priv,ifrdc,iftlbfill;
     reg [2:0] kind;
-    assign control=(valid)?{1'b1,4'b0,kind,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
+    assign control=(valid)?{1'b1,3'b0,iftlbfill,kind,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
     always @(*) begin
-        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;kind=NOT_JUMP;
+        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;kind=NOT_JUMP;iftlbfill=0;
         if(|pc[1:0]) begin //ADEF 
             type_=liwai;subtype=0;excp_arg='b0_001000; 
         end
@@ -217,7 +217,7 @@ module decoder (
                                             'b01010: begin type_=10;subtype=1; end//TLBSRCH
                                             'b01011: begin type_=10;subtype=2; end//TLBRD
                                             'b01100: begin type_=10;subtype=3; end//TLBWR
-                                            'b01101: begin type_=10;subtype=4; end//TLBFILL
+                                            'b01101: begin type_=10;subtype=4;iftlbfill=1; end//TLBFILL
                                             'b01110: begin type_=liwai;subtype=6;priv=1; end //ERTN
                                             default: begin type_=liwai;subtype=0;excp_arg='b001101; end
                                         endcase
