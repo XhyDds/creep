@@ -1,4 +1,12 @@
-// `define MMU
+# offset_width = 2
+with open('config.txt','r') as file:
+    config=file.read()
+for line in config.split('\n'):
+    if line.startswith('L1_offset_width'):
+        offset_width=int(line.split('=')[1])
+        break
+offset=1<<offset_width
+code='''// `define MMU
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -25,7 +33,7 @@
 // 2.对于flush响应  外部寄存器flush优先级最高
 module Icache#(
     parameter   index_width=4,
-                offset_width=2,
+                offset_width='''+str(offset_width)+''',
                 way=2
 )
 //写直达 非写分配 暂定延迟一周期出
@@ -172,23 +180,18 @@ always @(*) begin
     end
 end
 always @(*) begin
-    case (choose_word)
-        2'd0:begin
-            data_out = data_line[63:0];
+    case (choose_word)'''
+for i in range(offset//2):
+    code+='''
+        '''+str(offset_width)+''''d'''+str(2*i)+''':begin
+            data_out = data_line['''+str(i*64+63)+''':'''+str(i*64)+'''];
             data_flag=1;
         end
-        2'd1:begin
-            data_out = {32'h1234ABCD,data_line[63:32]};
+        '''+str(offset_width)+''''d'''+str(2*i+1)+''':begin
+            data_out = {32'h1234ABCD,data_line['''+str(i*64+63)+''':'''+str(i*64+32)+''']};
             data_flag=0;
-        end
-        2'd2:begin
-            data_out = data_line[127:64];
-            data_flag=1;
-        end
-        2'd3:begin
-            data_out = {32'h1234ABCD,data_line[127:96]};
-            data_flag=0;
-        end
+        end'''
+code+='''
         default: data_out = 64'h1234ABCD1234ABCD;
     endcase
 end
@@ -271,3 +274,7 @@ Icache_FSMmain(
 );
 endmodule
 
+'''
+# print(code)
+with open('Icache.v','w+') as f:
+    f.write(code)

@@ -2,7 +2,7 @@
 
 module L2cache#(
     parameter   index_width=2,
-                offset_width=2,
+                offset_width=3,
                 L1_offset_width=2,//两者相等
                 way=4
 )(
@@ -215,18 +215,18 @@ always @(*) begin
         endcase
     end
 end
-wire [offset_width - L1_offset_width -1 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
+
+wire [1 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
 always @(*) begin
     case (choose_word)
-        // 1'd0: dout_l2cache_l1cache = line[63:0];
-        // 1'd1: dout_l2cache_l1cache = line[127:64];
+        1'd0: dout_l2cache_l1cache = line[127:0];
+        1'd1: dout_l2cache_l1cache = line[255:128];
         default: dout_l2cache_l1cache = line;
     endcase
 end
 //Mem
 assign addr_l2cache_mem_r = {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
 assign addr_l2cache_mem_w = {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
-assign dout_l2cache_mem = line;//
 
 //FSM
 L2cache_FSMmain #(
