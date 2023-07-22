@@ -80,6 +80,11 @@ module L2cache_FSMmain#(
 wire opflag;
 assign opflag=pipeline_l2cache_opflag;
 
+`ifdef DMA
+    wire dma = 1;
+`else 
+    wire dma = 0;
+`endif
 reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
@@ -89,38 +94,32 @@ always @(posedge clk,negedge rstn) begin
     else state<=next_state;
 end
 always @(*) begin
+    next_state = Idle; 
     case (state)
         Idle:begin
             if(opflag)next_state = Operation;
             else if(from)next_state = Lookup;
             else next_state = Idle;
         end 
-        SUC_w:begin
-            if(!mem_l2cache_addrOK_w)next_state = SUC_w;
-            else next_state = Idle;
-        end
         Lookup:begin
             if(FSM_rbuf_SUC)begin
                 if(FSM_rbuf_from == 2'b11)next_state = SUC_w;
                 else next_state = replace1;
             end
             else begin
-                `ifdef DMA
-                if(1)begin
+                if(((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3])) || dma)begin
                     next_state = checkDirty;
                 end
-                `else 
-                if((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3]))begin
-                    next_state = checkDirty;
-                end
-                `endif
-                else begin
+                else begin//Hit流水化
                     // if(opflag)next_state = Operation;
-                    // else if(from)next_state = Lookup;
-                    // else next_state = Idle;
-                    next_state = Idle;
+                    if(from)next_state = Lookup;
+                    else next_state = Idle;
                 end
             end
+        end
+        SUC_w:begin
+            if(!mem_l2cache_addrOK_w)next_state = SUC_w;
+            else next_state = Idle;
         end
         checkDirty:begin
             if(FSM_Dirty)next_state = writeback;
@@ -142,10 +141,7 @@ always @(*) begin
         end
         replace2:begin
             if(mem_l2cache_dataOK)begin
-                if(FSM_rbuf_from != 2'b11 || FSM_rbuf_SUC)begin//强序读
-                    // if(opflag)next_state = Operation;
-                    // else if(from)next_state = Lookup;
-                    // else next_state = Idle;
+                if(FSM_rbuf_from != 2'b11 || FSM_rbuf_SUC)begin//强序读和正常读
                     next_state = Idle;
                 end
                 else begin
@@ -155,9 +151,6 @@ always @(*) begin
             else next_state = replace2;
         end
         replace_write:begin
-            // if(opflag)next_state = Operation;
-            // else if(from)next_state = Lookup;
-            // else next_state = Idle;
             next_state = Idle;
         end
         Operation:begin
@@ -168,11 +161,10 @@ always @(*) begin
                 next_state = checkDirty;
             end
             else if(FSM_rbuf_opcode[4:3] == 2'd2)begin//先命中，其他同二
-                if((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3]))next_state =Idle;
+                if((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3]))next_state = Idle;
                 else next_state = checkDirty;
             end
         end
-        default:next_state = Idle; 
     endcase
 end
 reg [1:0]FSM_way_sel_d_reg;
@@ -213,16 +205,15 @@ always @(*) begin
     hit_record_we = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
-            if(!FSM_rbuf_SUC)l2cache_dcache_addrOK = 1;//Dcache优先
-            if(from == 2'b01)begin
+            if(from[1])begin
+                l2cache_dcache_addrOK = ~ FSM_rbuf_SUC;//强序时先不发addrOK
+                FSM_rbuf_we = 1;
+            end
+            else if(from == 2'b01)begin
                 l2cache_icache_addrOK = 1;
                 FSM_rbuf_we = 1;
             end
-            else if(from[1])begin
-                // l2cache_dcache_addrOK = 1;
-                FSM_rbuf_we = 1;
-            end
-            end
+        end
         Operation:begin
             if(FSM_rbuf_opcode[4:3] == 2'd0)begin//Tag、valid置零
                 FSM_TagV_init = {1'b1,FSM_rbuf_opaddr[1:0]};
@@ -244,13 +235,10 @@ always @(*) begin
         end
         SUC_w:begin
             l2cache_mem_req_w = 1;
-            if(next_state == Idle)l2cache_dcache_addrOK = 1;
+            if(next_state == Idle)l2cache_dcache_addrOK = 1;//实际写入后发addrOK
         end
         Lookup:begin
-            if((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3]))begin//未命中，调块
-                // l2cache_mem_req_r = 1;  //串行并行
-            end
-            else begin
+            if(FSM_hit[0] || FSM_hit[1] || FSM_hit[2] || FSM_hit[3])begin
                 if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
                     if(FSM_hit[0])begin
                         FSM_use[0] = 1;
@@ -297,14 +285,19 @@ always @(*) begin
                         FSM_Dirtytable_set1 = 1;
                     end
                 end
-                // if(next_state != Idle)begin
-                //     FSM_rbuf_we = 1;
-                //     l2cache_dcache_addrOK = 1;
-                // end
+                if(next_state == Lookup)begin
+                    if(from[1])begin
+                        l2cache_dcache_addrOK = ~ FSM_rbuf_SUC;//强序时先不发addrOK
+                        FSM_rbuf_we = 1;
+                    end
+                    else if(from == 2'b01)begin
+                        l2cache_icache_addrOK = 1;
+                        FSM_rbuf_we = 1;
+                    end
+                end
             end
         end
         checkDirty:begin
-            // l2cache_mem_req_r = 1;   //串行并行
             if(!FSM_rbuf_opflag)begin
                 if(FSM_rbuf_from == 2'b01)FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
                 else FSM_Dirtytable_way_select = FSM_way_sel_d;
@@ -313,7 +306,7 @@ always @(*) begin
                 if(FSM_rbuf_opcode[4:3] == 2'd1)FSM_Dirtytable_way_select = FSM_rbuf_opaddr[1:0];
                 else if(FSM_rbuf_opcode[4:3] == 2'd2)FSM_Dirtytable_way_select = hit_record;
             end
-            FSM_Data_writeback = 1;
+            if(FSM_Dirty)FSM_Data_writeback = 1;
         end
         writeback:begin
             // l2cache_mem_req_r = 1;   //串行并行
