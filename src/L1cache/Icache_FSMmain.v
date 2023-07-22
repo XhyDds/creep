@@ -51,9 +51,6 @@ module Icache_FSMmain#(
     input       [31:0]FSM_rbuf_addr,
     input       FSM_rbuf_SUC,
 
-    //paddr寄存器
-    output reg  FSM_paddr_we,
-
     //lru
     output reg  FSM_use0,FSM_use1,
     input       FSM_wal_sel_lru,
@@ -67,13 +64,8 @@ module Icache_FSMmain#(
     output reg  [1:0]FSM_TagV_init,
     // output reg  FSM_way_select,
 
-    //dirty 暂无
-    // input       FSM_Dirty,
-    // output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
-   
     //数据选择
     // output reg  FSM_choose_stall,
-    output reg  FSM_send_nop,
     output reg  FSM_choose_way,
     output reg  FSM_choose_return,
     output reg  [offset_width-1:0]FSM_choose_word
@@ -98,172 +90,106 @@ reg rstn_reg;
 always @(posedge clk) begin
     rstn_reg <= rstn;
 end
-assign icache_pipeline_ready1=icache_pipeline_ready&rstn_reg;
-
+assign icache_pipeline_ready1=icache_pipeline_ready&rstn_reg;//初始态不能给ready
+`ifdef DMA
+    wire dma = 1;
+`else 
+    wire dma = 0;
+`endif
+wire Miss = ((!hit0)&&(!hit1)) || dma || FSM_rbuf_SUC;
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Stall=5'd5,Operation=5'd6,Flush=5'd7;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Operation=5'd4,Flush=5'd5;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
 end
 always @(*) begin
+    next_state = Idle;
     case (state)
         Idle:begin
-            if(pipeline_icache_valid & ~ fStall_outside)begin//7.14
-                if(opflag)next_state=Operation;
-                else next_state=Lookup;
-            end
-            else next_state=Idle;
+            if(fStall_outside)next_state = Idle;
+            else if(opflag)next_state = Operation;
+            else next_state = Lookup;
         end
         Lookup:begin
-            if(FSM_rbuf_SUC)begin
-                next_state = Miss_r;
-            end
-            else begin
-                `ifdef DMA
-                if(1)begin
-                    if(flush_outside)next_state=Flush;
-                    else next_state=Miss_r;
+                if(Miss)begin//Miss优先级应该比Stall高
+                    if(flush_outside)next_state = Flush;
+                    else begin
+                        if(!mem_icache_addrOK)next_state = Miss_r;
+                        else next_state = Miss_r_waitdata;//加速握手
+                    end
                 end
-                `else
-                if((!hit0)&&(!hit1))begin
-                    if(flush_outside)next_state=Flush;
-                    else next_state=Miss_r;
+                else begin//Hit
+                    if(fStall_outside)next_state = Lookup;
+                    else if(flush_outside)next_state = Flush;
+                    else if(opflag)next_state = Operation;
+                    else next_state = Lookup;
                 end
-                `endif
-                else if(fStall_outside)next_state = Lookup;
-                else if(pipeline_icache_valid)begin
-                    if(flush_outside)next_state=Flush;
-                    else if(opflag)next_state=Operation;
-                    else next_state=Lookup;
-                end
-                else next_state=Idle;
-            end
         end
         Flush:begin
             if(flush_outside)begin
-                next_state=Flush;
+                next_state = Flush;
             end
             else begin
-                if(pipeline_icache_valid)begin
-                    if(opflag)next_state=Operation;
-                    else next_state=Lookup;
-                end
-                else next_state=Idle;
+                if(opflag)next_state = Operation;
+                else next_state = Lookup;
             end
         end
         Operation:begin
-            next_state=Idle;
+            next_state = Idle;
         end
         Miss_r:begin
-            if(!mem_icache_addrOK)next_state=Miss_r;
-            else next_state=Miss_r_waitdata;
+            if(!mem_icache_addrOK)next_state = Miss_r;
+            else next_state = Miss_r_waitdata;
         end
         Miss_r_waitdata:begin
-            if(!mem_icache_dataOK)next_state=Miss_r_waitdata;
-            else begin//数据可信赖，内存准备写
-                // if(fStall_outside)next_state=Stall;
-                if(0)next_state=Stall;
-                else begin
-                    if(pipeline_icache_valid)begin
-                        if(opflag)next_state=Operation;
-                        else next_state=Lookup;
-                    end
-                    else next_state=Idle;
-                end
+            if(!mem_icache_dataOK)next_state = Miss_r_waitdata;
+            else begin
+                if(opflag)next_state = Operation;
+                else next_state = Lookup;
             end
         end
-        Stall:begin
-            if(pipeline_icache_valid)begin
-                if(opflag)next_state=Operation;
-                else next_state=Lookup;
-            end
-            else next_state=Idle;
-        end
-        default:next_state=Idle;
     endcase
 end
 always @(*) begin
     icache_pipeline_ready = 0;
     icache_mem_req = 0;
-    icache_mem_size = 2'd0;
+    icache_mem_size = 2'd2;
     FSM_rbuf_we = 0;
-    FSM_paddr_we = 0;
     FSM_use0 = 0;
     FSM_use1 = 0;
     FSM_Data_we = 2'd0;
-    // FSM_Dirtytable_set0=0;
-    // FSM_Dirtytable_set1=0;
-    // FSM_choose_stall = 0;
     FSM_choose_way = 0;
     FSM_choose_return = 0;
     FSM_choose_word = FSM_rbuf_addr[2+offset_width-1:2];
-    FSM_send_nop = 0;
     FSM_TagV_init = 2'b0;
     FSM_TagV_ibar = 0;
     case (state)
         Idle:begin
-            case (next_state)
-                Lookup:begin
-                    icache_pipeline_ready=1;
-                    FSM_rbuf_we=1;
-                end
-                Idle:begin
-                    icache_pipeline_ready=1;
-                end
-                default:begin
-                    
-                end
-            endcase
+            icache_pipeline_ready=1;
+            FSM_rbuf_we=1;
         end
         Lookup:begin
             if(FSM_rbuf_SUC)begin
                 if(hit0)FSM_TagV_unvalid = 2'b01;
                 else if(hit1)FSM_TagV_unvalid = 2'b10;
             end
+            if(Miss)icache_mem_req = 1;
             case (next_state)
-                Miss_r:begin
-                    icache_mem_req=1;
-                    FSM_paddr_we = 1;
-                    icache_mem_size=2'd2;
-                end
                 Lookup:begin//命中
-                    //接着流
                     icache_pipeline_ready=1;
                     FSM_rbuf_we=1;
-                    if(hit0)begin
-                        FSM_choose_way=0;
-                        FSM_use0=1;
-                    end
-                    else if(hit1)begin
-                        FSM_choose_way=1;
-                        FSM_use1=1;
-                    end
-                end
-                Idle:begin
-                    icache_pipeline_ready=1;
-                    if(hit0)begin
-                        FSM_choose_way=0;
-                        FSM_use0=1;
-                    end
-                    else if(hit1)begin
-                        FSM_choose_way=1;
-                        FSM_use1=1;
-                    end
+                    if(hit0)begin FSM_choose_way=0; FSM_use0=1; end
+                    else if(hit1)begin FSM_choose_way=1; FSM_use1=1; end
                 end
                 Flush:begin
                     icache_pipeline_ready=1;
-                    FSM_send_nop=1;
-                end
-                default:begin
-                    
                 end
             endcase
         end
         Flush:begin
             icache_pipeline_ready=1;
-            FSM_send_nop=1;
             FSM_rbuf_we=1;
         end
         Operation:begin
@@ -282,96 +208,18 @@ always @(*) begin
         end
         Miss_r:begin
             icache_mem_req=1;
-            case (next_state)
-                Miss_r:begin
-                    icache_mem_size=2'd2;
-                end
-                Miss_r_waitdata:begin
-
-                end
-                default:begin
-                    
-                end
-            endcase
         end
         Miss_r_waitdata:begin
-            case (next_state)
-                Miss_r_waitdata:begin
-                    
+            if(mem_icache_dataOK)begin
+                FSM_rbuf_we=1;
+                FSM_choose_return=1;
+                icache_pipeline_ready=1;
+                if(!FSM_rbuf_SUC)begin
+                    if(hit0)begin FSM_choose_way=0; FSM_use0=1; end
+                    else if(hit1)begin FSM_choose_way=1; FSM_use1=1; end
                 end
-                Lookup:begin//这一拍是dataOK
-                    FSM_rbuf_we=1;
-                    FSM_choose_return=1;//前递
-                    icache_pipeline_ready=1;
-                    if(!FSM_rbuf_SUC)begin
-                        if(FSM_wal_sel_lru==1'd0)begin
-                            FSM_Data_we=2'b01;
-                            FSM_use0=1;
-                        end
-                        else if(FSM_wal_sel_lru==1'd1)begin
-                            FSM_Data_we=2'b10;
-                            FSM_use1=1;
-                        end
-                    end
-                end
-                Idle:begin
-                    FSM_rbuf_we=1;
-                    FSM_choose_return=1;//前递
-                    icache_pipeline_ready=1;
-                    if(!FSM_rbuf_SUC)begin
-                        if(FSM_wal_sel_lru==1'd0)begin
-                            FSM_Data_we=2'b01;
-                            FSM_use0=1;
-                        end
-                        else if(FSM_wal_sel_lru==1'd1)begin
-                            FSM_Data_we=2'b10;
-                            FSM_use1=1;
-                        end
-                    end
-                end
-                Operation:begin
-                    FSM_rbuf_we=1;
-                    FSM_choose_return=1;//前递
-                    // icache_pipeline_ready=1;//???
-                    if(!FSM_rbuf_SUC)begin
-                        if(FSM_wal_sel_lru==1'd0)begin
-                            FSM_Data_we=2'b01;
-                            FSM_use0=1;
-                        end
-                        else if(FSM_wal_sel_lru==1'd1)begin
-                            FSM_Data_we=2'b10;
-                            FSM_use1=1;
-                        end
-                    end
-                end
-                Stall:begin
-                    FSM_rbuf_we=1;
-                    FSM_choose_return=1;//这是必须的
-                    icache_pipeline_ready=1;
-                    if(!FSM_rbuf_SUC)begin
-                        if(FSM_wal_sel_lru==1'd0)begin
-                            FSM_Data_we=2'b01;
-                            FSM_use0=1;
-                        end
-                        else if(FSM_wal_sel_lru==1'd1)begin
-                            FSM_Data_we=2'b10;
-                            FSM_use1=1;
-                        end
-                    end
-                end
-                default:begin
-                    
-                end
-            endcase
+            end
         end
-        Stall:begin//考虑Stall情况  让外面多流一拍
-            FSM_rbuf_we=1;
-            icache_pipeline_ready=1;
-            // FSM_choose_stall = 1;
-        end
-        default:begin
-                    
-        end 
     endcase
 end
 endmodule

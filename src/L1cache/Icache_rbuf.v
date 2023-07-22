@@ -22,36 +22,35 @@
 
 module Icache_rbuf#(
     parameter   offset_width=2
-)
+)//MMU的数据迟一拍写并且需要写优先：rbuf_paddr、rbuf_SUC
 (
-    input clk,rstn,rbuf_we,rbuf_stall,
-    input [31:0]addr,opcode,
-    output reg [31:0]rbuf_addr,rbuf_opcode,
+    input clk,rbuf_we,rbuf_stall,
+    input [31:0]addr,paddr,opcode,
+    output reg [31:0]rbuf_addr,rbuf_paddr,rbuf_opcode,
     input opflag,SUC,
-    output reg rbuf_opflag,
-    output rbuf_SUC
+    output reg rbuf_opflag,rbuf_SUC
     );
-reg we_reg,rbuf_SUC1;
+wire we = rbuf_we & ~rbuf_stall;
+reg we_reg;
 always @(posedge clk) begin
-    we_reg <= rbuf_we;
+    we_reg <= we;
 end
-always @(posedge clk,negedge rstn) begin
-    if(!rstn)begin
-        rbuf_addr<=0;
-        rbuf_opcode<=0;
-        rbuf_opflag<=0;
+reg rbuf_paddr1,rbuf_SUC1;
+always @(posedge clk) begin
+    if(we)begin
+        rbuf_addr <= addr;
+        rbuf_opcode <= opcode;
+        rbuf_opflag <= opflag;
+        rbuf_paddr1 <= addr;
+        rbuf_SUC1 <= SUC;
     end
-    else if(rbuf_we&&(!rbuf_stall))begin
-        rbuf_addr<=addr;
-        rbuf_opcode<=opcode;
-        rbuf_opflag<=opflag;
-    end
-    if(!rstn)begin
-        rbuf_SUC1<=0;
-    end
-    else if(we_reg)begin
-        rbuf_SUC1<=SUC;
+    if(we_reg)begin
+        rbuf_paddr1 <= paddr;
+        rbuf_SUC1 <= SUC;
     end
 end
-assign rbuf_SUC = rbuf_SUC1|SUC;
+always @(*) begin
+    rbuf_paddr = we_reg ? addr : rbuf_paddr1;
+    rbuf_SUC = we_reg ? SUC : rbuf_SUC1;
+end
 endmodule
