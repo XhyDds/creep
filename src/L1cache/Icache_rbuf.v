@@ -35,7 +35,8 @@ reg we_reg;
 always @(posedge clk) begin
     we_reg <= we;
 end
-reg rbuf_paddr1,rbuf_SUC1;
+reg [31:0]rbuf_paddr1;
+reg rbuf_SUC1;
 always @(posedge clk) begin
     if(we)begin
         rbuf_addr <= addr;

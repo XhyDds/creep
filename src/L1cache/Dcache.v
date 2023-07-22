@@ -83,7 +83,7 @@ assign pindex = paddr_pipeline_dcache[offset_width+index_width+1:offset_width+2]
 assign ptag = paddr_pipeline_dcache[31:offset_width+index_width+2];
 
 //rquest buffer
-wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc;
+wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc,rbuf_paddr;
 wire rbuf_opflag,rbuf_type,rbuf_we,rbuf_SUC;
 wire [3:0]rbuf_wstrb;
 wire [offset_width-1:0]rbuf_offset;
@@ -95,7 +95,7 @@ assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 wire fStall_outside=pipeline_dcache_ctrl[0];//dcache好像不需要stall？？
 
 Dcache_rbuf Dcache_rbuf(
-    .clk(clk),.rstn(rstn),
+    .clk(clk),
     .rbuf_we(rbuf_we),//dcache好像不需要stall？？
 
     .pc(pcin_pipeline_dcache),
@@ -120,7 +120,10 @@ Dcache_rbuf Dcache_rbuf(
     .rbuf_wstrb(rbuf_wstrb),
 
     .SUC(SUC_pipeline_dcache),
-    .rbuf_SUC(rbuf_SUC)
+    .rbuf_SUC(rbuf_SUC),
+
+    .paddr(paddr_pipeline_dcache),
+    .rbuf_paddr(rbuf_paddr)
 );
 
 //LRU
@@ -213,17 +216,12 @@ always @(*) begin
 end
 
 //Mem
-reg [31:0]paddr_reg;
-wire paddr_we;//进入访存之前置1
-always @(posedge clk) begin
-    if(paddr_we)paddr_reg <= paddr_pipeline_dcache;
-end
 wire [1+offset_width:0]temp;
 assign temp=0;
 assign dout_dcache_mem = rbuf_data;
 assign dcache_mem_SUC = rbuf_SUC;
 `ifdef MMU
-assign addr_dcache_mem = dcache_mem_wr ? paddr_reg:{paddr_reg[31:2+offset_width],temp};
+assign addr_dcache_mem = dcache_mem_wr ? rbuf_paddr:{rbuf_paddr[31:2+offset_width],temp};
 `else 
 assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};
 `endif
@@ -264,8 +262,6 @@ Dcache_FSMmain1(
     .FSM_rbuf_wstrb(rbuf_wstrb),
     .FSM_rbuf_SUC(rbuf_SUC),
 
-    .FSM_paddr_we(paddr_we),
-    
     //lru
     .FSM_use0(use0),
     .FSM_use1(use1),
