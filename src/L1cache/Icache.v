@@ -85,7 +85,7 @@ assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 assign rbuf_stall = pipeline_icache_ctrl[0];//icache需要stall
 
 Icache_rbuf Icache_rbuf(
-    .clk(clk),.rstn(rstn),
+    .clk(clk),
     .rbuf_we(rbuf_we),
     .rbuf_stall(rbuf_stall),
 
@@ -99,7 +99,10 @@ Icache_rbuf Icache_rbuf(
     .rbuf_opflag(rbuf_opflag),
 
     .SUC(SUC_pipeline_icache),
-    .rbuf_SUC(rbuf_SUC)
+    .rbuf_SUC(rbuf_SUC),
+
+    .paddr(paddr_pipeline_icache),
+    .rbuf_paddr(rbuf_paddr)
 );
 assign pc_icache_pipeline = rbuf_addr;
 
@@ -202,9 +205,6 @@ always @(*) begin
         default: data_out = 64'h1234ABCD1234ABCD;
     endcase
 end
-//理论输出
-wire [63:0]dout1 = send_nop ? 64'h1234ABCD00000000 : data_out;
-wire flag1 = send_nop ? 1'b0 : data_flag;
 //锁存
 reg choose_stall;
 reg [63:0]data_out_reg;
@@ -214,20 +214,15 @@ always @(posedge clk) begin
     data_flag_reg <= flag_icache_pipeline;
     choose_stall <= rbuf_stall & icache_pipeline_ready;
 end
-assign dout_icache_pipeline = (choose_stall) ? data_out_reg : dout1;
-assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : flag1;
+assign dout_icache_pipeline = (choose_stall) ? data_out_reg : data_out;
+assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : data_flag;
 
 //Mem 实地址访存
-reg [31:0]paddr_reg;
-wire paddr_we;//进入访存之前置1
-always @(posedge clk) begin
-    if(paddr_we)paddr_reg <= paddr_pipeline_icache;
-end
 wire [1+offset_width:0]temp;
 assign temp=0;
 assign icache_mem_SUC = rbuf_SUC;
 `ifdef MMU
-assign addr_icache_mem = {paddr_reg[31:2+offset_width],temp};
+assign addr_icache_mem = {rbuf_paddr[31:2+offset_width],temp};
 `else 
 assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
 `endif
@@ -263,8 +258,6 @@ Icache_FSMmain(
     .FSM_rbuf_addr(rbuf_addr),
     .FSM_rbuf_SUC(rbuf_SUC),
 
-    .FSM_paddr_we(paddr_we),
-    
     //lru
     .FSM_use0(use0),
     .FSM_use1(use1),
@@ -282,8 +275,7 @@ Icache_FSMmain(
     // .FSM_choose_stall(choose_stall),
     .FSM_choose_way(choose_way),
     .FSM_choose_return(choose_return),
-    .FSM_choose_word(choose_word),
-    .FSM_send_nop(send_nop)
+    .FSM_choose_word(choose_word)
 );
 endmodule
 
