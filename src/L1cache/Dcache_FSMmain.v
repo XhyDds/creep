@@ -260,10 +260,12 @@ always @(*) begin
             end
             case (next_state)
                 Miss_r:begin
+                    dcache_mem_req = 1;
                     FSM_paddr_we = 1;
                     dcache_mem_wr=0;
                 end
                 Miss_w:begin
+                    dcache_mem_req = 1;
                     dcache_mem_wr=1;
                     FSM_paddr_we = 1;
                 end
@@ -281,7 +283,7 @@ always @(*) begin
                     end
                 end
                 Hit_w:begin
-                    dcache_mem_req=1;
+                    dcache_mem_req = 1;
                     dcache_mem_wr=1;
                     if(hit0)begin
                         FSM_Data_we[0]=1;

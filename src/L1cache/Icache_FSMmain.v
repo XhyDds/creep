@@ -224,7 +224,7 @@ always @(*) begin
             end
             case (next_state)
                 Miss_r:begin
-                    // icache_mem_req=1;
+                    icache_mem_req=1;
                     FSM_paddr_we = 1;
                     icache_mem_size=2'd2;
                 end
