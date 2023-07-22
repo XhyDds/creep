@@ -19,7 +19,7 @@ module L1_L2cache#(
 
     input       pipeline_icache_valid,
     output      icache_pipeline_ready,
-    
+
     input       [31:0]pipeline_icache_opcode,//cache操作
     input       pipeline_icache_opflag,//0-正常访存 1-cache操作    
     input       [31:0]pipeline_icache_ctrl,//stall flush branch ...
