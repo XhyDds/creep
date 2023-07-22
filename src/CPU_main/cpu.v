@@ -158,9 +158,9 @@ module core_top(
     assign flush_reg_exe0_0 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
     assign flush_reg_exe0_1 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
     assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1|ifcacop_ibar|ifmmu_excp;
-    assign flush_exe0_exe1_1 =  ifmmu_excp;
-    assign flush_exe1_wb_0 =    ifmmu_excp;
-    assign flush_exe1_wb_1 =    ifmmu_excp;
+    assign flush_exe0_exe1_1 =  ifmmu_excp|excp_flush;
+    assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush;
+    assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush;
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
@@ -711,7 +711,7 @@ module core_top(
         //ports
         .ctr      		( ctr_reg_exe0_0      		),
         .pc       		( pc_reg_exe0_0       		),
-        .npc_pdc        ( {pre_reg_exe0_0[28:0],3'b0}            ),
+        .npc            ( {pre_reg_exe0_0[28:0],3'b0}            ),
         .imm      		( imm_reg_exe0_0      		),
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		),
@@ -725,7 +725,7 @@ module core_top(
         //ports
         .ctr      		( ctr_reg_exe0_1_excp      		),
         .pc       		( pc_reg_exe0_1       		),
-        .npc_pdc        ( {pre_reg_exe0_1[28:0],3'b0}            ),
+        .npc            ( {pre_reg_exe0_1[28:0],3'b0}            ),
         .imm      		( imm_reg_exe0_1      		),
         .zero     		( zero1     		),
         .ifbr     		( ifbr1    		),
