@@ -1,10 +1,10 @@
 module br (
-    input [31:0]ctr,pc,imm,rrj,npc_pdc,
+    input [31:0]ctr,pc,imm,rrj,npc,
     input zero,
     output reg ifbr,
     output reg [31:0]brresult
 );
-`ifdef predictor
+// `ifdef predictor
     wire [3:0]type_ = ctr[3:0];
     wire [4:0]subtype = ctr[11:7];
     reg ifbr_;
@@ -31,34 +31,34 @@ module br (
             endcase
     end
     always @(*) begin
-        ifbr=ctr[31]&(npc_pdc!=brresult);
-        brresult=ifbr_?brresult_:pc+8;
+        ifbr=ctr[31]&(npc!=brresult);
+        brresult=ifbr_?brresult_:pc+4;
     end
-`endif
+// `endif
 
-`ifndef predictor
-    wire [3:0]type_ = ctr[3:0];
-    wire [4:0]subtype = ctr[11:7];
-    always @(*) begin
-        ifbr=0;
-        brresult=0;
-        if(type_==1) begin
-            brresult=pc+imm;
-            case (subtype)//可以合并
-                0: ifbr=1;
-                1: ifbr=zero;
-                2: ifbr=!zero;
-                3: ifbr=!zero;
-                4: ifbr=zero;
-                5: ifbr=!zero;
-                6: ifbr=zero;
-            endcase
-        end
-        else if(type_==8) 
-            case (subtype)
-                0: begin brresult=rrj+imm;ifbr=1; end
-                1: begin brresult=pc+imm;ifbr=1; end
-            endcase
-    end
-`endif
+// `ifndef predictor
+//     wire [3:0]type_ = ctr[3:0];
+//     wire [4:0]subtype = ctr[11:7];
+//     always @(*) begin
+//         ifbr=0;
+//         brresult=0;
+//         if(type_==1) begin
+//             brresult=pc+imm;
+//             case (subtype)//可以合并
+//                 0: ifbr=1;
+//                 1: ifbr=zero;
+//                 2: ifbr=!zero;
+//                 3: ifbr=!zero;
+//                 4: ifbr=zero;
+//                 5: ifbr=!zero;
+//                 6: ifbr=zero;
+//             endcase
+//         end
+//         else if(type_==8) 
+//             case (subtype)
+//                 0: begin brresult=rrj+imm;ifbr=1; end
+//                 1: begin brresult=pc+imm;ifbr=1; end
+//             endcase
+//     end
+// `endif
 endmodule
