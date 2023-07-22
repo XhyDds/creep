@@ -6,7 +6,7 @@
 `define DCache
 // `define L2Cache
 // `define DMA  //ÈÄâÊã©L2CacheÂê? ÂÜçÈ?âDMA
-module core_top (
+module core_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -920,8 +920,8 @@ module core_top (
         .rstn                   		( rstn                   		),
         .pipeline_MMU_stall0            ( stall_pc                      ),
         .pipeline_MMU_flush0            ( flush_pc                      ),
-        .pipeline_MMU_stall1            ( stall_reg_exe0_0              ),
-        .pipeline_MMU_flush1            ( flush_reg_exe0_0              ),
+        .pipeline_MMU_stall1            ( stall_exe0_exe1_1              ),
+        .pipeline_MMU_flush1            ( flush_exe0_exe1_1              ),
         .pipeline_MMU_stallw            ( 0                             ),
         .pipeline_MMU_flushw            ( 0                             ),
         .pipeline_MMU_type              ( ctr_reg_exe0_1_excp[3:0]       ),
@@ -952,7 +952,7 @@ module core_top (
         .MMU_pipeline_memtype0  		( MMU_pipeline_memtype0         ),
 
         .pipeline_MMU_optype1   		( type_pipeline_dcache?2:1 		),
-        .pipeline_MMU_VADDR_valid0      (pipeline_dcache_valid      ),
+        .pipeline_MMU_VADDR_valid1      (pipeline_dcache_valid      ),
         .pipeline_MMU_VADDR1    		( addr_pipeline_dcache 		    ),
         .MMU_pipeline_PADDR1    		( MMU_pipeline_PADDR1 		    ),
         .MMU_pipeline_excp_arg1 		( MMU_pipeline_excp_arg1 		),

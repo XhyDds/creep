@@ -306,24 +306,6 @@ module Memory_Maping_Unit#(
         PADDR0<=({found_ppn0,12'b0}&addrmask0)|(VADDR0&~addrmask0);
         memtype0<=found_mat0;
         excp_arg0<=0;
-        if(TLB_found0==0)
-            begin
-            excp_arg0<={VADDR_valid0,DEFAULT,TLBR};
-            end
-        else if(found_v0==0)
-            case(optype0_reg)
-                FETCH:
-                   excp_arg0<={VADDR_valid0,DEFAULT,PIF}; 
-                LOAD:
-                    excp_arg0<={VADDR_valid0,DEFAULT,PIL};
-                STORE:
-                    excp_arg0<={VADDR_valid0,DEFAULT,PIS};
-            endcase
-        else if(CRMDin[1:0]>found_plv0)
-            excp_arg0<={VADDR_valid0,DEFAULT,PPI};
-        else if(optype0_reg==STORE&&found_d0==0)
-            excp_arg0<={VADDR_valid0,DEFAULT,PME};
-            
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
             PADDR0<=0;
@@ -346,7 +328,26 @@ module Memory_Maping_Unit#(
             memtype0<=DMW1in[5:4];
             excp_arg0<=0;
             end
-        end
+        else if(TLB_found0==0)
+            begin
+            excp_arg0<={VADDR_valid0,DEFAULT,TLBR};
+            end
+        else if(found_v0==0)
+            case(optype0_reg)
+                FETCH:
+                   excp_arg0<={VADDR_valid0,DEFAULT,PIF}; 
+                LOAD:
+                    excp_arg0<={VADDR_valid0,DEFAULT,PIL};
+                STORE:
+                    excp_arg0<={VADDR_valid0,DEFAULT,PIS};
+            endcase
+        else if(CRMDin[1:0]>found_plv0)
+            excp_arg0<={VADDR_valid0,DEFAULT,PPI};
+        else if(optype0_reg==STORE&&found_d0==0)
+            excp_arg0<={VADDR_valid0,DEFAULT,PME};
+        else
+            excp_arg0<=0;
+       end 
     end
     
     //1Â·²éÕÒÂß¼­
@@ -396,24 +397,6 @@ module Memory_Maping_Unit#(
         PADDR1<=({found_ppn1,12'b0}&addrmask1)|(VADDR1&~addrmask1);
         memtype1<=found_mat1;
         excp_arg1<=0;
-        if(TLB_found1==0)
-            begin
-            excp_arg1<={VADDR_valid1,DEFAULT,TLBR};
-            end
-        else if(found_v1==0)
-            case(optype1_reg)
-                FETCH:
-                   excp_arg1<={VADDR_valid1,DEFAULT,PIF}; 
-                LOAD:
-                    excp_arg1<={VADDR_valid1,DEFAULT,PIL};
-                STORE:
-                    excp_arg1<={VADDR_valid1,DEFAULT,PIS};
-            endcase
-        else if(CRMDin[1:0]>found_plv1)
-            excp_arg1<={VADDR_valid1,DEFAULT,PPI};
-        else if(optype1_reg==STORE&&found_d1==0)
-            excp_arg1<={VADDR_valid1,DEFAULT,PME};
-            
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
             PADDR1<=0;
@@ -436,6 +419,26 @@ module Memory_Maping_Unit#(
             memtype1<=DMW1in[5:4];
             excp_arg1<=0;
             end
+        else if(TLB_found1==0)
+            begin
+            excp_arg1<={VADDR_valid1,DEFAULT,TLBR};
+            end
+        else if(found_v1==0)
+            case(optype1_reg)
+                FETCH:
+                   excp_arg1<={VADDR_valid1,DEFAULT,PIF}; 
+                LOAD:
+                    excp_arg1<={VADDR_valid1,DEFAULT,PIL};
+                STORE:
+                    excp_arg1<={VADDR_valid1,DEFAULT,PIS};
+            endcase
+        else if(CRMDin[1:0]>found_plv1)
+            excp_arg1<={VADDR_valid1,DEFAULT,PPI};
+        else if(optype1_reg==STORE&&found_d1==0)
+            excp_arg1<={VADDR_valid1,DEFAULT,PME};
+        else 
+            excp_arg1<=0;    
+        
         end
     end
 endmodule
