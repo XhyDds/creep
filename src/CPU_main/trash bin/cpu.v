@@ -142,25 +142,24 @@ module core_top(
     wire stall_priv_idle;
 
     wire ifbr0,ifbr1,ifibar0,ifibar1,ifcacop_ibar;
-    wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;//dcache_valid-ready?
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flush_pc;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
     // reg stall_exe1_wb_0_reg,stall_exe1_wb_1_reg;
 
-    assign flush_pc =           ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
-    assign flush_if0_if1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
-    assign flush_if1_fifo =     ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
-    assign flush_fifo_id =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
-    assign flush_id_reg0 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
-    assign flush_id_reg1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
-    assign flush_reg_exe0_0 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
-    assign flush_reg_exe0_1 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp;
-    assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1|ifcacop_ibar|ifmmu_excp;
-    assign flush_exe0_exe1_1 =  ifmmu_excp;
-    assign flush_exe1_wb_0 =    ifmmu_excp;
-    assign flush_exe1_wb_1 =    ifmmu_excp;
+    assign flush_pc =           ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
+    assign flush_if0_if1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
+    assign flush_if1_fifo =     ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
+    assign flush_fifo_id =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
+    assign flush_id_reg0 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
+    assign flush_id_reg1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
+    assign flush_reg_exe0_0 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
+    assign flush_reg_exe0_1 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
+    assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1|ifcacop_ibar;
+    assign flush_exe0_exe1_1 =  0;
+    assign flush_exe1_wb_0 =    0;
+    assign flush_exe1_wb_1 =    0;
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
@@ -276,6 +275,8 @@ module core_top(
     wire    [1:0]PLV1;
     wire    [63:0]pre0;
     wire    [63:0]pre1;
+    wire    [15:0]excp_arg0_mmu;
+    wire    [15:0]excp_arg1_mmu;
     
     fetch_buffer_v2 u_fetch_buffer(
         //ports
@@ -301,7 +302,10 @@ module core_top(
         .plv1           ( PLV1          ),
         .pre0           ( pre0          ),
         .pre1           ( pre1          ),
-        .pre            ( pre_if1_fifo  )
+        .pre            ( pre_if1_fifo  ),
+        .excp_arg       ( MMU_pipeline_excp_arg0_if1_fifo),
+        .excp_arg0      ( excp_arg0_mmu ),
+        .excp_arg1      ( excp_arg1_mmu )
     );
 
     wire [31:0]	control0;
@@ -322,7 +326,8 @@ module core_top(
         .rd       		( rd0       		),
         .imm      		( imm0      		),
         .excp_arg 		( excp_arg0 		),
-        .valid          ( ir_valid0         )
+        .valid          ( ir_valid0         ),
+        .excp_arg_in    ( excp_arg0_mmu     )
     );
 
     wire [31:0]	control1;
@@ -343,7 +348,8 @@ module core_top(
         .rd       		( rd1       		),
         .imm      		( imm1      		),
         .excp_arg 		( excp_arg1 		),
-        .valid          ( ir_valid1         )
+        .valid          ( ir_valid1         ),
+        .excp_arg_in    ( excp_arg1_mmu     )
     );
 
     wire [4:0]	rk00;
@@ -706,12 +712,14 @@ module core_top(
     );
 
     wire [31:0]	pc_br0;
+    wire [31:0] npc_br0;
+    assign npc_br0 = pc_id_reg_1;
 
     br u_br0(
         //ports
         .ctr      		( ctr_reg_exe0_0      		),
         .pc       		( pc_reg_exe0_0       		),
-        .npc_pdc        ( {pre_reg_exe0_0[28:0],3'b0}            ),
+        .npc            ( npc_br0                   ),
         .imm      		( imm_reg_exe0_0      		),
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		),
@@ -720,12 +728,14 @@ module core_top(
     );
 
     wire [31:0]	pc_br1;
+    wire [31:0] npc_br1;
+    assign npc_br1 = ctr_reg_exe0_0[31]?pc_reg_exe0_0:pc_id_reg_1;
 
     br u_br1(
         //ports
         .ctr      		( ctr_reg_exe0_1_excp      		),
         .pc       		( pc_reg_exe0_1       		),
-        .npc_pdc        ( {pre_reg_exe0_1[28:0],3'b0}            ),
+        .npc            ( npc_br1                   ),
         .imm      		( imm_reg_exe0_1      		),
         .zero     		( zero1     		),
         .ifbr     		( ifbr1    		),
@@ -819,7 +829,7 @@ module core_top(
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        // .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
+        .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
         .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
         .CSR_pipeline_clk_stall     	( stall_priv     		        ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
@@ -1219,12 +1229,13 @@ module core_top(
         .taken_pdc   		( taken_pdc   		),
         .choice_pdc  		( choice_pdc  		),
 
-        .pc          		( pc          		),
+        .pc          		( pc[31:3]          ),
         .npc_test           ( npc_test          )
     );
 
     //PC
     wire ifflush_if1_fifo;
+    wire [31:0]npc_pdc_32={npc_pdc,3'b0};
     assign ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
     always @(*) begin
         if(ifpriv) npc=pc_priv;
@@ -1233,7 +1244,7 @@ module core_top(
         else if(ifbr0) npc=pc_br0;
         else if(pc[2]) npc=pc+4;
         `ifdef predictor
-        else npc={npc_pdc,3'b0};
+        else npc=npc_pdc_32;
         `endif
         `ifndef predictor
         else npc=pc+8;//Icache ONLY
