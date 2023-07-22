@@ -1,6 +1,6 @@
 // `define IDMA
 // `define DDMA
-// `define predictor
+`define predictor
 `define MMU
 `define ICache
 `define DCache
@@ -88,6 +88,9 @@ module core_top(
     pc_reg_exe0_0,pc_reg_exe0_1,
     pc_exe0_exe1_0,pc_exe0_exe1_1,
     pc_exe1_wb_0,pc_exe1_wb_1,
+    npc_if1_fifo,
+    npc_id_reg_0,npc_id_reg_1,
+    npc_reg_exe0_0,npc_reg_exe0_1,
     result_exe0_exe1_0,result_exe0_exe1_1,
     result_exe1_wb_0,result_exe1_wb_1,
     rrk_reg_exe0_0,rrj_reg_exe0_0,
@@ -272,10 +275,14 @@ module core_top(
     wire 	if1;
     wire    ir_valid0;
     wire    ir_valid1;
-    wire    [1:0]PLV0;
-    wire    [1:0]PLV1;
-    wire    [63:0]pre0;
-    wire    [63:0]pre1;
+    wire    [1:0]   PLV0;
+    wire    [1:0]   PLV1;
+    wire    [63:0]  pre0;
+    wire    [63:0]  pre1;
+    wire    [15:0]  excp_arg0_mmu;
+    wire    [15:0]  excp_arg1_mmu;
+    wire    [31:0]  npc0;
+    wire    [31:0]  npc1;
     
     fetch_buffer_v2 u_fetch_buffer(
         //ports
@@ -299,9 +306,15 @@ module core_top(
         .plv            ( PLV_if1_fifo  ),
         .plv0           ( PLV0          ),
         .plv1           ( PLV1          ),
+        .pre            ( pre_if1_fifo  ),
         .pre0           ( pre0          ),
         .pre1           ( pre1          ),
-        .pre            ( pre_if1_fifo  )
+        .excp_arg       ( MMU_pipeline_excp_arg0_if1_fifo),
+        .excp_arg0      ( excp_arg0_mmu ),
+        .excp_arg1      ( excp_arg1_mmu ),
+        .npc            ( npc_if1_fifo  ),
+        .npc0           ( npc0          ),
+        .npc1           ( npc1          )
     );
 
     wire [31:0]	control0;
@@ -322,7 +335,8 @@ module core_top(
         .rd       		( rd0       		),
         .imm      		( imm0      		),
         .excp_arg 		( excp_arg0 		),
-        .valid          ( ir_valid0         )
+        .valid          ( ir_valid0         ),
+        .excp_arg_in    ( excp_arg0_mmu     )
     );
 
     wire [31:0]	control1;
@@ -343,7 +357,8 @@ module core_top(
         .rd       		( rd1       		),
         .imm      		( imm1      		),
         .excp_arg 		( excp_arg1 		),
-        .valid          ( ir_valid1         )
+        .valid          ( ir_valid1         ),
+        .excp_arg_in    ( excp_arg0_mmu     )
     );
 
     wire [4:0]	rk00;
@@ -364,8 +379,10 @@ module core_top(
     wire [31:0] ir11;
     wire ir_valid00;
     wire ir_valid11;
-    wire    [63:0]pre00;
-    wire    [63:0]pre11;
+    wire [63:0]pre00;
+    wire [63:0]pre11;
+    wire [31:0]npc00;
+    wire [31:0]npc11;
 
     dispatcher u_dispatcher(
         //ports
@@ -414,7 +431,11 @@ module core_top(
         .pre0(pre0),
         .pre1(pre1),
         .pre00(pre00),
-        .pre11(pre11)
+        .pre11(pre11),
+        .npc0(npc0),
+        .npc1(npc1),
+        .npc00(npc00),
+        .npc11(npc11)
     );
 
     wire [31:0]	rrk0_rf;
@@ -711,7 +732,7 @@ module core_top(
         //ports
         .ctr      		( ctr_reg_exe0_0      		),
         .pc       		( pc_reg_exe0_0       		),
-        .npc            ( {pre_reg_exe0_0[28:0],3'b0}            ),
+        .npc            ( npc_reg_exe0_0            ),
         .imm      		( imm_reg_exe0_0      		),
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		),
@@ -725,7 +746,7 @@ module core_top(
         //ports
         .ctr      		( ctr_reg_exe0_1_excp      		),
         .pc       		( pc_reg_exe0_1       		),
-        .npc            ( {pre_reg_exe0_1[28:0],3'b0}            ),
+        .npc            ( npc_reg_exe0_1            ),
         .imm      		( imm_reg_exe0_1      		),
         .zero     		( zero1     		),
         .ifbr     		( ifbr1    		),
@@ -1219,12 +1240,13 @@ module core_top(
         .taken_pdc   		( taken_pdc   		),
         .choice_pdc  		( choice_pdc  		),
 
-        .pc          		( pc          		),
+        .pc          		( pc[31:3]          ),
         .npc_test           ( npc_test          )
     );
 
     //PC
     wire ifflush_if1_fifo;
+    wire [31:0]npc_pdc_32={npc_pdc,3'b0};
     assign ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
     always @(*) begin
         if(ifpriv) npc=pc_priv;
@@ -1233,7 +1255,7 @@ module core_top(
         else if(ifbr0) npc=pc_br0;
         else if(pc[2]) npc=pc+4;
         `ifdef predictor
-        else npc={npc_pdc,3'b0};
+        else npc=npc_pdc_32;
         `endif
         `ifndef predictor
         else npc=pc+8;//Icache ONLY
@@ -1277,11 +1299,11 @@ module core_top(
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
-            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;pre_if1_fifo<=0;
+            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;pre_if1_fifo<=0;npc_if1_fifo<=0;MMU_pipeline_excp_arg0_if1_fifo<=0;
         end
         else if(stall_if1_fifo);
         else if(flush_if1_fifo|ifflush_if1_fifo)begin
-            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;pre_if1_fifo<=0;
+            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;pre_if1_fifo<=0;npc_if1_fifo<=0;MMU_pipeline_excp_arg0_if1_fifo<=0;
         end
         else begin
             pc_if1_fifo<=pc_if0_if1;//Icache ONLY
@@ -1291,6 +1313,7 @@ module core_top(
             icache_valid_if1_fifo<=icache_pipeline_ready;
             flag_if1_fifo<=flag_icache_pipeline;
             MMU_pipeline_excp_arg0_if1_fifo<=MMU_pipeline_excp_arg0;
+            npc_if1_fifo<=pc;
         end
     end
 
@@ -1310,6 +1333,7 @@ module core_top(
             ir_id_reg_0<=0;
             ir_valid_id_reg_0<=0;
             pre_id_reg_0<=0;
+            npc_id_reg_0<=0;
         end
         else if(stall_id_reg0);
         else if(flush_id_reg0)begin
@@ -1323,6 +1347,7 @@ module core_top(
             ir_id_reg_0<=0;
             ir_valid_id_reg_0<=0;
             pre_id_reg_0<=0;
+            npc_id_reg_0<=0;
         end
         else begin
             ctr_id_reg_0 <= control00;
@@ -1335,6 +1360,7 @@ module core_top(
             ir_id_reg_0<=ir00;
             ir_valid_id_reg_0<=ir_valid00;
             pre_id_reg_0<=pre00;
+            npc_id_reg_0<=npc00;
         end
     end
 
@@ -1350,6 +1376,7 @@ module core_top(
             ir_id_reg_1<=0;
             ir_valid_id_reg_1<=0;
             pre_id_reg_1<=0;
+            npc_id_reg_1<=0;
         end
         else if(stall_id_reg1);
         else if(flush_id_reg1) begin
@@ -1363,6 +1390,7 @@ module core_top(
             ir_id_reg_1<=0;
             ir_valid_id_reg_1<=0;
             pre_id_reg_1<=0;
+            npc_id_reg_1<=0;
         end
         else begin
             ctr_id_reg_1 <= control11;
@@ -1375,6 +1403,7 @@ module core_top(
             ir_id_reg_1<=ir11;
             ir_valid_id_reg_1<=ir_valid11;
             pre_id_reg_1<=pre11;
+            npc_id_reg_1<=npc11;
         end
     end
 
@@ -1393,6 +1422,7 @@ module core_top(
             ir_reg_exe0_0<=0;
             ir_valid_reg_exe0_0<=0;
             pre_reg_exe0_0<=0;
+            npc_reg_exe0_0<=0;
         end
         else if(stall_reg_exe0_0);
         else if(flush_reg_exe0_0) begin
@@ -1408,6 +1438,7 @@ module core_top(
             ir_reg_exe0_0<=0;
             ir_valid_reg_exe0_0<=0;
             pre_reg_exe0_0<=0;
+            npc_reg_exe0_0<=0;
         end
         else begin
             ctr_reg_exe0_0 <= ctr_id_reg_0;
@@ -1422,6 +1453,7 @@ module core_top(
             ir_reg_exe0_0<=ir_id_reg_0;
             ir_valid_reg_exe0_0<=ir_valid_id_reg_0;
             pre_reg_exe0_0<=pre_id_reg_0;
+            npc_reg_exe0_0<=npc_id_reg_0;
         end
     end
 
@@ -1440,6 +1472,7 @@ module core_top(
             ir_reg_exe0_1<=0;
             ir_valid_reg_exe0_1<=0;
             pre_reg_exe0_1<=0;
+            npc_reg_exe0_1<=0;
         end
         else if(stall_reg_exe0_1);
         else if(flush_reg_exe0_1) begin
@@ -1456,6 +1489,7 @@ module core_top(
             ir_reg_exe0_1<=0;
             ir_valid_reg_exe0_1<=0;
             pre_reg_exe0_1<=0;
+            npc_reg_exe0_1<=0;
         end
         else begin
             ctr_reg_exe0_1 <= ctr_id_reg_1;
@@ -1471,6 +1505,7 @@ module core_top(
             ir_reg_exe0_1<=ir_id_reg_1;
             ir_valid_reg_exe0_1<=ir_valid_id_reg_1;
             pre_reg_exe0_1<=pre_id_reg_1;
+            npc_reg_exe0_1<=npc_id_reg_1;
         end
     end
 
