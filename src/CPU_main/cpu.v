@@ -1,6 +1,6 @@
 // `define IDMA
 // `define DDMA
-`define predictor
+// `define predictor
 `define MMU
 `define ICache
 `define DCache
@@ -275,8 +275,6 @@ module core_top(
     wire    [1:0]PLV1;
     wire    [63:0]pre0;
     wire    [63:0]pre1;
-    wire    [15:0]excp_arg0_mmu;
-    wire    [15:0]excp_arg1_mmu;
     
     fetch_buffer_v2 u_fetch_buffer(
         //ports
@@ -302,10 +300,7 @@ module core_top(
         .plv1           ( PLV1          ),
         .pre0           ( pre0          ),
         .pre1           ( pre1          ),
-        .pre            ( pre_if1_fifo  ),
-        .excp_arg       ( MMU_pipeline_excp_arg0_if1_fifo),
-        .excp_arg0      ( excp_arg0_mmu ),
-        .excp_arg1      ( excp_arg1_mmu )
+        .pre            ( pre_if1_fifo  )
     );
 
     wire [31:0]	control0;
@@ -326,8 +321,7 @@ module core_top(
         .rd       		( rd0       		),
         .imm      		( imm0      		),
         .excp_arg 		( excp_arg0 		),
-        .valid          ( ir_valid0         ),
-        .excp_arg_in    ( excp_arg0_mmu     )
+        .valid          ( ir_valid0         )
     );
 
     wire [31:0]	control1;
@@ -348,8 +342,7 @@ module core_top(
         .rd       		( rd1       		),
         .imm      		( imm1      		),
         .excp_arg 		( excp_arg1 		),
-        .valid          ( ir_valid1         ),
-        .excp_arg_in    ( excp_arg1_mmu     )
+        .valid          ( ir_valid1         )
     );
 
     wire [4:0]	rk00;
@@ -712,14 +705,12 @@ module core_top(
     );
 
     wire [31:0]	pc_br0;
-    wire [31:0] npc_br0;
-    assign npc_br0 = pc_id_reg_1;
 
     br u_br0(
         //ports
         .ctr      		( ctr_reg_exe0_0      		),
         .pc       		( pc_reg_exe0_0       		),
-        .npc            ( npc_br0                   ),
+        .npc_pdc        ( {pre_reg_exe0_0[28:0],3'b0}            ),
         .imm      		( imm_reg_exe0_0      		),
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		),
@@ -728,14 +719,12 @@ module core_top(
     );
 
     wire [31:0]	pc_br1;
-    wire [31:0] npc_br1;
-    assign npc_br1 = ctr_reg_exe0_0[31]?pc_reg_exe0_0:pc_id_reg_1;
 
     br u_br1(
         //ports
         .ctr      		( ctr_reg_exe0_1_excp      		),
         .pc       		( pc_reg_exe0_1       		),
-        .npc            ( npc_br1                   ),
+        .npc_pdc        ( {pre_reg_exe0_1[28:0],3'b0}            ),
         .imm      		( imm_reg_exe0_1      		),
         .zero     		( zero1     		),
         .ifbr     		( ifbr1    		),
@@ -1229,13 +1218,12 @@ module core_top(
         .taken_pdc   		( taken_pdc   		),
         .choice_pdc  		( choice_pdc  		),
 
-        .pc          		( pc[31:3]          ),
+        .pc          		( pc          		),
         .npc_test           ( npc_test          )
     );
 
     //PC
     wire ifflush_if1_fifo;
-    wire [31:0]npc_pdc_32={npc_pdc,3'b0};
     assign ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
     always @(*) begin
         if(ifpriv) npc=pc_priv;
@@ -1244,7 +1232,7 @@ module core_top(
         else if(ifbr0) npc=pc_br0;
         else if(pc[2]) npc=pc+4;
         `ifdef predictor
-        else npc=npc_pdc_32;
+        else npc={npc_pdc,3'b0};
         `endif
         `ifndef predictor
         else npc=pc+8;//Icache ONLY
@@ -1863,7 +1851,7 @@ L1_L2cache #(
     wire            ws_tlbfill_en       =   ctr_exe1_wb_0[27];
     wire            ws_excp_flush       =   excp_flush;
     wire            ws_ertn_flush       =   ertn_flush;
-    wire     [4:0]  ws_csr_ecode        =   csr_ecode;
+    wire     [5:0]  ws_csr_ecode        =   csr_ecode;
     wire            ws_valid_diff0      =   ws_valid0;
     wire            ws_valid_diff1      =   ws_valid1;
     wire            cnt_inst_diff0      =   ctr_exe1_wb_0[23];
