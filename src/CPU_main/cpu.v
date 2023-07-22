@@ -1,6 +1,6 @@
 // `define IDMA
 // `define DDMA
-`define predictor
+// `define predictor
 `define MMU
 `define ICache
 `define DCache
@@ -358,7 +358,7 @@ module core_top(
         .imm      		( imm1      		),
         .excp_arg 		( excp_arg1 		),
         .valid          ( ir_valid1         ),
-        .excp_arg_in    ( excp_arg0_mmu     )
+        .excp_arg_in    ( excp_arg1_mmu     )
     );
 
     wire [4:0]	rk00;

@@ -37,7 +37,7 @@ module decoder (
         if(excp_arg_in[15]) begin //ADEF 
             type_=liwai;subtype=0;excp_arg={1'b0,excp_arg_in[14:0]}; 
         end
-        if(|pc[1:0]) begin //ADEF 
+        else if(|pc[1:0]) begin //ADEF 
             type_=liwai;subtype=0;excp_arg='b0_001000; 
         end
         // else 
