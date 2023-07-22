@@ -446,10 +446,9 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                         ERTN:
                             begin
                             ertn_flush<=1;
+                            CRMD[2:0]<=PRMD;
                             if(ESTAT_Ecode==TLBR)
-                                CRMD[4:0]<={2'b10,PRMD};
-                            else
-                                CRMD[4:0]<={2'b01,PRMD};
+                                CRMD[4:3]<=2'b10;
                             LLBCTL_KLO<=0;
                             if(!LLBCTL_KLO)
                                 LLBCTL_ROLLB<=0;  
