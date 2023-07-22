@@ -47,7 +47,7 @@ module Icache_FSMmain#(
     //reqbuf
     output reg  FSM_rbuf_we,
     input       [31:0]FSM_rbuf_opcode,
-    input       FSM_rbuf_opflag,//好像不需要
+    input       FSM_rbuf_opflag,
     input       [31:0]FSM_rbuf_addr,
     input       FSM_rbuf_SUC,
 
@@ -62,10 +62,8 @@ module Icache_FSMmain#(
     output reg  [way-1:0]FSM_TagV_unvalid,
     output reg  FSM_TagV_ibar,
     output reg  [1:0]FSM_TagV_init,
-    // output reg  FSM_way_select,
 
     //数据选择
-    // output reg  FSM_choose_stall,
     output reg  FSM_choose_way,
     output reg  FSM_choose_return,
     output reg  [offset_width-1:0]FSM_choose_word
@@ -83,8 +81,6 @@ wire fStall_outside=pipeline_icache_ctrl[0];//注意编号
 wire flush_outside=pipeline_icache_ctrl[1];
 wire opflag;
 assign opflag=pipeline_icache_opflag;
-// wire opflag_rbuf;
-// assign opflag_rbuf=FSM_rbuf_opflag;
 
 reg rstn_reg;
 always @(posedge clk) begin
@@ -113,19 +109,19 @@ always @(*) begin
             else next_state = Lookup;
         end
         Lookup:begin
-                if(Miss)begin//Miss优先级应该比Stall高
-                    if(flush_outside)next_state = Flush;
-                    else begin
-                        if(!mem_icache_addrOK)next_state = Miss_r;
-                        else next_state = Miss_r_waitdata;//加速握手
-                    end
+            if(Miss)begin//Miss优先级应该比Stall高
+                if(flush_outside)next_state = Flush;
+                else begin
+                    if(!mem_icache_addrOK)next_state = Miss_r;
+                    else next_state = Miss_r_waitdata;//加速握手
                 end
-                else begin//Hit
-                    if(fStall_outside)next_state = Lookup;
-                    else if(flush_outside)next_state = Flush;
-                    else if(opflag)next_state = Operation;
-                    else next_state = Lookup;
-                end
+            end
+            else begin//Hit
+                if(flush_outside)next_state = Flush;
+                else if(fStall_outside)next_state = Lookup;
+                else if(opflag)next_state = Operation;
+                else next_state = Lookup;
+            end
         end
         Flush:begin
             if(flush_outside)begin
@@ -137,7 +133,13 @@ always @(*) begin
             end
         end
         Operation:begin
-            next_state = Idle;
+            if(flush_outside)begin
+                next_state = Flush;
+            end
+            else begin
+                if(opflag)next_state = Operation;
+                else next_state = Lookup;
+            end
         end
         Miss_r:begin
             if(!mem_icache_addrOK)next_state = Miss_r;
@@ -171,39 +173,42 @@ always @(*) begin
             FSM_rbuf_we=1;
         end
         Lookup:begin
-            if(FSM_rbuf_SUC)begin
-                if(hit0)FSM_TagV_unvalid = 2'b01;
-                else if(hit1)FSM_TagV_unvalid = 2'b10;
-            end
-            if(Miss)icache_mem_req = 1;
-            case (next_state)
-                Lookup:begin//命中
-                    icache_pipeline_ready=1;
-                    FSM_rbuf_we=1;
+            if(!flush_outside)begin
+                if(FSM_rbuf_SUC)begin
+                    if(hit0)FSM_TagV_unvalid = 2'b01;
+                    else if(hit1)FSM_TagV_unvalid = 2'b10;
+                end
+                if(Miss)icache_mem_req = 1;
+                else begin
                     if(hit0)begin FSM_choose_way=0; FSM_use0=1; end
                     else if(hit1)begin FSM_choose_way=1; FSM_use1=1; end
                 end
-                Flush:begin
-                    icache_pipeline_ready=1;
-                end
-            endcase
+            end
+            if(next_state == Lookup || next_state == Operation || next_state ==Flush)begin
+                icache_pipeline_ready = 1;
+                FSM_rbuf_we = 1;
+            end
         end
         Flush:begin
             icache_pipeline_ready=1;
             FSM_rbuf_we=1;
         end
-        Operation:begin
-            if(FSM_rbuf_opcode[31])FSM_TagV_ibar = 1;
-            else if(FSM_rbuf_opcode[4:3] == 2'd0)begin
-                FSM_TagV_init = {1'b1,FSM_rbuf_addr[0]};
-            end
-            else if(FSM_rbuf_opcode[4:3] == 2'd1)begin
-                if(!FSM_rbuf_addr[0])FSM_TagV_unvalid = 2'b01;
-                else FSM_TagV_unvalid = 2'b10;
-            end
-            else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
-                if(hit0)FSM_TagV_unvalid = 2'b01;
-                else if(hit1)FSM_TagV_unvalid = 2'b10;
+        Operation:begin//所有op一周期可以做完 流水
+            icache_pipeline_ready=1;
+            FSM_rbuf_we=1;
+            if(!flush_outside)begin
+                if(FSM_rbuf_opcode[31])FSM_TagV_ibar = 1;
+                else if(FSM_rbuf_opcode[4:3] == 2'd0)begin
+                    FSM_TagV_init = {1'b1,FSM_rbuf_addr[0]};
+                end
+                else if(FSM_rbuf_opcode[4:3] == 2'd1)begin
+                    if(!FSM_rbuf_addr[0])FSM_TagV_unvalid = 2'b01;
+                    else FSM_TagV_unvalid = 2'b10;
+                end
+                else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
+                    if(hit0)FSM_TagV_unvalid = 2'b01;
+                    else if(hit1)FSM_TagV_unvalid = 2'b10;
+                end
             end
         end
         Miss_r:begin
