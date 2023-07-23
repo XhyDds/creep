@@ -1,4 +1,4 @@
-// `define MMU
+`define MMU
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -74,7 +74,7 @@ assign pindex = paddr_pipeline_icache[offset_width+index_width+1:offset_width+2]
 assign ptag = paddr_pipeline_icache[31:offset_width+index_width+2];
 
 //rquest buffer
-wire [31:0]rbuf_addr,rbuf_opcode;
+wire [31:0]rbuf_addr,rbuf_opcode,rbuf_paddr;
 wire rbuf_opflag,rbuf_we,rbuf_stall;
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
