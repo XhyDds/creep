@@ -1885,7 +1885,7 @@ module core_top(
     
     // from wb_stage    
     wire [TLB_n-1:0]rand_index          =   rand_index_exe1_wb;
-    wire            ws_tlbfill_en       =   ctr_exe1_wb_0[27];
+    wire            ws_tlbfill_en       =   ctr_exe1_wb_1[27];
     wire            ws_excp_flush       =   excp_flush;
     wire            ws_ertn_flush       =   ertn_flush;
     wire     [5:0]  ws_csr_ecode        =   csr_ecode;
@@ -2084,22 +2084,22 @@ module core_top(
     end
 
     DifftestInstrCommit DifftestInstrCommit0(
-        .clock              (aclk           ),
-        .coreid             (0              ),
-        .index              (1              ),
+        .clock              (aclk            ),
+        .coreid             (0               ),
+        .index              (1               ),
         .valid              (cmt_valid0      ),
         .pc                 (cmt_pc0         ),
         .instr              (cmt_inst0       ),
-        .skip               (0              ),
-        .is_TLBFILL         (0              ),
-        .TLBFILL_index      (0              ),
+        .skip               (0               ),
+        .is_TLBFILL         (cmt_tlbfill_en  ),
+        .TLBFILL_index      (cmt_rand_index  ),
         .is_CNTinst         (cmt_cnt_inst0   ),
         .timer_64_value     (cmt_timer_64    ),
         .wen                (cmt_wen0        ),
         .wdest              (cmt_wdest0      ),
         .wdata              (cmt_wdata0      ),
         .csr_rstat          (cmt_csr_rstat_en),
-        .csr_data           (cmt_csr_data   )
+        .csr_data           (cmt_csr_data    )
     );
 
     DifftestInstrCommit DifftestInstrCommit1(
