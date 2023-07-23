@@ -111,7 +111,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
     reg [31:0] dout_reg;reg run_reg;reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
-    reg [31:0] jumpc_reg;reg TCFG0_reg;reg nexcp_flush,nertn_flush;
+    reg [31:0] jumpc_reg;reg TCFG_change;reg nexcp_flush,nertn_flush;
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
@@ -211,24 +211,22 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         TI_INTE<=0;
         TVAL<=0;
-        TCFG0_reg<=0;
         TCFG<=0;
         end
     else
         begin
-        TCFG0_reg<=TCFG[0];
         if(TI_cl)
             begin
             TI_INTE<=0;
             end
-        else if(TVAL==0&&TCFG[0]&&TCFG0_reg)
+        else if(TVAL==0&&TCFG[0]&&~TCFG_change)
             begin
             TI_INTE<=1;
             end
 
-        if((TVAL==0&&TCFG[1])||TCFG[0]&~TCFG0_reg)
+        if((TVAL==0&&TCFG[1])||(TCFG[0]&&TCFG_change))
             TVAL<={TCFG[TIMER_n-1:2],2'b0};
-        else if(~TCFG[0]&TCFG0_reg)
+        else if(~TCFG[0])
             TVAL<=0;
         else if(TCFG[0]&&TVAL!=~0)
             TVAL<=TVAL-1;
@@ -432,10 +430,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         TLBRENTRY<=0;DMW0_PLV0<=0;DMW0_PLV3<=0;DMW0_MAT<=0;
         DMW0_PSEG<=0;DMW0_VSEG<=0;DMW1_PLV0<=0;DMW1_PLV3<=0;DMW1_MAT<=0;
         DMW1_PSEG<=0;DMW1_VSEG<=0;TID<=0;TCFG<=0;
-        excp_flush<=0;ertn_flush<=0;
+        excp_flush<=0;ertn_flush<=0;TCFG_change<=0;
         end
     else
         begin
+        TCFG_change<=0;
         excp_flush<=0;ertn_flush<=0;
             if(run_reg)
                 begin
@@ -587,7 +586,10 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                                 'h40:
                                     TID<=dwcsr_reg;
                                 'h41:
+                                    begin
+                                    TCFG_change<=1;
                                     TCFG<=dwcsr_reg[TIMER_n-1:0];
+                                    end
                                 //'h42:
                                 //'h44:    
                                 'h60:
