@@ -117,11 +117,11 @@ module cache_ctr (
             endcase
         else if(type_==6)
             case (subtype)//fot yuanzi, 0:load, 1:store
-                0: 
+                11: 
                 begin 
                     pipeline_dcache_wstrb='b1111; 
                 end
-                1: 
+                12: 
                 begin 
                     din_pipeline_dcache=rrd1_forward; 
                     pipeline_dcache_wstrb='b1111; 

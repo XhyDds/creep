@@ -26,7 +26,7 @@ module decoder (
     //for mul, 0:mul.w, 1:mulh.w, 2:mulh.wu
     //for dcache, 0~2:load, 3~5:store, 6~7:load, 8:cacop
     //for br, 0:b, 1:beq, 2:bne, 3:blt, 4:bge, 5:bltu, 6:bgeu
-    //for yuanzi, 0:load, 1:store
+    //for yuanzi, 11:load, 12:store
     //for tiaoxie, 0:jirl, 1:bl
     //for rdcnt, 0:rdcntvl.w, 1:rdcntvh.w, (2:rdcntid)
     reg memread,memwrite,regwrite,nop,priv,ifrdc,iftlbfill;
@@ -256,11 +256,11 @@ module decoder (
             case (ir[25:24])
                 'b00: //LL.W
                     begin
-                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=0;regwrite=1;memread=1;
+                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=11;regwrite=1;memread=1;
                     end
                 'b01: //SC.W
                     begin
-                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=1;memwrite=1;
+                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=12;memwrite=1;
                     end
                 default: begin type_=liwai;subtype=0;excp_arg='b001101; end
             endcase
