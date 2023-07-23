@@ -205,13 +205,12 @@ always @(*) begin
     hit_record_we = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
+            FSM_rbuf_we = 1;
             if(from[1])begin
                 l2cache_dcache_addrOK = ~ FSM_rbuf_SUC;//强序时先不发addrOK
-                FSM_rbuf_we = 1;
             end
             else if(from == 2'b01)begin
                 l2cache_icache_addrOK = 1;
-                FSM_rbuf_we = 1;
             end
         end
         Operation:begin
