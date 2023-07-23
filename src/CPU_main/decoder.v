@@ -29,11 +29,11 @@ module decoder (
     //for yuanzi, 11:load, 12:store
     //for tiaoxie, 0:jirl, 1:bl
     //for rdcnt, 0:rdcntvl.w, 1:rdcntvh.w, (2:rdcntid)
-    reg memread,memwrite,regwrite,nop,priv,ifrdc,iftlbfill,ifibar_cacop;
+    reg memread,memwrite,regwrite,nop,priv,ifrdc,iftlbfill,ifibar_cacop,userd;
     reg [2:0] kind;
-    assign control=(valid)?{1'b1,2'b0,ifibar_cacop,iftlbfill,kind,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
+    assign control=(valid)?{1'b1,1'b0,userd,ifibar_cacop,iftlbfill,kind,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
     always @(*) begin
-        rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;ifibar_cacop=0;kind=NOT_JUMP;iftlbfill=0;
+        userd=0;rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;ifibar_cacop=0;kind=NOT_JUMP;iftlbfill=0;
         if(excp_arg_in[15]) begin //ADEF 
             type_=liwai;subtype=0;excp_arg={1'b0,excp_arg_in[14:0]}; 
         end
@@ -199,11 +199,11 @@ module decoder (
                             end
                         'b00001: //CSRWR
                             begin
-                                excp_arg={2'b0,ir[23:10]};rd=ir[4:0];type_=liwai;subtype=9;regwrite=1;priv=1;
+                                excp_arg={2'b0,ir[23:10]};rd=ir[4:0];type_=liwai;subtype=9;regwrite=1;priv=1;userd=1;
                             end
                         default: //CSRXCHG
                             begin
-                                excp_arg={2'b0,ir[23:10]};rd=ir[4:0];rj=ir[9:5];type_=liwai;subtype=10;regwrite=1;priv=1;
+                                excp_arg={2'b0,ir[23:10]};rd=ir[4:0];rj=ir[9:5];type_=liwai;subtype=10;regwrite=1;priv=1;userd=1;
                             end
                     endcase
                 'b10: 
@@ -260,7 +260,7 @@ module decoder (
                     end
                 'b01: //SC.W
                     begin
-                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=12;memwrite=1;regwrite=1;
+                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=12;memwrite=1;regwrite=1;userd=1;
                     end
                 default: begin type_=liwai;subtype=0;excp_arg='b001101; end
             endcase
@@ -280,15 +280,15 @@ module decoder (
                     end
                 'b0100: //ST.B
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type_=dcache;subtype=3;memwrite=1;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type_=dcache;subtype=3;memwrite=1;userd=1;
                     end
                 'b0101: //ST.H
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type_=dcache;subtype=4;memwrite=1;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type_=dcache;subtype=4;memwrite=1;userd=1;
                     end
                 'b0110: //ST.W
                     begin
-                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type_=dcache;subtype=5;memwrite=1;
+                        imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];rd=ir[4:0];type_=dcache;subtype=5;memwrite=1;userd=1;
                     end
                 'b1000: //LD.BU
                     begin
