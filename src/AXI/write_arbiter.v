@@ -112,6 +112,10 @@ module write_arbiter#(
                 axi_wrt_awready=l2_waddrOK;
                 axi_wrt_wready=l2_wready;
                 axi_wrt_bvalid=l2_bvalid;
+
+                if(nxt==DMA_W) begin
+                    dma_lock=1;
+                end
             end
             WRT_W: begin
                 mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
@@ -133,9 +137,6 @@ module write_arbiter#(
                 axi_wrt_wready=l2_wready;
                 axi_wrt_bvalid=l2_bvalid;
 
-                if(nxt==DMA_W) begin
-                    dma_lock=1;
-                end
             end
             DMA_W: begin
                 l2_wstrb=l2cache_axi_wstrb;

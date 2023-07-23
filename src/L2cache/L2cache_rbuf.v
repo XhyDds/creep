@@ -34,7 +34,7 @@ module L2cache_rbuf#(
     input [1:0]from,//0-No 1-I 2-Dr 3-Dw
     output reg[1:0]rbuf_from
     );
-reg rbuf_SUC1;
+// reg rbuf_SUC1;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)begin
         rbuf_addr <= 0;
@@ -43,7 +43,7 @@ always @(posedge clk,negedge rstn) begin
         rbuf_opflag <= 0;
         rbuf_wstrb <= 0;
         rbuf_from <= 0;
-        rbuf_SUC1 <= 0;
+        rbuf_SUC <= 0;
         rbuf_opaddr <= 0;
     end
     else if(rbuf_we)begin
@@ -53,11 +53,11 @@ always @(posedge clk,negedge rstn) begin
         rbuf_opflag <= opflag;
         rbuf_wstrb <= wstrb;
         rbuf_from <= from;
-        rbuf_SUC1 <= SUC;
+        rbuf_SUC <= SUC;
         rbuf_opaddr <= opaddr;
     end
 end
-always @(*) begin
-    rbuf_SUC = rbuf_we ? SUC : rbuf_SUC1;
-end
+// always @(*) begin
+//     rbuf_SUC = rbuf_we ? SUC : rbuf_SUC1;
+// end
 endmodule
