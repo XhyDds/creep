@@ -35,7 +35,7 @@ module dcache_extend (
             endcase
         else if(type_==6)
             case (subtype)
-                11: dout_dcache_pipeline_extend={{16{dout16[15]}},dout16};
+                11: dout_dcache_pipeline_extend=dout_dcache_pipeline;
                 12: dout_dcache_pipeline_extend=din_pipeline_dcache;
             endcase
     end
