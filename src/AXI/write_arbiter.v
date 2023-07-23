@@ -66,6 +66,10 @@ module write_arbiter#(
                                 nxt = IDLE;
                 else            nxt = WRT_W;
             end
+            DMA_AW: begin
+                if(l2_waddrOK)   nxt = DMA_W;
+                else            nxt = DMA_AW;
+            end
             DMA_W: begin
                 if(l2_wready)   nxt = DMA_R;
                 else            nxt = DMA_W;
@@ -137,6 +141,14 @@ module write_arbiter#(
                 axi_wrt_wready=l2_wready;
                 axi_wrt_bvalid=l2_bvalid;
 
+            end
+            DMA_AW: begin
+                l2_wstrb=l2cache_axi_wstrb;
+                l2_len=8'd0;
+                l2_waddr=addr_l2cache_mem_w;
+                l2_wdata=dout_l2cache_mem[31:0];
+                l2_wvalid=1;
+                dma_lock=1;
             end
             DMA_W: begin
                 l2_wstrb=l2cache_axi_wstrb;
