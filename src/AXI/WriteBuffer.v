@@ -106,6 +106,7 @@ module WriteBuffer #(
         out_addr=0;
         out_data=0;
         out_bready=0;
+        out_wvalid=0;
 
         pointer_minus=0;
 

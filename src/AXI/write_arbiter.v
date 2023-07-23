@@ -92,6 +92,7 @@ module write_arbiter#(
         l2_waddr=0;
         l2_wdata=0;
         l2_wvalid=0;
+        l2_wwvalid=0;
         l2_wlast=0;
         l2_bready=0;
 
@@ -160,6 +161,7 @@ module write_arbiter#(
                 l2_waddr=addr_l2cache_mem_w;
                 l2_wdata=dout_l2cache_mem[31:0];
                 l2_wvalid=1;
+                l2_wwvalid=1;
                 l2_wlast=1;
 
                 dma_lock=1;
