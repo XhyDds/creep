@@ -80,6 +80,7 @@ module l2_axi_package #(
     wire [31:0]wrt_axi_waddr   ;
     wire [31:0]wrt_axi_wdata   ;
     wire wrt_axi_wvalid  ;
+    wire wrt_axi_wwvalid ;
     wire axi_wrt_awready ;
     wire axi_wrt_wready  ;
     wire wrt_axi_wlast   ;
@@ -96,6 +97,7 @@ module l2_axi_package #(
     wire [31:0] l2_rdata;
 
     wire l2_wvalid; 
+    wire l2_wwvalid;
     wire l2_wready;
     wire l2_waddrOK;
     wire l2_wlast;
@@ -152,6 +154,7 @@ module l2_axi_package #(
         .out_addr           (wrt_axi_waddr),
         .out_data           (wrt_axi_wdata),
         .out_valid          (wrt_axi_wvalid),
+        .out_wvalid         (wrt_axi_wwvalid),
         .out_awready        (axi_wrt_awready),
         .out_wready         (axi_wrt_wready),
         .out_last           (wrt_axi_wlast),
@@ -183,6 +186,7 @@ module l2_axi_package #(
         .l2_waddr           (l2_waddr),
         .l2_wdata           (l2_wdata),
         .l2_wvalid          (l2_wvalid),
+        .l2_wwvalid         (l2_wwvalid),
         .l2_waddrOK         (l2_waddrOK),
         .l2_wready          (l2_wready),
         .l2_wlast           (l2_wlast),
@@ -197,6 +201,7 @@ module l2_axi_package #(
         .wrt_axi_addr       (wrt_axi_waddr),
         .wrt_axi_data       (wrt_axi_wdata),
         .wrt_axi_valid      (wrt_axi_wvalid),
+        .wrt_axi_wvalid     (wrt_axi_wwvalid),
         .axi_wrt_awready    (axi_wrt_awready),
         .axi_wrt_wready     (axi_wrt_wready),
         .wrt_axi_last       (wrt_axi_wlast),
@@ -248,6 +253,7 @@ module l2_axi_package #(
         .l2_rlast  		( l2_rlast	),//output reg  
 
         .l2_wvalid 		( l2_wvalid         ),//input
+        .l2_wwvalid     ( l2_wwvalid        ),//input
         .l2_waddrOK     ( l2_waddrOK        ),//output
         .l2_wready 		( l2_wready 		),//output reg
         .l2_waddr  		( l2_waddr  		),//input [31:0]
