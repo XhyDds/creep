@@ -29,14 +29,16 @@ module write_arbiter#(
     input    [31:0] wrt_axi_addr,
     input    [31:0] wrt_axi_data,
     input    wrt_axi_valid,
-    output   axi_wrt_awready,
-    output   axi_wrt_wready,
+    output   reg axi_wrt_awready,
+    output   reg axi_wrt_wready,
     input    wrt_axi_last,
-    output   axi_wrt_bvalid,
+    output   reg axi_wrt_bvalid,
     input    wrt_axi_bready,
     //直接访存
     input    [3:0]l2cache_axi_wstrb,
-    input    dma_sign
+    input    dma_sign,
+    output   reg dma_lock,//dma锁
+    input    wrt_lock
 );
     parameter IDLE = 3'd0,WRT_W = 3'd1,DMA_AW=3'd2 , DMA_W=3'd3 , DMA_R=3'd4;
 
@@ -52,7 +54,7 @@ module write_arbiter#(
         case(crt)
             IDLE: begin
                 if(l2cache_mem_req_w) begin
-                    if(dma_sign)
+                    if(dma_sign && wrt_lock==0)
                                 nxt = DMA_AW;
                     else
                                 nxt = WRT_W;
@@ -95,6 +97,7 @@ module write_arbiter#(
         axi_wrt_wready=0;
         axi_wrt_bvalid=0;
 
+        dma_lock=0;
         case (crt)
             IDLE: begin
                 l2_len=8'd3;
@@ -130,6 +133,9 @@ module write_arbiter#(
                 axi_wrt_wready=l2_wready;
                 axi_wrt_bvalid=l2_bvalid;
 
+                if(nxt==DMA_W) begin
+                    dma_lock=1;
+                end
             end
             DMA_W: begin
                 l2_wstrb=l2cache_axi_wstrb;
@@ -138,6 +144,8 @@ module write_arbiter#(
                 l2_wdata=dout_l2cache_mem[31:0];
                 l2_wvalid=1;
                 l2_wlast=1;
+
+                dma_lock=1;
             end
             DMA_R: begin
                 mem_l2cache_addrOK_w=l2_bvalid;
@@ -145,6 +153,8 @@ module write_arbiter#(
                 l2_wstrb=l2cache_axi_wstrb;
                 l2_len=8'd0;
                 l2_bready=1;
+
+                dma_lock=1;
             end
             default: ;
         endcase

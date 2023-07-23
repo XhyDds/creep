@@ -113,6 +113,9 @@ module l2_axi_package #(
     wire cache_mem_rdy;
     wire mem_arbiter_addrOK;
 
+    wire wrt_lock;
+    wire dma_lock;
+
     wire [3:0]l2_wstrb;
     wire [7:0]l2_len;
 
@@ -157,7 +160,10 @@ module l2_axi_package #(
 
         .query_addr         (addr_l2cache_mem_r),
         .query_data         (query_data),
-        .query_ok           (query_ok)
+        .query_ok           (query_ok),
+
+        .dma_lock           (dma_lock),
+        .wrt_lock           (wrt_lock)
     );
 
     write_arbiter #(
@@ -198,7 +204,10 @@ module l2_axi_package #(
         .wrt_axi_bready     (wrt_axi_bready),
         //直接访存
         .l2cache_axi_wstrb  (l2cache_axi_wstrb),
-        .dma_sign           (dma_sign)
+        .dma_sign           (dma_sign),
+
+        .dma_lock           (dma_lock),
+        .wrt_lock           (wrt_lock)
     );
 
     read_arbiter #(
