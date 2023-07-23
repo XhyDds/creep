@@ -15,6 +15,7 @@ module write_arbiter#(
     output   reg  [31:0] l2_waddr,
     output   reg  [31:0] l2_wdata,
     output   reg  l2_wvalid,
+    output   reg  l2_wwvalid,
     input    l2_waddrOK,
     input    l2_wready,
     output   reg  l2_wlast,
@@ -29,6 +30,7 @@ module write_arbiter#(
     input    [31:0] wrt_axi_addr,
     input    [31:0] wrt_axi_data,
     input    wrt_axi_valid,
+    input    wrt_axi_wvalid,
     output   reg axi_wrt_awready,
     output   reg axi_wrt_wready,
     input    wrt_axi_last,
@@ -110,6 +112,7 @@ module write_arbiter#(
                 l2_waddr=wrt_axi_addr;
                 l2_wdata=wrt_axi_data;
                 l2_wvalid=wrt_axi_valid;
+                l2_wwvalid=wrt_axi_wvalid;
                 l2_wlast=wrt_axi_last;
                 l2_bready=wrt_axi_bready;
 
@@ -134,6 +137,7 @@ module write_arbiter#(
                 l2_waddr=wrt_axi_addr;
                 l2_wdata=wrt_axi_data;
                 l2_wvalid=wrt_axi_valid;
+                l2_wwvalid=wrt_axi_wvalid;
                 l2_wlast=wrt_axi_last;
                 l2_bready=wrt_axi_bready;
 

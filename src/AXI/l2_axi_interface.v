@@ -16,6 +16,7 @@ module l2_axi_interface#(
     output reg          l2_rlast,     
 
     input               l2_wvalid,   //aw: l2->arbiter:req
+    input               l2_wwvalid,
     output reg          l2_waddrOK,   //arbiter->l2:addrOK
     output reg          l2_wready,   //w: arbiter->l2:暂不关注
     input [31:0]        l2_waddr,
@@ -187,7 +188,7 @@ module l2_axi_interface#(
             awvalid     = 1;
         end
         D_W: begin
-            wvalid      = 1;
+            wvalid      = l2_wwvalid;
             wlast       = l2_wlast;
             l2_wready   = wready;
             l2_waddrOK  = wready;

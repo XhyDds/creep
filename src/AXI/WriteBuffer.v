@@ -24,6 +24,7 @@ module WriteBuffer #(
     output [31:0] out_addr,
     output [31:0] out_data,
     output reg out_valid,
+    output reg out_wvalid,
     input  out_awready,
     input  out_wready,
     output reg out_last,
@@ -126,22 +127,26 @@ module WriteBuffer #(
                 out_valid=1;
                 wrt_lock=1;
                 out_data=_out_data[31:0];
+                out_wvalid=1;
             end
             SEND_1: begin
                 out_valid=1;
                 wrt_lock=1;
                 out_data=_out_data[63:32];
+                out_wvalid=1;
             end
             SEND_2: begin
                 out_valid=1;
                 wrt_lock=1;
                 out_data=_out_data[95:64];
+                out_wvalid=1;
             end
             SEND_3: begin
                 out_valid=1;
                 out_last=1;
                 wrt_lock=1;
                 out_data=_out_data[127:96];
+                out_wvalid=1;
             end
             _SEND: begin
                 out_bready=1;
