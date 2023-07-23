@@ -312,7 +312,7 @@ module decoder (
         'b010011: //JIRL
             begin 
                 imm={{14{ir[25]}},ir[25:10],2'b0};type_=tiaoxie;subtype=0;regwrite=1;pcsrc=1;
-                aluop=jia;alusrc1=1;alusrc2=3;rj=ir[9:5];rd=ir[4:0];kind=(rd==0&rj==1&ir[25:10]==0)?RET:(rd==1?CALL:INDIRECT_JUMP);
+                aluop=jia;alusrc1=1;alusrc2=3;rj=ir[9:5];rd=ir[4:0];kind=(rd==0&rj==1&ir[25:10]==0)?RET:(rd==1?CALL:INDIRECT_JUMP);userd=1;
             end
         'b010100: //B
             begin 
@@ -320,31 +320,31 @@ module decoder (
             end
         'b010101: //BL
             begin 
-                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiaoxie;subtype=1;regwrite=1;pcsrc=1;aluop=jia;alusrc1=1;alusrc2=3;rd=1;kind=CALL;
+                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiaoxie;subtype=1;regwrite=1;pcsrc=1;aluop=jia;alusrc1=1;alusrc2=3;rd=1;kind=CALL;userd=1;
             end
         'b010110: //BEQ
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=1;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=1;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;userd=1;
             end
         'b010111: //BNE
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=2;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=2;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;userd=1;
             end
         'b011000: //BLT
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=3;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=3;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;
             end
         'b011001: //BGE
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=4;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=4;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;
             end
         'b011010: //BLTU
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=5;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=5;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;
             end
         'b011011: //BGEU
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;
             end
         default: begin type_=liwai;subtype=0;excp_arg='b001101; end
         endcase

@@ -20,14 +20,14 @@ module dispatcher (
     wire regwrite0=control0[6];
     wire regwrite1=control1[6];
     //0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br, 9:ibar, 10:priv+mmu, 11:mmu
-    wire xiangguan=(rd1==rk0|rd1==rj0|rd1==rd0&control1[29])&regwrite1&(|rd1);
+    wire xiangguan=(rd1==rk0|rd1==rj0|rd1==rd0&control0[29])&regwrite1&(|rd1);
     // wire xiangguan=(/*rd0==rd1|rd0==rk1|rd0==rj1|*/rd0==rk1|rd0==rj1|rd1==rk0|rd1==rj0);
     wire upable=(type0==0|type0==1|/*type0==2|*/type0==4|type0==8|type0==9|type0==7);
     // wire suanshu1=(type1==0|type1==2|type1==4);
     // wire suanshubr1=(suanshu1|type1==1|type1==8);
     // wire jiaohuan=(type0==5)&suanshu1;//3000是alu，3004是dcache
-    wire twostates0=(type0==4|type0==5|type0==2|type0==3&regwrite0);
-    wire twostates1=(type1==4|type1==5|type1==2|type1==3&regwrite1);
+    wire twostates0=((type0==4|type0==5|type0==2|type0==3)&regwrite0);
+    wire twostates1=((type1==4|type1==5|type1==2|type1==3)&regwrite1);
     wire stall1=(twostates0_reg&(rd0_reg==rk1|rd0_reg==rj1|rd1==rd0_reg&control1[29]))
                |(twostates1_reg&(rd1_reg==rk1|rd1_reg==rj1|rd1==rd1_reg&control1[29]));
     wire stall0=(twostates0_reg&(rd0_reg==rk0|rd0_reg==rj0|rd0==rd0_reg&control0[29]))
