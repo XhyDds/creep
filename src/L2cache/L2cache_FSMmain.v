@@ -204,6 +204,7 @@ always @(*) begin
     FSM_choose_return = 0;
     FSM_TagV_init = 0;
     hit_record_we = 0;
+    FSM_TagV_unvalid = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
