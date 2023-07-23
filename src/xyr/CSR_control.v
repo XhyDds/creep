@@ -92,7 +92,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign CSR_pipeline_DMW1={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     
     localparam PRIV=3,LLW=6,PRIV_MMU=10;
-    localparam LOAD=0,ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10,
+    localparam LOAD=11,ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10,
     TLBSRCH=1,TLBRD=2,TLBWR=3,TLBFILL=4;
     localparam INT='H0,PIL='H1,PIS='H2,PIF='H3,PME='H4,PPI='H7,
     ADE='H8,ALE='H9,SYS='HB,BRK='HC,INE='HD,IPE='HE,FPD='HF,
@@ -484,7 +484,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                                         BADV<=evaddr_reg;
                             endcase
                             end
-                        LLW:
+                        LOAD:
                             begin
                             LLBCTL_ROLLB<=1;
                             end
