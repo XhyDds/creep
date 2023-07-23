@@ -58,6 +58,6 @@ always @(posedge clk,negedge rstn) begin
     end
 end
 always @(*) begin
-    rbuf_SUC = rbuf_SUC1|SUC;
+    rbuf_SUC = rbuf_we ? SUC : rbuf_SUC1;
 end
 endmodule
