@@ -100,7 +100,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     localparam ADEF='H0,ADEM='H1;
     reg [4:0] mode;wire [31:0] din;reg [31:0]dout,mask;
     wire [8:0] ESTATin;reg flushout;wire stallin,flushin;
-    wire exe;wire [15:0] excp_arg1;reg clk_stall;reg [31:0] outpc;
+    wire exe;wire [15:0] excp_arg1;reg clk_stall,nclk_stall;
+    reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;wire inpc_valid;reg [5:0]ecode;
     reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;
     reg rand_en;reg inst_stop,inst_stop_reg;wire [31:0] jumpc;wire jumpc_valid;
@@ -116,7 +117,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
     assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||excp_arg1[15]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
-    assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;
+    assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall|nclk_stall;
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
     assign csr_num=pipeline_CSR_excp_arg0;
     assign inte={ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]}?CRMD[2]&~inst_stop_reg:0;
@@ -187,6 +188,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
         csr_num_reg<=0;inst_stop_reg<=0;jumpc_reg<=0;
+        clk_stall<=0;
         //excp_flush<=0;ertn_flush<=0;
         end
     else if(!stallin||inte)
@@ -197,6 +199,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
+        clk_stall<=nclk_stall;
         //excp_flush<=nexcp_flush;ertn_flush<=nertn_flush;
         if(jumpc_valid)
             jumpc_reg<=jumpc;
@@ -242,7 +245,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     mode=pipeline_CSR_subtype;
     evaddr=inpc;//TLB(F),ADEF,PIF,PPI
     TI_cl=0;rand_en=0;
-    inst_stop=0;
+    inst_stop=0;nclk_stall=0;
     TLBIDXout=0;TLBEHIout=0;
     TLBELO0out=0;TLBELO1out=0;
     TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
@@ -292,8 +295,9 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 end
             INTE:
                begin
-                inst_stop=1;
+               inst_stop=1;
                flushout=1; 
+               nclk_stall=0; 
                if(ecode==TLBR)
                     begin
                     outpc={TLBRENTRY,6'b0};
@@ -328,7 +332,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 //TLBIDXout[TLB_n-1:0]=randnum[TLB_n-1:0];
                 TLBIDXout[TLB_n-1:0]=0;
                 end
-                      
+            IDLE:
+                nclk_stall=1;           
         endcase
         end
     else
@@ -416,7 +421,6 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     begin
     if(!rstn)
         begin
-        clk_stall<=0;
         CRMD<=9'b0000_0100_0;PRMD<=0;EUEN<=0;ECFG_LIE<=0;
         ESTAT_IS<=0;ESTAT_Ecode<=0;ESTAT_EsubCode<=0;
         ERA<=0;BADV<=0;EENTRY<=0;
@@ -437,7 +441,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 begin
                 if(mode_reg==IDLE && !clk_stall)
                     begin
-                    clk_stall<=1;
+                    ERA<=inpc_reg+4;
                     end   
                 else
                     begin
@@ -456,8 +460,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             begin
                             PRMD<=CRMD[2:0];
                             CRMD[2:0]<=0;
-                            ERA<=inpc_reg;
-                            clk_stall<=0;
+                            if(!clk_stall)
+                                ERA<=inpc_reg;
                             if(ecode_reg==TLBR)
                                 begin
                                 CRMD[4:3]<=2'b01;
