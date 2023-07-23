@@ -16,7 +16,7 @@ module npc_predictor#(
     input [2:0]kind_pdc,
     input taken_pdc,
     output choice_btb_ras,    //0:btb,1:ras
-    output reg[ADDR_WIDTH-1:0] npc_test,
+    output [ADDR_WIDTH-1:0] npc_test,
     //当前
     input [gh_width-1:0] pc_gh_hashed,
     input [ADDR_WIDTH-1:0] pc
