@@ -302,8 +302,8 @@ module decoder (
                 default: begin type_=liwai;subtype=0;excp_arg='b001101; end
             endcase
         'b001110: 
-            if(ir[25:18]=='b0001110010)
-                case (ir[17])
+            if(ir[25:16]=='b0001110010)
+                case (ir[15])
                     'b0: nop=1;//DBAR
                     'b1: begin type_=9;ifibar_cacop=1; end//IBAR
                     default: begin type_=liwai;subtype=0;excp_arg='b001101; end
