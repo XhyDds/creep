@@ -996,7 +996,7 @@ module core_top(
         .rstn                   		( rstn                   		),
 
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
-        .paddr_pipeline_dcache   		( MMU_pipeline_VADDR1   		),
+        .paddr_pipeline_dcache   		( MMU_pipeline_PADDR1   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
@@ -1276,8 +1276,7 @@ module core_top(
             pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;pre_if1_fifo<=0;npc_if1_fifo<=0;MMU_pipeline_excp_arg0_if1_fifo<=0;
         end
         else begin
-            // pc_if1_fifo<=pc_if0_if1;//Icache ONLY
-            pc_if1_fifo<=
+            pc_if1_fifo<=pc_if0_if1;
             PLV_if1_fifo<=PLV_if0_if1;
             pre_if1_fifo<=pre_if0_if1;
             ir_if1_fifo<=dout_icache_pipeline;
@@ -1672,8 +1671,8 @@ module core_top(
             result_exe1_wb_1<=result1;
             pc_exe1_wb_1<=pc_exe0_exe1_1;
             ir_exe1_wb_1<=ir_exe0_exe1_1;
-            vaddr_exe1_wb<=0;
-            paddr_exe1_wb<=addr_pipeline_dcache_reg;
+            vaddr_exe1_wb<=addr_pipeline_dcache_reg;
+            paddr_exe1_wb<=MMU_pipeline_PADDR1;
             ir_valid_exe1_wb_1<=ir_valid_exe0_exe1_1;
             countresult_exe1_wb_1<=countresult_exe0_exe1_1;
             rand_index_exe1_wb<=rand_index_exe0_exe1;
@@ -1699,7 +1698,7 @@ module core_top(
     wire mem_l2cache_dataOK  ;
     wire l2cache_mem_SUC     ;
 
-L1_L2cache #(
+    L1_L2cache #(
         .I_index_width  		( 4 		),
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
@@ -1726,7 +1725,7 @@ L1_L2cache #(
 
         //  Dcache
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
-        .paddr_pipeline_dcache   		( MMU_pipeline_VADDR1   		),
+        .paddr_pipeline_dcache   		( MMU_pipeline_PADDR1   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
