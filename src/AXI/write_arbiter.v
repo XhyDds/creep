@@ -96,7 +96,16 @@ module write_arbiter#(
         axi_wrt_bvalid=0;
 
         case (crt)
-            IDLE: ;
+            IDLE: begin
+                l2_len=8'd3;
+                l2_wstrb=4'hF;
+
+                l2_waddr=wrt_axi_addr;
+                l2_wdata=wrt_axi_data;
+                l2_wvalid=wrt_axi_valid;
+                l2_wlast=wrt_axi_last;
+                l2_bready=wrt_axi_bready;
+            end
             WRT_W: begin
                 mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
 
@@ -107,9 +116,16 @@ module write_arbiter#(
                 dout_l2cache_wrt=dout_l2cache_mem;
                 l2cache_wrt_req_w=l2cache_mem_req_w;
 
+                l2_waddr=wrt_axi_addr;
+                l2_wdata=wrt_axi_data;
+                l2_wvalid=wrt_axi_valid;
+                l2_wlast=wrt_axi_last;
+                l2_bready=wrt_axi_bready;
+
                 axi_wrt_awready=l2_waddrOK;
                 axi_wrt_wready=l2_wready;
                 axi_wrt_bvalid=l2_bvalid;
+
             end
             DMA_W: begin
                 l2_wstrb=l2cache_axi_wstrb;
