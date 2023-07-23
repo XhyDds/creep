@@ -2,9 +2,9 @@
 // `define DDMA
 // `define predictor
 `define MMU
-// `define ICache
-// `define DCache
-`define L2Cache
+`define ICache
+`define DCache
+// `define L2Cache
 // `define DMA  //选择L2Cache�? 再�?�DMA
 module core_top(
     input           aclk,
@@ -146,7 +146,7 @@ module core_top(
     wire stall_priv=0;
     wire idle0;
 
-    wire ifbr0,ifbr1,ifibar0,ifibar1,ifcacop_ibar;
+    wire ifbr0,ifbr1,ifcacop_ibar;
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;//dcache_valid-ready?
@@ -168,14 +168,14 @@ module core_top(
         end
     end
 
-    assign flush_if0_if1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
-    assign flush_if1_fifo =     ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
-    assign flush_fifo_id =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
-    assign flush_id_reg0 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
-    assign flush_id_reg1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
-    assign flush_reg_exe0_0 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
-    assign flush_reg_exe0_1 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
-    assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_reg_exe0_1 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_exe0_exe1_0 =  ifpriv|ifbr1|ifcacop_ibar|ifmmu_excp|idle0;
     assign flush_exe0_exe1_1 =  ifmmu_excp|excp_flush|idle1;
     assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush|idle1;
     assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush|idle2;
@@ -260,7 +260,6 @@ module core_top(
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
 
-        // .ifibar(ifibar0|ifibar1),
         .addr_pipeline_icache   		( (|pc[1:0])?0:pc),
         .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
@@ -730,17 +729,17 @@ module core_top(
         .divider_pipeline_dout    		( divresult1    		)
     );
 
-    ibar u_ibar0(
-        //ports
-        .ctr        	( ctr_reg_exe0_0        		),
-        .ifibar 		( ifibar0 		)
-    );
+    // ibar u_ibar0(
+    //     //ports
+    //     .ctr        	( ctr_reg_exe0_0        		),
+    //     .ifibar 		( ifibar0 		)
+    // );
 
-    ibar u_ibar1(
-        //ports
-        .ctr        	( ctr_reg_exe0_1_excp        		),
-        .ifibar 		( ifibar1 		)
-    );
+    // ibar u_ibar1(
+    //     //ports
+    //     .ctr        	( ctr_reg_exe0_1_excp        		),
+    //     .ifibar 		( ifibar1 		)
+    // );
 
     wire [31:0]	pc_br0;
 
@@ -779,6 +778,7 @@ module core_top(
     wire    pipeline_l2cache_opflag;
     wire    pipeline_dcache_opflag;
     wire    pipeline_icache_opflag;
+    wire    pipeline_MMU_valid;
 
     cache_ctr u_cache_ctr(
         //ports
@@ -791,6 +791,7 @@ module core_top(
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
         .pipeline_dcache_valid  		( pipeline_dcache_valid  		),
+        .pipeline_MMU_valid             ( pipeline_MMU_valid            ),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_cache_opcode 		    ( pipeline_cache_opcode 		),
         .ifcacop_ibar                   ( ifcacop_ibar                  ),
@@ -978,7 +979,7 @@ module core_top(
         .MMU_pipeline_memtype0  		( MMU_pipeline_memtype0         ),
 
         .pipeline_MMU_optype1   		( type_pipeline_dcache?2:1 		),
-        .pipeline_MMU_VADDR_valid1      (pipeline_dcache_valid      ),
+        .pipeline_MMU_VADDR_valid1      ( pipeline_MMU_valid            ),
         .pipeline_MMU_VADDR1    		( addr_pipeline_dcache 		    ),
         .MMU_pipeline_PADDR1    		( MMU_pipeline_PADDR1 		    ),
         .MMU_pipeline_excp_arg1 		( MMU_pipeline_excp_arg1 		),
@@ -1501,11 +1502,11 @@ module core_top(
     always @(*) begin//�?测访存地�?是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
-        if(ctr_reg_exe0_1[23]&(|PLV)) begin 
+        if(ctr_reg_exe0_1[22]&(|PLV)) begin 
             ctr_reg_exe0_1_excp=liwai;
             excp_arg_reg_exe0_1_excp=excp_argIPE; 
         end//用户态访问越�?
-        else if(ctr_reg_exe0_1[3:0]==5)
+        else if(ctr_reg_exe0_1[3:0]==5&ctr_reg_exe0_1[11:7]!=8)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
                 2: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1514,9 +1515,9 @@ module core_top(
                 7: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
             endcase
         else if(ctr_reg_exe0_1[3:0]==6)
-            case (ctr_reg_exe0_1[11:7])//fot yuanzi, 0:load, 1:store
-                0: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
-                1: 
+            case (ctr_reg_exe0_1[11:7])//for yuanzi, 11:load, 12:store
+                11: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                12: 
                 if(LLbit) begin
                     if(|addr_2[1:0]) begin 
                         ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; 

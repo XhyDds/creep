@@ -5,6 +5,7 @@ module cache_ctr (
     output  reg  [31:0]din_pipeline_dcache,
     output  reg  type_pipeline_dcache, //0-read 1-write
     output  reg  pipeline_dcache_valid,
+    output  reg  pipeline_MMU_valid,
     output  reg  ifcacop_ibar,
     output  reg  [3:0]pipeline_dcache_wstrb, //字节处理位
     output  reg  [31:0]pipeline_cache_opcode, //cache操作//?????
@@ -19,6 +20,7 @@ module cache_ctr (
         din_pipeline_dcache=0;
         type_pipeline_dcache=ctr_reg_exe0_1[5];
         pipeline_dcache_valid=ctr_reg_exe0_1[5]|ctr_reg_exe0_1[4]|ctr_reg_exe0_1[28];
+        pipeline_MMU_valid=ctr_reg_exe0_1[5]|ctr_reg_exe0_1[4]|ctr_reg_exe0_1[28]&(excp_arg_reg_exe0_1_excp[4:3]==2);
         pipeline_dcache_wstrb=0;
         pipeline_dcache_opflag=0;
         pipeline_cache_opcode=0;

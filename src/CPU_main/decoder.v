@@ -210,7 +210,7 @@ module decoder (
                     case (ir[23:22])
                         'b00: //CACOP
                             begin
-                                imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];excp_arg={11'b0,ir[4:0]};type_=dcache;subtype=8;priv=(ir[4:3]!=2);ifibar_cacop=1;
+                                imm={{20{ir[21]}},ir[21:10]};rj=ir[9:5];excp_arg={11'b0,ir[4:0]};type_=dcache;subtype=8;priv=~(ir[4:0]==8|ir[4:0]==9);ifibar_cacop=1;
                             end
                         'b01: 
                             if(ir[21:17]=='b00100)
@@ -218,10 +218,10 @@ module decoder (
                                 'b00: 
                                     if (ir[9:0]=='b0000000000)
                                         case (ir[14:10])
-                                            'b01010: begin type_=10;subtype=1; end//TLBSRCH
-                                            'b01011: begin type_=10;subtype=2; end//TLBRD
-                                            'b01100: begin type_=10;subtype=3; end//TLBWR
-                                            'b01101: begin type_=10;subtype=4;iftlbfill=1; end//TLBFILL
+                                            'b01010: begin type_=10;subtype=1;priv=1; end//TLBSRCH
+                                            'b01011: begin type_=10;subtype=2;priv=1; end//TLBRD
+                                            'b01100: begin type_=10;subtype=3;priv=1; end//TLBWR
+                                            'b01101: begin type_=10;subtype=4;iftlbfill=1;priv=1; end//TLBFILL
                                             'b01110: begin type_=liwai;subtype=6;priv=1; end //ERTN
                                             default: begin type_=liwai;subtype=0;excp_arg='b001101; end
                                         endcase
