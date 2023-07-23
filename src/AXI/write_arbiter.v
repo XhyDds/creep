@@ -105,6 +105,10 @@ module write_arbiter#(
                 l2_wvalid=wrt_axi_valid;
                 l2_wlast=wrt_axi_last;
                 l2_bready=wrt_axi_bready;
+
+                axi_wrt_awready=l2_waddrOK;
+                axi_wrt_wready=l2_wready;
+                axi_wrt_bvalid=l2_bvalid;
             end
             WRT_W: begin
                 mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
