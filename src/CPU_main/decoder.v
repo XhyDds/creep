@@ -227,7 +227,7 @@ module decoder (
                                         endcase
                                     else begin type_=liwai;subtype=0;excp_arg='b001101; end
                                 'b01: begin  //IDLE
-                                    type_=liwai;subtype=7;excp_arg={1'b0,ir[14:0]};priv=1;
+                                    type_=liwai;subtype=7;excp_arg={1'b0,ir[14:0]};priv=1;regwrite=1;
                                 end
                                 'b11: begin //INVTLB
                                     if(ir[4:0]<7) begin type_=11;subtype=5;rk=ir[14:10];rj=ir[9:5];excp_arg={11'b0,ir[4:0]};priv=1; end
