@@ -18,7 +18,7 @@ module cache_ctr (
         addr_pipeline_dcache=rrj1_forward+imm_reg_exe0_1;
         din_pipeline_dcache=0;
         type_pipeline_dcache=ctr_reg_exe0_1[5];
-        pipeline_dcache_valid=(type_==5)|(type_==6)|(type_==9);
+        pipeline_dcache_valid=ctr_reg_exe0_1[5]|ctr_reg_exe0_1[4]|ctr_reg_exe0_1[28];
         pipeline_dcache_wstrb=0;
         pipeline_dcache_opflag=0;
         pipeline_cache_opcode=0;

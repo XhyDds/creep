@@ -1,6 +1,7 @@
 module dcache_extend (
     input [31:0]ctr_exe0_exe1_1,dout_dcache_pipeline,din_pipeline_dcache,
     input [31:0]addr_pipeline_dcache,
+    input llbit,
     output reg [31:0]dout_dcache_pipeline_extend
 );
     wire [3:0]type_=ctr_exe0_exe1_1[3:0];
@@ -26,9 +27,9 @@ module dcache_extend (
                 1: dout_dcache_pipeline_extend={{16{dout16[15]}},dout16};
                 2: dout_dcache_pipeline_extend=dout_dcache_pipeline;
             //ST
-                3: dout_dcache_pipeline_extend=din_pipeline_dcache;
-                4: dout_dcache_pipeline_extend=din_pipeline_dcache;
-                5: dout_dcache_pipeline_extend=din_pipeline_dcache;
+                // 3: dout_dcache_pipeline_extend=din_pipeline_dcache;
+                // 4: dout_dcache_pipeline_extend=din_pipeline_dcache;
+                // 5: dout_dcache_pipeline_extend=din_pipeline_dcache;
             //LD
                 6: dout_dcache_pipeline_extend={24'b0,dout8};
                 7: dout_dcache_pipeline_extend={16'b0,dout16};
@@ -36,7 +37,7 @@ module dcache_extend (
         else if(type_==6)
             case (subtype)
                 11: dout_dcache_pipeline_extend=dout_dcache_pipeline;
-                12: dout_dcache_pipeline_extend=din_pipeline_dcache;
+                12: dout_dcache_pipeline_extend=llbit;
             endcase
     end
 endmodule //dcache_extend

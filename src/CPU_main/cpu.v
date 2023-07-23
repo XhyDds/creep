@@ -102,10 +102,11 @@ module core_top(
     ir_reg_exe0_0,ir_reg_exe0_1,
     ir_exe0_exe1_0,ir_exe0_exe1_1,
     ir_exe1_wb_0,ir_exe1_wb_1,
-    addr_pipeline_dcache_reg,din_pipeline_dcache_reg,
+    addr_pipeline_dcache_exe0_exe1,
+    din_pipeline_dcache_exe0_exe1,din_pipeline_dcache_exe1_wb,
     vaddr_exe1_wb,paddr_exe1_wb;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1;
 
     // reg excp_flush_exe1_wb,ertn_flush_exe1_wb;
     
@@ -875,7 +876,7 @@ module core_top(
 
         .pipeline_CSR_inpc1     		( pc_exe0_exe1_1     		    ),
         .pipeline_CSR_excp_arg1 		( MMU_pipeline_excp_arg1        ),
-        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_reg		),
+        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_exe0_exe1		),
 
         .pipeline_CSR_ESTAT     		( 0     		     ),
         .CSR_pipeline_CRMD      		( CRMD      		 ),
@@ -1064,10 +1065,11 @@ module core_top(
     dcache_extend u_dcache_extend(
         //ports
         .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
-        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_reg       ),
+        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_exe0_exe1       ),
         .dout_dcache_pipeline        		( dout_dcache_pipeline ),
         .dout_dcache_pipeline_extend 		( dcacheresult 		   ),
-        .din_pipeline_dcache                ( din_pipeline_dcache_reg )
+        .din_pipeline_dcache                ( din_pipeline_dcache_exe0_exe1 ),
+        .llbit                              ( LLbit_exe0_exe1      )
     );
 
     writeback u_writeback(
@@ -1512,9 +1514,18 @@ module core_top(
                 7: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
             endcase
         else if(ctr_reg_exe0_1[3:0]==6)
-            case (ctr_id_reg_1[11:7])//fot yuanzi, 0:load, 1:store
+            case (ctr_reg_exe0_1[11:7])//fot yuanzi, 0:load, 1:store
                 0: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
-                1: if(LLbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                1: 
+                if(LLbit) begin
+                    if(|addr_2[1:0]) begin 
+                        ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; 
+                    end
+                end
+                else begin
+                    ctr_reg_exe0_1_excp={ctr_reg_exe0_1[31:6],1'b0,ctr_reg_exe0_1[4:0]};
+                    excp_arg_reg_exe0_1_excp=0;
+                end
             endcase
     end
 
@@ -1556,8 +1567,8 @@ module core_top(
             result_exe0_exe1_1<=0;
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
-            addr_pipeline_dcache_reg<=0;
-            din_pipeline_dcache_reg<=0;
+            addr_pipeline_dcache_exe0_exe1<=0;
+            din_pipeline_dcache_exe0_exe1<=0;
             ir_valid_exe0_exe1_1<=0;
             countresult_exe0_exe1_1<=0;
             rand_index_exe0_exe1<=0;
@@ -1569,8 +1580,8 @@ module core_top(
             result_exe0_exe1_1<=0;
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
-            addr_pipeline_dcache_reg<=0;
-            din_pipeline_dcache_reg<=0;
+            addr_pipeline_dcache_exe0_exe1<=0;
+            din_pipeline_dcache_exe0_exe1<=0;
             ir_valid_exe0_exe1_1<=0;
             countresult_exe0_exe1_1<=0;
             rand_index_exe0_exe1<=0;
@@ -1581,8 +1592,8 @@ module core_top(
             result_exe0_exe1_1<=(ctr_reg_exe0_1_excp[3:0]==7)?countresult1:aluresult1;
             pc_exe0_exe1_1<=pc_reg_exe0_1;
             ir_exe0_exe1_1<=ir_reg_exe0_1;
-            addr_pipeline_dcache_reg<=addr_pipeline_dcache;
-            din_pipeline_dcache_reg<=din_pipeline_dcache;
+            addr_pipeline_dcache_exe0_exe1<=addr_pipeline_dcache;
+            din_pipeline_dcache_exe0_exe1<=din_pipeline_dcache;
             ir_valid_exe0_exe1_1<=ir_valid_reg_exe0_1;
             countresult_exe0_exe1_1<=countresult;
             rand_index_exe0_exe1<=CSR_rand_index;
@@ -1624,6 +1635,7 @@ module core_top(
             ir_exe1_wb_0<=0;
             ir_valid_exe1_wb_0<=0;
             countresult_exe1_wb_0<=0;
+            din_pipeline_dcache_exe1_wb<=0;
         end
         else if(stall_exe1_wb_0);
         else if(flush_exe1_wb_0) begin
@@ -1634,6 +1646,7 @@ module core_top(
             ir_exe1_wb_0<=0;
             ir_valid_exe1_wb_0<=0;
             countresult_exe1_wb_0<=0;
+            din_pipeline_dcache_exe1_wb<=0;
         end
         else begin
             ctr_exe1_wb_0 <= ctr_exe0_exe1_0;
@@ -1643,6 +1656,7 @@ module core_top(
             ir_exe1_wb_0<=ir_exe0_exe1_0;
             ir_valid_exe1_wb_0<=ir_valid_exe0_exe1_0;
             countresult_exe1_wb_0<=countresult_exe0_exe1_0;
+            din_pipeline_dcache_exe1_wb<=din_pipeline_dcache_exe0_exe1;
         end
     end
 
@@ -1658,6 +1672,7 @@ module core_top(
             ir_valid_exe1_wb_1<=0;
             countresult_exe1_wb_1<=0;
             rand_index_exe1_wb<=0;
+            LLbit_exe0_exe1<=0;
             // ecode_exe1_wb<=0;
             // ertn_flush_exe1_wb<=0;
             // excp_flush_exe1_wb<=0;
@@ -1674,6 +1689,7 @@ module core_top(
             ir_valid_exe1_wb_1<=0;
             countresult_exe1_wb_1<=0;
             rand_index_exe1_wb<=0;
+            LLbit_exe0_exe1<=0;
             // ecode_exe1_wb<=0;
             // ertn_flush_exe1_wb<=0;
             // excp_flush_exe1_wb<=0;
@@ -1684,11 +1700,12 @@ module core_top(
             result_exe1_wb_1<=result1;
             pc_exe1_wb_1<=pc_exe0_exe1_1;
             ir_exe1_wb_1<=ir_exe0_exe1_1;
-            vaddr_exe1_wb<=addr_pipeline_dcache_reg;
+            vaddr_exe1_wb<=addr_pipeline_dcache_exe0_exe1;
             paddr_exe1_wb<=MMU_pipeline_PADDR1;
             ir_valid_exe1_wb_1<=ir_valid_exe0_exe1_1;
             countresult_exe1_wb_1<=countresult_exe0_exe1_1;
             rand_index_exe1_wb<=rand_index_exe0_exe1;
+            LLbit_exe0_exe1<=LLbit;
             // ecode_exe1_wb<=csr_ecode;
             // ertn_flush_exe1_wb<=ertn_flush;
             // excp_flush_exe1_wb<=excp_flush;
@@ -1828,7 +1845,7 @@ module core_top(
     assign debug0_wb_rf_wnum=wb_addr0;
     assign debug1_wb_rf_wnum=wb_addr1;
     assign debug0_wb_rf_wdata=wb_data0;
-    assign debug1_wb_rf_wdata=wb_data1;
+    assign debug1_wb_rf_wdata=ctr_exe1_wb_1[5]?din_pipeline_dcache_exe1_wb:wb_data1;
     assign debug0_wb_inst=ir_exe1_wb_0;
     assign debug1_wb_inst=ir_exe1_wb_1;
     assign arid=0;

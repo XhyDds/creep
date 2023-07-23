@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�?????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�?????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?????????，ex1�?????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?????????，ex1�?????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -91,8 +91,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign CSR_pipeline_DMW0={DMW0_VSEG,1'b0,DMW0_PSEG,19'b0,DMW0_MAT,DMW0_PLV3,2'b0,DMW0_PLV0};
     assign CSR_pipeline_DMW1={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     
-    localparam PRIV=3,LLW=6,PRIV_MMU=10;
-    localparam LOAD=11,ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10,
+    localparam PRIV=3,LLSCW=6,PRIV_MMU=10;
+    localparam LOAD=11,STORE=12,ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10,
     TLBSRCH=1,TLBRD=2,TLBWR=3,TLBFILL=4;
     localparam INT='H0,PIL='H1,PIS='H2,PIF='H3,PME='H4,PPI='H7,
     ADE='H8,ALE='H9,SYS='HB,BRK='HC,INE='HD,IPE='HE,FPD='HF,
@@ -117,7 +117,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
-    assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||excp_arg1[15]||(pipeline_CSR_type==LLW&&pipeline_CSR_subtype==LOAD);
+    assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||excp_arg1[15]||pipeline_CSR_type==LLSCW;
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall|nclk_stall;
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
@@ -489,6 +489,10 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                         LOAD:
                             begin
                             LLBCTL_ROLLB<=1;
+                            end
+                        STORE:
+                            begin
+                            LLBCTL_ROLLB<=0;
                             end
                         TLBSRCH:
                             begin
