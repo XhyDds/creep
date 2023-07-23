@@ -33,7 +33,11 @@ module WriteBuffer #(
     //query
     input  [31:0] query_addr,
     output [(1<<offset_width)*32-1:0] query_data,
-    output query_ok                        //query是否成功
+    output query_ok,                       //query是否成功
+
+    //互斥锁
+    input  dma_lock,
+    output reg wrt_lock
 );
     parameter WORD = (1<<offset_width)*32;
     reg [31:0] pointer;
@@ -62,7 +66,7 @@ module WriteBuffer #(
     always @(*) begin
         case (crt_pull)
             IDLE_L: begin
-                if(pointer!=0)      nxt_pull=PULL;
+                if(dma_lock==0 && pointer!=0)      nxt_pull=PULL;
                 else                nxt_pull=IDLE_L;
             end 
             PULL:       begin
@@ -103,34 +107,45 @@ module WriteBuffer #(
         out_bready=0;
 
         pointer_minus=0;
+
+        wrt_lock=0;
         case (crt_pull)
             IDLE_L: begin
-                if(nxt_pull==PULL)  pointer_minus=1;
+                if(nxt_pull==PULL) begin
+                    pointer_minus=1;
+                    wrt_lock=1;
+                end 
                 else ;
             end
             PULL: begin
                 out_valid=1;
+                wrt_lock=1;
                 out_addr=buffer_addr[pointer];
             end
             SEND_0: begin
                 out_valid=1;
+                wrt_lock=1;
                 out_data=_out_data[31:0];
             end
             SEND_1: begin
                 out_valid=1;
+                wrt_lock=1;
                 out_data=_out_data[63:32];
             end
             SEND_2: begin
                 out_valid=1;
+                wrt_lock=1;
                 out_data=_out_data[95:64];
             end
             SEND_3: begin
                 out_valid=1;
                 out_last=1;
+                wrt_lock=1;
                 out_data=_out_data[127:96];
             end
             _SEND: begin
                 out_bready=1;
+                wrt_lock=1;
             end
             default: ;
         endcase
