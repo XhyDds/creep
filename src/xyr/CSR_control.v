@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�?????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�?????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?????????，ex1�?????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?????????，ex1�?????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -109,7 +109,9 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;wire [9:0] ASIDin;
     
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
-    reg [31:0] dout_reg;reg run_reg;reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
+    reg [31:0] dout_reg;//reg run_reg;
+    reg exe_reg,inte_reg;
+    reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
     reg [31:0] jumpc_reg;reg TCFG_change;reg nexcp_flush,nertn_flush;
 
@@ -184,7 +186,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
         outpc_reg<=0;dout_reg<=0;
-        run_reg<=0;
+        run_reg<=0;inte_reg<=0;
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
         csr_num_reg<=0;inst_stop_reg<=0;jumpc_reg<=0;
@@ -194,7 +196,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     else if(!stallin||inte)
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
-        outpc_reg<=outpc;dout_reg<=dout;
+        outpc_reg<=outpc;dout_reg<=dout;inte_reg<=0;
         run_reg<=(!stallin && !flushin && exe)||inte;
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
