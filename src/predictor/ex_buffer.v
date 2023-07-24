@@ -24,13 +24,13 @@ module ex_buffer#(
     input [29:0] in_npc_ex_1   ,
     input [29:0] in_pc_ex_1    ,
     // output [DATA_WIDTH-1:0] out_data,
-    output       out_taken_pdc,
-    output[2:0]  out_kind_pdc ,
-    output[29:0] out_npc_pdc  ,
-    output       out_taken_ex ,
-    output[2:0]  out_kind_ex  ,
-    output[29:0] out_npc_ex   ,
-    output[29:0] out_pc_ex    ,
+    output reg          out_taken_pdc ,
+    output reg   [2:0]  out_kind_pdc  ,
+    output reg   [29:0] out_npc_pdc   ,
+    output reg          out_taken_ex  ,
+    output reg   [2:0]  out_kind_ex   ,
+    output reg   [29:0] out_npc_ex    ,
+    output reg   [29:0] out_pc_ex     ,
 
     output reg   update_en
 );
@@ -140,6 +140,27 @@ module ex_buffer#(
             out_data_0=buffer_data[pointer];
             out_data_1=buffer_data[pointer-1];
             update_en=1;
+        end
+
+        out_taken_pdc=0;
+        out_kind_pdc =0;
+        out_npc_pdc  =0;
+        out_taken_ex =0;
+        out_kind_ex  =0;
+        out_npc_ex   =0;
+        out_pc_ex    =0;
+
+        if(pack_size) begin
+            out_taken_pdc=out_taken_pdc_0;
+            out_kind_pdc =out_kind_pdc_0 ;
+            out_npc_pdc  =out_npc_pdc_0  ;
+            out_taken_ex =out_taken_ex_0 ;
+            out_kind_ex  =out_kind_ex_0  ;
+            out_npc_ex   =out_npc_ex_0   ;
+            out_pc_ex    =out_pc_ex_0    ;
+        end
+        else begin
+            
         end
     end
 endmodule

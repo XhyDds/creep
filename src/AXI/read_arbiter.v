@@ -74,7 +74,7 @@ module read_arbiter#(
     always @(*) begin
         mem_l2cache_addrOK_r=0;
         mem_l2cache_dataOK=0;
-        l2_rlen=1<<offset_width-1;
+        l2_rlen=(1<<offset_width)-1;
 
         arbiter_mem_req=0;
         case (crt)

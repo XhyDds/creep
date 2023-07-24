@@ -107,7 +107,7 @@ module write_arbiter#(
         dma_lock=0;
         case (crt)
             IDLE: begin
-                l2_len=1<<offset_width-1;
+                l2_len=(1<<offset_width)-1;
                 l2_wstrb=4'hF;
 
                 l2_waddr=wrt_axi_addr;
@@ -128,7 +128,7 @@ module write_arbiter#(
             WRT_W: begin
                 mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
 
-                l2_len=1<<offset_width-1;
+                l2_len=(1<<offset_width)-1;
                 l2_wstrb=4'hF;
 
                 addr_l2cache_wrt_w=addr_l2cache_mem_w;
