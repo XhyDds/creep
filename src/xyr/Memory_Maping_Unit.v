@@ -1,5 +1,5 @@
 module Memory_Maping_Unit#(
-    parameter TLB_n=7,TLB_PALEN=32,TLB_VALEN=32
+    parameter TLB_n=5,TLB_PALEN=32,TLB_VALEN=32
 )(
     input clk,rstn,
     input [3:0] pipeline_MMU_type,
@@ -139,6 +139,8 @@ module Memory_Maping_Unit#(
         found_tlbsch[i]=1'b0;
         if((ASID[i]==ASIDin || G[i]==1) && ({VPPN[i],12'b0}>>PS[i])==(TLBEHIin[31:1]>>PS[i]) && E[i]==1)//VPPNlow
             found_tlbsch[i]=1'b1;
+        else
+            found_tlbsch[i]=1'b0;
         end
         end
     endgenerate
@@ -268,6 +270,8 @@ module Memory_Maping_Unit#(
         look0[i]=1'b0;
         if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR0[31:1]>>PS[i]))//去低位比较，VPPN要补13位为正确地址
             look0[i]=1'b1;
+        else
+            look0[i]=1'b0;
         end
         end
     endgenerate
@@ -366,6 +370,8 @@ module Memory_Maping_Unit#(
         look1[i]=1'b0;
         if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR1[31:1]>>PS[i]))//去低位比较，VPPN要补13位为正确地址
             look1[i]=1'b1;
+        else
+            look1[i]=1'b0;
         end
         end
     endgenerate
