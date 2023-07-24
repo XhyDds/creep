@@ -34,6 +34,8 @@ module ex_buffer#(
 
     output reg   update_en
 );
+    localparam NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,CALL = 3'd2,RET = 3'd3,INDIRECT_JUMP = 3'd4,OTHER_JUMP = 3'd5;
+
     wire [97:0] in_data_0={in_pc_ex_0,in_npc_ex_0,in_kind_ex_0,in_taken_ex_0,in_npc_pdc_0,in_kind_pdc_0,in_taken_pdc_0};
     wire [97:0] in_data_1={in_pc_ex_1,in_npc_ex_1,in_kind_ex_1,in_taken_ex_1,in_npc_pdc_1,in_kind_pdc_1,in_taken_pdc_1};
 
@@ -160,7 +162,34 @@ module ex_buffer#(
             out_pc_ex    =out_pc_ex_0    ;
         end
         else begin
-            
+            out_taken_pdc=out_taken_pdc_0;
+            out_kind_pdc =out_kind_pdc_0 ;
+            out_npc_pdc  =out_npc_pdc_0  ;
+            out_pc_ex    =out_pc_ex_0    ;
+
+            out_taken_ex =out_taken_ex_0||out_taken_ex_1;
+            //kind
+            if(out_kind_ex_0==DIRECT_JUMP||out_kind_ex_1==DIRECT_JUMP) begin
+                out_kind_ex=DIRECT_JUMP;
+            end
+            else if(out_kind_ex_0==CALL||out_kind_ex_1==CALL) begin
+                out_kind_ex=CALL;
+            end
+            else if(out_kind_ex_0==RET||out_kind_ex_1==RET) begin
+                out_kind_ex=RET;
+            end
+            else if(out_kind_ex_0==INDIRECT_JUMP||out_kind_ex_1==INDIRECT_JUMP) begin
+                out_kind_ex=INDIRECT_JUMP;
+            end
+            else if(out_kind_ex_0==OTHER_JUMP||out_kind_ex_1==OTHER_JUMP) begin
+                out_kind_ex=OTHER_JUMP;
+            end
+            else begin
+                out_kind_ex=NOT_JUMP;
+            end
+            //npc
+            if(out_taken_ex_0) out_npc_ex=out_npc_ex_0;
+            else out_npc_ex=out_npc_ex_1;
         end
     end
 endmodule
