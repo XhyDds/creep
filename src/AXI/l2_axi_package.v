@@ -119,7 +119,8 @@ module l2_axi_package #(
     wire dma_lock;
 
     wire [3:0]l2_wstrb;
-    wire [7:0]l2_len;
+    wire [7:0]l2_wlen;
+    wire [7:0]l2_rlen;
 
     ReturnBuffer#(
         .offset_width       (offset_width)
@@ -182,7 +183,7 @@ module l2_axi_package #(
         .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),
         //l2cache_out
         .l2_wstrb           (l2_wstrb),
-        .l2_len             (l2_len),
+        .l2_len             (l2_wlen),
         .l2_waddr           (l2_waddr),
         .l2_wdata           (l2_wdata),
         .l2_wvalid          (l2_wvalid),
@@ -231,6 +232,7 @@ module l2_axi_package #(
         .query_data         (query_data),
         .query_ok           (query_ok),
 
+        .l2_rlen            (l2_rlen),
         .arbiter_mem_req    (arbiter_mem_req),
         .mem_arbiter_addrOK (mem_arbiter_addrOK),
         .mem_arbiter_dataOK (mem_arbiter_dataOK),
@@ -251,6 +253,7 @@ module l2_axi_package #(
         .l2_raddr  		( addr_l2cache_mem_r  		),//input [31:0]
         .l2_rdata  		( l2_rdata  		),//output [31:0]
         .l2_rlast  		( l2_rlast	),//output reg  
+        .l2_rlen        (l2_rlen),
 
         .l2_wvalid 		( l2_wvalid         ),//input
         .l2_wwvalid     ( l2_wwvalid        ),//input
@@ -260,6 +263,7 @@ module l2_axi_package #(
         .l2_wdata  		( l2_wdata  		),//input [31:0]
         .l2_wstrb  		( l2_wstrb   	    ),//input [3:0] 字节选通位
         .l2_wlast  		( l2_wlast  		),//input
+        .l2_wlen        ( l2_wlen           ),
 
         .l2_bvalid 		( l2_bvalid         ),//output reg
         .l2_bready 		( l2_bready 		),//input
