@@ -256,11 +256,11 @@ module decoder (
             case (ir[25:24])
                 'b00: //LL.W
                     begin
-                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=11;regwrite=1;memread=1;
+                        imm={{16{ir[23]}},ir[23:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=11;regwrite=1;memread=1;
                     end
                 'b01: //SC.W
                     begin
-                        imm={{18{ir[23]}},ir[23:10]};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=12;memwrite=1;regwrite=1;userd=1;
+                        imm={{16{ir[23]}},ir[23:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=yuanzi;subtype=12;memwrite=1;regwrite=1;userd=1;
                     end
                 default: begin type_=liwai;subtype=0;excp_arg='b001101; end
             endcase
