@@ -58,6 +58,7 @@ wire [3:0]l1cache_l2cache_wstrb;
 reg [1:0]from;//0-No 1-I 2-Dr 3-Dw
 reg l1cache_l2cache_SUC;
 always @(*) begin
+    l1cache_l2cache_SUC = 0;
     if(dcache_l2cache_req)begin
         if(!dcache_l2cache_wr)from = 2'd2;
         else from = 2'd3;
@@ -234,7 +235,7 @@ always @(*) begin
         endcase
     end
 end
-wire [1 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
+wire choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
 always @(*) begin
     case (choose_word)
         1'd0: dout_l2cache_l1cache = line[127:0];

@@ -167,6 +167,7 @@ always @(*) begin
     FSM_choose_word = FSM_rbuf_addr[2+offset_width-1:2];
     FSM_TagV_init = 2'b0;
     FSM_TagV_ibar = 0;
+    FSM_TagV_unvalid = 2'b0;
     case (state)
         Idle:begin
             icache_pipeline_ready=1;

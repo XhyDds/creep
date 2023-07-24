@@ -45,8 +45,8 @@ module Dcache_Data#(
 reg [data_width/8-1:0]we0,we1;
 reg [data_width-1:0]Data_din;
 
-wire [offset_width+1:0]Data_offset_2 = {0,Data_offset} << 2;
-wire [offset_width+4:0]Data_offset_5 = {0,Data_offset} << 5;
+wire [offset_width+1:0]Data_offset_2 = {2'b0,Data_offset} << 2;
+wire [offset_width+4:0]Data_offset_5 = {5'b0,Data_offset} << 5;
 
 wire [data_width/8-1:0] we = Data_choose_byte;
 

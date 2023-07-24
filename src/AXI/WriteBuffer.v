@@ -11,7 +11,7 @@
 
 module WriteBuffer #(
     parameter   length=5,
-                offset_width=2
+                offset_width=3
 ) (
     input  clk,
     input  rstn,
@@ -54,7 +54,7 @@ module WriteBuffer #(
 
     //state machine
     parameter IDLE_L = 4'd0,PULL=4'd1,
-            SEND_0=4'd2,SEND_1=4'd3,SEND_2=4'd4,SEND_3=4'd5,_SEND=4'd6;
+            SEND_0=4'd2,SEND_1=4'd3,SEND_2=4'd4,SEND_3=4'd5,SEND_4=4'd6,SEND_5=4'd7,SEND_6=4'd8,SEND_7=4'd9,_SEND=4'd10;
     reg [3:0] crt_pull,nxt_pull;
     always @(posedge clk,negedge rstn) begin
         if (!rstn) begin
@@ -87,8 +87,24 @@ module WriteBuffer #(
                 else                nxt_pull=SEND_2;
             end
             SEND_3: begin
-                if(out_wready)      nxt_pull=_SEND;
+                if(out_wready)      nxt_pull=SEND_4;
                 else                nxt_pull=SEND_3;
+            end
+            SEND_4: begin
+                if(out_wready)      nxt_pull=SEND_5;
+                else                nxt_pull=SEND_4;
+            end
+            SEND_5: begin
+                if(out_wready)      nxt_pull=SEND_6;
+                else                nxt_pull=SEND_5;
+            end
+            SEND_6: begin
+                if(out_wready)      nxt_pull=SEND_7;
+                else                nxt_pull=SEND_6;
+            end
+            SEND_7: begin
+                if(out_wready)      nxt_pull=_SEND;
+                else                nxt_pull=SEND_7;
             end
             _SEND: begin
                 if(out_bvalid)      nxt_pull=IDLE_L;
@@ -144,9 +160,33 @@ module WriteBuffer #(
             end
             SEND_3: begin
                 out_valid=1;
-                out_last=1;
                 wrt_lock=1;
                 out_data=_out_data[127:96];
+                out_wvalid=1;
+            end
+            SEND_4: begin
+                out_valid=1;
+                wrt_lock=1;
+                out_data=_out_data[159:128];
+                out_wvalid=1;
+            end
+            SEND_5: begin
+                out_valid=1;
+                wrt_lock=1;
+                out_data=_out_data[191:160];
+                out_wvalid=1;
+            end
+            SEND_6: begin
+                out_valid=1;
+                wrt_lock=1;
+                out_data=_out_data[223:192];
+                out_wvalid=1;
+            end
+            SEND_7: begin
+                out_valid=1;
+                out_last=1;
+                wrt_lock=1;
+                out_data=_out_data[255:224];
                 out_wvalid=1;
             end
             _SEND: begin
