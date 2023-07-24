@@ -235,7 +235,7 @@ always @(*) begin
         endcase
     end
 end
-wire [1 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
+wire choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
 always @(*) begin
     case (choose_word)
         1'd0: dout_l2cache_l1cache = line[127:0];

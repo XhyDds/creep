@@ -2,9 +2,9 @@
 // `define DDMA
 // `define predictor
 `define MMU
-`define ICache
-`define DCache
-//  `define L2Cache
+// `define ICache
+// `define DCache
+ `define L2Cache
 // `define DMA  //选择L2Cache�?? 再�?�DMA
 // module mycpu_top(
 // module core_top(
