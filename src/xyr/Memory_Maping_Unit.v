@@ -328,6 +328,13 @@ module Memory_Maping_Unit#(
             memtype0<=DMW1in[5:4];
             excp_arg0<=0;
             end
+        else if(CRMDin[1:0]!=0 && VADDR0[31]==1)
+            begin
+            if(optype0==FETCH)
+                excp_arg0<={VADDR_valid0,ADEF,ADE}; 
+            else
+                excp_arg0<={VADDR_valid0,ADEM,ADE}; 
+            end
         else if(TLB_found0==0)
             begin
             excp_arg0<={VADDR_valid0,DEFAULT,TLBR};
@@ -418,6 +425,13 @@ module Memory_Maping_Unit#(
             PADDR1<={DMW1in[27:25],VADDR1[28:0]};
             memtype1<=DMW1in[5:4];
             excp_arg1<=0;
+            end
+        else if(CRMDin[1:0]!=0 && VADDR1[31]==1)
+            begin
+            if(optype1==FETCH)
+                excp_arg1<={VADDR_valid1,ADEF,ADE}; 
+            else
+                excp_arg1<={VADDR_valid1,ADEM,ADE}; 
             end
         else if(TLB_found1==0)
             begin
