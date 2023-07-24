@@ -6,7 +6,8 @@
 // `define DCache
 `define L2Cache
 // `define DMA  //选择L2Cache�? 再�?�DMA
-module core_top(
+// module core_top(
+module mycpu_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -75,7 +76,7 @@ module core_top(
 );
     wire clk=aclk;
     wire rstn=aresetn;
-    parameter offset_width = 2;
+    parameter offset_width = 3;
 
     reg [31:0]pc,npc,
     ctr_id_reg_0,ctr_id_reg_1,ctr_reg_exe0_1_excp,
@@ -132,6 +133,8 @@ module core_top(
     rj_id_reg_0,rj_id_reg_1,
     rd_exe0_exe1_0,rd_exe0_exe1_1;
 
+    localparam TLB_n=5,TLB_PALEN=32;
+
     reg [TLB_n-1:0] rand_index_exe0_exe1,rand_index_exe1_wb;
     // reg [5:0] ecode_exe1_wb;
 
@@ -146,6 +149,8 @@ module core_top(
     wire stall_priv=0;
     wire idle0;
 
+    wire [15:0]	MMU_pipeline_excp_arg1;
+
     wire ifbr0,ifbr1,ifcacop_ibar;
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
@@ -157,6 +162,9 @@ module core_top(
     wire idle1,idle2;
     assign idle1=idle1_&idle0;
     assign idle2=idle2_&idle0;
+
+    wire            excp_flush          ;
+
     always @(posedge clk or negedge rstn) begin
         if(!rstn|!idle0&idle2_) begin
             idle1_ <= 0;
@@ -799,7 +807,6 @@ module core_top(
         .pipeline_dcache_opflag         ( pipeline_dcache_opflag        ),
         .pipeline_icache_opflag         ( pipeline_icache_opflag        )
     );
-    localparam TLB_n=5,TLB_PALEN=32;
 
     wire [8:0]	CRMD;
     wire [9:0]  ASID;
@@ -832,7 +839,7 @@ module core_top(
     wire 	[31:0]  csr_dmw1_diff_0     ;
     wire 	[31:0]  csr_pgdl_diff_0     ;
     wire 	[31:0]  csr_pgdh_diff_0     ;
-    wire            excp_flush          ;
+    
     wire            ertn_flush          ;
     wire    [5:0]   csr_ecode           ;
 
@@ -934,7 +941,6 @@ module core_top(
     wire [1:0]	MMU_pipeline_memtype0;
 
     wire [31:0]	MMU_pipeline_PADDR1;
-    wire [15:0]	MMU_pipeline_excp_arg1;
     wire [1:0]	MMU_pipeline_memtype1;
 
     Memory_Maping_Unit #(
@@ -1233,6 +1239,7 @@ module core_top(
     //PC
     wire ifflush_if1_fifo;
     wire [31:0]npc_pdc_32={npc_pdc,3'b0};
+    reg fflush_if0_if1;
     assign ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
     always @(*) begin
         if(ifpriv) npc=pc_priv;
@@ -1274,7 +1281,7 @@ module core_top(
 
     //IF1-FIFO
     //flush套壳
-    reg fflush_if0_if1;
+    
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             fflush_if0_if1 <= 0;

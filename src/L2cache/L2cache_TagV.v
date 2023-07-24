@@ -68,6 +68,8 @@ always @(posedge clk) begin
     end
 end
 
+wire [data_width-1:0]zero = 0;
+
 bram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
@@ -76,7 +78,7 @@ way0(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
-    .din((TagV_init == 3'b100) ? 0:TagV_din_write),
+    .din((TagV_init == 3'b100) ? zero:TagV_din_write),
     .we(TagV_we[0] || (TagV_init == 3'b100)),
 
     .raddr(TagV_addr_read),
@@ -91,7 +93,7 @@ way1(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
-    .din((TagV_init == 3'b101) ? 0:TagV_din_write),
+    .din((TagV_init == 3'b101) ? zero:TagV_din_write),
     .we(TagV_we[1] || (TagV_init == 3'b101)),
 
     .raddr(TagV_addr_read),
@@ -106,7 +108,7 @@ way2(
     .clk(clk),
 
     .waddr(TagV_addr_write),//写口
-    .din((TagV_init == 3'b110) ? 0:TagV_din_write),
+    .din((TagV_init == 3'b110) ? zero:TagV_din_write),
     .we(TagV_we[2] || (TagV_init == 3'b110)),
 
     .raddr(TagV_addr_read),
@@ -120,7 +122,7 @@ bram #(
 way3(
     .clk(clk),
 
-    .waddr((TagV_init == 3'b111) ? 0:TagV_addr_write),//写口
+    .waddr((TagV_init == 3'b111) ? zero:TagV_addr_write),//写口
     .din(TagV_din_write),
     .we(TagV_we[3] || (TagV_init == 3'b111)),
 
