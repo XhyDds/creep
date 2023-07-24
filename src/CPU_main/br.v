@@ -1,7 +1,7 @@
 module br (
     input [31:0]ctr,pc,imm,rrj,npc,
     input zero,
-    output reg ifbr,
+    output reg ifbr,flush_pre,
     output reg [31:0]brresult
 );
 // `ifdef predictor
@@ -33,6 +33,7 @@ module br (
     always @(*) begin
         ifbr=ctr[31]&(npc!=brresult);
         brresult=ifbr_?brresult_:pc+4;
+        // flush_pre=~pc[2]&npc==brresult&ifbr_;
     end
 // `endif
 

@@ -132,7 +132,7 @@ module fetch_buffer_v2 (
                             bufferpc[13]<=pc;
                             pre_and_valid_and_plv[13]<={pre,1'b1,plv};
                             buffer_excp_arg[13]<=excp_arg;
-                            buffer_npc[13]<=pc+4;
+                            buffer_npc[13]<=npc;
                             buffer[14]<=ir[1];
                             bufferpc[14]<=pc+4;
                             pre_and_valid_and_plv[14]<={pre,1'b1,plv};
