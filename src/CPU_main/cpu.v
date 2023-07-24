@@ -156,21 +156,6 @@ module core_top(
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
 
-    reg idle1_,idle2_;
-    wire idle1,idle2;
-    assign idle1=idle1_&idle0;
-    assign idle2=idle2_&idle0;
-    always @(posedge clk or negedge rstn) begin
-        if(!rstn|!idle0&idle2_) begin
-            idle1_ <= 0;
-            idle2_ <= 0;
-        end
-        else begin
-            if(idle0) idle1_<=1;
-            if(idle1_) idle2_<=1;
-        end
-    end
-
     assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
     assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
     assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
@@ -179,9 +164,9 @@ module core_top(
     assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
     assign flush_reg_exe0_1 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
     assign flush_exe0_exe1_0 =  ifpriv|ifbr1|ifcacop_ibar|ifmmu_excp|idle0;
-    assign flush_exe0_exe1_1 =  ifmmu_excp|excp_flush|idle1;
-    assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush|idle1;
-    assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush|idle2;
+    assign flush_exe0_exe1_1 =  ifmmu_excp|excp_flush;
+    assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush;
+    assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush;
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
