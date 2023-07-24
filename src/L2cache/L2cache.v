@@ -5,7 +5,8 @@ module L2cache#(
                 offset_width=2,
                 L1_offset_width=2,//两者相等
                 way=4
-)(
+)
+(
     //四路 写回写分配
     //Icache可见前两路 Dcache可见后两路 PLRU公用
     input       clk,rstn,
@@ -233,11 +234,11 @@ always @(*) begin
         endcase
     end
 end
-wire [offset_width - L1_offset_width -1 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
+wire [1 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
 always @(*) begin
     case (choose_word)
-        // 1'd0: dout_l2cache_l1cache = line[63:0];
-        // 1'd1: dout_l2cache_l1cache = line[127:64];
+        1'd0: dout_l2cache_l1cache = line[127:0];
+        1'd1: dout_l2cache_l1cache = line[255:128];
         default: dout_l2cache_l1cache = line;
     endcase
 end

@@ -274,7 +274,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         esubcode=excp_arg1[14:6];
         evaddr=pipeline_CSR_evaddr1;//TPB(L,S),PIL,PIS,PME
         end
-    else if(ecode==ALE)//ALE
+    else if(ecode==ALE || (ecode==ADE && esubcode==ADEM))//ALE,ADEM
         evaddr=pipeline_CSR_evaddr0;
    
     if((!stallin && !flushin && exe)||inte)
@@ -479,11 +479,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                                     BADV<=evaddr_reg;
                                     TLBEHI<=evaddr_reg[31:13];
                                     end
-                                ALE:
+                                ALE,ADE:
                                     BADV<=evaddr_reg;
-                                ADE:
-                                    if(esubcode_reg==ADEF)
-                                        BADV<=evaddr_reg;
                             endcase
                             end
                         LOAD:

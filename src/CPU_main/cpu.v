@@ -1738,7 +1738,7 @@ module core_top(
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
         .L1_offset_width 		( 2 		),
-        .L2_offset_width 		( 2 		))
+        .L2_offset_width 		( 3 		))
     u_L1_L2cache(
         //ports
         .clk                    		( clk                    		),
