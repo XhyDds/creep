@@ -38,6 +38,7 @@ module Icache#(
     output      [63:0]dout_icache_pipeline,//双发射 [31:0]是给定地址处的指令
     output      [31:0]pc_icache_pipeline,
     output      flag_icache_pipeline,//0-后一条指令（[63:32]）无效 1-有效
+    input       SUC_pipeline_icache,
 
     input       pipeline_icache_valid,
     output      icache_pipeline_ready,
@@ -52,6 +53,7 @@ module Icache#(
     input       [32*(1<<offset_width)-1:0]din_mem_icache,
 
     output      icache_mem_req,
+    output      icache_mem_SUC,
     output      [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
     input       mem_icache_addrOK,
     input       mem_icache_dataOK
@@ -72,7 +74,7 @@ assign pindex = paddr_pipeline_icache[offset_width+index_width+1:offset_width+2]
 assign ptag = paddr_pipeline_icache[31:offset_width+index_width+2];
 
 //rquest buffer
-wire [31:0]rbuf_addr,rbuf_opcode;
+wire [31:0]rbuf_addr,rbuf_opcode,rbuf_paddr;
 wire rbuf_opflag,rbuf_we,rbuf_stall;
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
@@ -83,7 +85,7 @@ assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 assign rbuf_stall = pipeline_icache_ctrl[0];//icache需要stall
 
 Icache_rbuf Icache_rbuf(
-    .clk(clk),.rstn(rstn),
+    .clk(clk),
     .rbuf_we(rbuf_we),
     .rbuf_stall(rbuf_stall),
 
@@ -94,7 +96,13 @@ Icache_rbuf Icache_rbuf(
     .rbuf_opcode(rbuf_opcode),
 
     .opflag(pipeline_icache_opflag),
-    .rbuf_opflag(rbuf_opflag)
+    .rbuf_opflag(rbuf_opflag),
+
+    .SUC(SUC_pipeline_icache),
+    .rbuf_SUC(rbuf_SUC),
+
+    .paddr(paddr_pipeline_icache),
+    .rbuf_paddr(rbuf_paddr)
 );
 assign pc_icache_pipeline = rbuf_addr;
 
@@ -135,7 +143,9 @@ Icache_Data(
 );
 
 //Tag
-wire [way-1:0]TagV_we,hit;
+wire [way-1:0]TagV_we,hit,TagV_unvalid;
+wire [1:0]TagV_init;
+wire TagV_ibar;
 Icache_TagV #(
     .addr_width(index_width),
     .data_width(32-2-index_width-offset_width),
@@ -148,10 +158,13 @@ Icache_TagV(
     // .TagV_din_compare(rbuf_tag),
     .TagV_din_compare(ptag),
     .hit(hit),
-    
+
+    .TagV_ibar(TagV_ibar),
+    .TagV_init(TagV_init),
     // .TagV_din_write(rbuf_tag),
     .TagV_din_write(ptag),
     .TagV_addr_write(rbuf_index),
+    .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
 );
 
@@ -192,9 +205,6 @@ always @(*) begin
         default: data_out = 64'h1234ABCD1234ABCD;
     endcase
 end
-//理论输出
-wire [63:0]dout1 = send_nop ? 64'h1234ABCD00000000 : data_out;
-wire flag1 = send_nop ? 1'b0 : data_flag;
 //锁存
 reg choose_stall;
 reg [63:0]data_out_reg;
@@ -204,22 +214,19 @@ always @(posedge clk) begin
     data_flag_reg <= flag_icache_pipeline;
     choose_stall <= rbuf_stall & icache_pipeline_ready;
 end
-assign dout_icache_pipeline = (choose_stall) ? data_out_reg : dout1;
-assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : flag1;
+assign dout_icache_pipeline = (choose_stall) ? data_out_reg : data_out;
+assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : data_flag;
 
 //Mem 实地址访存
-reg [31:0]paddr_reg;
-wire paddr_we;//进入访存之前置1
-always @(posedge clk) begin
-    if(paddr_we)paddr_reg <= paddr_pipeline_icache;
-end
 wire [1+offset_width:0]temp;
 assign temp=0;
+assign icache_mem_SUC = rbuf_SUC;
 `ifdef MMU
-assign addr_icache_mem = {paddr_reg[31:2+offset_width],temp};
+assign addr_icache_mem = {rbuf_paddr[31:2+offset_width],temp};
 `else 
 assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
 `endif
+
 //FSM
 Icache_FSMmain #(
     .index_width(index_width),
@@ -249,9 +256,8 @@ Icache_FSMmain(
     .FSM_rbuf_opcode(rbuf_opcode),
     .FSM_rbuf_opflag(rbuf_opflag),
     .FSM_rbuf_addr(rbuf_addr),
+    .FSM_rbuf_SUC(rbuf_SUC),
 
-    .FSM_paddr_we(paddr_we),
-    
     //lru
     .FSM_use0(use0),
     .FSM_use1(use1),
@@ -261,13 +267,16 @@ Icache_FSMmain(
     .FSM_hit(hit),
     .FSM_Data_we(Data_we),
     .FSM_TagV_we(TagV_we),
+    .FSM_TagV_unvalid(TagV_unvalid),
+    .FSM_TagV_ibar(TagV_ibar),
+    .FSM_TagV_init(TagV_init),
 
     //data choose
     // .FSM_choose_stall(choose_stall),
     .FSM_choose_way(choose_way),
     .FSM_choose_return(choose_return),
-    .FSM_choose_word(choose_word),
-    .FSM_send_nop(send_nop)
+    .FSM_choose_word(choose_word)
 );
 endmodule
+
 

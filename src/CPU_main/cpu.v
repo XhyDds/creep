@@ -2,9 +2,9 @@
 // `define DDMA
 // `define predictor
 `define MMU
-`define ICache
-`define DCache
-// `define L2Cache
+// `define ICache
+// `define DCache
+`define L2Cache
 // `define DMA  //选择L2Cache�? 再�?�DMA
 module core_top(
     input           aclk,
@@ -1734,7 +1734,7 @@ module core_top(
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
         .L1_offset_width 		( 2 		),
-        .L2_offset_width 		( 2 		))
+        .L2_offset_width 		( 3 		))
     u_L1_L2cache(
         //ports
         .clk                    		( clk                    		),

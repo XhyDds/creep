@@ -42,6 +42,7 @@ module Dcache#(
     input       [31:0]pcin_pipeline_dcache,
     output      [31:0]dout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
+    input       SUC_pipeline_dcache,
 
     input       pipeline_dcache_valid,
     output      dcache_pipeline_ready,
@@ -59,6 +60,7 @@ module Dcache#(
 
     output      dcache_mem_req,
     output      dcache_mem_wr,//0-read 1-write
+    output      dcache_mem_SUC,
     output      [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
     output      [3:0]dcache_mem_wstrb,//字节写使能
     input       mem_dcache_addrOK,
@@ -81,8 +83,8 @@ assign pindex = paddr_pipeline_dcache[offset_width+index_width+1:offset_width+2]
 assign ptag = paddr_pipeline_dcache[31:offset_width+index_width+2];
 
 //rquest buffer
-wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc;
-wire rbuf_opflag,rbuf_type,rbuf_we;
+wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc,rbuf_paddr;
+wire rbuf_opflag,rbuf_type,rbuf_we,rbuf_SUC;
 wire [3:0]rbuf_wstrb;
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
@@ -93,7 +95,7 @@ assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 wire fStall_outside=pipeline_dcache_ctrl[0];//dcache好像不需要stall？？
 
 Dcache_rbuf Dcache_rbuf(
-    .clk(clk),.rstn(rstn),
+    .clk(clk),
     .rbuf_we(rbuf_we),//dcache好像不需要stall？？
 
     .pc(pcin_pipeline_dcache),
@@ -115,7 +117,13 @@ Dcache_rbuf Dcache_rbuf(
     .rbuf_type(rbuf_type),
         
     .wstrb(pipeline_dcache_wstrb),
-    .rbuf_wstrb(rbuf_wstrb)
+    .rbuf_wstrb(rbuf_wstrb),
+
+    .SUC(SUC_pipeline_dcache),
+    .rbuf_SUC(rbuf_SUC),
+
+    .paddr(paddr_pipeline_dcache),
+    .rbuf_paddr(rbuf_paddr)
 );
 
 //LRU
@@ -160,7 +168,8 @@ Dcache_Data(
 );
 
 //Tag
-wire [way-1:0]TagV_we,hit;
+wire [way-1:0]TagV_we,hit,TagV_unvalid;
+wire [1:0]TagV_init;
 Dcache_TagV #(
     .addr_width(index_width),
     .data_width(32-2-index_width-offset_width),
@@ -174,9 +183,11 @@ Dcache_TagV(
     .TagV_din_compare(ptag),
     .hit(hit),
     
+    .TagV_init(TagV_init),
     // .TagV_din_write(rbuf_tag),
     .TagV_din_write(ptag),
     .TagV_addr_write(rbuf_index),
+    .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
 );
 
@@ -205,16 +216,12 @@ always @(*) begin
 end
 
 //Mem
-reg [31:0]paddr_reg;
-wire paddr_we;//进入访存之前置1
-always @(posedge clk) begin
-    if(paddr_we)paddr_reg <= paddr_pipeline_dcache;
-end
 wire [1+offset_width:0]temp;
 assign temp=0;
 assign dout_dcache_mem = rbuf_data;
+assign dcache_mem_SUC = rbuf_SUC;
 `ifdef MMU
-assign addr_dcache_mem = dcache_mem_wr ? paddr_reg:{paddr_reg[31:2+offset_width],temp};
+assign addr_dcache_mem = dcache_mem_wr ? rbuf_paddr:{rbuf_paddr[31:2+offset_width],temp};
 `else 
 assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};
 `endif
@@ -253,9 +260,8 @@ Dcache_FSMmain1(
     .FSM_rbuf_addr(rbuf_addr),
     .FSM_rbuf_type(rbuf_type),
     .FSM_rbuf_wstrb(rbuf_wstrb),
+    .FSM_rbuf_SUC(rbuf_SUC),
 
-    .FSM_paddr_we(paddr_we),
-    
     //lru
     .FSM_use0(use0),
     .FSM_use1(use1),
@@ -266,6 +272,8 @@ Dcache_FSMmain1(
     .FSM_Data_we(Data_we),
     .FSM_Data_replace(Data_replace),//为1时替换整行，否则对word操作
     .FSM_TagV_we(TagV_we),
+    .FSM_TagV_unvalid(TagV_unvalid),
+    .FSM_TagV_init(TagV_init),
 
     //data choose
     .FSM_choose_way(choose_way),
@@ -274,3 +282,4 @@ Dcache_FSMmain1(
 );
 endmodule
 //锁存出去的data，上一个周期有stall则发上一个周期锁存的data
+
