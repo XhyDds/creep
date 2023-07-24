@@ -242,14 +242,14 @@ module Memory_Maping_Unit#(
                         end
                     5'h5:
                         begin
-                        if(~G[j] && ASID[j]==rj[9:0] && ({VPPN[j],12'b0}>>PS[j])==(rk>>PS[j]+1))//G[j]==0
+                        if(~G[j] && ASID[j]==rj[9:0] && ({1'b0,VPPN[j],12'b0}>>PS[j])==(rk>>PS[j]+1))//G[j]==0
                             begin
                             E[j]<=0;
                             end
                         end
                     5'h6:
                         begin
-                        if((G[j] || ASID[j]==rj[9:0]) && ({VPPN[j],12'b0}>>PS[j])==(rk>>PS[j]+1))//G[j]==1
+                        if((G[j] || ASID[j]==rj[9:0]) && ({1'b0,VPPN[j],12'b0}>>PS[j])==(rk>>PS[j]+1))//G[j]==1
                             begin
                             E[j]<=0;
                             end

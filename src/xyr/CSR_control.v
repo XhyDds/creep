@@ -122,7 +122,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall|nclk_stall;
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
     assign csr_num=pipeline_CSR_excp_arg0;
-    assign inte={ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]}?CRMD[2]&~inst_stop_reg:0;
+    assign inte=|({ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]})?CRMD[2]&~inst_stop_reg:0;
     assign CSR_pipeline_TLBIDX=TLBIDXout,CSR_pipeline_TLBEHI=TLBEHIout;
     assign CSR_pipeline_TLBELO0=TLBELO0out,CSR_pipeline_TLBELO1=TLBELO1out;
     assign TLBIDXin=pipeline_CSR_TLBIDX,TLBEHIin=pipeline_CSR_TLBEHI;
