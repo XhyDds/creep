@@ -30,9 +30,10 @@ module WriteBuffer #(
     input  in_valid,
     output reg in_ready,
     //PUSH
-    output [31:0] out_addr,
-    output [31:0] out_data,
+    output reg [31:0] out_addr,
+    output reg [31:0] out_data,
     output reg out_valid,
+    output reg out_wvalid,
     input  out_awready,
     input  out_wready,
     output reg out_last,
@@ -41,8 +42,12 @@ module WriteBuffer #(
 
     //query
     input  [31:0] query_addr,
-    output [(1<<offset_width)*32-1:0] query_data,
-    output query_ok                        //query是否成功
+    output reg [(1<<offset_width)*32-1:0] query_data,
+    output reg query_ok,                       //query是否成功
+
+    //互斥锁
+    input  dma_lock,
+    output reg wrt_lock
 );
     parameter WORD = (1<<offset_width)*32;
     reg [31:0] pointer;
@@ -75,7 +80,7 @@ code+='''_SEND=4'd'''+str(offset+2)+''';
     always @(*) begin
         case (crt_pull)
             IDLE_L: begin
-                if(pointer!=0)      nxt_pull=PULL;
+                if(dma_lock==0 && pointer!=0)      nxt_pull=PULL;
                 else                nxt_pull=IDLE_L;
             end 
             PULL:       begin
@@ -109,31 +114,43 @@ code+='''
         out_addr=0;
         out_data=0;
         out_bready=0;
+        out_wvalid=0;
 
         pointer_minus=0;
+
+        wrt_lock=0;
         case (crt_pull)
             IDLE_L: begin
-                if(nxt_pull==PULL)  pointer_minus=1;
+                if(nxt_pull==PULL) begin
+                    pointer_minus=1;
+                    wrt_lock=1;
+                end 
                 else ;
             end
             PULL: begin
                 out_valid=1;
+                wrt_lock=1;
                 out_addr=buffer_addr[pointer];
             end'''
 for i in range(offset-1):
     code+='''
             SEND_'''+str(i)+''': begin
                 out_valid=1;
+                wrt_lock=1;
                 out_data=_out_data['''+str(i*32+31)+''':'''+str(i*32)+'''];
+                out_wvalid=1;
             end'''
 code+='''
             SEND_'''+str(offset-1)+''': begin
                 out_valid=1;
                 out_last=1;
+                wrt_lock=1;
                 out_data=_out_data['''+str(offset*32-1)+''':'''+str(offset*32-32)+'''];
+                out_wvalid=1;
             end
             _SEND: begin
                 out_bready=1;
+                wrt_lock=1;
             end
             default: ;
         endcase
