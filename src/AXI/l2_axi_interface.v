@@ -14,6 +14,7 @@ module l2_axi_interface#(
     input [31:0]        l2_raddr,
     output [31:0]       l2_rdata,    
     output reg          l2_rlast,     
+    input  [7:0]        l2_rlen,
 
     input               l2_wvalid,   //aw: l2->arbiter:req
     input               l2_wwvalid,
@@ -23,6 +24,7 @@ module l2_axi_interface#(
     input [31:0]        l2_wdata,
     input [3:0]         l2_wstrb,
     input               l2_wlast,
+    input [7:0]         l2_wlen,
 
     output reg          l2_bvalid,   //b: arbiter->d:dataOK
     input               l2_bready,   //b: d->arbiter:req
@@ -64,13 +66,11 @@ module l2_axi_interface#(
     output reg          bready      //b: arbiter->axi
 );
     wire [2:0]         l2_rsize;
-    wire [7:0]         l2_rlen;    
     wire [2:0]         l2_wsize;
-    wire [7:0]         l2_wlen;
     assign  l2_rsize=3'd2;
-    assign  l2_rlen =8'd3;
+    // assign  l2_rlen =8'd3;
     assign  l2_wsize=3'd2;
-    assign  l2_wlen =8'd3;
+    // assign  l2_wlen =8'd3;
     //读通道
     localparam 
         R_IDLE  = 2'd0,

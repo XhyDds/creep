@@ -16,6 +16,7 @@ module read_arbiter#(
     input       [(1<<offset_width)*32-1:0]query_data,
     input       query_ok,
     //returnbuffer
+    output reg  [7:0]l2_rlen,
     output reg  arbiter_mem_req,
     input       mem_arbiter_addrOK,
     input       mem_arbiter_dataOK,
@@ -73,6 +74,7 @@ module read_arbiter#(
     always @(*) begin
         mem_l2cache_addrOK_r=0;
         mem_l2cache_dataOK=0;
+        l2_rlen=1<<offset_width-1;
 
         arbiter_mem_req=0;
         case (crt)
