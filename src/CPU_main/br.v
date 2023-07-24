@@ -31,9 +31,11 @@ module br (
             endcase
     end
     always @(*) begin
-        ifbr=ctr[31]&(npc!=brresult);
-        brresult=ifbr_?brresult_:pc+4;
-        // flush_pre=~pc[2]&npc==brresult&ifbr_;
+        // ifbr=ctr[31]&(npc!=brresult);
+        // brresult=ifbr_?brresult_:pc+4;
+        ifbr=ifbr_;
+        brresult=brresult_;
+        flush_pre=0;
     end
 // `endif
 

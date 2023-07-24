@@ -37,7 +37,7 @@ module dcache_extend (
         else if(type_==6)
             case (subtype)
                 11: dout_dcache_pipeline_extend=dout_dcache_pipeline;
-                12: dout_dcache_pipeline_extend=llbit;
+                12: dout_dcache_pipeline_extend={31'b0,llbit};
             endcase
     end
 endmodule //dcache_extend

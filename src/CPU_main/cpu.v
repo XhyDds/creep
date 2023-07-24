@@ -7,8 +7,7 @@
  `define L2Cache
 // `define DMA  //选择L2Cache�?? 再�?�DMA
 // module mycpu_top(
-// module core_top(
-module mycpu_top(
+module core_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -146,49 +145,47 @@ module mycpu_top(
     wire [1:0]PLV;
     wire [31:0]pc_priv;
     wire [31:0]privresult;
-    wire ifpriv;
+    wire ifpriv,excp_flush;
     wire stall_priv=0;
-    wire ifidle;
+    wire idle0;
 
     wire ifbr0,ifbr1,ifcacop_ibar;
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;//dcache_valid-ready?
-    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flush_pre,flush_pre_up,flush_pre_down;
+    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
 
-    // reg idle1_,idle2_;
-    // wire idle1,idle2;
-    // assign idle1=idle1_&ifidle;
-    // assign idle2=idle2_&ifidle;
-    // always @(posedge clk or negedge rstn) begin
-    //     if(!rstn|!ifidle&idle2_) begin
-    //         idle1_ <= 0;
-    //         idle2_ <= 0;
-    //     end
-    //     else begin
-    //         if(ifidle) idle1_<=1;
-    //         if(idle1_) idle2_<=1;
-    //     end
-    // end
+    reg idle1_,idle2_;
+    wire idle1,idle2;
+    assign idle1=idle1_&idle0;
+    assign idle2=idle2_&idle0;
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn|!idle0&idle2_) begin
+            idle1_ <= 0;
+            idle2_ <= 0;
+        end
+        else begin
+            if(idle0) idle1_<=1;
+            if(idle1_) idle2_<=1;
+        end
+    end
 
-    assign flush_pre_up =       ctr_reg_exe0_0[31]&flush_pre;
-    assign flush_pre_down =     ~ctr_reg_exe0_0[31]&flush_pre;
-    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_reg_exe0_1 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_pre_down;
-    assign flush_exe0_exe1_0 =  ifpriv|ifbr1|ifcacop_ibar|ifmmu_excp|ifidle|flush_pre_up;
-    assign flush_exe0_exe1_1 =  ifmmu_excp|excp_flush;
-    assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush;
-    assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush;
+    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_reg_exe0_1 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_exe0_exe1_0 =  ifpriv|ifbr1|ifcacop_ibar|ifmmu_excp|idle0;
+    assign flush_exe0_exe1_1 =  ifmmu_excp|excp_flush|idle1;
+    assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush|idle1;
+    assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush|idle2;
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�??
+    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�?
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_fifo_id =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_id_reg0 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
@@ -197,7 +194,7 @@ module mycpu_top(
     assign stall_reg_exe0_1 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_0 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe0_exe1_1 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�??
+    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�?
     assign stall_exe1_wb_0 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
     assign stall_exe1_wb_1 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
 
@@ -748,6 +745,7 @@ module mycpu_top(
     // );
 
     wire [31:0]	pc_br0;
+    wire flush_pre0;
 
     br u_br0(
         //ports
@@ -758,10 +756,12 @@ module mycpu_top(
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		),
         .brresult 		( pc_br0 	),
-        .rrj            ( rrj0_forward  )
+        .rrj            ( rrj0_forward  ),
+        .flush_pre      ( flush_pre0    )
     );
 
     wire [31:0]	pc_br1;
+    wire flush_pre1;
 
     br u_br1(
         //ports
@@ -773,7 +773,7 @@ module mycpu_top(
         .ifbr     		( ifbr1    		),
         .brresult 		( pc_br1		),
         .rrj            ( rrj1_forward  ),
-        .flush_pre      ( flush_pre     )
+        .flush_pre      ( flush_pre1    )
     );
 
     wire [31:0]	addr_pipeline_dcache;
@@ -841,6 +841,7 @@ module mycpu_top(
     
     wire            ertn_flush          ;
     wire    [5:0]   csr_ecode           ;
+    wire    [15:0]	MMU_pipeline_excp_arg1;
 
     wire    [TLB_n-1:0] CSR_rand_index ;
     wire            CSR_tlbfill_en      ;
@@ -864,8 +865,9 @@ module mycpu_top(
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
         // .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
+        .pipeline_CSR_flush             ( 0                             ),
         .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
-        .CSR_pipeline_clk_stall     	( ifidle               ),
+        .CSR_pipeline_clk_stall     	( idle0               ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
         .CSR_pipeline_outpc     		( pc_priv     		            ),
         .pipeline_CSR_type      		( ctr_reg_exe0_1_excp[3:0]     	),
@@ -883,7 +885,7 @@ module mycpu_top(
 
         .pipeline_CSR_inpc1     		( pc_exe0_exe1_1     		    ),
         .pipeline_CSR_excp_arg1 		( MMU_pipeline_excp_arg1        ),
-        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_exe0_exe1),
+        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_exe0_exe1		),
 
         .pipeline_CSR_ESTAT     		( 0     		     ),
         .CSR_pipeline_CRMD      		( CRMD      		 ),
@@ -1137,7 +1139,7 @@ module mycpu_top(
         .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
         
 
-        //当前版本，dcache直接�????
+        //当前版本，dcache直接�???
         .d_wvalid 		( dcache_mem_req & dcache_mem_wr ),//input
         .d_wready 		( d_wready 		),//output reg  
         .d_waddr  		( addr_dcache_mem  		),//input [31:0]
@@ -1206,7 +1208,7 @@ module mycpu_top(
     assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc_ex[1]:choice_pdc_ex[1];
     assign choice_real_g_h=mis_pdc[0]?~choice_pdc_ex[1]:choice_pdc_ex[1];
 
-    wire [29:0]npc_test;
+    wire [28:0]npc_test;
 
     predictor #(
         .k_width       		( 14   		),
@@ -1221,7 +1223,7 @@ module mycpu_top(
 
         .pc_ex       		( pc_ex             ),
         .mis_pdc     		( mis_pdc     		),
-        .npc_ex      		( npc      		    ),
+        .npc_ex      		( npc[31:3]		    ),
         .kind_ex     		( kind_ex     		),
         .taken_real  		( taken_real  		),
         .choice_real 		( choice_real 		),
@@ -1505,13 +1507,13 @@ module mycpu_top(
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�??测访存地�??是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�??
+    always @(*) begin//�?测访存地�?是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
         if(ctr_reg_exe0_1[22]&(|PLV)) begin 
             ctr_reg_exe0_1_excp=liwai;
             excp_arg_reg_exe0_1_excp=excp_argIPE; 
-        end//用户态访问越�??
+        end//用户态访问越�?
         else if(ctr_reg_exe0_1[3:0]==5&ctr_reg_exe0_1[11:7]!=8)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1796,6 +1798,8 @@ module mycpu_top(
         .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
     );
 
+
+
     l2_axi_package#(
         .offset_width(offset_width)
     )
@@ -1815,31 +1819,42 @@ module mycpu_top(
         .mem_l2cache_dataOK(mem_l2cache_dataOK),
         .dma_sign(l2cache_mem_SUC),
         //AXI
-        .araddr   		( araddr   		),
-        .arvalid  		( arvalid  		),
-        .arready  		( arready  		),
-        .arlen    		( arlen    		),
-        .arsize   		( arsize   		),
-        .arburst  		( arburst  		),
-        .rdata    		( rdata    		),
-        .rresp    		( rresp    		),
-        .rvalid   		( rvalid   		),
-        .rready   		( rready   		),
-        .rlast    		( rlast    		),
-        .awaddr   		( awaddr   		),
-        .awvalid  		( awvalid  		),
-        .awready  		( awready  		),
-        .awlen    		( awlen    		),
-        .awsize   		( awsize   		),
-        .awburst  		( awburst  		),
-        .wdata    		( wdata    		),
-        .wstrb    		( wstrb    		),
-        .wvalid   		( wvalid   		),
-        .wready   		( wready   		),
-        .wlast    		( wlast    		),
-        .bresp    		( bresp    		),
-        .bvalid   		( bvalid   		),
-        .bready   		( bready   		)
+        .arid           (arid),
+        .araddr         (araddr),
+        .arlen          (arlen),
+        .arsize         (arsize),
+        .arburst        (arburst),
+        .arlock         (arlock),
+        .arcache        (arcache),
+        .arprot         (arprot),
+        .arvalid        (arvalid),
+        .arready        (arready),
+        .rid            (rid),
+        .rdata          (rdata),
+        .rresp          (rresp),
+        .rlast          (rlast),
+        .rvalid         (rvalid),
+        .rready         (rready),
+        .awid           (awid),
+        .awaddr         (awaddr),
+        .awlen          (awlen),
+        .awsize         (awsize),
+        .awburst        (awburst),
+        .awlock         (awlock),
+        .awcache        (awcache),
+        .awprot         (awprot),
+        .awvalid        (awvalid),
+        .awready        (awready),
+        .wid            (wid),
+        .wdata          (wdata),
+        .wstrb          (wstrb),
+        .wlast          (wlast),
+        .wvalid         (wvalid),
+        .wready         (wready),
+        .bid            (bid),
+        .bresp          (bresp),
+        .bvalid         (bvalid),
+        .bready         (bready)
     );
 
 `endif 

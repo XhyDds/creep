@@ -34,11 +34,11 @@ module decoder (
     assign control=(valid)?{1'b1,1'b0,userd,ifibar_cacop,iftlbfill,kind,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
     always @(*) begin
         userd=0;rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;ifibar_cacop=0;kind=NOT_JUMP;iftlbfill=0;
-        if(|pc[1:0]) begin //ADEF 
-            type_=liwai;subtype=0;excp_arg='b0_001000; 
-        end
-        else if(excp_arg_in[15]) begin //MMU 
+        if(excp_arg_in[15]) begin //ADEF 
             type_=liwai;subtype=0;excp_arg={1'b0,excp_arg_in[14:0]}; 
+        end
+        else if(|pc[1:0]) begin //ADEF 
+            type_=liwai;subtype=0;excp_arg='b0_001000; 
         end
         // else 
         // if(pc[31]&PLV!=0) begin //ADEM 
