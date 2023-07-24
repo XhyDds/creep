@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�?????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�??????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?????????，ex1�?????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??????????，ex1�??????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -270,8 +270,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         mode=INTE;
         inpc=pipeline_CSR_inpc1; 
-        ecode=pipeline_CSR_excp_arg1[5:0];
-        esubcode=pipeline_CSR_excp_arg1[14:6];
+        ecode=excp_arg1[5:0];
+        esubcode=excp_arg1[14:6];
         evaddr=pipeline_CSR_evaddr1;//TPB(L,S),PIL,PIS,PME
         end
     else if(ecode==ALE)//ALE
@@ -488,11 +488,13 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             end
                         LOAD:
                             begin
-                            LLBCTL_ROLLB<=1;
+                            if(~excp_arg1[15])
+                                LLBCTL_ROLLB<=1;
                             end
                         STORE:
                             begin
-                            LLBCTL_ROLLB<=0;
+                            if(~excp_arg1[15])
+                                LLBCTL_ROLLB<=0;
                             end
                         TLBSRCH:
                             begin
