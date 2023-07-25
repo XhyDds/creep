@@ -15,7 +15,7 @@ module divider#(//din1/din2
     
 );
     localparam Tdiv=2;
-    localparam Wait=0,Aline=1,Div=2,Waitout=3;
+    localparam Wait=0,Aline=1,Div=2;//,Waitout=3
     localparam DIVW=0,MODW=1,DIVWU=2,MODWU=3;
     wire exe;reg busy;wire [WIDTH-1:0] din1,din2;
     reg [WIDTH-1:0] dout;wire [4:0] mode;reg [4:0]mode_reg,nmode;
@@ -26,7 +26,7 @@ module divider#(//din1/din2
     wire stall1,stall2;wire flush1,flush2;
     assign stall1=pipeline_divider_stall1,flush1=pipeline_divider_flush1;
     assign stall2=pipeline_divider_stall2,flush2=pipeline_divider_flush2;
-    assign exe=(pipeline_divider_type==Tdiv)&&!flush1;
+    assign exe=(pipeline_divider_type==Tdiv) && !flush1 && !stall2;
     assign divider_pipeline_stall=busy,din1=pipeline_divider_din1;
     assign din2=pipeline_divider_din2,divider_pipeline_dout=dout;
     assign mode=pipeline_divider_subtype;
@@ -104,7 +104,7 @@ module divider#(//din1/din2
             ncounter={1'b0,n1}-{1'b0,n2};
             if(ncounter[5])
                 begin
-                ns=Waitout;
+                ns=Wait;
                 if(din1s&&(mode_reg==DIVW||mode_reg==MODW))
                     nremainder=0-remainder;
                 nquotient=0;
@@ -116,7 +116,7 @@ module divider#(//din1/din2
             begin
             if(counter[5])
                 begin
-                ns=Waitout;
+                ns=Wait;
                 if(din1s&&(mode_reg==DIVW||mode_reg==MODW))
                     nremainder=0-remainder;
                 if(din1s^din2s&&(mode_reg==DIVW||mode_reg==MODW))
@@ -127,7 +127,6 @@ module divider#(//din1/din2
                 ns=Div;
                 ncounter=counter-1;
                 nquotient[WIDTH-1:1]=quotient[WIDTH-2:0];
-                //ndin2_reg={1'b0,din2_reg[2*WIDTH-1:1]};
                 if(temp[WIDTH]==0)
                     begin
                     nquotient[0]=1;
@@ -140,14 +139,14 @@ module divider#(//din1/din2
                     end
                 end
             end
-        Waitout:
-            begin
-            if(stall2)
-                ns=Waitout;
-            else
-                ns=Wait;
-            busy=0;
-            end
+//        Waitout:
+//            begin
+//            if(stall2)
+//                ns=Waitout;
+//            else
+//                ns=Wait;
+//            busy=0;
+//            end
         
         
     endcase
