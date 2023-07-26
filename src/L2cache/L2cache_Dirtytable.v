@@ -33,7 +33,11 @@ module L2cache_Dirtytable#(
     output      Dirty
     );
 reg [(1<<addr_width)-1:0]dirty_table[0:way-1];//注意
-assign Dirty=dirty_table[Dirtytable_way_select][Dirtytable_addr];
+reg Dirty_reg;
+always @(posedge clk) begin
+    Dirty_reg <= dirty_table[Dirtytable_way_select][Dirtytable_addr];
+end
+assign Dirty=Dirty_reg;
 always @(posedge clk) begin
     if(Dirtytable_set1)dirty_table[Dirtytable_way_select][Dirtytable_addr]<=1;
     else if(Dirtytable_set0)dirty_table[Dirtytable_way_select][Dirtytable_addr]<=0;
