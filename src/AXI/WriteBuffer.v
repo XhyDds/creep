@@ -40,7 +40,7 @@ module WriteBuffer #(
     input  dma_lock,
     output reg wrt_lock
 );
-    parameter WORD = (1<<offset_width)*32;
+    localparam WORD = (1<<offset_width)*32;
     reg [31:0] pointer;
     reg [31:0] buffer_addr[length-1:0];
     reg [WORD-1:0] buffer_data[0:length-1];
@@ -53,7 +53,7 @@ module WriteBuffer #(
     //pull(->axi)
 
     //state machine
-    parameter IDLE_L = 4'd0,PULL=4'd1,
+    localparam IDLE_L = 4'd0,PULL=4'd1,
             SEND_0=4'd2,SEND_1=4'd3,SEND_2=4'd4,SEND_3=4'd5,SEND_4=4'd6,SEND_5=4'd7,SEND_6=4'd8,SEND_7=4'd9,_SEND=4'd10;
     reg [3:0] crt_pull,nxt_pull;
     always @(posedge clk,negedge rstn) begin
@@ -216,7 +216,7 @@ module WriteBuffer #(
     //push(cache->)
     
     //statemachine
-    parameter IDLE_H = 4'd0,PUSH=4'd1;
+    localparam IDLE_H = 4'd0,PUSH=4'd1;
     reg [3:0] crt_push,nxt_push;
     always @(posedge clk,negedge rstn) begin
         if (!rstn) begin
