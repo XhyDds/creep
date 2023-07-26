@@ -89,7 +89,7 @@ assign opflag=pipeline_l2cache_opflag;
 reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
-localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9;
+localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9,checkDirty1=5'd10;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -123,6 +123,14 @@ always @(*) begin
             else next_state = Idle;
         end
         checkDirty:begin
+            // if(FSM_Dirty)next_state = writeback;
+            // else begin
+            //     if(!FSM_rbuf_opflag)next_state = replace1;
+            //     else next_state = Idle;
+            // end
+            next_state = checkDirty1;
+        end
+        checkDirty1:begin
             if(FSM_Dirty)next_state = writeback;
             else begin
                 if(!FSM_rbuf_opflag)next_state = replace1;
@@ -309,6 +317,9 @@ always @(*) begin
                 if(FSM_rbuf_opcode[4:3] == 2'd1)FSM_Dirtytable_way_select = FSM_rbuf_opaddr[1:0];
                 else if(FSM_rbuf_opcode[4:3] == 2'd2)FSM_Dirtytable_way_select = hit_record;
             end
+            // if(FSM_Dirty)FSM_Data_writeback = 1;
+        end
+        checkDirty1:begin
             if(FSM_Dirty)FSM_Data_writeback = 1;
         end
         writeback:begin
