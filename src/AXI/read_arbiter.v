@@ -27,7 +27,7 @@ module read_arbiter#(
 );
     assign cache_mem_rdy = l2cache_mem_rdy;
     //state_machine
-    parameter IDLE = 3'd0,WRT_AR = 3'd1,WRT_R=3'd2,RET_AR = 3'd3,RET_R = 3'd4;
+    localparam IDLE = 3'd0,WRT_AR = 3'd1,WRT_R=3'd2,RET_AR = 3'd3,RET_R = 3'd4;
     reg [2:0] crt,nxt;
     always @(posedge clk,negedge rstn) begin
         if(!rstn) begin
