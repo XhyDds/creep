@@ -387,7 +387,7 @@ module Memory_Maping_Unit#(
     if(|((VADDR1>>found_ps1)&32'b1))//VLow==1
         begin
         found_v1=V1[Index_look1];found_d1=D1[Index_look1];
-        found_mat1=MAT1[Index_look1];found_plv0=PLV1[Index_look1];
+        found_mat1=MAT1[Index_look1];found_plv1=PLV1[Index_look1];
         found_ppn1=PPN1[Index_look1];
         end
     else

@@ -431,7 +431,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ASID_ASID<=0;PGDL<=0;PGDH<=0;
         TLBRENTRY<=0;DMW0_PLV0<=0;DMW0_PLV3<=0;DMW0_MAT<=0;
         DMW0_PSEG<=0;DMW0_VSEG<=0;DMW1_PLV0<=0;DMW1_PLV3<=0;DMW1_MAT<=0;
-        DMW1_PSEG<=0;DMW1_VSEG<=0;TID<=0;TCFG<=0;
+        DMW1_PSEG<=0;DMW1_VSEG<=0;TID<=0;
         excp_flush<=0;ertn_flush<=0;TCFG_change<=0;
         end
     else
