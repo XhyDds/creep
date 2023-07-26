@@ -21,8 +21,8 @@ module WriteBuffer #(
     input  in_valid,
     output reg in_ready,
     //PUSH
-    output [31:0] out_addr,
-    output [31:0] out_data,
+    output reg [31:0] out_addr,
+    output reg [31:0] out_data,
     output reg out_valid,
     output reg out_wvalid,
     input  out_awready,
@@ -33,8 +33,8 @@ module WriteBuffer #(
 
     //query
     input  [31:0] query_addr,
-    output [(1<<offset_width)*32-1:0] query_data,
-    output query_ok,                       //query是否成功
+    output reg[(1<<offset_width)*32-1:0] query_data,
+    output reg query_ok,                       //query是否成功
 
     //互斥锁
     input  dma_lock,
