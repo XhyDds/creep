@@ -1855,15 +1855,6 @@ module core_top(
     assign debug1_wb_rf_wdata=ctr_exe1_wb_1[5]?din_pipeline_dcache_exe1_wb:wb_data1;
     assign debug0_wb_inst=ir_exe1_wb_0;
     assign debug1_wb_inst=ir_exe1_wb_1;
-    assign arid=0;
-    assign arlock=0;
-    assign arcache=0;
-    assign arprot=0;
-    assign awid=0;
-    assign awlock=0;
-    assign awcache=0;
-    assign awprot=0;
-    assign wid=0;
     wire ws_valid0,ws_valid1;
     assign ws_valid0=stall_exe1_wb_0?0:ir_valid_exe1_wb_0;
     assign ws_valid1=stall_exe1_wb_1?0:(ir_valid_exe1_wb_1&~excp_flush);
