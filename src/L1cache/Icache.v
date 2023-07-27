@@ -155,14 +155,14 @@ Icache_TagV(
     .clk(clk),.rstn(rstn),
 
     .TagV_addr_read(index),
-    // .TagV_din_compare(rbuf_tag),
-    .TagV_din_compare(ptag),
+    .TagV_din_compare(rbuf_tag),
+    // .TagV_din_compare(ptag),
     .hit(hit),
 
     .TagV_ibar(TagV_ibar),
     .TagV_init(TagV_init),
-    // .TagV_din_write(rbuf_tag),
-    .TagV_din_write(ptag),
+    .TagV_din_write(rbuf_tag),
+    // .TagV_din_write(ptag),
     .TagV_addr_write(rbuf_index),
     .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
@@ -221,11 +221,11 @@ assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : data_flag;
 wire [1+offset_width:0]temp;
 assign temp=0;
 assign icache_mem_SUC = rbuf_SUC;
-`ifdef MMU
-assign addr_icache_mem = {rbuf_paddr[31:2+offset_width],temp};
-`else 
+// `ifdef MMU
+// assign addr_icache_mem = {rbuf_paddr[31:2+offset_width],temp};
+// `else 
 assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
-`endif
+// `endif
 
 //FSM
 Icache_FSMmain #(

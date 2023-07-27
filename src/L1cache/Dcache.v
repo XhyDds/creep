@@ -179,13 +179,13 @@ Dcache_TagV(
     .clk(clk),
 
     .TagV_addr_read(index),
-    // .TagV_din_compare(rbuf_tag),
-    .TagV_din_compare(ptag),
+    .TagV_din_compare(rbuf_tag),
+    // .TagV_din_compare(ptag),
     .hit(hit),
     
     .TagV_init(TagV_init),
-    // .TagV_din_write(rbuf_tag),
-    .TagV_din_write(ptag),
+    .TagV_din_write(rbuf_tag),
+    // .TagV_din_write(ptag),
     .TagV_addr_write(rbuf_index),
     .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
@@ -220,11 +220,11 @@ wire [1+offset_width:0]temp;
 assign temp=0;
 assign dout_dcache_mem = rbuf_data;
 assign dcache_mem_SUC = rbuf_SUC;
-`ifdef MMU
-assign addr_dcache_mem = dcache_mem_wr ? rbuf_paddr:{rbuf_paddr[31:2+offset_width],temp};
-`else 
+// `ifdef MMU
+// assign addr_dcache_mem = dcache_mem_wr ? rbuf_paddr:{rbuf_paddr[31:2+offset_width],temp};
+// `else 
 assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};
-`endif
+// `endif
 
 //FSM
 Dcache_FSMmain #(
