@@ -76,7 +76,7 @@ module core_top(
 );
     wire clk=aclk;
     wire rstn=aresetn;
-    parameter offset_width = 3;
+    parameter offset_width = 2;
 
     reg [31:0]pc,npc,
     ctr_id_reg_0,ctr_id_reg_1,ctr_reg_exe0_1_excp,
@@ -109,15 +109,9 @@ module core_top(
 
     reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1;
 
-    // reg excp_flush_exe1_wb,ertn_flush_exe1_wb;
-    
-    // reg kind_pdc_;
-
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
-    reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,
-    // excp_arg_id_reg_0,
-    excp_arg_id_reg_1;
+    reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,excp_arg_id_reg_1;
     reg [15:0]MMU_pipeline_excp_arg0_if1_fifo;
 
     reg [63:0]ir_if1_fifo;
@@ -136,7 +130,6 @@ module core_top(
     localparam TLB_n=5,TLB_PALEN=32;
 
     reg [TLB_n-1:0] rand_index_exe0_exe1,rand_index_exe1_wb;
-    // reg [5:0] ecode_exe1_wb;
 
     reg [63:0]countresult_exe1_wb_0,countresult_exe1_wb_1,countresult_exe0_exe1_0,countresult_exe0_exe1_1;
 
@@ -146,13 +139,14 @@ module core_top(
     wire [31:0]pc_priv;
     wire [31:0]privresult;
     wire ifpriv,excp_flush;
-    wire stall_priv=0;
+    // wire stall_priv=0;
     wire idle0;
+    wire [15:0]MMU_pipeline_excp_arg1;
 
     wire ifbr0,ifbr1,ifcacop_ibar;
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
-    wire stall_dcache,stall_icache;//dcache_valid-ready?
+    wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
 
@@ -168,20 +162,20 @@ module core_top(
     assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush;
     assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush;
 
-    assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�?
-    assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_fifo_id =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_id_reg0 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_id_reg1 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_reg_exe0_0 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_reg_exe0_1 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_exe0_exe1_0 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_exe0_exe1_1 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�?
-    assign stall_exe1_wb_0 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_exe1_wb_1 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
+    assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
+    assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
+    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;//暂时不死�?
+    assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache;
+    assign stall_fifo_id =      break_point|stall_div1|stall_dcache;
+    assign stall_id_reg0 =      break_point|stall_div1|stall_dcache;
+    assign stall_id_reg1 =      break_point|stall_div1|stall_dcache;
+    assign stall_reg_exe0_0 =   break_point|stall_div1|stall_dcache;
+    assign stall_reg_exe0_1 =   break_point|stall_div1|stall_dcache;
+    assign stall_exe0_exe1_0 =  break_point|stall_div1|stall_dcache;
+    assign stall_exe0_exe1_1 =  break_point|stall_div1|stall_dcache;
+    assign stall_to_dcache =    break_point|stall_div1;//暂时不死�?
+    assign stall_exe1_wb_0 =    break_point|stall_div1|stall_dcache;
+    assign stall_exe1_wb_1 =    break_point|stall_div1|stall_dcache;
 
     //ICache Return Buffer
     wire        mem_icache_addrOK;
@@ -826,7 +820,6 @@ module core_top(
     
     wire            ertn_flush          ;
     wire    [5:0]   csr_ecode           ;
-    wire    [15:0]	MMU_pipeline_excp_arg1;
 
     wire    [TLB_n-1:0] CSR_rand_index ;
     wire            CSR_tlbfill_en      ;
@@ -1727,7 +1720,7 @@ module core_top(
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
         .L1_offset_width 		( 2 		),
-        .L2_offset_width 		( 3 		))
+        .L2_offset_width 		( 2 		))
     u_L1_L2cache(
         //ports
         .clk                    		( clk                    		),
