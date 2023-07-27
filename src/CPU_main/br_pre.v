@@ -35,6 +35,6 @@ module br_pre (
     always @(*) begin
         ifbr=(npc!=(ifbr_?brresult_:{pc[31:3]+29'b1,3'b0})|((iftaken_pdc!=ifbr_)&ctr[30]))&ctr[31];
         brresult=ifbr_?brresult_:pc+4;
-        flush_pre=~pc[3]&ifnpc_pdc&iftaken_pdc&ctr[30]&ctr[31];
+        flush_pre=~pc[2]&ifnpc_pdc&iftaken_pdc&ctr[30]&ctr[31];
     end
 endmodule
