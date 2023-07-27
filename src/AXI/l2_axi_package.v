@@ -115,12 +115,14 @@ module l2_axi_package #(
     wire cache_mem_rdy;
     wire mem_arbiter_addrOK;
 
-    wire wrt_lock;
-    wire dma_lock;
-
     wire [3:0]l2_wstrb;
     wire [7:0]l2_wlen;
     wire [7:0]l2_rlen;
+
+    wire [3:0]crt_w;
+    wire [3:0]nxt_w;
+
+    wire [31:0] pointer;
 
     ReturnBuffer#(
         .offset_width       (offset_width)
@@ -149,7 +151,7 @@ module l2_axi_package #(
 
         .in_addr            (addr_arbiter_wrt_w),
         .in_data            (dout_arbiter_wrt),
-        .in_valid           (arbiter_wrt_req_w),
+        .in_valid           (l2cache_mem_req_w),
         .in_ready           (wrt_arbiter_addrOK_w),
 
         .out_addr           (wrt_axi_waddr),
@@ -166,8 +168,9 @@ module l2_axi_package #(
         .query_data         (query_data),
         .query_ok           (query_ok),
 
-        .dma_lock           (dma_lock),
-        .wrt_lock           (wrt_lock)
+        .crt_pull           (crt_w),
+        .nxt_pull           (nxt_w),
+        .pointer            (pointer)
     );
 
     write_arbiter #(
@@ -196,7 +199,6 @@ module l2_axi_package #(
         //wrt_in
         .addr_l2cache_wrt_w (addr_arbiter_wrt_w),
         .dout_l2cache_wrt   (dout_arbiter_wrt),
-        .l2cache_wrt_req_w  (arbiter_wrt_req_w),
         .wrt_l2cache_addrOK_w(wrt_arbiter_addrOK_w),
         //wrt_out
         .wrt_axi_addr       (wrt_axi_waddr),
@@ -211,9 +213,26 @@ module l2_axi_package #(
         //直接访存
         .l2cache_axi_wstrb  (l2cache_axi_wstrb),
         .dma_sign           (dma_sign),
+        
+        .crt                (crt_w),
+        .nxt                (nxt_w)
+    );
 
-        .dma_lock           (dma_lock),
-        .wrt_lock           (wrt_lock)
+    Write_FSM u_write_fsm(
+        .clk                (clk),
+        .rstn               (rstn),
+        .l2cache_mem_req_w  (l2cache_mem_req_w),
+        .dma_sign           (dma_sign),
+        .pointer            (pointer),
+        .l2_waddrOK         (l2_waddrOK),
+        .l2_wready          (l2_wready),
+        .l2_bvalid          (l2_bvalid),
+        .out_awready        (axi_wrt_awready),
+        .out_wready         (axi_wrt_wready),
+        .out_bvalid         (axi_wrt_bvalid),
+
+        .crt                (crt_w),
+        .nxt                (nxt_w)
     );
 
     read_arbiter #(
