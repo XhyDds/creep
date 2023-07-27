@@ -86,10 +86,9 @@ always @(posedge clk) begin
     rstn_reg <= rstn;
 end
 assign icache_pipeline_ready1=icache_pipeline_ready&rstn_reg;//初始态不能给ready
+wire dma;
 `ifdef DMA
-    wire dma = 1;
-`else 
-    wire dma = 0;
+    assign dma = 1;
 `endif
 wire Miss = ((!hit0)&&(!hit1)) || dma || FSM_rbuf_SUC;
 reg [4:0]state;
