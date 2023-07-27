@@ -1,4 +1,3 @@
-// `define DMA
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -81,10 +80,9 @@ module L2cache_FSMmain#(
 wire opflag;
 assign opflag=pipeline_l2cache_opflag;
 
+wire dma;
 `ifdef DMA
-    wire dma = 1;
-`else 
-    wire dma = 0;
+    assign dma = 1;
 `endif
 reg [4:0]state;
 reg [4:0]next_state;
