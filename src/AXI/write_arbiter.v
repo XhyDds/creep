@@ -69,6 +69,9 @@ module write_arbiter#(
                 l2_len=(1<<offset_width)-1;
                 l2_wstrb=4'hF;
 
+                addr_l2cache_wrt_w=addr_l2cache_mem_w;
+                dout_l2cache_wrt=dout_l2cache_mem;
+
                 l2_waddr=wrt_axi_addr;
                 l2_wdata=wrt_axi_data;
                 l2_wvalid=wrt_axi_valid;

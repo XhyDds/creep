@@ -1,6 +1,6 @@
 // `define IDMA
 // `define DDMA
-`define predictor
+// `define predictor
 `define MMU
 // `define ICache
 // `define DCache
