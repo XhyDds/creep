@@ -240,7 +240,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     esubcode=pipeline_CSR_excp_arg0[14:6];
     mode=pipeline_CSR_subtype;
     evaddr=inpc;//TLB(F),ADEF,PIF,PPI
-    TI_cl=0;rand_en=0;
+    TI_cl=0;
     inst_stop=0;nclk_stall=clk_stall;
     TLBIDXout=0;TLBEHIout=0;
     TLBELO0out=0;TLBELO1out=0;
