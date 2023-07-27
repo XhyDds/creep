@@ -817,7 +817,8 @@ module core_top(
         .rstn                   		( rstn                   		),
         // .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
         .pipeline_CSR_flush             ( 0                             ),
-        .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
+        // .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
+        .pipeline_CSR_stall     		( 0                      		),
         .CSR_pipeline_clk_stall     	( ifidle               ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
         .CSR_pipeline_outpc     		( pc_priv     		            ),
@@ -1242,7 +1243,7 @@ module core_top(
 
     wire ifflush_if1_fifo;
     assign ifflush_if1_fifo=flush_if0_if1|fflush_if0_if1;
-    
+
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_if1_fifo|ifflush_if1_fifo) begin
             pc_if1_fifo<=0;
@@ -1360,19 +1361,19 @@ module core_top(
     //REG-EXE0
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_reg_exe0_0) begin
-            ctr_reg_exe0_0 <= 0;
-            imm_reg_exe0_0<=0;
-            rk_reg_exe0_0<=0;
-            rj_reg_exe0_0<=0;
-            rd_reg_exe0_0<=0;
-            rrk_reg_exe0_0<=0;
-            rrj_reg_exe0_0<=0;
-            rrd_reg_exe0_0<=0;
-            pc_reg_exe0_0<=0;
-            ir_reg_exe0_0<=0;
-            ir_valid_reg_exe0_0<=0;
-            pre_reg_exe0_0<=0;
-            npc_reg_exe0_0<=0;
+            ctr_reg_exe0_0          <= 0;
+            imm_reg_exe0_0          <=0;
+            rk_reg_exe0_0           <=0;
+            rj_reg_exe0_0           <=0;
+            rd_reg_exe0_0           <=0;
+            rrk_reg_exe0_0          <=0;
+            rrj_reg_exe0_0          <=0;
+            rrd_reg_exe0_0          <=0;
+            pc_reg_exe0_0           <=0;
+            ir_reg_exe0_0           <=0;
+            ir_valid_reg_exe0_0     <=0;
+            pre_reg_exe0_0          <=0;
+            npc_reg_exe0_0          <=0;
         end
         else if(stall_reg_exe0_0);
         // else if(flush_reg_exe0_0) begin
@@ -1391,25 +1392,26 @@ module core_top(
         //     npc_reg_exe0_0<=0;
         // end
         else begin
-            ctr_reg_exe0_0 <= ctr_id_reg_0;
-            imm_reg_exe0_0<=imm_id_reg_0;
-            rrk_reg_exe0_0<=rrk0_rf;
-            rrj_reg_exe0_0<=rrj0_rf;
-            rrd_reg_exe0_0<=rrd0_rf;
-            rk_reg_exe0_0<=rk_id_reg_0;
-            rj_reg_exe0_0<=rj_id_reg_0;
-            rd_reg_exe0_0<=rd_id_reg_0;
-            pc_reg_exe0_0<=pc_id_reg_0;
-            ir_reg_exe0_0<=ir_id_reg_0;
-            ir_valid_reg_exe0_0<=ir_valid_id_reg_0;
-            pre_reg_exe0_0<=pre_id_reg_0;
-            npc_reg_exe0_0<=npc_id_reg_0;
+            ctr_reg_exe0_0         <= ctr_id_reg_0;
+            imm_reg_exe0_0         <=imm_id_reg_0;
+            rrk_reg_exe0_0         <=rrk0_rf;
+            rrj_reg_exe0_0         <=rrj0_rf;
+            rrd_reg_exe0_0         <=rrd0_rf;
+            rk_reg_exe0_0          <=rk_id_reg_0;
+            rj_reg_exe0_0          <=rj_id_reg_0;
+            rd_reg_exe0_0          <=rd_id_reg_0;
+            pc_reg_exe0_0          <=pc_id_reg_0;
+            ir_reg_exe0_0          <=ir_id_reg_0;
+            ir_valid_reg_exe0_0    <=ir_valid_id_reg_0;
+            pre_reg_exe0_0         <=pre_id_reg_0;
+            npc_reg_exe0_0         <=npc_id_reg_0;
         end
     end
-
+    
+    reg [31:0]  ctr_reg_exe0_1_;
     always @(posedge clk or negedge rstn) begin
         if(!rstn|flush_reg_exe0_1) begin
-            ctr_reg_exe0_1 <= 0;
+            ctr_reg_exe0_1_<= 0;
             excp_arg_reg_exe0_1<=0;
             imm_reg_exe0_1<=0;
             rk_reg_exe0_1<=0;
@@ -1425,24 +1427,8 @@ module core_top(
             npc_reg_exe0_1<=0;
         end
         else if(stall_reg_exe0_1);
-        // else if(flush_reg_exe0_1) begin
-        //     ctr_reg_exe0_1 <= 0;
-        //     excp_arg_reg_exe0_1<=0;
-        //     imm_reg_exe0_1<=0;
-        //     rk_reg_exe0_1<=0;
-        //     rj_reg_exe0_1<=0;
-        //     rd_reg_exe0_1<=0;
-        //     rrk_reg_exe0_1<=0;
-        //     rrj_reg_exe0_1<=0;
-        //     rrd_reg_exe0_1<=0;
-        //     pc_reg_exe0_1<=0;
-        //     ir_reg_exe0_1<=0;
-        //     ir_valid_reg_exe0_1<=0;
-        //     pre_reg_exe0_1<=0;
-        //     npc_reg_exe0_1<=0;
-        // end
         else begin
-            ctr_reg_exe0_1 <= ctr_id_reg_1;
+            ctr_reg_exe0_1_<= ctr_id_reg_1;
             excp_arg_reg_exe0_1<=excp_arg_id_reg_1;
             imm_reg_exe0_1<=imm_id_reg_1;
             rrk_reg_exe0_1<=rrk1_rf;
@@ -1457,6 +1443,7 @@ module core_top(
             pre_reg_exe0_1<=pre_id_reg_1;
             npc_reg_exe0_1<=npc_id_reg_1;
         end
+        ctr_reg_exe0_1 = stall_reg_exe0_1 ? 32'b0 : ctr_reg_exe0_1_;
     end
 
     //EXE0-EXE1
@@ -1928,11 +1915,15 @@ module core_top(
     reg     [31:0]  csr_tval_diff_0_reg     ;
     reg     [31:0]  csr_ticlr_diff_0_reg    ;
     reg     [31:0]  csr_llbctl_diff_0_reg   ;
+    reg     [31:0]  csr_llbctl_diff_0_last  ;
+    reg     [31:0]  csr_llbctl_diff_0_valid ;
     reg     [31:0]  csr_tlbrentry_diff_0_reg;
     reg     [31:0]  csr_dmw0_diff_0_reg     ;
     reg     [31:0]  csr_dmw1_diff_0_reg     ;
     reg     [31:0]  csr_pgdl_diff_0_reg     ;
     reg     [31:0]  csr_pgdh_diff_0_reg     ;
+
+    reg     stall_exe1_wb_1_reg;
 
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
@@ -1963,7 +1954,7 @@ module core_top(
             csr_pgdl_diff_0_reg         <=  0;
             csr_pgdh_diff_0_reg         <=  0;
         end
-        else if(!stall_exe1_wb_0)begin
+        else if(!stall_exe1_wb_1)begin
             csr_crmd_diff_0_reg         <=  csr_crmd_diff_0     ;
             csr_prmd_diff_0_reg         <=  csr_prmd_diff_0     ;
             csr_ectl_diff_0_reg         <=  csr_ectl_diff_0     ;
@@ -1984,13 +1975,25 @@ module core_top(
             csr_tcfg_diff_0_reg         <=  csr_tcfg_diff_0     ;
             csr_tval_diff_0_reg         <=  csr_tval_diff_0     ;
             csr_ticlr_diff_0_reg        <=  csr_ticlr_diff_0    ;
-            csr_llbctl_diff_0_reg       <=  csr_llbctl_diff_0   ;
+            csr_llbctl_diff_0_reg       <=  csr_llbctl_diff_0_valid;
             csr_tlbrentry_diff_0_reg    <=  csr_tlbrentry_diff_0;
             csr_dmw0_diff_0_reg         <=  csr_dmw0_diff_0     ;
             csr_dmw1_diff_0_reg         <=  csr_dmw1_diff_0     ;
             csr_pgdl_diff_0_reg         <=  csr_pgdl_diff_0     ;
             csr_pgdh_diff_0_reg         <=  csr_pgdh_diff_0     ;
         end
+    end
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) csr_llbctl_diff_0_last <= 0;
+        else if(stall_exe0_exe1_1);
+        else csr_llbctl_diff_0_last <= csr_llbctl_diff_0;
+    end
+    always @(posedge clk or negedge rstn) begin
+        if(!rstn) stall_exe1_wb_1_reg <= 0;
+        else stall_exe1_wb_1_reg <= stall_exe1_wb_1;
+    end
+    always @(*) begin
+        csr_llbctl_diff_0_valid=stall_exe1_wb_1_reg?csr_llbctl_diff_0_last:csr_llbctl_diff_0;
     end
 
     always @(posedge aclk) begin
