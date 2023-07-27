@@ -29,11 +29,11 @@ module decoder (
     //for yuanzi, 11:load, 12:store
     //for tiaoxie, 0:jirl, 1:bl
     //for rdcnt, 0:rdcntvl.w, 1:rdcntvh.w, (2:rdcntid)
-    reg memread,memwrite,regwrite,nop,priv,ifrdc,iftlbfill,ifibar_cacop,userd;
+    reg memread,memwrite,regwrite,nop,priv,ifrdc,iftlbfill,ifibar_cacop,userd,ifbr;
     reg [2:0] kind;
-    assign control=(valid)?{1'b1,1'b0,userd,ifibar_cacop,iftlbfill,kind,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
+    assign control=(valid)?{1'b1,ifbr,userd,ifibar_cacop,iftlbfill,kind,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
     always @(*) begin
-        userd=0;rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;ifibar_cacop=0;kind=NOT_JUMP;iftlbfill=0;
+        userd=0;rk=0;rj=0;rd=0;imm=0;excp_arg=0;aluop=0;pcsrc=0;alusrc1=0;alusrc2=0;type_=0;subtype=0;regwrite=0;memwrite=0;memread=0;nop=0;priv=0;ifrdc=0;ifibar_cacop=0;kind=NOT_JUMP;iftlbfill=0;ifbr=0;
         if(excp_arg_in[15]) begin //ADEF 
             type_=liwai;subtype=0;excp_arg={1'b0,excp_arg_in[14:0]}; 
         end
@@ -312,39 +312,39 @@ module decoder (
         'b010011: //JIRL
             begin 
                 imm={{14{ir[25]}},ir[25:10],2'b0};type_=tiaoxie;subtype=0;regwrite=1;pcsrc=1;
-                aluop=jia;alusrc1=1;alusrc2=3;rj=ir[9:5];rd=ir[4:0];kind=(rd==0&rj==1&ir[25:10]==0)?RET:(rd==1?CALL:INDIRECT_JUMP);userd=1;
+                aluop=jia;alusrc1=1;alusrc2=3;rj=ir[9:5];rd=ir[4:0];kind=(rd==0&rj==1&ir[25:10]==0)?RET:(rd==1?CALL:INDIRECT_JUMP);userd=1;ifbr=1;
             end
         'b010100: //B
             begin 
-                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiao;subtype=0;pcsrc=1;kind=JUMP;
+                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiao;subtype=0;pcsrc=1;kind=JUMP;ifbr=1;
             end
         'b010101: //BL
             begin 
-                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiaoxie;subtype=1;regwrite=1;pcsrc=1;aluop=jia;alusrc1=1;alusrc2=3;rd=1;kind=CALL;userd=1;
+                imm={{4{ir[9]}},ir[9:0],ir[25:10],2'b0};type_=tiaoxie;subtype=1;regwrite=1;pcsrc=1;aluop=jia;alusrc1=1;alusrc2=3;rd=1;kind=CALL;userd=1;ifbr=1;
             end
         'b010110: //BEQ
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=1;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;userd=1;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=1;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;userd=1;ifbr=1;
             end
         'b010111: //BNE
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=2;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;userd=1;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=2;pcsrc=1;aluop=jian;alusrc2=2;kind=DIRECT_JUMP;userd=1;ifbr=1;
             end
         'b011000: //BLT
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=3;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=3;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;ifbr=1;
             end
         'b011001: //BGE
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=4;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=4;pcsrc=1;aluop=sxiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;ifbr=1;
             end
         'b011010: //BLTU
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=5;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=5;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;ifbr=1;
             end
         'b011011: //BGEU
             begin
-                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;
+                imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;ifbr=1;
             end
         default: begin type_=liwai;subtype=0;excp_arg='b001101; end
         endcase

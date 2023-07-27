@@ -1,4 +1,5 @@
 module cache_ctr (
+    input        stall,
     input        [31:0]rrj1_forward,imm_reg_exe0_1,ctr_reg_exe0_1,rrd1_forward,
     input        [15:0]excp_arg_reg_exe0_1_excp,
     output  reg  [31:0]addr_pipeline_dcache,
@@ -114,7 +115,7 @@ module cache_ctr (
                         2: pipeline_l2cache_opflag=1;
                     endcase
                     pipeline_cache_opcode={1'b0,15'b0,excp_arg_reg_exe0_1_excp};
-                    ifcacop_ibar=1;
+                    ifcacop_ibar=stall?0:1;
                 end
             endcase
         else if(type_==6)
@@ -132,7 +133,7 @@ module cache_ctr (
         else if(type_==9) begin //ibar
             pipeline_cache_opcode={1'b1,31'b0};
             pipeline_icache_opflag=1;
-            ifcacop_ibar=1;
+            ifcacop_ibar=stall?0:1;
         end
     end
 endmodule
