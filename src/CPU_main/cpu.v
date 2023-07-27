@@ -182,6 +182,18 @@ module core_top(
     wire    [31:0] i_rdata;
     wire    i_rlast;
 
+    //ICache
+    wire [63:0]	dout_icache_pipeline;
+    wire 	    flag_icache_pipeline;
+    wire        icache_pipeline_ready;
+
+    wire [31:0]	addr_icache_mem;
+    wire [1:0]	icache_mem_size;
+
+    wire [31:0]	MMU_pipeline_PADDR0;
+    wire [31:0] pc_icache_pipeline;
+
+    `ifdef ICache
     ReturnBuffer#(
         .offset_width       (offset_width)
     )
@@ -195,19 +207,6 @@ module core_top(
         .rdata              (i_rdata),
         .rlast              (i_rlast)
     );
-
-    //ICache
-    wire [63:0]	dout_icache_pipeline;
-    wire 	    flag_icache_pipeline;
-    wire        icache_pipeline_ready;
-
-    wire [31:0]	addr_icache_mem;
-    wire [1:0]	icache_mem_size;
-
-    wire [31:0]	MMU_pipeline_PADDR0;
-    wire [31:0] pc_icache_pipeline;
-
-    `ifdef ICache
     Icache #(
         .index_width  		( 4 		),
         .offset_width 		( 2 		),

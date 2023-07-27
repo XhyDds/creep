@@ -57,7 +57,7 @@ module ReturnBuffer #(
                 end
             end
             SEND: begin
-                `ifdef L2Cache
+                // `ifdef L2Cache
                     if(cache_mem_req&&cache_mem_rdy) begin
                         next_state = OK;
                     end
@@ -67,15 +67,15 @@ module ReturnBuffer #(
                     else begin
                         next_state = SEND;
                     end
-                `endif
-                `ifndef L2Cache
-                    if(cache_mem_req) begin
-                        next_state = OK;
-                    end
-                    else begin
-                        next_state = IDLE;
-                    end
-                `endif
+                // `endif
+                // `ifndef L2Cache
+                //     if(cache_mem_req) begin
+                //         next_state = OK;
+                //     end
+                //     else begin
+                //         next_state = IDLE;
+                //     end
+                // `endif
             end
             default:begin
                 next_state = IDLE;
