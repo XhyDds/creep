@@ -1,6 +1,6 @@
 // `define IDMA
 // `define DDMA
-// `define predictor
+`define predictor
 `define MMU
 // `define ICache
 // `define DCache
@@ -143,17 +143,19 @@ module core_top(
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
-    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1;
+    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
 
+    assign flushup=flush_pre1&ctr_reg_exe0_0[31];
+    assign flushdown=flush_pre1&ctr_id_reg_1[31];
     assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_reg_exe0_1 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_exe0_exe1_0 =  ifpriv|ifbr1|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_reg_exe0_1 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdown;
+    assign flush_exe0_exe1_0 =  ifpriv|ifbr1|ifcacop_ibar|ifmmu_excp|ifidle|flushup;
     assign flush_exe0_exe1_1 =  ifmmu_excp|excp_flush;
     assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush;
     assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush;
@@ -694,21 +696,54 @@ module core_top(
     //     .ctr        	( ctr_reg_exe0_1_excp        		),
     //     .ifibar 		( ifibar1 		)
     // );
+`ifdef predictor
+    wire [31:0]	pc_br0;
+    wire flush_pre0;
 
+    br_pre u_br0(
+        //ports
+        .ctr      		( ctr_reg_exe0_0    ),
+        .pc       		( pc_reg_exe0_0     ),
+        .npc            ( npc_reg_exe0_0    ),
+        .imm      		( imm_reg_exe0_0    ),
+        .zero     		( zero0     		),
+        .ifbr     		( ifbr0    		    ),
+        .brresult 		( pc_br0 	        ),
+        .rrj            ( rrj0_forward      ),
+        .pre            ( pre_reg_exe0_0    ),
+        .flush_pre      ( flush_pre0        )
+    );
+
+    wire [31:0]	pc_br1;
+    wire flush_pre1;
+
+    br_pre u_br1(
+        //ports
+        .ctr      		( ctr_reg_exe0_1_excp),
+        .pc       		( pc_reg_exe0_1      ),
+        .npc            ( npc_reg_exe0_1     ),
+        .imm      		( imm_reg_exe0_1     ),
+        .zero     		( zero1     		 ),
+        .ifbr     		( ifbr1    		     ),
+        .brresult 		( pc_br1		     ),
+        .rrj            ( rrj1_forward       ),
+        .pre            ( pre_reg_exe0_1     ),
+        .flush_pre      ( flush_pre1         )
+    );
+`endif
+`ifndef predictor
     wire [31:0]	pc_br0;
     wire flush_pre0;
 
     br u_br0(
         //ports
-        .ctr      		( ctr_reg_exe0_0      		),
-        .pc       		( pc_reg_exe0_0       		),
-        .npc            ( npc_reg_exe0_0            ),
-        .imm      		( imm_reg_exe0_0      		),
+        .ctr      		( ctr_reg_exe0_0    ),
+        .pc       		( pc_reg_exe0_0     ),
+        .imm      		( imm_reg_exe0_0    ),
         .zero     		( zero0     		),
-        .ifbr     		( ifbr0    		),
-        .brresult 		( pc_br0 	),
-        .rrj            ( rrj0_forward  ),
-        .flush_pre      ( flush_pre0    )
+        .ifbr     		( ifbr0    		    ),
+        .brresult 		( pc_br0 	        ),
+        .rrj            ( rrj0_forward      )
     );
 
     wire [31:0]	pc_br1;
@@ -716,16 +751,15 @@ module core_top(
 
     br u_br1(
         //ports
-        .ctr      		( ctr_reg_exe0_1_excp      		),
-        .pc       		( pc_reg_exe0_1       		),
-        .npc            ( npc_reg_exe0_1            ),
-        .imm      		( imm_reg_exe0_1      		),
-        .zero     		( zero1     		),
-        .ifbr     		( ifbr1    		),
-        .brresult 		( pc_br1		),
-        .rrj            ( rrj1_forward  ),
-        .flush_pre      ( flush_pre1    )
+        .ctr      		( ctr_reg_exe0_1_excp),
+        .pc       		( pc_reg_exe0_1      ),
+        .imm      		( imm_reg_exe0_1     ),
+        .zero     		( zero1     		 ),
+        .ifbr     		( ifbr1    		     ),
+        .brresult 		( pc_br1		     ),
+        .rrj            ( rrj1_forward       )
     );
+`endif
 
     wire [31:0]	addr_pipeline_dcache;
     wire [31:0]	din_pipeline_dcache;
@@ -1162,6 +1196,7 @@ module core_top(
 
     wire [28:0]npc_test;
 
+    `ifdef predictor
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
@@ -1188,18 +1223,20 @@ module core_top(
         .pc          		( pc[31:3]          ),
         .npc_test           ( npc_test          )
     );
+    `endif
 
     //PC
     wire [31:0]npc_pdc_32={npc_pdc,3'b0};
-    reg fflush_if0_if1;
+    reg ifnpc_pdc;
     always @(*) begin
+        ifnpc_pdc=0;
         if(ifpriv) npc=pc_priv;
         else if(ifbr1) npc=pc_br1;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
         else if(ifbr0) npc=pc_br0;
         else if(pc[2]) npc=pc+4;
         `ifdef predictor
-        else npc=npc_pdc_32;
+        else begin npc=npc_pdc_32;ifnpc_pdc=1; end
         `endif
         `ifndef predictor
         else npc=pc+8;//Icache ONLY
@@ -1226,13 +1263,15 @@ module core_top(
         else begin
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
-            pre_if0_if1<={29'b0,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //pre
+            pre_if0_if1<={28'b0,ifnpc_pdc,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //35 34:33 32 31:29 28:0
         end
     end
 
     //IF1-FIFO
     //flush套壳
-    
+    reg fflush_if0_if1;
     always @(posedge clk or negedge rstn) begin
         if(!rstn) begin
             fflush_if0_if1 <= 0;
@@ -1443,6 +1482,8 @@ module core_top(
             pre_reg_exe0_1<=pre_id_reg_1;
             npc_reg_exe0_1<=npc_id_reg_1;
         end
+    end
+    always @(*) begin
         ctr_reg_exe0_1 = stall_reg_exe0_1 ? 32'b0 : ctr_reg_exe0_1_;
     end
 
@@ -2073,8 +2114,8 @@ module core_top(
         .pc                 (cmt_pc1         ),
         .instr              (cmt_inst1       ),
         .skip               (0              ),
-        // .is_TLBFILL         (cmt_tlbfill_en ),
-        // .TLBFILL_index      (cmt_rand_index ),
+        .is_TLBFILL         (cmt_tlbfill_en ),
+        .TLBFILL_index      (cmt_rand_index ),
         .is_CNTinst         (cmt_cnt_inst1   ),
         .timer_64_value     (cmt_timer_64    ),
         .wen                (cmt_wen1        ),
