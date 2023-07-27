@@ -39,19 +39,8 @@ module write_arbiter#(
     //直接访存
     input    [3:0]l2cache_axi_wstrb,
     input    dma_sign,
-    output   reg dma_lock,//dma锁
-    input    wrt_lock
 );
     parameter IDLE = 3'd0,WRT_W = 3'd1,DMA_AW=3'd2 , DMA_W=3'd3 , DMA_R=3'd4;
-
-    reg [2:0] crt,nxt;
-    always @(posedge clk,negedge rstn) begin
-        if(!rstn) begin
-            crt <= IDLE;
-        end else begin
-            crt <= nxt;
-        end
-    end
     always @(*) begin
         case(crt)
             IDLE: begin

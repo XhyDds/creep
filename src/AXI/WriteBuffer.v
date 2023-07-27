@@ -36,9 +36,9 @@ module WriteBuffer #(
     output reg[(1<<offset_width)*32-1:0] query_data,
     output reg query_ok,                       //query是否成功
 
-    //互斥锁
-    input  dma_lock,
-    output reg wrt_lock
+    //状态机
+    input  [3:0] crt_pull,
+    input  [3:0] nxt_pull
 );
     parameter WORD = (1<<offset_width)*32;
     reg [31:0] pointer;
@@ -51,69 +51,10 @@ module WriteBuffer #(
     reg [(1<<offset_width)*32-1:0] _out_data;
 
     //pull(->axi)
-
     //state machine
     parameter IDLE_L = 4'd0,PULL=4'd1,
             SEND_0=4'd2,SEND_1=4'd3,SEND_2=4'd4,SEND_3=4'd5,SEND_4=4'd6,SEND_5=4'd7,SEND_6=4'd8,SEND_7=4'd9,_SEND=4'd10;
-    reg [3:0] crt_pull,nxt_pull;
-    always @(posedge clk,negedge rstn) begin
-        if (!rstn) begin
-            crt_pull<=IDLE_L;
-        end
-        else begin
-            crt_pull<=nxt_pull;
-        end
-    end
-    always @(*) begin
-        case (crt_pull)
-            IDLE_L: begin
-                if(dma_lock==0 && pointer!=0)      nxt_pull=PULL;
-                else                nxt_pull=IDLE_L;
-            end 
-            PULL:       begin
-                if(out_awready)     nxt_pull=SEND_0;
-                else                nxt_pull=PULL;
-            end
-            SEND_0: begin
-                if(out_wready)      nxt_pull=SEND_1;
-                else                nxt_pull=SEND_0;
-            end
-            SEND_1: begin
-                if(out_wready)      nxt_pull=SEND_2;
-                else                nxt_pull=SEND_1;
-            end
-            SEND_2: begin
-                if(out_wready)      nxt_pull=SEND_3;
-                else                nxt_pull=SEND_2;
-            end
-            SEND_3: begin
-                if(out_wready)      nxt_pull=SEND_4;
-                else                nxt_pull=SEND_3;
-            end
-            SEND_4: begin
-                if(out_wready)      nxt_pull=SEND_5;
-                else                nxt_pull=SEND_4;
-            end
-            SEND_5: begin
-                if(out_wready)      nxt_pull=SEND_6;
-                else                nxt_pull=SEND_5;
-            end
-            SEND_6: begin
-                if(out_wready)      nxt_pull=SEND_7;
-                else                nxt_pull=SEND_6;
-            end
-            SEND_7: begin
-                if(out_wready)      nxt_pull=_SEND;
-                else                nxt_pull=SEND_7;
-            end
-            _SEND: begin
-                if(out_bvalid)      nxt_pull=IDLE_L;
-                else                nxt_pull=_SEND;
-            end
-            default:                nxt_pull=IDLE_L;
-        endcase
-    end
-    //signal
+    //外部输入
     //组合action
     reg pointer_minus;
     always @(*) begin
@@ -125,73 +66,60 @@ module WriteBuffer #(
         out_wvalid=0;
 
         pointer_minus=0;
-
-        wrt_lock=0;
         case (crt_pull)
             IDLE_L: begin
                 if(nxt_pull==PULL) begin
                     pointer_minus=1;
-                    wrt_lock=1;
-                end 
+                end
                 else ;
             end
             PULL: begin
                 out_valid=1;
-                wrt_lock=1;
                 out_addr=buffer_addr[pointer];
             end
             SEND_0: begin
                 out_valid=1;
-                wrt_lock=1;
                 out_data=_out_data[31:0];
                 out_wvalid=1;
             end
             SEND_1: begin
                 out_valid=1;
-                wrt_lock=1;
                 out_data=_out_data[63:32];
                 out_wvalid=1;
             end
             SEND_2: begin
                 out_valid=1;
-                wrt_lock=1;
                 out_data=_out_data[95:64];
                 out_wvalid=1;
             end
             SEND_3: begin
                 out_valid=1;
-                wrt_lock=1;
                 out_data=_out_data[127:96];
                 out_wvalid=1;
             end
             SEND_4: begin
                 out_valid=1;
-                wrt_lock=1;
                 out_data=_out_data[159:128];
                 out_wvalid=1;
             end
             SEND_5: begin
                 out_valid=1;
-                wrt_lock=1;
                 out_data=_out_data[191:160];
                 out_wvalid=1;
             end
             SEND_6: begin
                 out_valid=1;
-                wrt_lock=1;
                 out_data=_out_data[223:192];
                 out_wvalid=1;
             end
             SEND_7: begin
                 out_valid=1;
                 out_last=1;
-                wrt_lock=1;
                 out_data=_out_data[255:224];
                 out_wvalid=1;
             end
             _SEND: begin
                 out_bready=1;
-                wrt_lock=1;
             end
             default: ;
         endcase
