@@ -38,10 +38,10 @@ module WriteBuffer #(
 
     //状态机
     input  [3:0] crt_pull,
-    input  [3:0] nxt_pull
+    input  [3:0] nxt_pull,
+    output reg [31:0] pointer
 );
     parameter WORD = (1<<offset_width)*32;
-    reg [31:0] pointer;
     reg [31:0] buffer_addr[length-1:0];
     reg [WORD-1:0] buffer_data[0:length-1];
 
@@ -52,8 +52,8 @@ module WriteBuffer #(
 
     //pull(->axi)
     //state machine
-    parameter IDLE_L = 4'd0,PULL=4'd1,
-            SEND_0=4'd2,SEND_1=4'd3,SEND_2=4'd4,SEND_3=4'd5,SEND_4=4'd6,SEND_5=4'd7,SEND_6=4'd8,SEND_7=4'd9,_SEND=4'd10;
+    parameter IDLE_L = 4'd0,
+            PULL=4'd4,SEND_0=4'd5,SEND_1=4'd6,SEND_2=4'd7,SEND_3=4'd8,SEND_4=4'd9,SEND_5=4'd10,SEND_6=4'd11,SEND_7=4'd12,_SEND=4'd13;
     //外部输入
     //组合action
     reg pointer_minus;
@@ -160,7 +160,7 @@ module WriteBuffer #(
             IDLE_H: begin
                 if(_in_valid)           nxt_push=PUSH;
                 else                    nxt_push=IDLE_H;
-            end 
+            end
             PUSH:                       nxt_push=IDLE_H;
             default:                    nxt_push=IDLE_H;
         endcase

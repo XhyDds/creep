@@ -1,17 +1,26 @@
-module Write_FSM#(
-
-)(
+module Write_FSM(
     input  clk,
-    input  rstn, 
+    input  rstn,
+
+    input  l2cache_mem_req_w,
+    input  dma_sign,
+    input  [31:0]pointer,
+    input  l2_waddrOK,
+    input  l2_wready,
+    input  l2_bvalid,
+    input  out_awready,
+    input  out_wready,
+    input  out_bvalid,
 
     output reg [3:0] crt,
     output reg [3:0] nxt
 );
-        parameter IDLE_L = 4'd0,PULL=4'd1,
-            SEND_0=4'd2,SEND_1=4'd3,SEND_2=4'd4,SEND_3=4'd5,SEND_4=4'd6,SEND_5=4'd7,SEND_6=4'd8,SEND_7=4'd9,_SEND=4'd10;
+    parameter IDLE = 4'd0,DMA_AW=4'd1 , DMA_W=4'd2 , DMA_R=4'd3,
+        PULL=4'd4,SEND_0=4'd5,SEND_1=4'd6,SEND_2=4'd7,SEND_3=4'd8,SEND_4=4'd9,SEND_5=4'd10,SEND_6=4'd11,SEND_7=4'd12,_SEND=4'd13;
+
     always @(posedge clk,negedge rstn) begin
         if (!rstn) begin
-            crt<=IDLE_L;
+            crt<=IDLE;
         end
         else begin
             crt<=nxt;
@@ -19,10 +28,28 @@ module Write_FSM#(
     end
     always @(*) begin
         case (crt)
-            IDLE_L: begin
-                if(dma_lock==0 && pointer!=0)      nxt=PULL;
-                else                nxt=IDLE_L;
+            IDLE: begin
+                if(l2cache_mem_req_w) begin
+                    if(dma_sign)
+                                    nxt = DMA_AW;
+                    else            nxt=IDLE;
+                end
+                else if(pointer!=0) nxt=PULL;
+                else                nxt = IDLE;
             end 
+            DMA_AW: begin
+                if(l2_waddrOK)      nxt = DMA_W;
+                else                nxt = DMA_AW;
+            end
+            DMA_W: begin
+                if(l2_wready)       nxt = DMA_R;
+                else                nxt = DMA_W;
+            end
+            DMA_R: begin
+                if(l2_bvalid)       nxt = IDLE;
+                else                nxt = DMA_R;
+            end
+
             PULL:       begin
                 if(out_awready)     nxt=SEND_0;
                 else                nxt=PULL;
@@ -60,10 +87,10 @@ module Write_FSM#(
                 else                nxt=SEND_7;
             end
             _SEND: begin
-                if(out_bvalid)      nxt=IDLE_L;
+                if(out_bvalid)      nxt=IDLE;
                 else                nxt=_SEND;
             end
-            default:                nxt=IDLE_L;
+            default:                nxt=IDLE;
         endcase
     end
     //signal
