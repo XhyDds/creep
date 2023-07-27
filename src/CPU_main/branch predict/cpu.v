@@ -710,7 +710,7 @@ module core_top(
         .ifbr     		( ifbr0    		    ),
         .brresult 		( pc_br0 	        ),
         .rrj            ( rrj0_forward      ),
-        .ifnpc_pdc      ( pre_reg_exe0_0[35]),
+        .pre            ( pre_reg_exe0_0    ),
         .flush_pre      ( flush_pre0        )
     );
 
@@ -727,7 +727,7 @@ module core_top(
         .ifbr     		( ifbr1    		     ),
         .brresult 		( pc_br1		     ),
         .rrj            ( rrj1_forward       ),
-        .ifnpc_pdc      ( pre_reg_exe0_1[35] ),
+        .pre            ( pre_reg_exe0_1     ),
         .flush_pre      ( flush_pre1         )
     );
 

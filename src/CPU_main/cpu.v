@@ -226,7 +226,7 @@ module core_top(
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
         .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
-        .SUC_pipeline_icache            ( MMU_pipeline_memtype0 ),
+        .SUC_pipeline_icache            ( MMU_pipeline_memtype0[0] ),
         .pc_icache_pipeline             ( pc_icache_pipeline    ),
 
         .addr_icache_mem        		( addr_icache_mem        		),
@@ -930,14 +930,14 @@ module core_top(
         .pipeline_MMU_TLBELO0   		( CSR_MMU_TLBELO0 ),
         .pipeline_MMU_TLBELO1   		( CSR_MMU_TLBELO1 ),
 
-        .pipeline_MMU_optype0   		( 0 	),//fetch
-        .pipeline_MMU_VADDR_valid0      ( 1     ),
+        .pipeline_MMU_optype0   		( 1'b0 	),//fetch
+        .pipeline_MMU_VADDR_valid0      ( 1'b1     ),
         .pipeline_MMU_VADDR0    		( pc    ),
         .MMU_pipeline_PADDR0    		( MMU_pipeline_PADDR0	        ),
         .MMU_pipeline_excp_arg0 		( MMU_pipeline_excp_arg0        ),
         .MMU_pipeline_memtype0  		( MMU_pipeline_memtype0         ),
 
-        .pipeline_MMU_optype1   		( type_pipeline_dcache?2:1 		),
+        .pipeline_MMU_optype1   		( type_pipeline_dcache?2'd2:2'd1),
         .pipeline_MMU_VADDR_valid1      ( pipeline_MMU_valid            ),
         .pipeline_MMU_VADDR1    		( addr_pipeline_dcache 		    ),
         .MMU_pipeline_PADDR1    		( MMU_pipeline_PADDR1 		    ),
@@ -1698,7 +1698,7 @@ module core_top(
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
         .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
-        .SUC_pipeline_icache            ( MMU_pipeline_memtype0 || dma),
+        .SUC_pipeline_icache            ( MMU_pipeline_memtype0[0] | dma),
         .pc_icache_pipeline             ( pc_icache_pipeline    ),
 
         //  Dcache
@@ -1715,7 +1715,7 @@ module core_top(
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
         .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
-        .SUC_pipeline_dcache            ( MMU_pipeline_memtype1 || dma),
+        .SUC_pipeline_dcache            ( MMU_pipeline_memtype1[0] | dma),
 
         //  L2-pipeline
         .addr_pipeline_l2cache          ( addr_pipeline_dcache          ),

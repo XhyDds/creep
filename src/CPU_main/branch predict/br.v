@@ -1,10 +1,13 @@
 module br (
     input [31:0]ctr,pc,imm,rrj,npc,
-    input zero,ifnpc_pdc,
+    input zero,
+    input [63:0]pre,
     output reg ifbr,flush_pre,
     output reg [31:0]brresult
 );
 // `ifdef predictor
+    wire ifnpc_pdc=pre[35];
+    wire iftaken_pdc=pre[32];
     wire [3:0]type_ = ctr[3:0];
     wire [4:0]subtype = ctr[11:7];
     reg ifbr_;
@@ -37,7 +40,7 @@ module br (
         // 第四 
         ifbr=(npc!=brresult)&ctr[31];
         brresult=ifbr_?brresult_:{pc[31:3]+29'b1,3'b0};
-        flush_pre=(npc==brresult)&~pc[3]&ifnpc_pdc&ctr[31];
+        flush_pre=(npc==brresult)&~pc[3]&ifnpc_pdc&iftaken_pdc&ctr[30]&ctr[31];
         // flush_pre=0;
         // ifbr=ifbr_;
         // brresult=brresult_;
