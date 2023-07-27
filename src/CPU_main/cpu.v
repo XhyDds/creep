@@ -5,7 +5,7 @@
 // `define ICache
 // `define DCache
  `define L2Cache
-// `define DMA  //选择L2Cache�?? 再�?�DMA
+`define DMA  //选择L2Cache�?? 再�?�DMA
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -76,7 +76,7 @@ module core_top(
 );
     wire clk=aclk;
     wire rstn=aresetn;
-    parameter offset_width = 2;
+    parameter offset_width = 3;
 
     reg [31:0]pc,npc,
     ctr_id_reg_0,       ctr_id_reg_1,       
@@ -1656,6 +1656,11 @@ module core_top(
 
 //L2Cache
 `ifdef L2Cache
+    wire dma;
+    `ifdef DMA
+        assign dma = 1'b1;
+    `endif
+    
     wire [31:0]addr_l2cache_mem_r  ;
     wire [31:0]addr_l2cache_mem_w  ;
     wire [32*(1<<offset_width)-1:0]din_mem_l2cache     ;
@@ -1675,7 +1680,7 @@ module core_top(
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
         .L1_offset_width 		( 2 		),
-        .L2_offset_width 		( 2 		))
+        .L2_offset_width 		( 3 		))
     u_L1_L2cache(
         //ports
         .clk                    		( clk                    		),
@@ -1692,7 +1697,7 @@ module core_top(
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
         .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
-        .SUC_pipeline_icache            ( MMU_pipeline_memtype0 ),
+        .SUC_pipeline_icache            ( MMU_pipeline_memtype0 || dma),
         .pc_icache_pipeline             ( pc_icache_pipeline    ),
 
         //  Dcache
@@ -1709,7 +1714,7 @@ module core_top(
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
         .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
-        .SUC_pipeline_dcache            ( MMU_pipeline_memtype1 ),
+        .SUC_pipeline_dcache            ( MMU_pipeline_memtype1 || dma),
 
         //  L2-pipeline
         .addr_pipeline_l2cache          ( addr_pipeline_dcache          ),

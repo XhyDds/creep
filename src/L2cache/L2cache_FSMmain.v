@@ -79,11 +79,6 @@ module L2cache_FSMmain#(
     );
 wire opflag;
 assign opflag=pipeline_l2cache_opflag;
-
-wire dma;
-`ifdef DMA
-    assign dma = 1;
-`endif
 reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
@@ -106,7 +101,7 @@ always @(*) begin
                 else next_state = replace1;
             end
             else begin
-                if(((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3])) || dma)begin
+                if(((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3])))begin
                     next_state = checkDirty;
                 end
                 else begin//Hit流水化

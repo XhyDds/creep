@@ -94,11 +94,7 @@ assign hit1=FSM_hit[1];
 wire fStall_outside=0;//注意编号        好像不需要响应stall？？
 wire opflag;
 assign opflag=pipeline_dcache_opflag;
-wire dma;
-`ifdef DMA
-    assign dma = 1;
-`endif
-wire Miss = ((!hit0)&&(!hit1)) || dma || FSM_rbuf_SUC;
+wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 wire flush_outside = pipeline_dcache_ctrl[1];
 reg [4:0]state;
 reg [4:0]next_state;

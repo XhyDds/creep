@@ -86,11 +86,7 @@ always @(posedge clk) begin
     rstn_reg <= rstn;
 end
 assign icache_pipeline_ready1=icache_pipeline_ready&rstn_reg;//初始态不能给ready
-wire dma;
-`ifdef DMA
-    assign dma = 1;
-`endif
-wire Miss = ((!hit0)&&(!hit1)) || dma || FSM_rbuf_SUC;
+wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Operation=5'd4,Flush=5'd5;
