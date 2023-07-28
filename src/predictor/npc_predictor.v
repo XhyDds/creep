@@ -87,7 +87,7 @@ module npc_predictor#(
         if(taken_pdc) begin
             case (kind_pdc)
                 NOT_JUMP: 
-                    if(pc[0])   npc_pdc=pc+2;
+                    if(~pc[0])   npc_pdc=pc+2;
                     else        npc_pdc=pc+1;
                 DIRECT_JUMP:    npc_pdc=npc_btb;
                 CALL:           npc_pdc=npc_btb;
@@ -95,12 +95,12 @@ module npc_predictor#(
                 INDIRECT_JUMP:  npc_pdc=npc_btb;
                 OTHER_JUMP:     npc_pdc=npc_btb;
                 default: 
-                    if(pc[0])   npc_pdc=pc+2;
+                    if(~pc[0])   npc_pdc=pc+2;
                     else        npc_pdc=pc+1;
             endcase
         end
         else        
-                    if(pc[0])   npc_pdc=pc+2;
+                    if(~pc[0])   npc_pdc=pc+2;
                     else        npc_pdc=pc+1;
     end
 endmodule
