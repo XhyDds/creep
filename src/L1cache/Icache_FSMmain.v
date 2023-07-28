@@ -215,8 +215,8 @@ always @(*) begin
                 FSM_choose_return=1;
                 icache_pipeline_ready=1;
                 if(!FSM_rbuf_SUC)begin
-                    if(hit0)begin FSM_choose_way=0; FSM_use0=1; FSM_Data_we[0]=1;end
-                    else if(hit1)begin FSM_choose_way=1; FSM_use1=1; FSM_Data_we[1]=1;end
+                    if(~FSM_wal_sel_lru)begin FSM_use0=1; FSM_Data_we[0]=1;end
+                    else begin FSM_use1=1; FSM_Data_we[1]=1;end
                 end
             end
         end
