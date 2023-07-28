@@ -27,7 +27,7 @@ module npc_predictor#(
     // assign npc_test=pc+1;
     // npc_test
     reg [29:0]offset_test;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn)  begin
             offset_test<=0;
             npc_test<=0;

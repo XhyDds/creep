@@ -219,7 +219,7 @@ module predictor #(
     reg [31:0] times_mis_btb    ;
     reg [31:0] times_mis_ras    ;
 
-    always @(posedge clk, negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn) begin
             times_mis_npc    <=0;
             times_mis_kind   <=0;

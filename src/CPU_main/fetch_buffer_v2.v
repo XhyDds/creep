@@ -45,7 +45,7 @@ module fetch_buffer_v2 (
     wire [3:0]flag4=icache_valid?(flag?4'b0001:4'b0000):4'b1111;
     wire [3:0]flag4m=icache_valid?(flag?4'b0000:4'b1111):4'b1110;
     
-    always @(posedge clk,negedge rstn) begin:fetch_buffer
+    always @(posedge clk)begin:fetch_buffer
         integer i;
         if(!rstn|flush) 
             begin

@@ -60,7 +60,7 @@ assign icache_mem_size = 2'd2;
 wire stall = pipeline_icache_ctrl[0];
 reg [4:0]state,next_state;
 localparam Idle=5'd0,req=5'd1,send=5'd2;
-always @(posedge clk,negedge rstn) begin
+always @(posedge clk)begin
     if(!rstn)state<=Idle;
     else state<=next_state;
 end

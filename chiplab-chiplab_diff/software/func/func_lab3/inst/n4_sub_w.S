@@ -1,1 +1,0 @@
-../../func_src/inst/n4_sub_w.S

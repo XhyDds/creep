@@ -1,1 +1,0 @@
-../../func_src/inst/n58_rdcnt.S

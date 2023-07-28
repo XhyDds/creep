@@ -32,7 +32,7 @@ module divider#(//din1/din2
     assign mode=pipeline_divider_subtype;
     aliner alin1(.din(remainder),.n(n1));
     aliner alin2(.din(din2_reg),.n(n2));
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn||flush2)
         begin

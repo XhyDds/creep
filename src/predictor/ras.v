@@ -17,7 +17,7 @@ module ras #(
 
     reg error_crt;
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             ret_stk[4'd0]<=0;
             ret_stk[4'd1]<=0;

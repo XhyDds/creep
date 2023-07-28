@@ -177,7 +177,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             csr_dmw1_diff_0={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     end
     
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn||(flushin&&!inte))
         begin   
@@ -204,7 +204,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             jumpc_reg<=jumpc;
         end
     end
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn)
         begin
@@ -397,7 +397,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     end
     
     assign dwcsr=(dout&(~mask))|(din&mask);
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn)
         begin
