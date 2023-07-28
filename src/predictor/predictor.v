@@ -4,7 +4,7 @@ module predictor #(
                 h_width   = 14,
                 stack_len = 16,
                 queue_len = 16,
-                ADDR_WIDTH = 29
+                ADDR_WIDTH = 30
 )(
     input clk,
     input rstn,

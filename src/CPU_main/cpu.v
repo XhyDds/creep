@@ -1194,7 +1194,7 @@ module core_top(
     assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc_ex[1]:choice_pdc_ex[1];
     assign choice_real_g_h=mis_pdc[0]?~choice_pdc_ex[1]:choice_pdc_ex[1];
 
-    wire [28:0]npc_test;
+    wire [29:0]npc_test;//给ccr用的测试线，需要左移两位使用，0,4交替
 
     `ifdef predictor
     predictor #(
@@ -1202,7 +1202,7 @@ module core_top(
         .h_width       		( 14   		),
         .stack_len     		( 16   		),
         .queue_len     		( 16   		),
-        .ADDR_WIDTH    		( 29   		))
+        .ADDR_WIDTH    		( 30   		))
     u_predictor(
         //ports
         .clk         		( clk         		),
@@ -1210,7 +1210,7 @@ module core_top(
 
         .pc_ex       		( pc_ex             ),
         .mis_pdc     		( mis_pdc     		),
-        .npc_ex      		( npc[31:3]		    ),
+        .npc_ex      		( npc[31:2]		    ),
         .kind_ex     		( kind_ex     		),
         .taken_real  		( taken_real  		),
         .choice_real 		( choice_real 		),
@@ -1220,7 +1220,7 @@ module core_top(
         .taken_pdc   		( taken_pdc   		),
         .choice_pdc  		( choice_pdc  		),
 
-        .pc          		( pc[31:3]          ),
+        .pc          		( pc[31:2]          ),
         .npc_test           ( npc_test          )
     );
     `endif
