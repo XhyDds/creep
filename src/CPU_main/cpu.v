@@ -98,7 +98,8 @@ module core_top(
     ir_exe1_wb_0,       ir_exe1_wb_1,
     addr_pipeline_dcache_exe0_exe1,
     din_pipeline_dcache_exe0_exe1,          din_pipeline_dcache_exe1_wb,
-    vaddr_exe1_wb,      paddr_exe1_wb;
+    vaddr_exe1_wb,      paddr_exe1_wb,
+    vaddr_exe0_exe1,    paddr_exe0_exe1;
 
     reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1;
 
@@ -1444,6 +1445,7 @@ module core_top(
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
             addr_pipeline_dcache_exe0_exe1<=0;
+            paddr_exe0_exe1<=0;
             din_pipeline_dcache_exe0_exe1<=0;
             ir_valid_exe0_exe1_1<=0;
             countresult_exe0_exe1_1<=0;
@@ -1469,6 +1471,7 @@ module core_top(
             pc_exe0_exe1_1<=pc_reg_exe0_1;
             ir_exe0_exe1_1<=ir_reg_exe0_1;
             addr_pipeline_dcache_exe0_exe1<=addr_pipeline_dcache;
+            paddr_exe0_exe1<=MMU_pipeline_PADDR1;
             din_pipeline_dcache_exe0_exe1<=din_pipeline_dcache;
             ir_valid_exe0_exe1_1<=ir_valid_reg_exe0_1;
             countresult_exe0_exe1_1<=countresult;
@@ -1571,7 +1574,7 @@ module core_top(
             pc_exe1_wb_1<=pc_exe0_exe1_1;
             ir_exe1_wb_1<=ir_exe0_exe1_1;
             vaddr_exe1_wb<=addr_pipeline_dcache_exe0_exe1;
-            paddr_exe1_wb<=MMU_pipeline_PADDR1;
+            paddr_exe1_wb<=paddr_exe0_exe1;
             ir_valid_exe1_wb_1<=ir_valid_exe0_exe1_1;
             countresult_exe1_wb_1<=countresult_exe0_exe1_1;
             rand_index_exe1_wb<=rand_index_exe0_exe1;

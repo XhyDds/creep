@@ -1,4 +1,4 @@
-module Memory_Maping_Unit_pre#(
+module Memory_Maping_Unit#(
     parameter TLB_n=5,TLB_PALEN=32,TLB_VALEN=32
 )(
     input clk,rstn,
@@ -78,7 +78,7 @@ module Memory_Maping_Unit_pre#(
     assign stall0=pipeline_MMU_stall0,flush0=pipeline_MMU_flush0;
     assign stall1=pipeline_MMU_stall1,flush1=pipeline_MMU_flush1;
              
-    //0Â·²éÕÒÂß¼­
+    //0Â·ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
    
     always@(*)
     begin
@@ -127,7 +127,7 @@ module Memory_Maping_Unit_pre#(
        end 
     end
     
-    //1Â·²éÕÒÂß¼­
+    //1Â·ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
    
     always@(*)
     begin

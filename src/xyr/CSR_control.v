@@ -1,4 +1,4 @@
-module CSR_control_pre#(//tlbfill bug?
+module CSR_control#(//tlbfill bug?
 parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 )(
     input clk,rstn,
@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�??????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�??????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??????????，ex1�??????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??????????，ex1�??????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
