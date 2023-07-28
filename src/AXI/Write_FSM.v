@@ -32,9 +32,9 @@ module Write_FSM(
                 if(l2cache_mem_req_w) begin
                     if(dma_sign)
                                     nxt = DMA_AW;
-                    else            nxt=IDLE;
+                    else            nxt = IDLE;
                 end
-                else if(pointer!=0) nxt=PULL;
+                else if(pointer!=0) nxt = PULL;
                 else                nxt = IDLE;
             end 
             DMA_AW: begin

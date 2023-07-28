@@ -170,7 +170,8 @@ module l2_axi_package #(
 
         .crt_pull           (crt_w),
         .nxt_pull           (nxt_w),
-        .pointer            (pointer)
+        .pointer            (pointer),
+        .dma_sign           (dma_sign)
     );
 
     write_arbiter #(
