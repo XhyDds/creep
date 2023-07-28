@@ -1,4 +1,4 @@
-// `define predictor
+`define predictor
 // `define DMA
 // module mycpu_top(
 module core_top(
@@ -983,7 +983,7 @@ module core_top(
     );
 
     //传给流水线，寄存
-    wire [28:0]npc_pdc;
+    wire [29:0]npc_pdc;
     wire [2:0]kind_pdc;
     wire taken_pdc;
     wire [1:0]choice_pdc;
@@ -1080,7 +1080,7 @@ module core_top(
 `endif
 
     //PC
-    wire [31:0]npc_pdc_32={npc_pdc,3'b0};
+    wire [31:0]npc_pdc_32={npc_pdc,2'b0};
     reg ifnpc_pdc;
     always @(*) begin
         ifnpc_pdc=0;
