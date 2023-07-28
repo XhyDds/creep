@@ -39,13 +39,14 @@ module WriteBuffer #(
     //状态机
     input  [3:0] crt_pull,
     input  [3:0] nxt_pull,
-    output reg [31:0] pointer
+    output reg [31:0] pointer,
+    input  dma_sign
 );
     parameter WORD = (1<<offset_width)*32;
     reg [31:0] buffer_addr[length-1:0];
     reg [WORD-1:0] buffer_data[0:length-1];
 
-    wire _in_valid=in_valid&&(pointer!=length-1);
+    wire _in_valid=in_valid&&(pointer!=length-1)&&!dma_sign;
     // wire _out_awready=out_awready&&(pointer!=0);
 
     reg [(1<<offset_width)*32-1:0] _out_data;
