@@ -1,6 +1,6 @@
 module br_pre (
     input [31:0]ctr,pc,imm,rrj,npc,
-    input zero,
+    input zero,stall,
     input [63:0]pre,
     output reg ifbr,flush_pre,
     output reg [31:0]brresult
@@ -33,7 +33,7 @@ module br_pre (
             endcase
     end
     always @(*) begin
-        ifbr=(npc!=(ifbr_?brresult_:{pc[31:3]+29'b1,3'b0})|((iftaken_pdc!=ifbr_)&ctr[30]))&ctr[31];
+        ifbr=stall?1'b0:(npc!=(ifbr_?brresult_:{pc[31:3]+29'b1,3'b0})|((iftaken_pdc!=ifbr_)&ctr[30]))&ctr[31];
         brresult=ifbr_?brresult_:pc+4;
         flush_pre=~pc[2]&ifnpc_pdc&iftaken_pdc&ctr[30]&ctr[31];
     end
