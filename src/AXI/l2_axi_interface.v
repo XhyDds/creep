@@ -47,7 +47,7 @@ module l2_axi_interface#(
 
     // AW
     output [31:0]       awaddr,
-    output reg          awvalid,    //aw: arbiter->axi
+    output           awvalid,    //aw: arbiter->axi
     input               awready,    //aw: axi->arbiter
     output [7:0]        awlen,
     output [2:0]        awsize,
@@ -178,14 +178,13 @@ module l2_axi_interface#(
         l2_wready   = 0;
         l2_bvalid   = 0;
         bready      = 0;
-        awvalid     = 0;
         wvalid      = 0;
         wlast       = 0;
         l2_waddrOK  = 0;
 
         case(w_crt)
         D_AW: begin
-            awvalid     = 1;
+
         end
         D_W: begin
             wvalid      = l2_wwvalid;
@@ -200,4 +199,10 @@ module l2_axi_interface#(
         default:;
         endcase
     end
+    wire test0 = w_crt[0];
+    wire test1 = ~w_crt[1];
+    wire test2 = ~w_crt[2];
+    wire test3 = test0 & test1 & test2;
+    assign awvalid = test3;
+    wire test4 = (awvalid == test3);
 endmodule
