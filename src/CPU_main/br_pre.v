@@ -2,15 +2,13 @@ module br_pre (
     input [31:0]ctr,pc,imm,rrj,npc,
     input zero,stall,
     input [63:0]pre,
-    output reg ifbr,flush_pre,
-    output reg [31:0]brresult
+    output reg ifbr,flush_pre,ifbr_,
+    output reg [31:0]brresult,brresult_
 );
     wire ifnpc_pdc=pre[35];
     wire iftaken_pdc=pre[32];
     wire [3:0]type_ = ctr[3:0];
     wire [4:0]subtype = ctr[11:7];
-    reg ifbr_;
-    reg [31:0]brresult_;
     always @(*) begin
         ifbr_=0;
         brresult_=0;

@@ -5,6 +5,7 @@ module npc_predictor#(
 )(
     input clk,
     input rstn,
+    input update_en,
     //ex
     input [ADDR_WIDTH-1:0] npc_ex,
     input [gh_width-1:0] pc_ex_gh_hashed,
@@ -51,7 +52,7 @@ module npc_predictor#(
         .npc_pdc(npc_btb),
         .hashed_pc_update(pc_ex_gh_hashed),
         .npc_real(npc_ex),
-        .update_en(kind_ex!=3'd0)
+        .update_en((kind_ex!=3'd0)&&update_en)
     );
 
     ras#(
@@ -66,7 +67,8 @@ module npc_predictor#(
         .ret_pc_pdc(npc_ras),
         .mis_pdc(mis_pdc),
         .is_ret_ex(kind_ex==RET),
-        .is_ret_pdc(kind_pdc==RET)
+        .is_ret_pdc(kind_pdc==RET),
+        .update_en(update_en)
     );
 
     cpht#(
@@ -78,21 +80,27 @@ module npc_predictor#(
         .choice_pdc(choice_btb_ras),
         .hashed_pc_update(pc_ex_gh_hashed),
         .choice_real(choice_real),
-        .update_en(kind_ex==RET)
+        .update_en((kind_ex==RET)&&update_en)
     );
 
     always @(*) begin
         if(taken_pdc) begin
             case (kind_pdc)
-                NOT_JUMP:       npc_pdc=pc+1;
+                NOT_JUMP: 
+                    if(pc[0])   npc_pdc=pc+2;
+                    else        npc_pdc=pc+1;
                 DIRECT_JUMP:    npc_pdc=npc_btb;
                 CALL:           npc_pdc=npc_btb;
                 RET:            npc_pdc=choice_btb_ras?npc_ras:npc_btb;
                 INDIRECT_JUMP:  npc_pdc=npc_btb;
                 OTHER_JUMP:     npc_pdc=npc_btb;
-                default:        npc_pdc=pc+1;
+                default: 
+                    if(pc[0])   npc_pdc=pc+2;
+                    else        npc_pdc=pc+1;
             endcase
         end
-        else                    npc_pdc=pc+1;
+        else        
+                    if(pc[0])   npc_pdc=pc+2;
+                    else        npc_pdc=pc+1;
     end
 endmodule

@@ -698,7 +698,8 @@ module core_top(
     // );
 `ifdef predictor
     wire [31:0]	pc_br0;
-    wire flush_pre0;
+    wire ifbr_0;
+    wire [31:0] brresult_0;
 
     br_pre u_br0(
         //ports
@@ -708,7 +709,9 @@ module core_top(
         .imm      		( imm_reg_exe0_0    ),
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		    ),
+        .ifbr_          ( ifbr_0            ),
         .brresult 		( pc_br0 	        ),
+        .brresult_      ( brresult_0        ),
         .rrj            ( rrj0_forward      ),
         .pre            ( pre_reg_exe0_0    ),
         .flush_pre      ( flush_pre0        ),
@@ -716,6 +719,8 @@ module core_top(
     );
 
     wire [31:0]	pc_br1;
+    wire ifbr_1;
+    wire [31:0]brresult_1;
 
     br_pre u_br1(
         //ports
@@ -725,7 +730,9 @@ module core_top(
         .imm      		( imm_reg_exe0_1     ),
         .zero     		( zero1     		 ),
         .ifbr     		( ifbr1    		     ),
+        .ifbr_          ( ifbr_1             ),
         .brresult 		( pc_br1		     ),
+        .brresult_      ( brresult_1         ),
         .rrj            ( rrj1_forward       ),
         .pre            ( pre_reg_exe0_1     ),
         .flush_pre      ( flush_pre1         ),
@@ -1190,14 +1197,24 @@ module core_top(
     wire try_to_pdc;
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
     assign try_to_pdc=(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP);
-    assign mis_pdc={(npc_ex!=npc_pdc_ex),(kind_ex!=kind_pdc_ex),(taken_real!=taken_pdc_ex)};
+    assign mis_pdc={(out_npc_ex!=out_npc_pdc),(out_kind_ex!=out_kind_pdc),(out_taken_ex!=out_taken_pdc)};
     assign choice_real={choice_real_btb_ras,choice_real_g_h};
-    assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc_ex[1]:choice_pdc_ex[1];
-    assign choice_real_g_h=mis_pdc[0]?~choice_pdc_ex[1]:choice_pdc_ex[1];
+    assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
+    assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
 
     wire [29:0]npc_test;//给ccr用的测试线，需要左移两位使用，0,4交替
 
     `ifdef predictor
+    wire        out_taken_pdc ;
+    wire [2:0]  out_kind_pdc  ;
+    wire [29:0] out_npc_pdc   ;
+    wire        out_taken_ex  ;
+    wire [2:0]  out_kind_ex   ;
+    wire [29:0] out_npc_ex    ;
+    wire [29:0] out_pc_ex     ;
+    wire [1:0]  out_choice_pdc;
+    wire update_en;
+
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
@@ -1208,21 +1225,60 @@ module core_top(
         //ports
         .clk         		( clk         		),
         .rstn        		( rstn        		),
+        .update_en          ( update_en         ),
 
-        .pc_ex       		( pc_ex             ),
+        .pc_ex       		( out_pc_ex         ),
         .mis_pdc     		( mis_pdc     		),
-        .npc_ex      		( npc[31:2]		    ),
-        .kind_ex     		( kind_ex     		),
-        .taken_real  		( taken_real  		),
+        .npc_ex      		( out_npc_ex  	    ),
+        .kind_ex     		( out_kind_ex       ),
+        .taken_real  		( out_taken_ex 		),
         .choice_real 		( choice_real 		),
 
-        .npc_pdc     		( npc_pdc     		),
-        .kind_pdc    		( kind_pdc    		),
-        .taken_pdc   		( taken_pdc   		),
-        .choice_pdc  		( choice_pdc  		),
+        .npc_pdc     		( npc_pdc  	    	),
+        .kind_pdc    		( kind_pdc       	),
+        .taken_pdc   		( taken_pdc        	),
+        .choice_pdc  		( choice_pdc    	),
 
         .pc          		( pc[31:2]          ),
         .npc_test           ( npc_test          )
+    );
+
+    ex_buffer #(
+        .length(4)
+    )u_ex_buffer(
+        .clk(clk),
+        .rstn(rstn),
+        .flag(ctr_reg_exe0_0[31]&ctr_reg_exe0_1[31]),
+        .stall(stall_reg_exe0_0|(~ctr_reg_exe0_0[31]&~ctr_reg_exe0_1[31])),
+
+        .in_taken_pdc_0(pre_reg_exe0_0[33]),
+        .in_kind_pdc_0(pre_reg_exe0_0[32:30]),
+        .in_npc_pdc_0(pre_reg_exe0_0[29:0]),
+        .in_choice_pdc_0(pre_reg_exe0_0[36:35]),
+        .in_taken_ex_0(ifbr_0),
+        .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
+        .in_npc_ex_0(brresult_0),
+        .in_pc_ex_0(pc_reg_exe0_0[31:2]),
+
+        .in_taken_pdc_1(pre_reg_exe0_1[33]),
+        .in_kind_pdc_1(pre_reg_exe0_1[32:30]),
+        .in_npc_pdc_1(pre_reg_exe0_1[29:0]),
+        .in_choice_pdc_1(pre_reg_exe0_1[36:35]),
+        .in_taken_ex_1(ifbr_1),
+        .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
+        .in_npc_ex_1(brresult_1),
+        .in_pc_ex_1(pc_reg_exe0_1[31:2]),
+
+        .out_taken_pdc (out_taken_pdc ),
+        .out_kind_pdc  (out_kind_pdc  ),
+        .out_npc_pdc   (out_npc_pdc   ),
+        .out_taken_ex  (out_taken_ex  ),
+        .out_kind_ex   (out_kind_ex   ),
+        .out_npc_ex    (out_npc_ex    ),
+        .out_pc_ex     (out_pc_ex     ),
+        .out_choice_pdc(out_choice_pdc),
+
+        .update_en     (update_en)
     );
     `endif
 
@@ -1260,8 +1316,8 @@ module core_top(
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
             //pre
-            pre_if0_if1<={28'b0,ifnpc_pdc,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //35 34:33 32 31:29 28:0
+            pre_if0_if1<={27'b0,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //36:35 34 33 32:30 29:0
         end
     end
 

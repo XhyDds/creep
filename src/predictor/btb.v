@@ -1,6 +1,6 @@
 module btb#(
     parameter gh_width = 14,
-              ADDR_WIDTH = 29
+              ADDR_WIDTH = 30
 )(
     input clk,
     //query
