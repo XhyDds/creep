@@ -7,15 +7,15 @@ module icache_testonly (
 );
     reg [63:0]ir;
     reg flag,icache_valid;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn|flush) ir_reg<=0;
         else if(!stall) ir_reg<=ir;
     end
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn|flush) flag_reg<=0;
         else if(!stall) flag_reg<=flag;
     end
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn|flush) icache_valid_reg<=0;
         else if(!stall) icache_valid_reg<=icache_valid;
     end

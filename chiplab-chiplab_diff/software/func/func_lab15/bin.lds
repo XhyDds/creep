@@ -1,1 +1,0 @@
-../func_src/bin.lds

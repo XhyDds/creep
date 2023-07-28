@@ -45,7 +45,7 @@ module write_arbiter#(
     localparam IDLE = 3'd0,WRT_W = 3'd1,DMA_AW=3'd2 , DMA_W=3'd3 , DMA_R=3'd4;
 
     reg [2:0] crt,nxt;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             crt <= IDLE;
         end else begin

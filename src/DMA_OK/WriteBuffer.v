@@ -56,7 +56,7 @@ module WriteBuffer #(
     localparam IDLE_L = 4'd0,PULL=4'd1,
             SEND_0=4'd2,SEND_1=4'd3,SEND_2=4'd4,SEND_3=4'd5,SEND_4=4'd6,SEND_5=4'd7,SEND_6=4'd8,SEND_7=4'd9,_SEND=4'd10;
     reg [3:0] crt_pull,nxt_pull;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if (!rstn) begin
             crt_pull<=IDLE_L;
         end
@@ -197,7 +197,7 @@ module WriteBuffer #(
         endcase
     end
     //时序action
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             _out_data<=0;
         end
@@ -218,7 +218,7 @@ module WriteBuffer #(
     //statemachine
     localparam IDLE_H = 4'd0,PUSH=4'd1;
     reg [3:0] crt_push,nxt_push;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if (!rstn) begin
             crt_push<=IDLE_H;
         end
@@ -256,7 +256,7 @@ module WriteBuffer #(
         endcase
     end
     //时序action
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             buffer_addr[32'd0]<=0;
             buffer_data[32'd0]<=0;
@@ -292,7 +292,7 @@ module WriteBuffer #(
     end
 
     //pointer仲裁
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             pointer<=0;
         end

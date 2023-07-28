@@ -13,7 +13,7 @@ module counter (
     wire [4:0] subtype1 = ctr1[11:7];
 
     reg [63:0] count;
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             count <= 0;
         end

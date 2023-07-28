@@ -29,7 +29,7 @@ module read_arbiter#(
     //state_machine
     localparam IDLE = 3'd0,WRT_AR = 3'd1,WRT_R=3'd2,RET_AR = 3'd3,RET_R = 3'd4;
     reg [2:0] crt,nxt;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             crt <= IDLE;
         end else begin
@@ -97,7 +97,7 @@ module read_arbiter#(
     end
     //data
     reg [(1<<offset_width)*32-1:0] tmp_data;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             tmp_data <= 0;
         end

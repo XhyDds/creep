@@ -35,7 +35,7 @@ module L2cache_rbuf#(
     output reg[1:0]rbuf_from
     );
 // reg rbuf_SUC1;
-always @(posedge clk,negedge rstn) begin
+always @(posedge clk)begin
     if(!rstn)begin
         rbuf_addr <= 0;
         rbuf_data <= 0;

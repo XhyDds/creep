@@ -17,7 +17,7 @@ module mul (
                 2: mulresult=unsignedmulresult[63:32];
             endcase
     end
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             mulresult_reg <= 0;
         end

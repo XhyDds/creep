@@ -17,7 +17,7 @@ code='''module ras #(
 
     reg error_crt;
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin'''
 for i in range(len):
     code+='''

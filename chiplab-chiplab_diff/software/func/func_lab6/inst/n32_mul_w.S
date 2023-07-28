@@ -1,1 +1,0 @@
-../../func_src/inst/n32_mul_w.S

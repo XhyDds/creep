@@ -32,7 +32,7 @@ module Icache_lru#(
     );
 reg [(1<<addr_width)-1:0]record;
 assign way_sel=record[addr];
-always @(posedge clk,negedge rstn) begin
+always @(posedge clk)begin
     if(!rstn)begin
         record<=0;
     end

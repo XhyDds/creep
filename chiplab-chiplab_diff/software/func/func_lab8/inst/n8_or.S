@@ -1,1 +1,0 @@
-../../func_src/inst/n8_or.S
