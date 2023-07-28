@@ -5,8 +5,8 @@ module br_pre (
     output reg ifbr,flush_pre,ifbr_,
     output reg [31:0]brresult,brresult_
 );
-    wire ifnpc_pdc=pre[35];
-    wire iftaken_pdc=pre[32];
+    wire ifnpc_pdc=pre[34];
+    wire iftaken_pdc=pre[33];
     wire [3:0]type_ = ctr[3:0];
     wire [4:0]subtype = ctr[11:7];
     always @(*) begin

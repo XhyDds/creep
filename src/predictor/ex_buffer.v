@@ -11,6 +11,7 @@ module ex_buffer#(
     input        in_taken_pdc_0,   //优先
     input [2:0]  in_kind_pdc_0 ,
     input [29:0] in_npc_pdc_0  ,
+    input [1:0]  in_choice_pdc_0,
     input        in_taken_ex_0 ,
     input [2:0]  in_kind_ex_0  ,
     input [29:0] in_npc_ex_0   ,
@@ -19,6 +20,7 @@ module ex_buffer#(
     input        in_taken_pdc_1,
     input [2:0]  in_kind_pdc_1 ,
     input [29:0] in_npc_pdc_1  ,
+    input [1:0]  in_choice_pdc_1,
     input        in_taken_ex_1 ,
     input [2:0]  in_kind_ex_1  ,
     input [29:0] in_npc_ex_1   ,
@@ -31,16 +33,17 @@ module ex_buffer#(
     output reg   [2:0]  out_kind_ex   ,
     output reg   [29:0] out_npc_ex    ,
     output reg   [29:0] out_pc_ex     ,
+    output reg   [1:0]  out_choice_pdc,
 
     output reg   update_en
 );
     localparam NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,CALL = 3'd2,RET = 3'd3,INDIRECT_JUMP = 3'd4,OTHER_JUMP = 3'd5;
 
-    wire [97:0] in_data_0={in_pc_ex_0,in_npc_ex_0,in_kind_ex_0,in_taken_ex_0,in_npc_pdc_0,in_kind_pdc_0,in_taken_pdc_0};
-    wire [97:0] in_data_1={in_pc_ex_1,in_npc_ex_1,in_kind_ex_1,in_taken_ex_1,in_npc_pdc_1,in_kind_pdc_1,in_taken_pdc_1};
+    wire [99:0] in_data_0={in_choice_pdc_0,in_pc_ex_0,in_npc_ex_0,in_kind_ex_0,in_taken_ex_0,in_npc_pdc_0,in_kind_pdc_0,in_taken_pdc_0};
+    wire [99:0] in_data_1={in_choice_pdc_1,in_pc_ex_1,in_npc_ex_1,in_kind_ex_1,in_taken_ex_1,in_npc_pdc_1,in_kind_pdc_1,in_taken_pdc_1};
 
-    reg [97:0] out_data_0;
-    reg [97:0] out_data_1;
+    reg [99:0] out_data_0;
+    reg [99:0] out_data_1;
 
     wire        out_taken_pdc_0;
     wire [2:0]  out_kind_pdc_0 ;
@@ -49,6 +52,7 @@ module ex_buffer#(
     wire [2:0]  out_kind_ex_0  ;
     wire [29:0] out_npc_ex_0   ;
     wire [29:0] out_pc_ex_0    ;
+    wire [1:0]  out_choice_pdc_0;
 
     wire        out_taken_pdc_1;
     wire [2:0]  out_kind_pdc_1 ;
@@ -57,6 +61,7 @@ module ex_buffer#(
     wire [2:0]  out_kind_ex_1  ;
     wire [29:0] out_npc_ex_1   ;
     wire [29:0] out_pc_ex_1    ;
+    wire [1:0]  out_choice_pdc_1;
 
     wire pack_size=out_pc_ex_0[0];
 
@@ -67,6 +72,8 @@ module ex_buffer#(
     assign out_kind_ex_0  =out_data_0[37:35];
     assign out_npc_ex_0   =out_data_0[67:38];
     assign out_pc_ex_0    =out_data_0[97:68];
+    assign out_choice_pdc_0=out_data_0[99:98];
+
 
     assign out_taken_pdc_1=out_data_1[0]    ;
     assign out_kind_pdc_1 =out_data_1[3:1]  ;
@@ -75,8 +82,9 @@ module ex_buffer#(
     assign out_kind_ex_1  =out_data_1[37:35];
     assign out_npc_ex_1   =out_data_1[67:38];
     assign out_pc_ex_1    =out_data_1[97:68];
+    assign out_choice_pdc_1=out_data_1[99:98];
 
-    reg [97:0] buffer_data[0:length-1];
+    reg [99:0] buffer_data[0:length-1];
 
     reg [31:0] pointer;
     reg empty;
@@ -147,6 +155,7 @@ module ex_buffer#(
         out_taken_pdc=0;
         out_kind_pdc =0;
         out_npc_pdc  =0;
+        out_choice_pdc=0;
         out_taken_ex =0;
         out_kind_ex  =0;
         out_npc_ex   =0;
@@ -156,18 +165,20 @@ module ex_buffer#(
             out_taken_pdc=out_taken_pdc_0;
             out_kind_pdc =out_kind_pdc_0 ;
             out_npc_pdc  =out_npc_pdc_0  ;
+            out_choice_pdc=out_choice_pdc_0;
             out_taken_ex =out_taken_ex_0 ;
             out_kind_ex  =out_kind_ex_0  ;
             out_npc_ex   =out_npc_ex_0   ;
             out_pc_ex    =out_pc_ex_0    ;
         end
         else begin
-            out_taken_pdc=out_taken_pdc_0;
-            out_kind_pdc =out_kind_pdc_0 ;
-            out_npc_pdc  =out_npc_pdc_0  ;
-            out_pc_ex    =out_pc_ex_0    ;
+            out_taken_pdc =out_taken_pdc_0;
+            out_kind_pdc  =out_kind_pdc_0 ;
+            out_npc_pdc   =out_npc_pdc_0  ;
+            out_choice_pdc=out_choice_pdc_0;
+            out_pc_ex     =out_pc_ex_0    ;
 
-            out_taken_ex =out_taken_ex_0||out_taken_ex_1;
+            out_taken_ex  =out_taken_ex_0||out_taken_ex_1;
             //kind
             if(out_kind_ex_0==DIRECT_JUMP||out_kind_ex_1==DIRECT_JUMP) begin
                 out_kind_ex=DIRECT_JUMP;

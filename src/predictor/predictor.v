@@ -4,10 +4,11 @@ module predictor #(
                 h_width   = 14,
                 stack_len = 16,
                 queue_len = 16,
-                ADDR_WIDTH = 29
+                ADDR_WIDTH = 30
 )(
     input clk,
     input rstn,
+    input update_en,
     //来自ex段
     input [ADDR_WIDTH-1:0]pc_ex,
     input [2:0]mis_pdc,         //2:npc 1:kind 0:taken
@@ -132,7 +133,8 @@ module predictor #(
         .choice_b_g(choice_pdc_b_g),
         .pc_gh_hashed(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
-        .pc(pc)
+        .pc(pc),
+        .update_en(update_en)
     );
 
     //类别预测
@@ -145,7 +147,7 @@ module predictor #(
         .kind_pdc(kind_pdc),
         .hashed_pc_update(pc_ex_hashed),
         .kind_real(kind_ex),
-        .update_en(1)
+        .update_en(update_en)
     );
 
     //历史查取
@@ -161,7 +163,7 @@ module predictor #(
         .bh_pdc(bh),
         .hashed_pc_update(pc_ex_hashed),
         .outcome_real(taken_real),
-        .update_en(try_to_pdc)
+        .update_en(try_to_pdc&&update_en)
     );
 
     ghr#(
@@ -175,7 +177,8 @@ module predictor #(
         .taken_pdc(taken_pdc),
         .mis_pdc(mis_pdc_taken),
         .is_jump_pdc(kind_pdc!=NOT_JUMP),
-        .is_jump_ex(kind_ex!=NOT_JUMP)
+        .is_jump_ex(kind_ex!=NOT_JUMP),
+        .update_en (update_en)
     );
 
     //地址预测
@@ -187,6 +190,7 @@ module predictor #(
     u_npc_predictor(
         .clk(clk),
         .rstn(rstn),
+        .update_en(update_en),
         .npc_ex(npc_ex),
         .pc_ex_gh_hashed(pc_ex_gh_hashed),
         .kind_ex(kind_ex),

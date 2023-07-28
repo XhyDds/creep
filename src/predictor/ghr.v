@@ -9,7 +9,8 @@ module ghr#(
 
     input   mis_pdc,                //是否预测错误
     input   is_jump_pdc,            //当前指令是否是跳转指令（当前只考虑跳转指令）
-    input   is_jump_ex              //ex段的指令曾经判断是否是跳转指令
+    input   is_jump_ex,             //ex段的指令曾经判断是否是跳转指令
+    input   update_en               //是否更新gh
     );
     //恢复队列
     reg     [gh_width-1:0]  chkpt_q[0:queue_len-1];//check_point queue
@@ -34,6 +35,7 @@ module ghr#(
             chkpt_q[4'd14]<=0;
             chkpt_q[4'd15]<=0;
         end
+        else if(~update_en) ;
         else if(is_jump_pdc) begin
             chkpt_q[4'd0]<={gh[gh_width-2:0],~taken_pdc};
             chkpt_q[4'd1]<=chkpt_q[4'd0];
@@ -59,7 +61,8 @@ module ghr#(
             pointer<=0;
         end
         else begin
-            if(is_jump_ex) begin
+            if(~update_en) ;
+            else if(is_jump_ex) begin
                 if(is_jump_pdc) ;
                 else pointer<=pointer-1;
             end
@@ -73,6 +76,7 @@ module ghr#(
         if(!rstn) begin
             gh<=0;
         end
+        else if(~update_en) ;
         else if(mis_pdc) begin
             gh<=chkpt_q[pointer];
         end

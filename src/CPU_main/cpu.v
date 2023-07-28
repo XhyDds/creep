@@ -1,4 +1,4 @@
-// `define predictor
+`define predictor
 // `define DMA
 // module mycpu_top(
 module core_top(
@@ -1060,23 +1060,12 @@ module core_top(
     wire [2:0]kind_pdc;
     wire taken_pdc;
     wire [1:0]choice_pdc;
-    //流水线需要传出的信号
-    wire [2:0]kind_ex=!ifpriv&ifbr1?ctr_reg_exe0_1[26:24]:ctr_reg_exe0_0[26:24];
-    wire [28:0]npc_ex=!ifpriv&ifbr1?pc_br1[31:3]:pc_br0[31:3];
-    wire [28:0]pc_ex=!ifpriv&ifbr1?pc_reg_exe0_1[31:3]:pc_reg_exe0_0[31:3];
-    wire [28:0]npc_pdc_ex=!ifpriv&ifbr1?pre_reg_exe0_1[28:0]:pre_reg_exe0_0[28:0];//寄存
-    wire [2:0]kind_pdc_ex=!ifpriv&ifbr1?pre_reg_exe0_1[31:29]:pre_reg_exe0_0[31:29];//寄存
-    wire taken_pdc_ex=!ifpriv&ifbr1?pre_reg_exe0_1[32]:pre_reg_exe0_0[32];//寄存
-    wire [1:0]choice_pdc_ex=!ifpriv&ifbr1?pre_reg_exe0_1[34:33]:pre_reg_exe0_0[34:33];//寄存
     //已经处理过的信号
     wire [2:0]mis_pdc;
-    wire taken_real;
     wire [1:0]choice_real;
     wire choice_real_btb_ras;
     wire choice_real_g_h;
-    wire try_to_pdc;
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
-    assign try_to_pdc=(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP);
     assign mis_pdc={(out_npc_ex!=out_npc_pdc),(out_kind_ex!=out_kind_pdc),(out_taken_ex!=out_taken_pdc)};
     assign choice_real={choice_real_btb_ras,choice_real_g_h};
     assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
