@@ -729,11 +729,11 @@ module core_top(
     cache_ctr u_cache_ctr(
         //ports
         .stall                          ( stall_exe0_exe1_1             ),
-        .excp_arg_reg_exe0_1_excp       ( excp_arg_reg_exe0_1_excp      ),
-        .rrj1_forward         		    ( rrj1_forward         		    ),
-        .imm_reg_exe0_1         		( imm_reg_exe0_1         		),
-        .ctr_reg_exe0_1         		( ctr_reg_exe0_1_excp         	),
-        .rrd1_forward          		    ( rrd1_forward          		),
+        .excp                           ( excp_arg_reg_exe0_1_excp      ),
+        .rrj                 		    ( rrj1_forward         		    ),
+        .imm                     		( imm_reg_exe0_1         		),
+        .ctr                     		( ctr_reg_exe0_1_excp         	),
+        .rrd                 		    ( rrd1_forward          		),
         .addr_pipeline_dcache   		( addr_pipeline_dcache   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
