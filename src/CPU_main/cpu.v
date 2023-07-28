@@ -699,6 +699,8 @@ module core_top(
 `ifdef predictor
     wire [31:0]	pc_br0;
     wire flush_pre0;
+    wire ifbr_0;
+    wire [31:0] brresult_0;
 
     br_pre u_br0(
         //ports
@@ -708,7 +710,9 @@ module core_top(
         .imm      		( imm_reg_exe0_0    ),
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		    ),
+        .ifbr_          ( ifbr_0            ),
         .brresult 		( pc_br0 	        ),
+        .brresult_      ( brresult_0        ),
         .rrj            ( rrj0_forward      ),
         .pre            ( pre_reg_exe0_0    ),
         .flush_pre      ( flush_pre0        )
@@ -716,6 +720,8 @@ module core_top(
 
     wire [31:0]	pc_br1;
     wire flush_pre1;
+    wire ifbr_1;
+    wire [31:0]brresult_1;
 
     br_pre u_br1(
         //ports
@@ -725,7 +731,9 @@ module core_top(
         .imm      		( imm_reg_exe0_1     ),
         .zero     		( zero1     		 ),
         .ifbr     		( ifbr1    		     ),
+        .ifbr_          ( ifbr_1             ),
         .brresult 		( pc_br1		     ),
+        .brresult_      ( brresult_1         ),
         .rrj            ( rrj1_forward       ),
         .pre            ( pre_reg_exe0_1     ),
         .flush_pre      ( flush_pre1         )
@@ -1229,17 +1237,28 @@ module core_top(
     )(
         .clk(clk),
         .rstn(rstn),
-        .flag(),
-        .stall(),
+        .flag(ctr_reg_exe0_0[31]&ctr_reg_exe0_1[31]),
+        .stall(stall_reg_exe0_0|(~ctr_reg_exe0_0[31]&~ctr_reg_exe0_1[31])),
+
         .in_taken_pdc_0(pre_reg_exe0_0[33]),
         .in_kind_pdc_0(pre_reg_exe0_0[32:30]),
         .in_npc_pdc_0(pre_reg_exe0_0[29:0]),
-        .in_choice_pdc_0(pre_reg_exe0_0[34:33]),
-        .in_taken_ex_0()
+        .in_choice_pdc_0(pre_reg_exe0_0[36:35]),
+        .in_taken_ex_0(ifbr_0),
+        .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
+        .in_npc_ex_0(brresult_0),
+        .in_pc_ex_0(pc_reg_exe0_0[31:2]),
 
         .in_taken_pdc_1(pre_reg_exe0_1[33]),
         .in_kind_pdc_1(pre_reg_exe0_1[32:30]),
         .in_npc_pdc_1(pre_reg_exe0_1[29:0]),
+        .in_choice_pdc_1(pre_reg_exe0_1[36:35]),
+        .in_taken_ex_1(ifbr_1),
+        .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
+        .in_npc_ex_1(brresult_1),
+        .in_pc_ex_1(pc_reg_exe0_1[31:2]),
+
+        
     );
     `endif
 
@@ -1282,8 +1301,8 @@ module core_top(
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
             //pre
-            pre_if0_if1<={27'b0,ifnpc_pdc,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //36 35:34 33 32:30 29:0
+            pre_if0_if1<={27'b0,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //36:35 34 33 32:30 29:0
         end
     end
 
