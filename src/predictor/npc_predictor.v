@@ -16,14 +16,27 @@ module npc_predictor#(
     input [2:0]kind_pdc,
     input taken_pdc,
     output choice_btb_ras,    //0:btb,1:ras
-    output [ADDR_WIDTH-1:0] npc_test,
+    output reg[ADDR_WIDTH-1:0] npc_test,
     //当前
     input [gh_width-1:0] pc_gh_hashed,
     input [ADDR_WIDTH-1:0] pc
 );
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
 
-    assign npc_test=pc+1;
+    // assign npc_test=pc+1;
+    // npc_test
+    reg [29:0]offset_test;
+    always @(posedge clk,negedge rstn) begin
+        if(!rstn)  begin
+            offset_test<=0;
+            npc_test<=0;
+        end 
+        else begin
+            npc_test<=offset_test;
+            if(offset_test==0) offset_test<=0;
+            else offset_test<=1;
+        end
+    end
     
     wire [ADDR_WIDTH-1:0]npc_btb;
     wire [ADDR_WIDTH-1:0]npc_ras;
