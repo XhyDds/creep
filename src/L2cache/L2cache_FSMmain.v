@@ -107,7 +107,7 @@ always @(*) begin
                 else begin//Hit非流水化 砍最长路径
                     // if(opflag)next_state = Operation;
                     // if(from)next_state = Lookup;
-                    else next_state = Idle;
+                    next_state = Idle;
                 end
             end
         end

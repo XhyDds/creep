@@ -1,11 +1,7 @@
-// `define IDMA
-// `define DDMA
 `define predictor
 `define MMU
-// `define ICache
-// `define DCache
 `define L2Cache
-// `define DMA  //选择L2Cache�?? 再�?�DMA
+// `define DMA
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -194,51 +190,6 @@ module core_top(
 
     wire [31:0]	MMU_pipeline_PADDR0;
     wire [31:0] pc_icache_pipeline;
-
-    `ifdef ICache
-    ReturnBuffer#(
-        .offset_width       (offset_width)
-    )
-    u_icache_returnbuf(
-        .clk                (clk),
-        .rstn               (rstn),
-        .cache_mem_req      (icache_mem_req),
-        .mem_cache_dataOK   (mem_icache_dataOK),
-        .dout_mem_cache     (din_mem_icache),
-        .rready             (i_rready),
-        .rdata              (i_rdata),
-        .rlast              (i_rlast)
-    );
-    Icache #(
-        .index_width  		( 4 		),
-        .offset_width 		( 2 		),
-        .way          		( 2 		))
-    u_Icache(
-        //ports
-        .clk                    		( clk                    		),
-        .rstn                   		( rstn                   		),
-
-        .addr_pipeline_icache   		( (|pc[1:0])?0:pc),
-        .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
-        .dout_icache_pipeline   		( dout_icache_pipeline   		),//
-        .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_valid  		( 1  		),
-        .icache_pipeline_ready  		( icache_pipeline_ready  		),//
-        .pipeline_icache_opcode 		( pipeline_cache_opcode         ),
-        .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
-        .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
-        .icache_pipeline_stall  		( stall_icache  		),//
-        .SUC_pipeline_icache            ( MMU_pipeline_memtype0[0] ),
-        .pc_icache_pipeline             ( pc_icache_pipeline    ),
-
-        .addr_icache_mem        		( addr_icache_mem        		),
-        .din_mem_icache         		( din_mem_icache         		),
-        .icache_mem_req         		( icache_mem_req         		),
-        .icache_mem_size        		( icache_mem_size        		),
-        .mem_icache_addrOK      		( mem_icache_addrOK      	),
-        .mem_icache_dataOK      		( mem_icache_dataOK      		)
-    );
-    `endif
 
     wire    [31:0]	pc0;
     wire    [31:0]	pc1;
@@ -993,68 +944,10 @@ module core_top(
     wire mem_dcache_dataOK;
     wire    d_bvalid;
 
-    `ifdef DCache
-    Dcache#(
-        .index_width  		( 4 		),
-        .offset_width 		( 2 		),
-        .way          		( 2 		))
-    u_Dcache(
-        //ports
-        .clk                    		( clk                    		),
-        .rstn                   		( rstn                   		),
-
-        .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
-        .paddr_pipeline_dcache   		( MMU_pipeline_PADDR1   		),
-        .din_pipeline_dcache    		( din_pipeline_dcache    		),
-        .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
-        .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_valid  		( pipeline_dcache_valid  		),
-        .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
-        .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
-        .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
-        .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
-        .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
-        .dcache_pipeline_stall  		( stall_dcache  		        ),
-        .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
-        .SUC_pipeline_dcache            ( MMU_pipeline_memtype1 ),
-
-        .addr_dcache_mem        		( addr_dcache_mem        		),
-        .dout_dcache_mem        		( dout_dcache_mem        		),
-        .din_mem_dcache         		( din_mem_dcache         		),
-        .dcache_mem_req         		( dcache_mem_req         		),
-        .dcache_mem_wr          		( dcache_mem_wr          		),
-        .dcache_mem_size        		( dcache_mem_size        		),
-        .dcache_mem_wstrb       		( dcache_mem_wstrb       		),
-        .mem_dcache_addrOK      		( mem_dcache_addrOK      		),
-        .mem_dcache_bvalid              ( d_bvalid                      ),
-        .mem_dcache_dataOK      		( mem_dcache_dataOK      		)
-    );
-    `endif
-
     wire 	d_rready;
     wire 	d_wready;
     wire    d_rlast;
     wire    [31:0] d_rdata;
-
-    `ifdef DDMA
-    assign  mem_dcache_dataOK = d_rready;
-    `endif
-
-    `ifdef DCache
-    ReturnBuffer#(
-        .offset_width       (offset_width)
-    )
-    dcache_returnbuf(
-        .clk                (clk),
-        .rstn               (rstn),
-        .cache_mem_req      (dcache_mem_req & ~dcache_mem_wr),
-        .mem_cache_dataOK   (mem_dcache_dataOK),
-        .dout_mem_cache     (din_mem_dcache),
-        .rready             (d_rready),
-        .rdata              (d_rdata),
-        .rlast              (d_rlast)
-    );
-    `endif
 
     dcache_extend u_dcache_extend(
         //ports
@@ -1105,16 +998,6 @@ module core_top(
         .d_addrOK       ( mem_dcache_addrOK),//output
         .d_rready 		( d_rready 		),//output reg  
         .d_raddr  		( addr_dcache_mem  		),//input [31:0]
-
-        `ifdef DDMA
-        .d_rdata        ( din_mem_dcache),
-        .d_rlen   		( 8'd0   		),//input [7:0]
-        `endif
-
-        `ifdef DCache
-        .d_rdata  		( d_rdata  		),//output [31:0]
-        .d_rlen   		( 8'd3   		),//input [7:0]
-        `endif
 
         `ifdef L2Cache
         .d_rdata  		( d_rdata  		),//output [31:0]
