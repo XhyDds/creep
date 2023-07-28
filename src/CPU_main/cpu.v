@@ -1,4 +1,4 @@
-`define predictor
+// `define predictor
 // `define DMA
 // module mycpu_top(
 module core_top(
