@@ -242,7 +242,7 @@ always @(*) begin
         SUC_w:begin
             l2cache_mem_req_w = 1;
         end
-        SUC_w:begin
+        SUC_w1:begin
             l2cache_dcache_addrOK = 1;//实际写入后发addrOK
         end
         Lookup:begin
