@@ -15,9 +15,9 @@ module alu (
             3:aluresult=alu1^alu2;
             4:aluresult=alu1+alu2;
             5:aluresult=alu1-alu2;
-            6:aluresult=alu1<<alu2;
-            7:aluresult=alu1>>alu2;
-            8:aluresult=$signed(alu1)>>>alu2;
+            6:aluresult=alu1<<alu2[4:0];
+            7:aluresult=alu1>>alu2[4:0];
+            8:aluresult=$signed(alu1)>>>alu2[4:0];
             9:aluresult=$signed(alu1)<$signed(alu2)?1:0;
             10:aluresult=alu1<alu2?1:0;
             11:aluresult=alu1;
