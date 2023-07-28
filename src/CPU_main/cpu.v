@@ -144,7 +144,7 @@ module core_top(
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
-    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
+    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre0,flush_pre1;
 
     assign flushup=flush_pre1&ctr_reg_exe0_0[31];
     assign flushdown=flush_pre1&ctr_id_reg_1[31];
@@ -716,7 +716,6 @@ module core_top(
     );
 
     wire [31:0]	pc_br1;
-    wire flush_pre1;
 
     br_pre u_br1(
         //ports
@@ -735,7 +734,6 @@ module core_top(
 `endif
 `ifndef predictor
     wire [31:0]	pc_br0;
-    wire flush_pre0;
 
     br u_br0(
         //ports
@@ -750,7 +748,6 @@ module core_top(
     );
 
     wire [31:0]	pc_br1;
-    wire flush_pre1;
 
     br u_br1(
         //ports
@@ -1259,11 +1256,6 @@ module core_top(
             pre_if0_if1<=0;
         end
         else if(stall_if0_if1);
-        // else if(flush_if0_if1) begin
-        //     pc_if0_if1<=0;
-        //     PLV_if0_if1<=0;
-        //     pre_if0_if1<=0;
-        // end
         else begin
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
@@ -1299,9 +1291,6 @@ module core_top(
             MMU_pipeline_excp_arg0_if1_fifo<=0;
         end
         else if(stall_if1_fifo);
-        // else if(flush_if1_fifo|ifflush_if1_fifo)begin
-        //     pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;pre_if1_fifo<=0;npc_if1_fifo<=0;MMU_pipeline_excp_arg0_if1_fifo<=0;
-        // end
         else begin
             pc_if1_fifo<=pc_if0_if1;
             PLV_if1_fifo<=PLV_if0_if1;
@@ -1332,18 +1321,6 @@ module core_top(
             npc_id_reg_0<=0;
         end
         else if(stall_id_reg0);
-        // else if(flush_id_reg0)begin
-        //     ctr_id_reg_0 <= 0;
-        //     imm_id_reg_0<=0;
-        //     rk_id_reg_0<=0;
-        //     rj_id_reg_0<=0;
-        //     rd_id_reg_0<=0;
-        //     pc_id_reg_0<=0;
-        //     ir_id_reg_0<=0;
-        //     ir_valid_id_reg_0<=0;
-        //     pre_id_reg_0<=0;
-        //     npc_id_reg_0<=0;
-        // end
         else begin
             ctr_id_reg_0 <= control00;
             imm_id_reg_0<=imm00;
@@ -1373,19 +1350,6 @@ module core_top(
             npc_id_reg_1<=0;
         end
         else if(stall_id_reg1);
-        // else if(flush_id_reg1) begin
-        //     ctr_id_reg_1 <= 0;
-        //     excp_arg_id_reg_1<=0;
-        //     imm_id_reg_1<=0;
-        //     rk_id_reg_1<=0;
-        //     rj_id_reg_1<=0;
-        //     rd_id_reg_1<=0;
-        //     pc_id_reg_1<=0;
-        //     ir_id_reg_1<=0;
-        //     ir_valid_id_reg_1<=0;
-        //     pre_id_reg_1<=0;
-        //     npc_id_reg_1<=0;
-        // end
         else begin
             ctr_id_reg_1 <= control11;
             excp_arg_id_reg_1<=excp_arg11;
@@ -1419,21 +1383,6 @@ module core_top(
             npc_reg_exe0_0          <=0;
         end
         else if(stall_reg_exe0_0);
-        // else if(flush_reg_exe0_0) begin
-        //     ctr_reg_exe0_0 <= 0;
-        //     imm_reg_exe0_0<=0;
-        //     rk_reg_exe0_0<=0;
-        //     rj_reg_exe0_0<=0;
-        //     rd_reg_exe0_0<=0;
-        //     rrk_reg_exe0_0<=0;
-        //     rrj_reg_exe0_0<=0;
-        //     rrd_reg_exe0_0<=0;
-        //     pc_reg_exe0_0<=0;
-        //     ir_reg_exe0_0<=0;
-        //     ir_valid_reg_exe0_0<=0;
-        //     pre_reg_exe0_0<=0;
-        //     npc_reg_exe0_0<=0;
-        // end
         else begin
             ctr_reg_exe0_0         <= ctr_id_reg_0;
             imm_reg_exe0_0         <=imm_id_reg_0;
@@ -1537,15 +1486,6 @@ module core_top(
             countresult_exe0_exe1_0<=0;
         end
         else if(stall_exe0_exe1_0);
-        // else if(flush_exe0_exe1_0) begin
-        //     ctr_exe0_exe1_0 <= 0;
-        //     rd_exe0_exe1_0 <= 0;
-        //     result_exe0_exe1_0 <= 0;
-        //     pc_exe0_exe1_0<=0;
-        //     ir_exe0_exe1_0<=0;
-        //     ir_valid_exe0_exe1_0<=0;
-        //     countresult_exe0_exe1_0<=0;
-        // end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
             rd_exe0_exe1_0 <= rd_reg_exe0_0;
@@ -1571,18 +1511,6 @@ module core_top(
             rand_index_exe0_exe1<=0;
         end
         else if(stall_exe0_exe1_1);
-        // else if(flush_exe0_exe1_1) begin
-        //     ctr_exe0_exe1_1 <= 0;
-        //     rd_exe0_exe1_1<=0;
-        //     result_exe0_exe1_1<=0;
-        //     pc_exe0_exe1_1<=0;
-        //     ir_exe0_exe1_1<=0;
-        //     addr_pipeline_dcache_exe0_exe1<=0;
-        //     din_pipeline_dcache_exe0_exe1<=0;
-        //     ir_valid_exe0_exe1_1<=0;
-        //     countresult_exe0_exe1_1<=0;
-        //     rand_index_exe0_exe1<=0;
-        // end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
@@ -1635,16 +1563,6 @@ module core_top(
             din_pipeline_dcache_exe1_wb<=0;
         end
         else if(stall_exe1_wb_0);
-        // else if(flush_exe1_wb_0) begin
-        //     ctr_exe1_wb_0 <= 0;
-        //     rd_exe1_wb_0<=0;
-        //     result_exe1_wb_0<=0;
-        //     pc_exe1_wb_0<=0;
-        //     ir_exe1_wb_0<=0;
-        //     ir_valid_exe1_wb_0<=0;
-        //     countresult_exe1_wb_0<=0;
-        //     din_pipeline_dcache_exe1_wb<=0;
-        // end
         else begin
             ctr_exe1_wb_0 <= ctr_exe0_exe1_0;
             rd_exe1_wb_0<=rd_exe0_exe1_0;
@@ -1672,19 +1590,6 @@ module core_top(
             LLbit_exe0_exe1<=0;
         end
         else if(stall_exe1_wb_1);
-        // else if(flush_exe1_wb_1) begin
-        //     ctr_exe1_wb_1 <= 0;
-        //     rd_exe1_wb_1<=0;
-        //     result_exe1_wb_1<=0;
-        //     pc_exe1_wb_1<=0;
-        //     ir_exe1_wb_1<=0;
-        //     vaddr_exe1_wb<=0;
-        //     paddr_exe1_wb<=0;
-        //     ir_valid_exe1_wb_1<=0;
-        //     countresult_exe1_wb_1<=0;
-        //     rand_index_exe1_wb<=0;
-        //     LLbit_exe0_exe1<=0;
-        // end
         else begin
             ctr_exe1_wb_1 <= ctr_exe0_exe1_1;
             rd_exe1_wb_1<=rd_exe0_exe1_1;

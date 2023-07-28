@@ -27,9 +27,9 @@ module dcache_extend (
                 1: dout_dcache_pipeline_extend={{16{dout16[15]}},dout16};
                 2: dout_dcache_pipeline_extend=dout_dcache_pipeline;
             //ST
-                // 3: dout_dcache_pipeline_extend=din_pipeline_dcache;
-                // 4: dout_dcache_pipeline_extend=din_pipeline_dcache;
-                // 5: dout_dcache_pipeline_extend=din_pipeline_dcache;
+                3: dout_dcache_pipeline_extend=din_pipeline_dcache;
+                4: dout_dcache_pipeline_extend=din_pipeline_dcache;
+                5: dout_dcache_pipeline_extend=din_pipeline_dcache;
             //LD
                 6: dout_dcache_pipeline_extend={24'b0,dout8};
                 7: dout_dcache_pipeline_extend={16'b0,dout16};
