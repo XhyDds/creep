@@ -1223,6 +1223,24 @@ module core_top(
         .pc          		( pc[31:3]          ),
         .npc_test           ( npc_test          )
     );
+
+    ex_buffer #(
+        .length(4)
+    )(
+        .clk(clk),
+        .rstn(rstn),
+        .flag(),
+        .stall(),
+        .in_taken_pdc_0(pre_reg_exe0_0[33]),
+        .in_kind_pdc_0(pre_reg_exe0_0[32:30]),
+        .in_npc_pdc_0(pre_reg_exe0_0[29:0]),
+        .in_choice_pdc_0(pre_reg_exe0_0[34:33]),
+        .in_taken_ex_0()
+
+        .in_taken_pdc_1(pre_reg_exe0_1[33]),
+        .in_kind_pdc_1(pre_reg_exe0_1[32:30]),
+        .in_npc_pdc_1(pre_reg_exe0_1[29:0]),
+    );
     `endif
 
     //PC
@@ -1264,8 +1282,8 @@ module core_top(
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
             //pre
-            pre_if0_if1<={28'b0,ifnpc_pdc,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //35 34:33 32 31:29 28:0
+            pre_if0_if1<={27'b0,ifnpc_pdc,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //36 35:34 33 32:30 29:0
         end
     end
 

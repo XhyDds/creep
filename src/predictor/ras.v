@@ -1,6 +1,6 @@
 module ras #(
     parameter   stack_len= 16,
-                ADDR_WIDTH = 29
+                ADDR_WIDTH = 30
 )(
     input   clk,
     input   rstn,

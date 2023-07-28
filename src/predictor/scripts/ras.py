@@ -1,7 +1,7 @@
 len=16
 code='''module ras #(
     parameter   stack_len= '''+str(len)+''',
-                ADDR_WIDTH = 29
+                ADDR_WIDTH = 30
 )(
     input   clk,
     input   rstn,

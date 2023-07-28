@@ -1,7 +1,7 @@
 module npc_predictor#(
     parameter   gh_width   = 14,
                 stack_len  = 16,
-                ADDR_WIDTH = 29
+                ADDR_WIDTH = 30
 )(
     input clk,
     input rstn,
@@ -71,15 +71,21 @@ module npc_predictor#(
     always @(*) begin
         if(taken_pdc) begin
             case (kind_pdc)
-                NOT_JUMP:       npc_pdc=pc+1;
+                NOT_JUMP: 
+                    if(pc[0])   npc_pdc=pc+2;
+                    else        npc_pdc=pc+1;
                 DIRECT_JUMP:    npc_pdc=npc_btb;
                 CALL:           npc_pdc=npc_btb;
                 RET:            npc_pdc=choice_btb_ras?npc_ras:npc_btb;
                 INDIRECT_JUMP:  npc_pdc=npc_btb;
                 OTHER_JUMP:     npc_pdc=npc_btb;
-                default:        npc_pdc=pc+1;
+                default: 
+                    if(pc[0])   npc_pdc=pc+2;
+                    else        npc_pdc=pc+1;
             endcase
         end
-        else                    npc_pdc=pc+1;
+        else        
+                    if(pc[0])   npc_pdc=pc+2;
+                    else        npc_pdc=pc+1;
     end
 endmodule

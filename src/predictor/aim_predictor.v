@@ -1,7 +1,7 @@
 module aim_predictor#(
     parameter   gh_width   = 14,
                 bh_width   = 14,
-                ADDR_WIDTH = 29
+                ADDR_WIDTH = 30
 )(
     input  clk,
     //ex
