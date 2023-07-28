@@ -155,6 +155,7 @@ module ex_buffer#(
         out_taken_pdc=0;
         out_kind_pdc =0;
         out_npc_pdc  =0;
+        out_choice_pdc=0;
         out_taken_ex =0;
         out_kind_ex  =0;
         out_npc_ex   =0;
@@ -164,6 +165,7 @@ module ex_buffer#(
             out_taken_pdc=out_taken_pdc_0;
             out_kind_pdc =out_kind_pdc_0 ;
             out_npc_pdc  =out_npc_pdc_0  ;
+            out_choice_pdc=out_choice_pdc_0;
             out_taken_ex =out_taken_ex_0 ;
             out_kind_ex  =out_kind_ex_0  ;
             out_npc_ex   =out_npc_ex_0   ;

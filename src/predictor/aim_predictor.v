@@ -4,6 +4,7 @@ module aim_predictor#(
                 ADDR_WIDTH = 30
 )(
     input  clk,
+    input  update_en,
     //ex
     input  [ADDR_WIDTH-1:0] pc_ex,
     input  [gh_width-1:0] pc_ex_gh_hashed,
@@ -36,7 +37,7 @@ module aim_predictor#(
         .b_taken_pdc(taken_b),
         .hashed_pc_update(pc_ex_bh_hashed),
         .b_taken_real(taken_real),
-        .update_en(try_to_pdc)
+        .update_en(try_to_pdc&&update_en)
     );
 
     gpht#(
@@ -48,7 +49,7 @@ module aim_predictor#(
         .g_taken_pdc(taken_g),
         .hashed_pc_update(pc_ex_gh_hashed),
         .g_taken_real(taken_real),
-        .update_en(try_to_pdc)
+        .update_en(try_to_pdc&&update_en)
     );
 
     cpht#(
@@ -60,7 +61,7 @@ module aim_predictor#(
         .choice_pdc(choice_b_g),
         .hashed_pc_update(pc_ex_gh_hashed),
         .choice_real(choice_real),
-        .update_en(try_to_pdc)
+        .update_en(try_to_pdc&&update_en)
     );
 
     always @(*) begin

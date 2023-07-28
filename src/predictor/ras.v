@@ -4,6 +4,7 @@ module ras #(
 )(
     input   clk,
     input   rstn,
+    input   update_en,
     input   is_call_ex,            //来自ex段的指令是否为函数调用
     input   [ADDR_WIDTH-1:0] ret_pc_ex,      //来自ex段的返回地址
     output  reg [ADDR_WIDTH-1:0] ret_pc_pdc, //预测的返回地址
@@ -35,6 +36,7 @@ module ras #(
             ret_stk[4'd14]<=0;
             ret_stk[4'd15]<=0;
         end
+        else if(~update_en) ;
         else if(is_call_ex) begin
             ret_stk[4'd0]<=ret_pc_ex;
             if(!is_ret_pdc) begin   //push
