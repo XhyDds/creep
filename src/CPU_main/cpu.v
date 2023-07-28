@@ -139,7 +139,7 @@ module core_top(
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
-    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
+    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre0,flush_pre1;
 
     assign flushup=flush_pre1&ctr_reg_exe0_0[31];
     assign flushdown=flush_pre1&ctr_id_reg_1[31];
@@ -648,7 +648,8 @@ module core_top(
     // );
 `ifdef predictor
     wire [31:0]	pc_br0;
-    wire flush_pre0;
+    wire ifbr_0;
+    wire [31:0] brresult_0;
 
     br_pre u_br0(
         //ports
@@ -658,7 +659,9 @@ module core_top(
         .imm      		( imm_reg_exe0_0    ),
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		    ),
+        .ifbr_          ( ifbr_0            ),
         .brresult 		( pc_br0 	        ),
+        .brresult_      ( brresult_0        ),
         .rrj            ( rrj0_forward      ),
         .pre            ( pre_reg_exe0_0    ),
         .flush_pre      ( flush_pre0        ),
@@ -666,7 +669,8 @@ module core_top(
     );
 
     wire [31:0]	pc_br1;
-    wire flush_pre1;
+    wire ifbr_1;
+    wire [31:0]brresult_1;
 
     br_pre u_br1(
         //ports
@@ -676,7 +680,9 @@ module core_top(
         .imm      		( imm_reg_exe0_1     ),
         .zero     		( zero1     		 ),
         .ifbr     		( ifbr1    		     ),
+        .ifbr_          ( ifbr_1             ),
         .brresult 		( pc_br1		     ),
+        .brresult_      ( brresult_1         ),
         .rrj            ( rrj1_forward       ),
         .pre            ( pre_reg_exe0_1     ),
         .flush_pre      ( flush_pre1         ),
@@ -685,7 +691,6 @@ module core_top(
 `endif
 `ifndef predictor
     wire [31:0]	pc_br0;
-    wire flush_pre0;
 
     br u_br0(
         //ports
@@ -700,7 +705,6 @@ module core_top(
     );
 
     wire [31:0]	pc_br1;
-    wire flush_pre1;
 
     br u_br1(
         //ports
@@ -711,7 +715,7 @@ module core_top(
         .ifbr     		( ifbr1    		     ),
         .brresult 		( pc_br1		     ),
         .rrj            ( rrj1_forward       ),
-        .stall          ( stall_reg_exe0_1  )
+        .stall          ( stall_reg_exe0_1   )
     );
 `endif
 
@@ -733,7 +737,7 @@ module core_top(
         .rrj                 		    ( rrj1_forward         		    ),
         .imm                     		( imm_reg_exe0_1         		),
         .ctr                     		( ctr_reg_exe0_1_excp         	),
-        .rrd                 		    ( rrd1_forward          		),
+        .rrd                  		    ( rrd1_forward          		),
         .addr_pipeline_dcache   		( addr_pipeline_dcache   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
@@ -1073,39 +1077,88 @@ module core_top(
     wire try_to_pdc;
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
     assign try_to_pdc=(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP);
-    assign mis_pdc={(npc_ex!=npc_pdc_ex),(kind_ex!=kind_pdc_ex),(taken_real!=taken_pdc_ex)};
+    assign mis_pdc={(out_npc_ex!=out_npc_pdc),(out_kind_ex!=out_kind_pdc),(out_taken_ex!=out_taken_pdc)};
     assign choice_real={choice_real_btb_ras,choice_real_g_h};
-    assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc_ex[1]:choice_pdc_ex[1];
-    assign choice_real_g_h=mis_pdc[0]?~choice_pdc_ex[1]:choice_pdc_ex[1];
+    assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
+    assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
 
-    wire [28:0]npc_test;
+    wire [29:0]npc_test;//给ccr用的测试线，需要左移两位使用，0,4交替
 
     `ifdef predictor
+    wire        out_taken_pdc ;
+    wire [2:0]  out_kind_pdc  ;
+    wire [29:0] out_npc_pdc   ;
+    wire        out_taken_ex  ;
+    wire [2:0]  out_kind_ex   ;
+    wire [29:0] out_npc_ex    ;
+    wire [29:0] out_pc_ex     ;
+    wire [1:0]  out_choice_pdc;
+    wire update_en;
+
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
         .stack_len     		( 16   		),
         .queue_len     		( 16   		),
-        .ADDR_WIDTH    		( 29   		))
+        .ADDR_WIDTH    		( 30   		))
     u_predictor(
         //ports
         .clk         		( clk         		),
         .rstn        		( rstn        		),
+        .update_en          ( update_en         ),
 
-        .pc_ex       		( pc_ex             ),
+        .pc_ex       		( out_pc_ex         ),
         .mis_pdc     		( mis_pdc     		),
-        .npc_ex      		( npc[31:3]		    ),
-        .kind_ex     		( kind_ex     		),
-        .taken_real  		( taken_real  		),
+        .npc_ex      		( out_npc_ex  	    ),
+        .kind_ex     		( out_kind_ex       ),
+        .taken_real  		( out_taken_ex 		),
         .choice_real 		( choice_real 		),
 
-        .npc_pdc     		( npc_pdc     		),
-        .kind_pdc    		( kind_pdc    		),
-        .taken_pdc   		( taken_pdc   		),
-        .choice_pdc  		( choice_pdc  		),
+        .npc_pdc     		( npc_pdc  	    	),
+        .kind_pdc    		( kind_pdc       	),
+        .taken_pdc   		( taken_pdc        	),
+        .choice_pdc  		( choice_pdc    	),
 
-        .pc          		( pc[31:3]          ),
+        .pc          		( pc[31:2]          ),
         .npc_test           ( npc_test          )
+    );
+
+    ex_buffer #(
+        .length(4)
+    )u_ex_buffer(
+        .clk(clk),
+        .rstn(rstn),
+        .flag(ctr_reg_exe0_0[31]&ctr_reg_exe0_1[31]),
+        .stall(stall_reg_exe0_0|(~ctr_reg_exe0_0[31]&~ctr_reg_exe0_1[31])),
+
+        .in_taken_pdc_0(pre_reg_exe0_0[33]),
+        .in_kind_pdc_0(pre_reg_exe0_0[32:30]),
+        .in_npc_pdc_0(pre_reg_exe0_0[29:0]),
+        .in_choice_pdc_0(pre_reg_exe0_0[36:35]),
+        .in_taken_ex_0(ifbr_0),
+        .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
+        .in_npc_ex_0(brresult_0),
+        .in_pc_ex_0(pc_reg_exe0_0[31:2]),
+
+        .in_taken_pdc_1(pre_reg_exe0_1[33]),
+        .in_kind_pdc_1(pre_reg_exe0_1[32:30]),
+        .in_npc_pdc_1(pre_reg_exe0_1[29:0]),
+        .in_choice_pdc_1(pre_reg_exe0_1[36:35]),
+        .in_taken_ex_1(ifbr_1),
+        .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
+        .in_npc_ex_1(brresult_1),
+        .in_pc_ex_1(pc_reg_exe0_1[31:2]),
+
+        .out_taken_pdc (out_taken_pdc ),
+        .out_kind_pdc  (out_kind_pdc  ),
+        .out_npc_pdc   (out_npc_pdc   ),
+        .out_taken_ex  (out_taken_ex  ),
+        .out_kind_ex   (out_kind_ex   ),
+        .out_npc_ex    (out_npc_ex    ),
+        .out_pc_ex     (out_pc_ex     ),
+        .out_choice_pdc(out_choice_pdc),
+
+        .update_en     (update_en)
     );
     `endif
 
@@ -1139,17 +1192,12 @@ module core_top(
             pre_if0_if1<=0;
         end
         else if(stall_if0_if1);
-        // else if(flush_if0_if1) begin
-        //     pc_if0_if1<=0;
-        //     PLV_if0_if1<=0;
-        //     pre_if0_if1<=0;
-        // end
         else begin
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
             //pre
-            pre_if0_if1<={28'b0,ifnpc_pdc,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //35 34:33 32 31:29 28:0
+            pre_if0_if1<={27'b0,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //36:35 34 33 32:30 29:0
         end
     end
 
@@ -1179,9 +1227,6 @@ module core_top(
             MMU_pipeline_excp_arg0_if1_fifo<=0;
         end
         else if(stall_if1_fifo);
-        // else if(flush_if1_fifo|ifflush_if1_fifo)begin
-        //     pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;pre_if1_fifo<=0;npc_if1_fifo<=0;MMU_pipeline_excp_arg0_if1_fifo<=0;
-        // end
         else begin
             pc_if1_fifo<=pc_if0_if1;
             PLV_if1_fifo<=PLV_if0_if1;
@@ -1212,18 +1257,6 @@ module core_top(
             npc_id_reg_0<=0;
         end
         else if(stall_id_reg0);
-        // else if(flush_id_reg0)begin
-        //     ctr_id_reg_0 <= 0;
-        //     imm_id_reg_0<=0;
-        //     rk_id_reg_0<=0;
-        //     rj_id_reg_0<=0;
-        //     rd_id_reg_0<=0;
-        //     pc_id_reg_0<=0;
-        //     ir_id_reg_0<=0;
-        //     ir_valid_id_reg_0<=0;
-        //     pre_id_reg_0<=0;
-        //     npc_id_reg_0<=0;
-        // end
         else begin
             ctr_id_reg_0 <= control00;
             imm_id_reg_0<=imm00;
@@ -1253,19 +1286,6 @@ module core_top(
             npc_id_reg_1<=0;
         end
         else if(stall_id_reg1);
-        // else if(flush_id_reg1) begin
-        //     ctr_id_reg_1 <= 0;
-        //     excp_arg_id_reg_1<=0;
-        //     imm_id_reg_1<=0;
-        //     rk_id_reg_1<=0;
-        //     rj_id_reg_1<=0;
-        //     rd_id_reg_1<=0;
-        //     pc_id_reg_1<=0;
-        //     ir_id_reg_1<=0;
-        //     ir_valid_id_reg_1<=0;
-        //     pre_id_reg_1<=0;
-        //     npc_id_reg_1<=0;
-        // end
         else begin
             ctr_id_reg_1 <= control11;
             excp_arg_id_reg_1<=excp_arg11;
@@ -1299,21 +1319,6 @@ module core_top(
             npc_reg_exe0_0          <=0;
         end
         else if(stall_reg_exe0_0);
-        // else if(flush_reg_exe0_0) begin
-        //     ctr_reg_exe0_0 <= 0;
-        //     imm_reg_exe0_0<=0;
-        //     rk_reg_exe0_0<=0;
-        //     rj_reg_exe0_0<=0;
-        //     rd_reg_exe0_0<=0;
-        //     rrk_reg_exe0_0<=0;
-        //     rrj_reg_exe0_0<=0;
-        //     rrd_reg_exe0_0<=0;
-        //     pc_reg_exe0_0<=0;
-        //     ir_reg_exe0_0<=0;
-        //     ir_valid_reg_exe0_0<=0;
-        //     pre_reg_exe0_0<=0;
-        //     npc_reg_exe0_0<=0;
-        // end
         else begin
             ctr_reg_exe0_0         <= ctr_id_reg_0;
             imm_reg_exe0_0         <=imm_id_reg_0;
@@ -1417,15 +1422,6 @@ module core_top(
             countresult_exe0_exe1_0<=0;
         end
         else if(stall_exe0_exe1_0);
-        // else if(flush_exe0_exe1_0) begin
-        //     ctr_exe0_exe1_0 <= 0;
-        //     rd_exe0_exe1_0 <= 0;
-        //     result_exe0_exe1_0 <= 0;
-        //     pc_exe0_exe1_0<=0;
-        //     ir_exe0_exe1_0<=0;
-        //     ir_valid_exe0_exe1_0<=0;
-        //     countresult_exe0_exe1_0<=0;
-        // end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
             rd_exe0_exe1_0 <= rd_reg_exe0_0;
@@ -1452,18 +1448,6 @@ module core_top(
             rand_index_exe0_exe1<=0;
         end
         else if(stall_exe0_exe1_1);
-        // else if(flush_exe0_exe1_1) begin
-        //     ctr_exe0_exe1_1 <= 0;
-        //     rd_exe0_exe1_1<=0;
-        //     result_exe0_exe1_1<=0;
-        //     pc_exe0_exe1_1<=0;
-        //     ir_exe0_exe1_1<=0;
-        //     addr_pipeline_dcache_exe0_exe1<=0;
-        //     din_pipeline_dcache_exe0_exe1<=0;
-        //     ir_valid_exe0_exe1_1<=0;
-        //     countresult_exe0_exe1_1<=0;
-        //     rand_index_exe0_exe1<=0;
-        // end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
@@ -1517,16 +1501,6 @@ module core_top(
             din_pipeline_dcache_exe1_wb<=0;
         end
         else if(stall_exe1_wb_0);
-        // else if(flush_exe1_wb_0) begin
-        //     ctr_exe1_wb_0 <= 0;
-        //     rd_exe1_wb_0<=0;
-        //     result_exe1_wb_0<=0;
-        //     pc_exe1_wb_0<=0;
-        //     ir_exe1_wb_0<=0;
-        //     ir_valid_exe1_wb_0<=0;
-        //     countresult_exe1_wb_0<=0;
-        //     din_pipeline_dcache_exe1_wb<=0;
-        // end
         else begin
             ctr_exe1_wb_0 <= ctr_exe0_exe1_0;
             rd_exe1_wb_0<=rd_exe0_exe1_0;
@@ -1554,19 +1528,6 @@ module core_top(
             LLbit_exe0_exe1<=0;
         end
         else if(stall_exe1_wb_1);
-        // else if(flush_exe1_wb_1) begin
-        //     ctr_exe1_wb_1 <= 0;
-        //     rd_exe1_wb_1<=0;
-        //     result_exe1_wb_1<=0;
-        //     pc_exe1_wb_1<=0;
-        //     ir_exe1_wb_1<=0;
-        //     vaddr_exe1_wb<=0;
-        //     paddr_exe1_wb<=0;
-        //     ir_valid_exe1_wb_1<=0;
-        //     countresult_exe1_wb_1<=0;
-        //     rand_index_exe1_wb<=0;
-        //     LLbit_exe0_exe1<=0;
-        // end
         else begin
             ctr_exe1_wb_1 <= ctr_exe0_exe1_1;
             rd_exe1_wb_1<=rd_exe0_exe1_1;
