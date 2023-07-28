@@ -711,7 +711,8 @@ module core_top(
         .brresult 		( pc_br0 	        ),
         .rrj            ( rrj0_forward      ),
         .pre            ( pre_reg_exe0_0    ),
-        .flush_pre      ( flush_pre0        )
+        .flush_pre      ( flush_pre0        ),
+        .stall          ( stall_reg_exe0_0  )
     );
 
     wire [31:0]	pc_br1;
@@ -728,7 +729,8 @@ module core_top(
         .brresult 		( pc_br1		     ),
         .rrj            ( rrj1_forward       ),
         .pre            ( pre_reg_exe0_1     ),
-        .flush_pre      ( flush_pre1         )
+        .flush_pre      ( flush_pre1         ),
+        .stall          ( stall_reg_exe0_1  )
     );
 `endif
 `ifndef predictor
@@ -743,7 +745,8 @@ module core_top(
         .zero     		( zero0     		),
         .ifbr     		( ifbr0    		    ),
         .brresult 		( pc_br0 	        ),
-        .rrj            ( rrj0_forward      )
+        .rrj            ( rrj0_forward      ),
+        .stall          ( stall_reg_exe0_0  )
     );
 
     wire [31:0]	pc_br1;
@@ -757,7 +760,8 @@ module core_top(
         .zero     		( zero1     		 ),
         .ifbr     		( ifbr1    		     ),
         .brresult 		( pc_br1		     ),
-        .rrj            ( rrj1_forward       )
+        .rrj            ( rrj1_forward       ),
+        .stall          ( stall_reg_exe0_1   )
     );
 `endif
 
@@ -775,11 +779,11 @@ module core_top(
     cache_ctr u_cache_ctr(
         //ports
         .stall                          ( stall_exe0_exe1_1             ),
-        .excp_arg_reg_exe0_1_excp       ( excp_arg_reg_exe0_1_excp      ),
-        .rrj1_forward         		    ( rrj1_forward         		    ),
-        .imm_reg_exe0_1         		( imm_reg_exe0_1         		),
-        .ctr_reg_exe0_1         		( ctr_reg_exe0_1_excp         	),
-        .rrd1_forward          		    ( rrd1_forward          		),
+        .excp_arg                       ( excp_arg_reg_exe0_1_excp      ),
+        .rrj                 		    ( rrj1_forward         		    ),
+        .imm                     		( imm_reg_exe0_1         		),
+        .ctr                     		( ctr_reg_exe0_1_excp         	),
+        .rrd                  		    ( rrd1_forward          		),
         .addr_pipeline_dcache   		( addr_pipeline_dcache   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
