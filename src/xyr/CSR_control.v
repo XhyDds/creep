@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�??????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�???????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??????????，ex1�??????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???????????，ex1�???????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -240,7 +240,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     esubcode=pipeline_CSR_excp_arg0[14:6];
     mode=pipeline_CSR_subtype;
     evaddr=inpc;//TLB(F),ADEF,PIF,PPI
-    TI_cl=0;
+    TI_cl=0;//TI_cl
     inst_stop=0;nclk_stall=clk_stall;
     TLBIDXout=0;TLBEHIout=0;
     TLBELO0out=0;TLBELO1out=0;
@@ -274,7 +274,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         evaddr=pipeline_CSR_evaddr0;
    
     if((!stallin && !flushin && exe)||inte)
-        begin 
+        begin
+        TI_cl=(csr_num=='h44 && dwcsr[0] && (mode==CSRWR || mode==CSRXCHG)); 
         case(mode)
             ERTN:
                 begin
@@ -286,8 +287,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 begin
                 flushout=1;                        
                 mask=pipeline_CSR_mask;
-                if(csr_num=='h44 && dwcsr[0])
-                    TI_cl=1;
+//                if(csr_num=='h44 && dwcsr[0])
+//                    TI_cl=1;
                 end
             INTE:
                begin
@@ -307,8 +308,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             CSRWR:
                 begin
                 flushout=1; 
-                 if(csr_num=='h44&&dwcsr[0])
-                    TI_cl=1; 
+//                 if(csr_num=='h44&&dwcsr[0])
+//                    TI_cl=1; 
                 end 
             CSRRD:
                    flushout=0;
