@@ -729,7 +729,7 @@ module core_top(
     cache_ctr u_cache_ctr(
         //ports
         .stall                          ( stall_exe0_exe1_1             ),
-        .excp                           ( excp_arg_reg_exe0_1_excp      ),
+        .excp_arg                       ( excp_arg_reg_exe0_1_excp      ),
         .rrj                 		    ( rrj1_forward         		    ),
         .imm                     		( imm_reg_exe0_1         		),
         .ctr                     		( ctr_reg_exe0_1_excp         	),
