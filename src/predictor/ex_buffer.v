@@ -1,7 +1,7 @@
 //尚未完成
 module ex_buffer#(
     parameter length = 4
-            // ,DATA_WIDTH=98
+            // ,DATA_WIDTH=99
 )(
     input clk,
     input rstn,
@@ -89,6 +89,16 @@ module ex_buffer#(
     reg [31:0] pointer;
     reg empty;
 
+    reg        update_en_     ;
+    reg        out_taken_pdc_ ;
+    reg [2:0]  out_kind_pdc_  ;
+    reg [29:0] out_npc_pdc_   ;
+    reg        out_taken_ex_  ;
+    reg [2:0]  out_kind_ex_   ;
+    reg [29:0] out_npc_ex_    ;
+    reg [29:0] out_pc_ex_     ;
+    reg [1:0]  out_choice_pdc_;
+
     always @(posedge clk,negedge rstn) begin
         if(!rstn) begin
             pointer<=0;
@@ -139,68 +149,82 @@ module ex_buffer#(
     always @(*) begin
         out_data_0=0;
         out_data_1=0;
-        update_en=0;
+        update_en_ =0;
         if(pointer==0&&empty==1) ;
         else if(pointer==0&&empty==0) begin
             out_data_0=buffer_data[pointer];
             out_data_1=0;
-            if(pack_size) update_en=1;
+            if(pack_size) update_en_=1;
         end
         else begin
             out_data_0=buffer_data[pointer];
             out_data_1=buffer_data[pointer-1];
-            update_en=1;
+            update_en_ =1;
         end
 
-        out_taken_pdc=0;
-        out_kind_pdc =0;
-        out_npc_pdc  =0;
-        out_choice_pdc=0;
-        out_taken_ex =0;
-        out_kind_ex  =0;
-        out_npc_ex   =0;
-        out_pc_ex    =0;
+        out_taken_pdc_ =0;
+        out_kind_pdc_  =0;
+        out_npc_pdc_   =0;
+        out_choice_pdc_=0;
+        out_taken_ex_  =0;
+        out_kind_ex_   =0;
+        out_npc_ex_    =0;
+        out_pc_ex_     =0;
 
         if(pack_size) begin
-            out_taken_pdc=out_taken_pdc_0;
-            out_kind_pdc =out_kind_pdc_0 ;
-            out_npc_pdc  =out_npc_pdc_0  ;
-            out_choice_pdc=out_choice_pdc_0;
-            out_taken_ex =out_taken_ex_0 ;
-            out_kind_ex  =out_kind_ex_0  ;
-            out_npc_ex   =out_npc_ex_0   ;
-            out_pc_ex    =out_pc_ex_0    ;
+            out_taken_pdc_ =out_taken_pdc_0;
+            out_kind_pdc_  =out_kind_pdc_0 ;
+            out_npc_pdc_   =out_npc_pdc_0  ;
+            out_choice_pdc_=out_choice_pdc_0;
+            out_taken_ex_  =out_taken_ex_0 ;
+            out_kind_ex_   =out_kind_ex_0  ;
+            out_npc_ex_    =out_npc_ex_0   ;
+            out_pc_ex_     =out_pc_ex_0    ;
         end
         else begin
-            out_taken_pdc =out_taken_pdc_0;
-            out_kind_pdc  =out_kind_pdc_0 ;
-            out_npc_pdc   =out_npc_pdc_0  ;
-            out_choice_pdc=out_choice_pdc_0;
-            out_pc_ex     =out_pc_ex_0    ;
+            out_taken_pdc_ =out_taken_pdc_0;
+            out_kind_pdc_  =out_kind_pdc_0 ;
+            out_npc_pdc_   =out_npc_pdc_0  ;
+            out_choice_pdc_=out_choice_pdc_0;
+            out_pc_ex_     =out_pc_ex_0    ;
 
-            out_taken_ex  =out_taken_ex_0||out_taken_ex_1;
+            out_taken_ex_  =out_taken_ex_0||out_taken_ex_1;
             //kind
             if(out_kind_ex_0==DIRECT_JUMP||out_kind_ex_1==DIRECT_JUMP) begin
-                out_kind_ex=DIRECT_JUMP;
+                out_kind_ex_=DIRECT_JUMP;
             end
             else if(out_kind_ex_0==CALL||out_kind_ex_1==CALL) begin
-                out_kind_ex=CALL;
+                out_kind_ex_=CALL;
             end
             else if(out_kind_ex_0==RET||out_kind_ex_1==RET) begin
-                out_kind_ex=RET;
+                out_kind_ex_=RET;
             end
             else if(out_kind_ex_0==INDIRECT_JUMP||out_kind_ex_1==INDIRECT_JUMP) begin
-                out_kind_ex=INDIRECT_JUMP;
+                out_kind_ex_=INDIRECT_JUMP;
             end
             else if(out_kind_ex_0==OTHER_JUMP||out_kind_ex_1==OTHER_JUMP) begin
-                out_kind_ex=OTHER_JUMP;
+                out_kind_ex_=OTHER_JUMP;
             end
             else begin
-                out_kind_ex=NOT_JUMP;
+                out_kind_ex_=NOT_JUMP;
             end
             //npc
-            if(out_taken_ex_0) out_npc_ex=out_npc_ex_0;
-            else out_npc_ex=out_npc_ex_1;
+            if(out_taken_ex_0) out_npc_ex_=out_npc_ex_0;
+            else out_npc_ex_=out_npc_ex_1;
         end
     end
+
+    //寄存，截断传播
+    always @(posedge clk,negedge rstn) begin
+        update_en     <=update_en_;
+        out_taken_pdc <=out_taken_pdc_ ;
+        out_kind_pdc  <=out_kind_pdc_  ;
+        out_npc_pdc   <=out_npc_pdc_   ;
+        out_taken_ex  <=out_taken_ex_  ;
+        out_kind_ex   <=out_kind_ex_   ;
+        out_npc_ex    <=out_npc_ex_    ;
+        out_pc_ex     <=out_pc_ex_     ;
+        out_choice_pdc<=out_choice_pdc_;
+    end
+    
 endmodule
