@@ -281,7 +281,12 @@ L2cache_FSMmain(
     .FSM_rbuf_SUC(rbuf_SUC),
     .FSM_rbuf_opaddr(rbuf_opaddr),
     .FSM_rbuf_opflag(rbuf_opflag),
+
     .FSM_SUC(l1cache_l2cache_SUC),
+    .FSM_dSUC(dcache_l2cache_SUC),
+    .FSM_dcache_req(dcache_l2cache_req),
+    .FSM_dcache_wr(dcache_l2cache_wr),
+    .FSM_icache_req(icache_l2cache_req),
 
     //PLRU
     .FSM_use(use1),

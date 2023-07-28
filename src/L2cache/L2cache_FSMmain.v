@@ -51,8 +51,13 @@ module L2cache_FSMmain#(
     input       [31:0]FSM_rbuf_opcode,
     input       [31:0]FSM_rbuf_opaddr,
     input       FSM_rbuf_SUC,
-    input       FSM_SUC,
     input       FSM_rbuf_opflag,
+
+    input       FSM_SUC,
+    input       FSM_dSUC,
+    input       FSM_dcache_req,
+    input       FSM_dcache_wr,
+    input       FSM_icache_req,
     
     //PLRU
     output reg  [way-1:0]FSM_use,
@@ -212,11 +217,11 @@ always @(*) begin
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
-            if(from[1])begin
-                if(~from[0])l2cache_dcache_addrOK = 1;
-                else l2cache_dcache_addrOK = ~ FSM_SUC;//强序写时先不发addrOK
+            if(FSM_dcache_req)begin
+                if(!FSM_dcache_wr)l2cache_dcache_addrOK = 1;//读请求
+                else l2cache_dcache_addrOK = ~ FSM_dSUC;//强序写时先不发addrOK
             end
-            else if(from == 2'b01)begin
+            else if(FSM_icache_req)begin
                 l2cache_icache_addrOK = 1;
             end
         end
