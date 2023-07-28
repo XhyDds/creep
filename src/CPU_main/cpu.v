@@ -1,4 +1,4 @@
-`define predictor
+// `define predictor
 // `define DMA
 // module mycpu_top(
 module core_top(
@@ -987,6 +987,8 @@ module core_top(
     wire [2:0]kind_pdc;
     wire taken_pdc;
     wire [1:0]choice_pdc;
+
+`ifdef predictor
     //已经处理过的信号
     wire [2:0]mis_pdc;
     wire [1:0]choice_real;
@@ -1000,7 +1002,6 @@ module core_top(
 
     wire [29:0]npc_test;//给ccr用的测试线，需要左移两位使用，0,4交替
 
-    `ifdef predictor
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
     wire [29:0] out_npc_pdc   ;
@@ -1076,7 +1077,7 @@ module core_top(
 
         .update_en     (update_en)
     );
-    `endif
+`endif
 
     //PC
     wire [31:0]npc_pdc_32={npc_pdc,3'b0};
@@ -1087,11 +1088,11 @@ module core_top(
         else if(ifbr1) npc=pc_br1;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
         else if(ifbr0) npc=pc_br0;
-        else if(pc[2]) npc=pc+4;
         `ifdef predictor
         else begin npc=npc_pdc_32;ifnpc_pdc=1; end
         `endif
         `ifndef predictor
+        else if(pc[2]) npc=pc+4;
         else npc=pc+8;//Icache ONLY
         `endif
     end
