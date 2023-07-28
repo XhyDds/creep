@@ -1,6 +1,4 @@
 `define predictor
-`define MMU
-`define L2Cache
 // `define DMA
 // module mycpu_top(
 module core_top(
@@ -1000,10 +998,8 @@ module core_top(
         .d_rready 		( d_rready 		),//output reg  
         .d_raddr  		( addr_dcache_mem  		),//input [31:0]
 
-        `ifdef L2Cache
         .d_rdata  		( d_rdata  		),//output [31:0]
         .d_rlen   		( 8'd3   		),//input [7:0]
-        `endif
 
         .d_rlast  		( d_rlast	),//output reg  
         .d_rsize  		( {1'b0,dcache_mem_size}  		),//input [2:0] 
@@ -1583,7 +1579,6 @@ module core_top(
     end
 
 //L2Cache
-`ifdef L2Cache
     wire dma;
     `ifdef DMA
         assign dma = 1'b1;
@@ -1725,7 +1720,6 @@ module core_top(
         .bready         (bready)
     );
 
-`endif 
 
 //debug begin here 
     assign debug0_wb_pc=pc_exe1_wb_0;
