@@ -1732,8 +1732,9 @@ module core_top(
         .rstn                   		( rstn                   		),
 
         //  Icache
-        .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
-        .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
+        // .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
+        .addr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
+        .paddr_pipeline_icache          ( 0                             ),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
         .pipeline_icache_valid  		( 1  		),
@@ -1746,8 +1747,9 @@ module core_top(
         .pc_icache_pipeline             ( pc_icache_pipeline    ),
 
         //  Dcache
-        .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
-        .paddr_pipeline_dcache   		( MMU_pipeline_PADDR1   		),
+        // .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
+        .addr_pipeline_dcache   		( MMU_pipeline_PADDR1   		),
+        .paddr_pipeline_dcache          ( 0                             ),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
