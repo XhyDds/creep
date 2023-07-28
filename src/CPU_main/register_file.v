@@ -7,7 +7,7 @@ module register_file (
 );
     reg [31:0]rf[0:31];
 
-    always @(posedge clk,negedge rstn) begin:RF
+    always @(posedge clk)begin:RF
     //能否保证wb_addr0!=wb_addr1？是否能通过综合？
         integer i;
         if (!rstn) begin

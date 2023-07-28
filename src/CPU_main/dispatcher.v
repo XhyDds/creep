@@ -33,7 +33,7 @@ module dispatcher (
     wire stall0=(twostates0_reg&(rd0_reg==rk0|rd0_reg==rj0|rd0==rd0_reg&control0[29]))
                |(twostates1_reg&(rd1_reg==rk0|rd1_reg==rj0|rd0==rd1_reg&control0[29]));
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush) begin
             twostates0_reg <= 0;
             twostates1_reg <= 0;

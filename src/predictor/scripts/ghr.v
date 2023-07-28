@@ -15,7 +15,7 @@ module ghr#(
     reg     [gh_width-1:0]  chkpt_q[0:queue_len-1];//check_point queue
     reg     [3:0]pointer;
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             chkpt_q[4'd0]<=0;
             chkpt_q[4'd1]<=0;
@@ -54,7 +54,7 @@ module ghr#(
         end
     end
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             pointer<=0;
         end
@@ -69,7 +69,7 @@ module ghr#(
         end
     end
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             gh<=0;
         end

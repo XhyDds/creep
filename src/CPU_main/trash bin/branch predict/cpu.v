@@ -1211,12 +1211,12 @@ module core_top(
         `endif
     end
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) pc<=32'h1c000000;
         else if(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) pc<=npc;
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_if0_if1) begin
             pc_if0_if1<=0;
             PLV_if0_if1<=0;
@@ -1240,7 +1240,7 @@ module core_top(
     //IF1-FIFO
     //flush套壳
     reg fflush_if0_if1;
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             fflush_if0_if1 <= 0;
         end
@@ -1251,7 +1251,7 @@ module core_top(
     wire ifflush_if1_fifo;
     assign ifflush_if1_fifo=flush_if0_if1|fflush_if0_if1;
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_if1_fifo|ifflush_if1_fifo) begin
             pc_if1_fifo<=0;
             ir_if1_fifo<=0;
@@ -1282,7 +1282,7 @@ module core_top(
     //即fetch_buffer
 
     //ID-REG
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_id_reg0) begin
             ctr_id_reg_0 <= 0;
             imm_id_reg_0<=0;
@@ -1322,7 +1322,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_id_reg1) begin
             ctr_id_reg_1 <= 0;
             excp_arg_id_reg_1<=0;
@@ -1366,7 +1366,7 @@ module core_top(
     end
 
     //REG-EXE0
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_reg_exe0_0) begin
             ctr_reg_exe0_0          <= 0;
             imm_reg_exe0_0          <=0;
@@ -1416,7 +1416,7 @@ module core_top(
     end
     
     reg [31:0]  ctr_reg_exe0_1_;
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_reg_exe0_1) begin
             ctr_reg_exe0_1_<= 0;
             excp_arg_reg_exe0_1<=0;
@@ -1490,7 +1490,7 @@ module core_top(
             endcase
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_exe0_exe1_0) begin
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
@@ -1521,7 +1521,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_exe0_exe1_1) begin
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
@@ -1587,7 +1587,7 @@ module core_top(
         endcase
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_exe1_wb_0) begin
             ctr_exe1_wb_0 <= 0;
             rd_exe1_wb_0<=0;
@@ -1621,7 +1621,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn|flush_exe1_wb_1) begin
             ctr_exe1_wb_1 <= 0;
             rd_exe1_wb_1<=0;
@@ -1819,7 +1819,7 @@ module core_top(
     assign ws_valid=ws_valid0|ws_valid1;
 
     reg [31:0]pccount;
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             pccount <= 0;
         end
@@ -1934,7 +1934,7 @@ module core_top(
 
     reg     stall_exe1_wb_1_reg;
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             csr_crmd_diff_0_reg         <=  0;
             csr_prmd_diff_0_reg         <=  0;
@@ -1992,12 +1992,12 @@ module core_top(
             csr_pgdh_diff_0_reg         <=  csr_pgdh_diff_0     ;
         end
     end
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) csr_llbctl_diff_0_last <= 0;
         else if(stall_exe0_exe1_1);
         else csr_llbctl_diff_0_last <= csr_llbctl_diff_0;
     end
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) stall_exe1_wb_1_reg <= 0;
         else stall_exe1_wb_1_reg <= stall_exe1_wb_1;
     end

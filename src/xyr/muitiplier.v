@@ -14,7 +14,7 @@ module muitiplier(
     assign stall=pipeline_muitiplier_stall,flush=pipeline_muitiplier_flush;
     assign mode=pipeline_muitiplier_subtype,din1=pipeline_muitiplier_din1;
     assign din2=pipeline_muitiplier_din2,muitiplier_pipeline_dout=dout;
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn || flush)
         begin

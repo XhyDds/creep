@@ -89,7 +89,7 @@ module ex_buffer#(
     reg [31:0] pointer;
     reg empty;
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             pointer<=0;
             empty<=1;
