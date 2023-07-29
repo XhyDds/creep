@@ -144,7 +144,7 @@ module core_top(
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre0,flush_pre1;
 
     assign flushup=flush_pre1&ctr_reg_exe0_0[31];
-    assign flushdown=flush_pre1&ctr_id_reg_1[31];
+    assign flushdown=flush_pre1&~ctr_reg_exe0_0[31]|flush_pre0;
     assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -1057,7 +1057,7 @@ module core_top(
         .in_choice_pdc_0(pre_reg_exe0_0[36:35]),
         .in_taken_ex_0(ifbr_0),
         .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
-        .in_npc_ex_0(brresult_0),
+        .in_npc_ex_0(pc_br0),
         .in_pc_ex_0(pc_reg_exe0_0[31:2]),
         .in_flush_pre_0(flush_pre0),
 
@@ -1067,7 +1067,7 @@ module core_top(
         .in_choice_pdc_1(pre_reg_exe0_1[36:35]),
         .in_taken_ex_1(ifbr_1),
         .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
-        .in_npc_ex_1(brresult_1),
+        .in_npc_ex_1(pc_br1),
         .in_pc_ex_1(pc_reg_exe0_1[31:2]),
         .in_flush_pre_1(flush_pre1),
 
@@ -1518,7 +1518,7 @@ module core_top(
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_valid  		( pipeline_dcache_valid  		),
+        .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp     ),
         .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
