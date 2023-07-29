@@ -5,7 +5,7 @@ module ex_buffer#(
 )(
     input clk,
     input rstn,
-    input flag, //0:两条指令输入  1:一条指令输入
+    input flag, //0:一条指令输入  1:两条指令输入
     input stall,
     // input  [DATA_WIDTH-1:0] in_data_0,
     input        in_taken_pdc_0,   //上路
@@ -122,7 +122,7 @@ module ex_buffer#(
 
         pointer_plus=0;
         if(stall) ;
-            else if(flag) begin//默认不会满
+            else if(~flag) begin//默认不会满
                 pointer_plus=2'd1;
             end
             else begin
