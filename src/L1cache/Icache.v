@@ -224,7 +224,7 @@ assign icache_mem_SUC = rbuf_SUC;
 // `ifdef MMU
 // assign addr_icache_mem = {rbuf_paddr[31:2+offset_width],temp};
 // `else 
-assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
+assign addr_icache_mem = {rbuf_addr[31:2+offset_width],{(offset_width+2){1'b0}}};
 // `endif
 
 //FSM
