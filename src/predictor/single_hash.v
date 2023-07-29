@@ -1,6 +1,6 @@
 //hash函数for单输入
 module single_hash#(
-    parameter DATA_width=29,
+    parameter DATA_width=30,
     parameter HASH_width=14 //暂定
 ) (
     input [DATA_width-1:0] data_raw,

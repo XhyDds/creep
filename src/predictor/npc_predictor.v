@@ -90,6 +90,7 @@ module npc_predictor#(
                     if(~pc[0])   npc_pdc=pc+2;
                     else        npc_pdc=pc+1;
                 DIRECT_JUMP:    npc_pdc=npc_btb;
+                JUMP:           npc_pdc=npc_btb;
                 CALL:           npc_pdc=npc_btb;
                 RET:            npc_pdc=choice_btb_ras?npc_ras:npc_btb;
                 INDIRECT_JUMP:  npc_pdc=npc_btb;
