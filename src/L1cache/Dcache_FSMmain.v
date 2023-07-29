@@ -1,5 +1,3 @@
-// `define onlyDcache
-// `define withL2cache
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -98,14 +96,14 @@ wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 // wire flush_outside = pipeline_dcache_ctrl[1];
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6,Hit_w1=5'd7;
-// localparam Flush=5'd5;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6;
+// localparam Flush=5'd5,Hit_w1=5'd7;
 always @(posedge clk) begin
     if(!rstn)state<=0;
     else state<=next_state;
 end
 always @(*) begin
-    next_state=Idle;
+    next_state = 0;
     case (state)
         Idle:begin
             if(pipeline_dcache_valid)begin
@@ -232,6 +230,7 @@ always @(*) begin
                 else next_state=Idle;
             end
         end
+        default:next_state = Idle;
     endcase
 end
 always @(*) begin
@@ -274,15 +273,21 @@ always @(*) begin
                     end
                 end
             // end
-            if(next_state == Lookup || next_state == Idle || next_state == Operation)begin
-                dcache_pipeline_ready = 1;
-                FSM_rbuf_we = 1;
+            // if(next_state == Lookup || next_state == Idle || next_state == Operation)begin
+            //     dcache_pipeline_ready = 1;
+            //     FSM_rbuf_we = 1;
+            // end
+            if(mem_dcache_addrOK && FSM_rbuf_type)begin //写请求
+                dcache_pipeline_ready = 1; FSM_rbuf_we = 1; 
+            end
+            else if(!Miss && !FSM_rbuf_type)begin//读且命中
+                dcache_pipeline_ready = 1; FSM_rbuf_we = 1;
             end
         end
         Operation:begin
             dcache_pipeline_ready = 1;
             FSM_rbuf_we = 1;
-            if(!flush_outside)begin
+            // if(!flush_outside)begin
                 if(FSM_rbuf_opcode[4:3] == 2'd0)begin
                     FSM_TagV_init = {1'b1,FSM_rbuf_addr[0]};
                 end
@@ -294,7 +299,7 @@ always @(*) begin
                     if(hit0)FSM_TagV_unvalid = 2'b01;
                     else if(hit1)FSM_TagV_unvalid = 2'b10;
                 end    
-            end
+            // end
         end
         // Flush:begin
         //     dcache_pipeline_ready=1;
@@ -303,7 +308,7 @@ always @(*) begin
         Hit_w:begin
             dcache_mem_wr=1;
             dcache_mem_req=1;
-            if(next_state == Lookup || next_state == Idle || next_state == Operation)begin
+            if(mem_dcache_addrOK)begin
                 dcache_pipeline_ready = 1;
                 FSM_rbuf_we = 1;
             end
@@ -339,11 +344,12 @@ always @(*) begin
         Miss_w:begin
             dcache_mem_wr=1;
             dcache_mem_req=1;
-            if(next_state == Lookup || next_state == Idle || next_state == Operation)begin
+            if(mem_dcache_addrOK)begin
                 dcache_pipeline_ready = 1;
                 FSM_rbuf_we = 1;
             end
         end
+        default:;
     endcase
 end
 endmodule

@@ -93,7 +93,7 @@ always @(posedge clk)begin
     else state<=next_state;
 end
 always @(*) begin
-    next_state = Idle; 
+    next_state = 0; 
     case (state)
         Idle:begin
             if(opflag)next_state = Operation;
@@ -175,6 +175,7 @@ always @(*) begin
                 else next_state = checkDirty;
             end
         end
+        default:next_state = Idle;
     endcase
 end
 reg [1:0]FSM_way_sel_d_reg;
@@ -400,9 +401,7 @@ always @(*) begin
             FSM_Dirtytable_way_select = FSM_way_sel_d_reg;
             FSM_Dirtytable_set1 = 1;
         end
-        default:begin
-            
-        end
+        default:;
     endcase
 end
 endmodule
