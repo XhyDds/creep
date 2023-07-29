@@ -95,7 +95,7 @@ always @(posedge clk)begin
     else state<=next_state;
 end
 always @(*) begin
-    next_state = Idle;
+    next_state = 0;
     case (state)
         Idle:begin
             if(fStall_outside)next_state = Idle;
@@ -146,6 +146,7 @@ always @(*) begin
                 else next_state = Lookup;
             end
         end
+        default:next_state = Idle;
     endcase
 end
 always @(*) begin
@@ -220,6 +221,7 @@ always @(*) begin
                 end
             end
         end
+        default:;
     endcase
 end
 endmodule
