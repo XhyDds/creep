@@ -216,15 +216,28 @@ module ex_buffer#(
 
     //寄存，截断传播
     always @(posedge clk,negedge rstn) begin
-        update_en     <=update_en_;
-        out_taken_pdc <=out_taken_pdc_ ;
-        out_kind_pdc  <=out_kind_pdc_  ;
-        out_npc_pdc   <=out_npc_pdc_   ;
-        out_taken_ex  <=out_taken_ex_  ;
-        out_kind_ex   <=out_kind_ex_   ;
-        out_npc_ex    <=out_npc_ex_    ;
-        out_pc_ex     <=out_pc_ex_     ;
-        out_choice_pdc<=out_choice_pdc_;
+        if(!rstn)begin
+            update_en     <=0;
+            out_taken_pdc <=0;
+            out_kind_pdc  <=0;
+            out_npc_pdc   <=0;
+            out_taken_ex  <=0;
+            out_kind_ex   <=0;
+            out_npc_ex    <=0;
+            out_pc_ex     <=0;
+            out_choice_pdc<=0;
+        end
+        else begin
+            update_en     <=update_en_     ;
+            out_taken_pdc <=out_taken_pdc_ ;
+            out_kind_pdc  <=out_kind_pdc_  ;
+            out_npc_pdc   <=out_npc_pdc_   ;
+            out_taken_ex  <=out_taken_ex_  ;
+            out_kind_ex   <=out_kind_ex_   ;
+            out_npc_ex    <=out_npc_ex_    ;
+            out_pc_ex     <=out_pc_ex_     ;
+            out_choice_pdc<=out_choice_pdc_;
+        end
     end
     
 endmodule
