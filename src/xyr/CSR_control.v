@@ -478,12 +478,12 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             end
                         LOAD:
                             begin
-                            if(~excp_arg1[15])
+                            //if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=1;
                             end
                         STORE:
                             begin
-                            if(~excp_arg1[15])
+                            //if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=0;
                             end 
                         CSRWR,CSRXCHG:
