@@ -31,7 +31,7 @@ module fetch_buffer_v2 (
     assign ir1=buffer[pointer];
     assign pc0=bufferpc[pointer==15?pointer:pointer+1];
     assign pc1=bufferpc[pointer];
-    assign stall_fetch_buffer=(npointer<=3);
+    assign stall_fetch_buffer=(pointer<=1);
     assign valid0=pre_and_valid_and_plv[pointer==15?pointer:pointer+1][2];
     assign valid1=pre_and_valid_and_plv[pointer][2];
     assign plv0=pre_and_valid_and_plv[pointer==15?pointer:pointer+1][1:0];
@@ -42,15 +42,14 @@ module fetch_buffer_v2 (
     assign excp_arg1=buffer_excp_arg[pointer];
     assign npc0=buffer_npc[pointer==15?pointer:pointer+1];
     assign npc1=buffer_npc[pointer];
-    wire [3:0]flag4p=icache_valid?(flag?4'b0010:4'b0001):4'b0000;
-    wire [3:0]flag4=icache_valid?(flag?4'b0001:4'b0000):4'b1111;
-    wire [3:0]flag4m=icache_valid?(flag?4'b0000:4'b1111):4'b1110;
+    wire [3:0]flag4p=(icache_valid&~stall_fetch_buffer)?(flag?4'b0010:4'b0001):4'b0000;
+    wire [3:0]flag4=(icache_valid&~stall_fetch_buffer)?(flag?4'b0001:4'b0000):4'b1111;
+    wire [3:0]flag4m=(icache_valid&~stall_fetch_buffer)?(flag?4'b0000:4'b1111):4'b1110;
     
     always @(posedge clk)begin:fetch_buffer
         integer i;
         if(!rstn|flush) 
             begin
-                pointer<=15;
                 for (i=0;i<16;i=i+1) begin
                         buffer[i]<=0;
                         bufferpc[i]<=0;
@@ -59,7 +58,7 @@ module fetch_buffer_v2 (
                         buffer_npc[i]<=0;
                 end
             end
-        else if(!stall)
+        else if(!(stall_fetch_buffer|stall))
             begin
                 if(icache_valid)
                     if (flag) 
@@ -213,8 +212,11 @@ module fetch_buffer_v2 (
                             buffer_excp_arg[14]<=excp_arg;
                             buffer_npc[14]<=npc;
                         end
-                pointer<=npointer;
             end
+    end
+    always @(posedge clk) begin
+        if(!rstn|flush) pointer<=15;
+        else if(!stall) pointer<=npointer;
     end
     always @(*) begin
         if(if1)
