@@ -1059,6 +1059,7 @@ module mycpu_top(
         .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
         .in_npc_ex_0(brresult_0),
         .in_pc_ex_0(pc_reg_exe0_0[31:2]),
+        .in_flush_pre_0(flush_pre0)
 
         .in_taken_pdc_1(pre_reg_exe0_1[33]),
         .in_kind_pdc_1(pre_reg_exe0_1[32:30]),
@@ -1068,6 +1069,7 @@ module mycpu_top(
         .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
         .in_npc_ex_1(brresult_1),
         .in_pc_ex_1(pc_reg_exe0_1[31:2]),
+        .in_flush_pre_1(flush_pre1),
 
         .out_taken_pdc (out_taken_pdc ),
         .out_kind_pdc  (out_kind_pdc  ),
