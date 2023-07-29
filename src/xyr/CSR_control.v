@@ -140,6 +140,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             csr_era_diff_0=ERA;
             csr_badv_diff_0=BADV;
             csr_eentry_diff_0={EENTRY,6'b0};
+            rand_index=0;
             begin
             csr_tlbidx_diff_0=0;
             csr_tlbidx_diff_0[TLB_n-1:0]=TLBIDX_Index;

@@ -172,7 +172,7 @@ module Memory_Maping_Unit#(
             end
         
         else 
-            excp_arg1<=0;    
+            excp_arg1=0;    
         
         end
     end
