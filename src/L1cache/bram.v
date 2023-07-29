@@ -48,7 +48,7 @@ module bram #(
     assign dout = dout_r;
 
     always @(posedge clk) begin
-        dout_r <= (waddr == raddr && we) din : ram[raddr];
+        dout_r <= (waddr == raddr && we) ? din : ram[raddr];
         if (we) ram[waddr] <= din;
     end
 
