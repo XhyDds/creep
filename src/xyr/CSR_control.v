@@ -233,28 +233,12 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     end
     always@(*)
     begin
-    flushout=1;
-    outpc=inpc+4;dout=0;
-    mask=~0;
     inpc=pipeline_CSR_inpc0;
     ecode=pipeline_CSR_excp_arg0[5:0];
     esubcode=pipeline_CSR_excp_arg0[14:6];
     mode=pipeline_CSR_subtype;
     evaddr=inpc;//TLB(F),ADEF,PIF,PPI
-    TI_cl=0;//TI_cl
-    inst_stop=0;nclk_stall=clk_stall;
-    TLBIDXout=0;TLBEHIout=0;
-    TLBELO0out=0;TLBELO1out=0;
-    TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
-    TLBIDXout[29:24]=TLBIDX_PS;
-    TLBIDXout[31]=TLBIDX_NE;
-    TLBEHIout[31:13]=TLBEHI;
-    TLBELO0out[6:0]=TLBELO0_VDPLVMATG;
-    TLBELO0out[TLB_PALEN-5:8]=TLBELO0_PPN;
-    TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
-    TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
-    
-    nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
+
     if(!inpc_valid)
         inpc=jumpc_reg;
     if(inte)
@@ -273,10 +257,33 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         end
     else if(ecode==ALE || (ecode==ADE && esubcode==ADEM))//ALE,ADEM
         evaddr=pipeline_CSR_evaddr0;
-   
+    end
+    
+    always@(*)
+    begin    
+    flushout=1;
+    outpc=inpc+4;
+    mask=~0;
+    inst_stop=0;
+    TI_cl=0;//TI_cl
+    nclk_stall=clk_stall;
+    
+    TLBIDXout=0;TLBEHIout=0;
+    TLBELO0out=0;TLBELO1out=0;
+    TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
+    TLBIDXout[29:24]=TLBIDX_PS;
+    TLBIDXout[31]=TLBIDX_NE;
+    TLBEHIout[31:13]=TLBEHI;
+    TLBELO0out[6:0]=TLBELO0_VDPLVMATG;
+    TLBELO0out[TLB_PALEN-5:8]=TLBELO0_PPN;
+    TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
+    TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
+    
+    nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
+    
     if((!stallin && !flushin && exe)||inte)
         begin
-        TI_cl=(csr_num=='h44 && dwcsr[0] && (mode==CSRWR || mode==CSRXCHG)); 
+        //TI_cl=(csr_num=='h44 && dwcsr[0] && (mode==CSRWR || mode==CSRXCHG)); 
         case(mode)
             ERTN:
                 begin
@@ -288,8 +295,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 begin
                 flushout=1;                        
                 mask=pipeline_CSR_mask;
-//                if(csr_num=='h44 && dwcsr[0])
-//                    TI_cl=1;
+                if(csr_num=='h44 && dwcsr[0])
+                    TI_cl=1;
                 end
             INTE:
                begin
@@ -309,11 +316,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             CSRWR:
                 begin
                 flushout=1; 
-//                 if(csr_num=='h44&&dwcsr[0])
-//                    TI_cl=1; 
+                 if(csr_num=='h44&&dwcsr[0])
+                    TI_cl=1; 
                 end 
             CSRRD:
-                   flushout=0;
+                flushout=0;
             IDLE:
                 nclk_stall=1;           
         endcase
@@ -322,7 +329,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         flushout=0;
         end
-
+    end
+    
+    always@(*)
+    begin
+    dout=0;
     case(csr_num)
         'h0:
             dout={23'b0,CRMD};
@@ -467,12 +478,12 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             end
                         LOAD:
                             begin
-                            if(~excp_arg1[15])
+                            //if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=1;
                             end
                         STORE:
                             begin
-                            if(~excp_arg1[15])
+                            //if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=0;
                             end 
                         CSRWR,CSRXCHG:
