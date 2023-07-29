@@ -23,6 +23,7 @@ module fetch_buffer_v2 (
     reg [15:0]buffer_excp_arg[0:15];
     reg [31:0]buffer_npc[0:15];
     reg [3:0]pointer;//0~15
+    reg [3:0]npointer;
     wire [31:0]ir[0:1];
     assign ir[0]=irin[31:0];
     assign ir[1]=irin[63:32];
@@ -30,7 +31,7 @@ module fetch_buffer_v2 (
     assign ir1=buffer[pointer];
     assign pc0=bufferpc[pointer==15?pointer:pointer+1];
     assign pc1=bufferpc[pointer];
-    assign stall_fetch_buffer=(pointer<=3);
+    assign stall_fetch_buffer=(npointer<=3);
     assign valid0=pre_and_valid_and_plv[pointer==15?pointer:pointer+1][2];
     assign valid1=pre_and_valid_and_plv[pointer][2];
     assign plv0=pre_and_valid_and_plv[pointer==15?pointer:pointer+1][1:0];
@@ -212,12 +213,15 @@ module fetch_buffer_v2 (
                             buffer_excp_arg[14]<=excp_arg;
                             buffer_npc[14]<=npc;
                         end
-                if(if1)
-                    if(if0) pointer<=(pointer==14|pointer==15)?(15-flag4p):(pointer-flag4m);//取两个
-                    else pointer<=(pointer==15)?(15-flag4p):(pointer-flag4);//取一个
-                else
-                    pointer<=pointer-flag4p;
-                //有下面走，上面不走的情况吗？
+                pointer<=npointer;
             end
+    end
+    always @(*) begin
+        if(if1)
+            if(if0) npointer=(pointer==14|pointer==15)?(15-flag4p):(pointer-flag4m);//取两个
+            else npointer=(pointer==15)?(15-flag4p):(pointer-flag4);//取一个
+        else
+            npointer=pointer-flag4p;
+        //有下面走，上面不走的情况吗？
     end
 endmodule
