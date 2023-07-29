@@ -1,7 +1,7 @@
-//`define predictor
-`define DMA
-module mycpu_top(
-//module core_top(
+`define predictor
+//`define DMA
+//module mycpu_top(
+module core_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -1059,7 +1059,7 @@ module mycpu_top(
         .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
         .in_npc_ex_0(brresult_0),
         .in_pc_ex_0(pc_reg_exe0_0[31:2]),
-        .in_flush_pre_0(flush_pre0)
+        .in_flush_pre_0(flush_pre0),
 
         .in_taken_pdc_1(pre_reg_exe0_1[33]),
         .in_kind_pdc_1(pre_reg_exe0_1[32:30]),
