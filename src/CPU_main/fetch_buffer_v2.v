@@ -30,7 +30,7 @@ module fetch_buffer_v2 (
     assign ir1=buffer[pointer];
     assign pc0=bufferpc[pointer==15?pointer:pointer+1];
     assign pc1=bufferpc[pointer];
-    assign stall_fetch_buffer=(pointer<=1);
+    assign stall_fetch_buffer=(pointer<=3);
     assign valid0=pre_and_valid_and_plv[pointer==15?pointer:pointer+1][2];
     assign valid1=pre_and_valid_and_plv[pointer][2];
     assign plv0=pre_and_valid_and_plv[pointer==15?pointer:pointer+1][1:0];
