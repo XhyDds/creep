@@ -1057,7 +1057,7 @@ module core_top(
         .in_choice_pdc_0(pre_reg_exe0_0[36:35]),
         .in_taken_ex_0(ifbr_0),
         .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
-        .in_npc_ex_0(pc_br0),
+        .in_npc_ex_0(pc_br0[31:2]),
         .in_pc_ex_0(pc_reg_exe0_0[31:2]),
         .in_flush_pre_0(flush_pre0),
 
@@ -1067,7 +1067,7 @@ module core_top(
         .in_choice_pdc_1(pre_reg_exe0_1[36:35]),
         .in_taken_ex_1(ifbr_1),
         .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
-        .in_npc_ex_1(pc_br1),
+        .in_npc_ex_1(pc_br1[31:2]),
         .in_pc_ex_1(pc_reg_exe0_1[31:2]),
         .in_flush_pre_1(flush_pre1),
 
