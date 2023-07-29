@@ -99,7 +99,7 @@ module ex_buffer#(
     reg [29:0] out_pc_ex_     ;
     reg [1:0]  out_choice_pdc_;
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             pointer<=0;
             empty<=1;

@@ -23,6 +23,7 @@ module fetch_buffer_v2 (
     reg [15:0]buffer_excp_arg[0:15];
     reg [31:0]buffer_npc[0:15];
     reg [3:0]pointer;//0~15
+    reg [3:0]npointer;
     wire [31:0]ir[0:1];
     assign ir[0]=irin[31:0];
     assign ir[1]=irin[63:32];
@@ -41,15 +42,14 @@ module fetch_buffer_v2 (
     assign excp_arg1=buffer_excp_arg[pointer];
     assign npc0=buffer_npc[pointer==15?pointer:pointer+1];
     assign npc1=buffer_npc[pointer];
-    wire [3:0]flag4p=icache_valid?(flag?4'b0010:4'b0001):4'b0000;
-    wire [3:0]flag4=icache_valid?(flag?4'b0001:4'b0000):4'b1111;
-    wire [3:0]flag4m=icache_valid?(flag?4'b0000:4'b1111):4'b1110;
+    wire [3:0]flag4p=(icache_valid&~stall_fetch_buffer)?(flag?4'b0010:4'b0001):4'b0000;
+    wire [3:0]flag4=(icache_valid&~stall_fetch_buffer)?(flag?4'b0001:4'b0000):4'b1111;
+    wire [3:0]flag4m=(icache_valid&~stall_fetch_buffer)?(flag?4'b0000:4'b1111):4'b1110;
     
-    always @(posedge clk,negedge rstn) begin:fetch_buffer
+    always @(posedge clk)begin:fetch_buffer
         integer i;
         if(!rstn|flush) 
             begin
-                pointer<=15;
                 for (i=0;i<16;i=i+1) begin
                         buffer[i]<=0;
                         bufferpc[i]<=0;
@@ -58,7 +58,7 @@ module fetch_buffer_v2 (
                         buffer_npc[i]<=0;
                 end
             end
-        else if(!stall)
+        else if(!(stall_fetch_buffer|stall))
             begin
                 if(icache_valid)
                     if (flag) 
@@ -212,12 +212,18 @@ module fetch_buffer_v2 (
                             buffer_excp_arg[14]<=excp_arg;
                             buffer_npc[14]<=npc;
                         end
-                if(if1)
-                    if(if0) pointer<=(pointer==14|pointer==15)?(15-flag4p):(pointer-flag4m);//取两个
-                    else pointer<=(pointer==15)?(15-flag4p):(pointer-flag4);//取一个
-                else
-                    pointer<=pointer-flag4p;
-                //有下面走，上面不走的情况吗？
             end
+    end
+    always @(posedge clk) begin
+        if(!rstn|flush) pointer<=15;
+        else if(!stall) pointer<=npointer;
+    end
+    always @(*) begin
+        if(if1)
+            if(if0) npointer=(pointer==14|pointer==15)?(15-flag4p):(pointer-flag4m);//取两个
+            else npointer=(pointer==15)?(15-flag4p):(pointer-flag4);//取一个
+        else
+            npointer=pointer-flag4p;
+        //有下面走，上面不走的情况吗？
     end
 endmodule

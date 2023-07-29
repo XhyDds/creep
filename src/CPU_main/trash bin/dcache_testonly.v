@@ -4,7 +4,7 @@ module dcache_testonly (
     output reg [31:0]data_reg
 );
     wire [31:0]data;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) data_reg<=0;
         else data_reg<=data;
     end

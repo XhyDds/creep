@@ -1,7 +1,7 @@
-`define predictor
-// `define DMA
-// module mycpu_top(
-module core_top(
+//`define predictor
+`define DMA
+module mycpu_top(
+//module core_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -61,12 +61,14 @@ module core_top(
     output   [ 4:0] debug0_wb_rf_wnum,
     output   [31:0] debug0_wb_rf_wdata,
     output   [31:0] debug0_wb_inst,
+    output          debug0_stall_exe1_wb,
          
     output   [31:0] debug1_wb_pc,
     output   [ 3:0] debug1_wb_rf_wen,
     output   [ 4:0] debug1_wb_rf_wnum,
     output   [31:0] debug1_wb_rf_wdata,
-    output   [31:0] debug1_wb_inst
+    output   [31:0] debug1_wb_inst,
+    output          debug1_stall_exe1_wb
 );
     wire clk=aclk;
     wire rstn=aresetn;
@@ -899,7 +901,8 @@ module core_top(
         .pipeline_MMU_stall0            ( stall_if0_if1                 ),
         .pipeline_MMU_flush0            ( flush_if0_if1                 ),
         .pipeline_MMU_stall1            ( stall_exe0_exe1_1              ),
-        .pipeline_MMU_flush1            ( flush_exe0_exe1_1              ),
+        //.pipeline_MMU_flush1            ( flush_exe0_exe1_1              ),
+        .pipeline_MMU_flush1            ( excp_flush                    ),
         .pipeline_MMU_stallw            ( 0                             ),
         .pipeline_MMU_flushw            ( 0                             ),
         .pipeline_MMU_type              ( ctr_reg_exe0_1_excp[3:0]       ),
@@ -1000,7 +1003,7 @@ module core_top(
     assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
     assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
 
-    wire [29:0]npc_test;//给ccr用的测试线，需要左移两位使用，0,4交替
+    wire [29:0]npc_test;//给ccr用的测试线，�??要左移两位使用，0,4交替
 
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
@@ -1097,12 +1100,12 @@ module core_top(
         `endif
     end
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn) pc<=32'h1c000000;
         else if(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) pc<=npc;
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_if0_if1) begin
             pc_if0_if1<=0;
             PLV_if0_if1<=0;
@@ -1121,7 +1124,7 @@ module core_top(
     //IF1-FIFO
     //flush套壳
     reg fflush_if0_if1;
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn) begin
             fflush_if0_if1 <= 0;
         end
@@ -1132,7 +1135,7 @@ module core_top(
     wire ifflush_if1_fifo;
     assign ifflush_if1_fifo=flush_if0_if1|fflush_if0_if1;
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_if1_fifo|ifflush_if1_fifo) begin
             pc_if1_fifo<=0;
             ir_if1_fifo<=0;
@@ -1160,7 +1163,7 @@ module core_top(
     //即fetch_buffer
 
     //ID-REG
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_id_reg0) begin
             ctr_id_reg_0 <= 0;
             imm_id_reg_0<=0;
@@ -1188,7 +1191,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_id_reg1) begin
             ctr_id_reg_1 <= 0;
             excp_arg_id_reg_1<=0;
@@ -1219,7 +1222,7 @@ module core_top(
     end
 
     //REG-EXE0
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_reg_exe0_0) begin
             ctr_reg_exe0_0          <= 0;
             imm_reg_exe0_0          <=0;
@@ -1254,7 +1257,7 @@ module core_top(
     end
     
     reg [31:0]  ctr_reg_exe0_1_;
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_reg_exe0_1) begin
             ctr_reg_exe0_1_<= 0;
             excp_arg_reg_exe0_1<=0;
@@ -1297,13 +1300,13 @@ module core_top(
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�?测访存地�?是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?
+    always @(*) begin//�???测访存地�???是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�???
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
         if(ctr_reg_exe0_1[22]&(|PLV)) begin 
             ctr_reg_exe0_1_excp=liwai;
             excp_arg_reg_exe0_1_excp=excp_argIPE; 
-        end//用户态访问越�?
+        end//用户态访问越�???
         else if(ctr_reg_exe0_1[3:0]==5&ctr_reg_exe0_1[11:7]!=8)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1328,7 +1331,7 @@ module core_top(
             endcase
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_exe0_exe1_0) begin
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
@@ -1350,7 +1353,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_exe0_exe1_1) begin
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
@@ -1406,7 +1409,7 @@ module core_top(
         endcase
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_exe1_wb_0) begin
             ctr_exe1_wb_0 <= 0;
             rd_exe1_wb_0<=0;
@@ -1430,7 +1433,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn|flush_exe1_wb_1) begin
             ctr_exe1_wb_1 <= 0;
             rd_exe1_wb_1<=0;
@@ -1503,7 +1506,7 @@ module core_top(
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
         .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
-        .SUC_pipeline_icache            ( MMU_pipeline_memtype0[0] | dma),
+        .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0] | dma),
         .pc_icache_pipeline             ( pc_icache_pipeline    ),
 
         //  Dcache
@@ -1521,7 +1524,7 @@ module core_top(
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
         .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
-        .SUC_pipeline_dcache            ( MMU_pipeline_memtype1[0] | dma),
+        .SUC_pipeline_dcache            ( ~MMU_pipeline_memtype1[0] | dma),
 
         //  L2-pipeline
         .addr_pipeline_l2cache          ( addr_pipeline_dcache          ),
@@ -1614,13 +1617,15 @@ module core_top(
     assign debug1_wb_rf_wdata=ctr_exe1_wb_1[5]?din_pipeline_dcache_exe1_wb:wb_data1;
     assign debug0_wb_inst=ir_exe1_wb_0;
     assign debug1_wb_inst=ir_exe1_wb_1;
+    assign debug0_stall_exe1_wb=stall_exe1_wb_0;
+    assign debug1_stall_exe1_wb=stall_exe1_wb_1;
     wire ws_valid0,ws_valid1;
     assign ws_valid0=stall_exe1_wb_0?0:ir_valid_exe1_wb_0;
     assign ws_valid1=stall_exe1_wb_1?0:(ir_valid_exe1_wb_1&~excp_flush);
     assign ws_valid=ws_valid0|ws_valid1;
 
     reg [31:0]pccount;
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn) begin
             pccount <= 0;
         end
@@ -1735,7 +1740,7 @@ module core_top(
 
     reg     stall_exe1_wb_1_reg;
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn) begin
             csr_crmd_diff_0_reg         <=  0;
             csr_prmd_diff_0_reg         <=  0;
@@ -1793,12 +1798,12 @@ module core_top(
             csr_pgdh_diff_0_reg         <=  csr_pgdh_diff_0     ;
         end
     end
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn) csr_llbctl_diff_0_last <= 0;
         else if(stall_exe0_exe1_1);
         else csr_llbctl_diff_0_last <= csr_llbctl_diff_0;
     end
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn) stall_exe1_wb_1_reg <= 0;
         else stall_exe1_wb_1_reg <= stall_exe1_wb_1;
     end

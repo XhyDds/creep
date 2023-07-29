@@ -1,11 +1,12 @@
 // `define IDMA
 // `define DDMA
-// `define predictor
+`define predictor
 `define MMU
-`define ICache
-`define DCache
-// `define L2Cache
-// `define DMA  //选择L2Cache�? 再�?�DMA
+// `define ICache
+// `define DCache
+ `define L2Cache
+// `define DMA  //选择L2Cache�?? 再�?�DMA
+// module mycpu_top(
 module core_top(
     input           aclk,
     input           aresetn,
@@ -57,62 +58,57 @@ module core_top(
     //debug
     input           break_point,
     input           infor_flag,
-    input  [ 4:0]   reg_num,
+    input    [ 4:0] reg_num,
     output          ws_valid,
-    output [31:0]   rf_rdata,
-
-    output [31:0] debug0_wb_pc,
-    output [ 3:0] debug0_wb_rf_wen,
-    output [ 4:0] debug0_wb_rf_wnum,
-    output [31:0] debug0_wb_rf_wdata,
-    output [31:0] debug0_wb_inst,
-
-    output [31:0] debug1_wb_pc,
-    output [ 3:0] debug1_wb_rf_wen,
-    output [ 4:0] debug1_wb_rf_wnum,
-    output [31:0] debug1_wb_rf_wdata,
-    output [31:0] debug1_wb_inst
+    output   [31:0] rf_rdata,
+     
+    output   [31:0] debug0_wb_pc,
+    output   [ 3:0] debug0_wb_rf_wen,
+    output   [ 4:0] debug0_wb_rf_wnum,
+    output   [31:0] debug0_wb_rf_wdata,
+    output   [31:0] debug0_wb_inst,
+         
+    output   [31:0] debug1_wb_pc,
+    output   [ 3:0] debug1_wb_rf_wen,
+    output   [ 4:0] debug1_wb_rf_wnum,
+    output   [31:0] debug1_wb_rf_wdata,
+    output   [31:0] debug1_wb_inst
 );
     wire clk=aclk;
     wire rstn=aresetn;
     parameter offset_width = 2;
 
     reg [31:0]pc,npc,
-    ctr_id_reg_0,ctr_id_reg_1,ctr_reg_exe0_1_excp,
-    ctr_reg_exe0_0,ctr_reg_exe0_1,
-    ctr_exe0_exe1_0,ctr_exe0_exe1_1,
-    ctr_exe1_wb_0,ctr_exe1_wb_1,
-    pc_id_reg_0,pc_id_reg_1,
-    pc_if1_fifo,
-    pc_if0_if1,
-    pc_reg_exe0_0,pc_reg_exe0_1,
-    pc_exe0_exe1_0,pc_exe0_exe1_1,
-    pc_exe1_wb_0,pc_exe1_wb_1,
-    result_exe0_exe1_0,result_exe0_exe1_1,
-    result_exe1_wb_0,result_exe1_wb_1,
-    rrk_reg_exe0_0,rrj_reg_exe0_0,
-    rrk_reg_exe0_1,rrj_reg_exe0_1,
-    rrd_reg_exe0_0,rrd_reg_exe0_1,
-    imm_reg_exe0_0,imm_reg_exe0_1,
-    imm_id_reg_0,imm_id_reg_1,
-    ir_id_reg_0,ir_id_reg_1,
-    ir_reg_exe0_0,ir_reg_exe0_1,
-    ir_exe0_exe1_0,ir_exe0_exe1_1,
-    ir_exe1_wb_0,ir_exe1_wb_1,
-    addr_pipeline_dcache_reg,din_pipeline_dcache_reg,
-    vaddr_exe1_wb,paddr_exe1_wb;
+    ctr_id_reg_0,       ctr_id_reg_1,       
+    ctr_reg_exe0_0,     ctr_reg_exe0_1,     ctr_reg_exe0_1_excp,
+    ctr_exe0_exe1_0,    ctr_exe0_exe1_1,
+    ctr_exe1_wb_0,      ctr_exe1_wb_1,
+    pc_id_reg_0,        pc_id_reg_1,        pc_if1_fifo,        pc_if0_if1,
+    pc_reg_exe0_0,      pc_reg_exe0_1,      pc_exe0_exe1_0,     pc_exe0_exe1_1,
+    pc_exe1_wb_0,       pc_exe1_wb_1,
+    npc_if1_fifo,
+    npc_id_reg_0,       npc_id_reg_1,
+    npc_reg_exe0_0,     npc_reg_exe0_1,
+    result_exe0_exe1_0, result_exe0_exe1_1,
+    result_exe1_wb_0,   result_exe1_wb_1,
+    rrk_reg_exe0_0,     rrj_reg_exe0_0,
+    rrk_reg_exe0_1,     rrj_reg_exe0_1,
+    rrd_reg_exe0_0,     rrd_reg_exe0_1,
+    imm_reg_exe0_0,     imm_reg_exe0_1,
+    imm_id_reg_0,       imm_id_reg_1,
+    ir_id_reg_0,        ir_id_reg_1,
+    ir_reg_exe0_0,      ir_reg_exe0_1,
+    ir_exe0_exe1_0,     ir_exe0_exe1_1,
+    ir_exe1_wb_0,       ir_exe1_wb_1,
+    addr_pipeline_dcache_exe0_exe1,
+    din_pipeline_dcache_exe0_exe1,          din_pipeline_dcache_exe1_wb,
+    vaddr_exe1_wb,      paddr_exe1_wb;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo;
-
-    // reg excp_flush_exe1_wb,ertn_flush_exe1_wb;
-    
-    // reg kind_pdc_;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1;
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
-    reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,
-    // excp_arg_id_reg_0,
-    excp_arg_id_reg_1;
+    reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,excp_arg_id_reg_1;
     reg [15:0]MMU_pipeline_excp_arg0_if1_fifo;
 
     reg [63:0]ir_if1_fifo;
@@ -128,8 +124,9 @@ module core_top(
     rj_id_reg_0,rj_id_reg_1,
     rd_exe0_exe1_0,rd_exe0_exe1_1;
 
+    localparam TLB_n=5,TLB_PALEN=32;
+
     reg [TLB_n-1:0] rand_index_exe0_exe1,rand_index_exe1_wb;
-    // reg [5:0] ecode_exe1_wb;
 
     reg [63:0]countresult_exe1_wb_0,countresult_exe1_wb_1,countresult_exe0_exe1_0,countresult_exe0_exe1_1;
 
@@ -138,43 +135,45 @@ module core_top(
     wire [1:0]PLV;
     wire [31:0]pc_priv;
     wire [31:0]privresult;
-    wire ifpriv,stall_priv;
-    wire stall_priv_idle;
+    wire ifpriv,excp_flush;
+    wire ifidle;
+    wire [15:0]MMU_pipeline_excp_arg1;
 
-    wire ifbr0,ifbr1,ifibar0,ifibar1,ifcacop_ibar;
+    wire ifbr0,ifbr1,ifcacop_ibar;
+    wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
-    wire stall_dcache,stall_icache;//dcache_valid-ready?
-    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flush_pc;
+    wire stall_dcache,stall_icache;
+    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache;
-    // reg stall_exe1_wb_0_reg,stall_exe1_wb_1_reg;
 
-    assign flush_pc =           ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
-    assign flush_if0_if1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
-    assign flush_if1_fifo =     ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
-    assign flush_fifo_id =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
-    assign flush_id_reg0 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
-    assign flush_id_reg1 =      ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
-    assign flush_reg_exe0_0 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
-    assign flush_reg_exe0_1 =   ifpriv|ifibar1|ifibar0|ifbr1|ifbr0|ifcacop_ibar;
-    assign flush_exe0_exe1_0 =  ifpriv|ifibar1|ifbr1|ifcacop_ibar;
-    assign flush_exe0_exe1_1 =  0;
-    assign flush_exe1_wb_0 =    0;
-    assign flush_exe1_wb_1 =    0;
+    assign flushup=flush_pre1&ctr_reg_exe0_0[31];
+    assign flushdown=flush_pre1&ctr_id_reg_1[31];
+    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_reg_exe0_1 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdown;
+    assign flush_exe0_exe1_0 =  ifpriv|ifbr1|ifcacop_ibar|ifmmu_excp|ifidle|flushup;
+    assign flush_exe0_exe1_1 =  ifmmu_excp|excp_flush;
+    assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush;
+    assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush;
 
-    assign stall_pc =           break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache|stall_icache;
-    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;//暂时不死�?
-    assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_fifo_id =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_id_reg0 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_id_reg1 =      break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_reg_exe0_0 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_reg_exe0_1 =   break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_exe0_exe1_0 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_exe0_exe1_1 =  break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_to_dcache =    break_point|stall_priv|stall_div0|stall_div1;//暂时不死�?
-    assign stall_exe1_wb_0 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
-    assign stall_exe1_wb_1 =    break_point|stall_priv|stall_div0|stall_div1|stall_dcache;
+    assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
+    assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
+    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;
+    assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache;
+    assign stall_fifo_id =      break_point|stall_div1|stall_dcache;
+    assign stall_id_reg0 =      break_point|stall_div1|stall_dcache;
+    assign stall_id_reg1 =      break_point|stall_div1|stall_dcache;
+    assign stall_reg_exe0_0 =   break_point|stall_div1|stall_dcache;
+    assign stall_reg_exe0_1 =   break_point|stall_div1|stall_dcache;
+    assign stall_exe0_exe1_0 =  break_point|stall_div1|stall_dcache;
+    assign stall_exe0_exe1_1 =  break_point|stall_div1|stall_dcache;
+    assign stall_to_dcache =    break_point|stall_div1;
+    assign stall_exe1_wb_0 =    break_point|stall_div1|stall_dcache;
+    assign stall_exe1_wb_1 =    break_point|stall_div1|stall_dcache;
 
     //ICache Return Buffer
     wire        mem_icache_addrOK;
@@ -185,6 +184,18 @@ module core_top(
     wire    [31:0] i_rdata;
     wire    i_rlast;
 
+    //ICache
+    wire [63:0]	dout_icache_pipeline;
+    wire 	    flag_icache_pipeline;
+    wire        icache_pipeline_ready;
+
+    wire [31:0]	addr_icache_mem;
+    wire [1:0]	icache_mem_size;
+
+    wire [31:0]	MMU_pipeline_PADDR0;
+    wire [31:0] pc_icache_pipeline;
+
+    `ifdef ICache
     ReturnBuffer#(
         .offset_width       (offset_width)
     )
@@ -198,40 +209,6 @@ module core_top(
         .rdata              (i_rdata),
         .rlast              (i_rlast)
     );
-
-    //ICache
-
-    // reg valid_rstn;
-    // always @(posedge clk )begin
-    //     if(!rstn) begin
-    //         valid_rstn <= 0;
-    //     end
-    //     else begin
-    //         valid_rstn <= 1;
-    //     end
-    // end
-
-    // reg rstn_reg;
-    // always @(posedge clk )begin
-    //     if(!rstn) begin
-    //         rstn_reg <= 0;
-    //     end
-    //     else begin
-    //         rstn_reg <= 1;
-    //     end
-    // end
-
-    wire [63:0]	dout_icache_pipeline;
-    wire 	    flag_icache_pipeline;
-    wire        icache_pipeline_ready;
-
-    wire [31:0]	addr_icache_mem;
-    wire [1:0]	icache_mem_size;
-
-    wire [31:0]	MMU_pipeline_PADDR0;
-    wire [31:0] pc_icache_pipeline;
-
-    `ifdef ICache
     Icache #(
         .index_width  		( 4 		),
         .offset_width 		( 2 		),
@@ -241,18 +218,18 @@ module core_top(
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
 
-        // .ifibar(ifibar0|ifibar1),
         .addr_pipeline_icache   		( (|pc[1:0])?0:pc),
         .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
-        .pc_icache_pipeline   		    ( pc_icache_pipeline   		),
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
         .pipeline_icache_valid  		( 1  		),
         .icache_pipeline_ready  		( icache_pipeline_ready  		),//
-        .pipeline_icache_opcode 		( 0 		),
-        .pipeline_icache_opflag 		( 0 		),
+        .pipeline_icache_opcode 		( pipeline_cache_opcode         ),
+        .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
         .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
+        .SUC_pipeline_icache            ( MMU_pipeline_memtype0 ),
+        .pc_icache_pipeline             ( pc_icache_pipeline    ),
 
         .addr_icache_mem        		( addr_icache_mem        		),
         .din_mem_icache         		( din_mem_icache         		),
@@ -271,12 +248,14 @@ module core_top(
     wire 	if1;
     wire    ir_valid0;
     wire    ir_valid1;
-    wire    [1:0]PLV0;
-    wire    [1:0]PLV1;
-    wire    [63:0]pre0;
-    wire    [63:0]pre1;
-    wire    [15:0]excp_arg0_mmu;
-    wire    [15:0]excp_arg1_mmu;
+    wire    [1:0]   PLV0;
+    wire    [1:0]   PLV1;
+    wire    [63:0]  pre0;
+    wire    [63:0]  pre1;
+    wire    [15:0]  excp_arg0_mmu;
+    wire    [15:0]  excp_arg1_mmu;
+    wire    [31:0]  npc0;
+    wire    [31:0]  npc1;
     
     fetch_buffer_v2 u_fetch_buffer(
         //ports
@@ -300,12 +279,15 @@ module core_top(
         .plv            ( PLV_if1_fifo  ),
         .plv0           ( PLV0          ),
         .plv1           ( PLV1          ),
+        .pre            ( pre_if1_fifo  ),
         .pre0           ( pre0          ),
         .pre1           ( pre1          ),
-        .pre            ( pre_if1_fifo  ),
         .excp_arg       ( MMU_pipeline_excp_arg0_if1_fifo),
         .excp_arg0      ( excp_arg0_mmu ),
-        .excp_arg1      ( excp_arg1_mmu )
+        .excp_arg1      ( excp_arg1_mmu ),
+        .npc            ( npc_if1_fifo  ),
+        .npc0           ( npc0          ),
+        .npc1           ( npc1          )
     );
 
     wire [31:0]	control0;
@@ -370,19 +352,21 @@ module core_top(
     wire [31:0] ir11;
     wire ir_valid00;
     wire ir_valid11;
-    wire    [63:0]pre00;
-    wire    [63:0]pre11;
+    wire [63:0]pre00;
+    wire [63:0]pre11;
+    wire [31:0]npc00;
+    wire [31:0]npc11;
 
     dispatcher u_dispatcher(
         //ports
-        .clk     		    ( clk     		),
-        .rstn    		    ( rstn    		),
-        .flush(flush_fifo_id),
-        .stall(stall_fifo_id),
-        .pc0(pc0),
-        .pc1(pc1),
-        .ir0(ir0),
-        .ir1(ir1),
+        .clk     		    ( clk     		    ),
+        .rstn    		    ( rstn    		    ),
+        .flush              ( flush_fifo_id     ),
+        .stall              ( stall_fifo_id     ),
+        .pc0                ( pc0               ),
+        .pc1                ( pc1               ),
+        .ir0                ( ir0               ),
+        .ir1                ( ir1               ),
         .imm0       		( imm0       		),
         .imm1       		( imm1       		),
         .control0   		( control0   		),
@@ -403,10 +387,10 @@ module core_top(
         .rd11       		( rd11       		),
         .imm00      		( imm00      		),
         .imm11      		( imm11      		),
-        .pc00(pc00),
-        .pc11(pc11),
-        .ir00(ir00),
-        .ir11(ir11),
+        .pc00               ( pc00              ),
+        .pc11               ( pc11              ),
+        .ir00               ( ir00              ),
+        .ir11               ( ir11              ),
         .control00  		( control00  		),
         .control11  		( control11  		),
         .excp_arg00 		( excp_arg00 		),
@@ -417,10 +401,14 @@ module core_top(
         .valid1     		( ir_valid1	        ),
         .valid00     		( ir_valid00	    ),
         .valid11     		( ir_valid11	    ),
-        .pre0(pre0),
-        .pre1(pre1),
-        .pre00(pre00),
-        .pre11(pre11)
+        .pre0               ( pre0              ),
+        .pre1               ( pre1              ),
+        .pre00              ( pre00             ),
+        .pre11              ( pre11             ),
+        .npc0               ( npc0              ),
+        .npc1               ( npc1              ),
+        .npc00              ( npc00             ),
+        .npc11              ( npc11             )
     );
 
     wire [31:0]	rrk0_rf;
@@ -462,9 +450,8 @@ module core_top(
         .rrd1     		( rrd1_rf     		),
         .rf_rdata       ( rf_rdata     		),
         .reg_num        ( reg_num     		),
-        .infor_flag     ( infor_flag     		)
-        `ifdef DIFFTEST_EN
-        ,.reg0          (regs[0]    ),
+        .infor_flag     ( infor_flag     		),
+        .reg0          (regs[0]    ),
         .reg1           (regs[1]    ),
         .reg2           (regs[2]    ),
         .reg3           (regs[3]    ),
@@ -496,7 +483,6 @@ module core_top(
         .reg29          (regs[29]   ),
         .reg30          (regs[30]   ),
         .reg31          (regs[31]   )
-        `endif
     );
 
     wire [31:0]	rrj0_forward;
@@ -699,48 +685,50 @@ module core_top(
         .divider_pipeline_dout    		( divresult1    		)
     );
 
-    ibar u_ibar0(
-        //ports
-        .ctr        	( ctr_reg_exe0_0        		),
-        .ifibar 		( ifibar0 		)
-    );
+    // ibar u_ibar0(
+    //     //ports
+    //     .ctr        	( ctr_reg_exe0_0        		),
+    //     .ifibar 		( ifibar0 		)
+    // );
 
-    ibar u_ibar1(
-        //ports
-        .ctr        	( ctr_reg_exe0_1_excp        		),
-        .ifibar 		( ifibar1 		)
-    );
+    // ibar u_ibar1(
+    //     //ports
+    //     .ctr        	( ctr_reg_exe0_1_excp        		),
+    //     .ifibar 		( ifibar1 		)
+    // );
 
     wire [31:0]	pc_br0;
-    wire [31:0] npc_br0;
-    assign npc_br0 = pc_id_reg_1;
+    wire flush_pre0;
 
     br u_br0(
         //ports
-        .ctr      		( ctr_reg_exe0_0      		),
-        .pc       		( pc_reg_exe0_0       		),
-        .npc            ( npc_br0                   ),
-        .imm      		( imm_reg_exe0_0      		),
+        .ctr      		( ctr_reg_exe0_0    ),
+        .pc       		( pc_reg_exe0_0     ),
+        .npc            ( npc_reg_exe0_0    ),
+        .imm      		( imm_reg_exe0_0    ),
         .zero     		( zero0     		),
-        .ifbr     		( ifbr0    		),
-        .brresult 		( pc_br0 	),
-        .rrj            ( rrj0_forward  )
+        .ifbr     		( ifbr0    		    ),
+        .brresult 		( pc_br0 	        ),
+        .rrj            ( rrj0_forward      ),
+        .pre            ( pre_reg_exe0_0    ),
+        .flush_pre      ( flush_pre0        )
     );
 
     wire [31:0]	pc_br1;
-    wire [31:0] npc_br1;
-    assign npc_br1 = ctr_reg_exe0_0[31]?pc_reg_exe0_0:pc_id_reg_1;
+    wire flush_pre1;
 
     br u_br1(
         //ports
-        .ctr      		( ctr_reg_exe0_1_excp      		),
-        .pc       		( pc_reg_exe0_1       		),
-        .npc            ( npc_br1                   ),
-        .imm      		( imm_reg_exe0_1      		),
-        .zero     		( zero1     		),
-        .ifbr     		( ifbr1    		),
-        .brresult 		( pc_br1		),
-        .rrj            ( rrj1_forward  )
+        .ctr      		( ctr_reg_exe0_1_excp),
+        .pc       		( pc_reg_exe0_1      ),
+        .npc            ( npc_reg_exe0_1     ),
+        .imm      		( imm_reg_exe0_1     ),
+        .zero     		( zero1     		 ),
+        .ifbr     		( ifbr1    		     ),
+        .brresult 		( pc_br1		     ),
+        .rrj            ( rrj1_forward       ),
+        .pre            ( pre_reg_exe0_1     ),
+        .flush_pre      ( flush_pre1         )
     );
 
     wire [31:0]	addr_pipeline_dcache;
@@ -752,6 +740,7 @@ module core_top(
     wire    pipeline_l2cache_opflag;
     wire    pipeline_dcache_opflag;
     wire    pipeline_icache_opflag;
+    wire    pipeline_MMU_valid;
 
     cache_ctr u_cache_ctr(
         //ports
@@ -764,6 +753,7 @@ module core_top(
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
         .pipeline_dcache_valid  		( pipeline_dcache_valid  		),
+        .pipeline_MMU_valid             ( pipeline_MMU_valid            ),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_cache_opcode 		    ( pipeline_cache_opcode 		),
         .ifcacop_ibar                   ( ifcacop_ibar                  ),
@@ -771,7 +761,6 @@ module core_top(
         .pipeline_dcache_opflag         ( pipeline_dcache_opflag        ),
         .pipeline_icache_opflag         ( pipeline_icache_opflag        )
     );
-    localparam TLB_n=5,TLB_PALEN=32;
 
     wire [8:0]	CRMD;
     wire [9:0]  ASID;
@@ -804,7 +793,7 @@ module core_top(
     wire 	[31:0]  csr_dmw1_diff_0     ;
     wire 	[31:0]  csr_pgdl_diff_0     ;
     wire 	[31:0]  csr_pgdh_diff_0     ;
-    wire            excp_flush          ;
+    
     wire            ertn_flush          ;
     wire    [5:0]   csr_ecode           ;
 
@@ -829,9 +818,11 @@ module core_top(
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
-        .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
-        .CSR_pipeline_clk_stall     	( stall_priv     		        ),
+        // .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
+        .pipeline_CSR_flush             ( 0                             ),
+        // .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
+        .pipeline_CSR_stall     		( 0                      		),
+        .CSR_pipeline_clk_stall     	( ifidle               ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
         .CSR_pipeline_outpc     		( pc_priv     		            ),
         .pipeline_CSR_type      		( ctr_reg_exe0_1_excp[3:0]     	),
@@ -849,10 +840,9 @@ module core_top(
 
         .pipeline_CSR_inpc1     		( pc_exe0_exe1_1     		    ),
         .pipeline_CSR_excp_arg1 		( MMU_pipeline_excp_arg1        ),
-        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_reg		),
+        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_exe0_exe1		),
 
         .pipeline_CSR_ESTAT     		( 0     		     ),
-        // .CSR_pipeline_clk_stall 		( stall_priv_idle 		        ),
         .CSR_pipeline_CRMD      		( CRMD      		 ),
         .CSR_pipeline_LLBit     		( LLbit     		 ),
         .CSR_pipeline_ASID      		( ASID      		 ),
@@ -907,7 +897,6 @@ module core_top(
     wire [1:0]	MMU_pipeline_memtype0;
 
     wire [31:0]	MMU_pipeline_PADDR1;
-    wire [15:0]	MMU_pipeline_excp_arg1;
     wire [1:0]	MMU_pipeline_memtype1;
 
     Memory_Maping_Unit #(
@@ -918,8 +907,8 @@ module core_top(
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .pipeline_MMU_stall0            ( stall_pc                      ),
-        .pipeline_MMU_flush0            ( flush_pc                      ),
+        .pipeline_MMU_stall0            ( stall_if0_if1                 ),
+        .pipeline_MMU_flush0            ( flush_if0_if1                 ),
         .pipeline_MMU_stall1            ( stall_exe0_exe1_1              ),
         .pipeline_MMU_flush1            ( flush_exe0_exe1_1              ),
         .pipeline_MMU_stallw            ( 0                             ),
@@ -952,7 +941,7 @@ module core_top(
         .MMU_pipeline_memtype0  		( MMU_pipeline_memtype0         ),
 
         .pipeline_MMU_optype1   		( type_pipeline_dcache?2:1 		),
-        .pipeline_MMU_VADDR_valid1      (pipeline_dcache_valid      ),
+        .pipeline_MMU_VADDR_valid1      ( pipeline_MMU_valid            ),
         .pipeline_MMU_VADDR1    		( addr_pipeline_dcache 		    ),
         .MMU_pipeline_PADDR1    		( MMU_pipeline_PADDR1 		    ),
         .MMU_pipeline_excp_arg1 		( MMU_pipeline_excp_arg1 		),
@@ -973,39 +962,6 @@ module core_top(
     wire mem_dcache_dataOK;
     wire    d_bvalid;
 
-    `ifdef DDMA
-    Dcache_DMA #(
-        .index_width  		( 4 		),
-        .offset_width 		( 2 		),
-        .way          		( 2 		))
-    u_Dcache(
-        //ports
-        .clk                    		( clk                    		),
-        .rstn                   		( rstn                   		),
-
-        .addr_pipeline_dcache   		( addr_pipeline_dcache           ),
-        .din_pipeline_dcache    		( din_pipeline_dcache    		),
-        .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
-        .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_valid  		( pipeline_dcache_valid  		),
-        .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
-        .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
-        .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
-        .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
-        .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
-        .dcache_pipeline_stall  		( stall_dcache  		        ),
-
-        .addr_dcache_mem        		( addr_dcache_mem        		),
-        .dout_dcache_mem        		( dout_dcache_mem        		),
-        .din_mem_dcache         		( din_mem_dcache         		),
-        .dcache_mem_req         		( dcache_mem_req         		),
-        .dcache_mem_wr          		( dcache_mem_wr          		),
-        .dcache_mem_size        		( dcache_mem_size        		),
-        .dcache_mem_wstrb       		( dcache_mem_wstrb       		),
-        .mem_dcache_addrOK      		( mem_dcache_addrOK      		),
-        .mem_dcache_dataOK      		( mem_dcache_dataOK      		)
-    );
-    `endif
     `ifdef DCache
     Dcache#(
         .index_width  		( 4 		),
@@ -1017,7 +973,7 @@ module core_top(
         .rstn                   		( rstn                   		),
 
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
-        .paddr_pipeline_dcache   		( MMU_pipeline_VADDR1   		),
+        .paddr_pipeline_dcache   		( MMU_pipeline_PADDR1   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
@@ -1029,6 +985,7 @@ module core_top(
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
         .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
+        .SUC_pipeline_dcache            ( MMU_pipeline_memtype1 ),
 
         .addr_dcache_mem        		( addr_dcache_mem        		),
         .dout_dcache_mem        		( dout_dcache_mem        		),
@@ -1047,6 +1004,7 @@ module core_top(
     wire 	d_wready;
     wire    d_rlast;
     wire    [31:0] d_rdata;
+
     `ifdef DDMA
     assign  mem_dcache_dataOK = d_rready;
     `endif
@@ -1070,10 +1028,11 @@ module core_top(
     dcache_extend u_dcache_extend(
         //ports
         .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
-        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_reg       ),
+        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_exe0_exe1       ),
         .dout_dcache_pipeline        		( dout_dcache_pipeline ),
         .dout_dcache_pipeline_extend 		( dcacheresult 		   ),
-        .din_pipeline_dcache                ( din_pipeline_dcache_reg )
+        .din_pipeline_dcache                ( din_pipeline_dcache_exe0_exe1 ),
+        .llbit                              ( LLbit_exe0_exe1      )
     );
 
     writeback u_writeback(
@@ -1203,9 +1162,9 @@ module core_top(
     assign choice_real={choice_real_btb_ras,choice_real_g_h};
     assign choice_real_btb_ras=mis_pdc[2]?~choice_pdc_ex[1]:choice_pdc_ex[1];
     assign choice_real_g_h=mis_pdc[0]?~choice_pdc_ex[1]:choice_pdc_ex[1];
+    wire [28:0]npc_test;
 
-    wire [29:0]npc_test;
-
+    `ifdef predictor
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
@@ -1219,7 +1178,7 @@ module core_top(
 
         .pc_ex       		( pc_ex             ),
         .mis_pdc     		( mis_pdc     		),
-        .npc_ex      		( npc      		    ),
+        .npc_ex      		( npc[31:3]		    ),
         .kind_ex     		( kind_ex     		),
         .taken_real  		( taken_real  		),
         .choice_real 		( choice_real 		),
@@ -1232,19 +1191,20 @@ module core_top(
         .pc          		( pc[31:3]          ),
         .npc_test           ( npc_test          )
     );
+    `endif
 
     //PC
-    wire ifflush_if1_fifo;
     wire [31:0]npc_pdc_32={npc_pdc,3'b0};
-    assign ifflush_if1_fifo=stall_icache|flush_if0_if1|fflush_if0_if1;
+    reg ifnpc_pdc;
     always @(*) begin
+        ifnpc_pdc=0;
         if(ifpriv) npc=pc_priv;
         else if(ifbr1) npc=pc_br1;
-        else if(ifcacop_ibar) npc=pc_reg_exe0_1;
+        else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
         else if(ifbr0) npc=pc_br0;
         else if(pc[2]) npc=pc+4;
         `ifdef predictor
-        else npc=npc_pdc_32;
+        else begin npc=npc_pdc_32;ifnpc_pdc=1; end
         `endif
         `ifndef predictor
         else npc=pc+8;//Icache ONLY
@@ -1253,25 +1213,27 @@ module core_top(
 
     always @(posedge clk)begin
         if(!rstn) pc<=32'h1c000000;
-        else if(!stall_pc|ifbr0|ifbr1|ifpriv) pc<=npc;
+        else if(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) pc<=npc;
     end
 
     always @(posedge clk )begin
-        if(!rstn) begin
+        if(!rstn|flush_if0_if1) begin
             pc_if0_if1<=0;
             PLV_if0_if1<=0;
             pre_if0_if1<=0;
         end
         else if(stall_if0_if1);
-        else if(flush_if0_if1) begin
-            pc_if0_if1<=0;
-            PLV_if0_if1<=0;
-            pre_if0_if1<=0;
-        end
+        // else if(flush_if0_if1) begin
+        //     pc_if0_if1<=0;
+        //     PLV_if0_if1<=0;
+        //     pre_if0_if1<=0;
+        // end
         else begin
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
-            pre_if0_if1<={29'b0,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //pre
+            pre_if0_if1<={28'b0,ifnpc_pdc,choice_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //35 34:33 32 31:29 28:0
         end
     end
 
@@ -1286,22 +1248,33 @@ module core_top(
         else if(!(stall_icache|stall_to_icache)) fflush_if0_if1 <= 0;
     end
 
+    wire ifflush_if1_fifo;
+    assign ifflush_if1_fifo=flush_if0_if1|fflush_if0_if1;
+
     always @(posedge clk )begin
-        if(!rstn) begin
-            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;pre_if1_fifo<=0;
+        if(!rstn|flush_if1_fifo|ifflush_if1_fifo) begin
+            pc_if1_fifo<=0;
+            ir_if1_fifo<=0;
+            icache_valid_if1_fifo<=0;
+            flag_if1_fifo<=0;
+            PLV_if1_fifo<=0;
+            pre_if1_fifo<=0;
+            npc_if1_fifo<=0;
+            MMU_pipeline_excp_arg0_if1_fifo<=0;
         end
         else if(stall_if1_fifo);
-        else if(flush_if1_fifo|ifflush_if1_fifo)begin
-            pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;pre_if1_fifo<=0;
-        end
+        // else if(flush_if1_fifo|ifflush_if1_fifo)begin
+        //     pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;PLV_if1_fifo<=0;pre_if1_fifo<=0;npc_if1_fifo<=0;MMU_pipeline_excp_arg0_if1_fifo<=0;
+        // end
         else begin
-            pc_if1_fifo<=pc_if0_if1;//Icache ONLY
+            pc_if1_fifo<=pc_if0_if1;
             PLV_if1_fifo<=PLV_if0_if1;
             pre_if1_fifo<=pre_if0_if1;
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_ready;
             flag_if1_fifo<=flag_icache_pipeline;
             MMU_pipeline_excp_arg0_if1_fifo<=MMU_pipeline_excp_arg0;
+            npc_if1_fifo<=pc;
         end
     end
 
@@ -1310,9 +1283,8 @@ module core_top(
 
     //ID-REG
     always @(posedge clk )begin
-        if(!rstn) begin
+        if(!rstn|flush_id_reg0) begin
             ctr_id_reg_0 <= 0;
-            // excp_arg_id_reg_0<=0;
             imm_id_reg_0<=0;
             rk_id_reg_0<=0;
             rj_id_reg_0<=0;
@@ -1321,23 +1293,23 @@ module core_top(
             ir_id_reg_0<=0;
             ir_valid_id_reg_0<=0;
             pre_id_reg_0<=0;
+            npc_id_reg_0<=0;
         end
         else if(stall_id_reg0);
-        else if(flush_id_reg0)begin
-            ctr_id_reg_0 <= 0;
-            // excp_arg_id_reg_0<=0;
-            imm_id_reg_0<=0;
-            rk_id_reg_0<=0;
-            rj_id_reg_0<=0;
-            rd_id_reg_0<=0;
-            pc_id_reg_0<=0;
-            ir_id_reg_0<=0;
-            ir_valid_id_reg_0<=0;
-            pre_id_reg_0<=0;
-        end
+        // else if(flush_id_reg0)begin
+        //     ctr_id_reg_0 <= 0;
+        //     imm_id_reg_0<=0;
+        //     rk_id_reg_0<=0;
+        //     rj_id_reg_0<=0;
+        //     rd_id_reg_0<=0;
+        //     pc_id_reg_0<=0;
+        //     ir_id_reg_0<=0;
+        //     ir_valid_id_reg_0<=0;
+        //     pre_id_reg_0<=0;
+        //     npc_id_reg_0<=0;
+        // end
         else begin
             ctr_id_reg_0 <= control00;
-            // excp_arg_id_reg_0<=excp_arg00;
             imm_id_reg_0<=imm00;
             rk_id_reg_0<=rk00;
             rj_id_reg_0<=rj00;
@@ -1346,11 +1318,12 @@ module core_top(
             ir_id_reg_0<=ir00;
             ir_valid_id_reg_0<=ir_valid00;
             pre_id_reg_0<=pre00;
+            npc_id_reg_0<=npc00;
         end
     end
 
     always @(posedge clk )begin
-        if(!rstn) begin
+        if(!rstn|flush_id_reg1) begin
             ctr_id_reg_1 <= 0;
             excp_arg_id_reg_1<=0;
             imm_id_reg_1<=0;
@@ -1361,20 +1334,22 @@ module core_top(
             ir_id_reg_1<=0;
             ir_valid_id_reg_1<=0;
             pre_id_reg_1<=0;
+            npc_id_reg_1<=0;
         end
         else if(stall_id_reg1);
-        else if(flush_id_reg1) begin
-            ctr_id_reg_1 <= 0;
-            excp_arg_id_reg_1<=0;
-            imm_id_reg_1<=0;
-            rk_id_reg_1<=0;
-            rj_id_reg_1<=0;
-            rd_id_reg_1<=0;
-            pc_id_reg_1<=0;
-            ir_id_reg_1<=0;
-            ir_valid_id_reg_1<=0;
-            pre_id_reg_1<=0;
-        end
+        // else if(flush_id_reg1) begin
+        //     ctr_id_reg_1 <= 0;
+        //     excp_arg_id_reg_1<=0;
+        //     imm_id_reg_1<=0;
+        //     rk_id_reg_1<=0;
+        //     rj_id_reg_1<=0;
+        //     rd_id_reg_1<=0;
+        //     pc_id_reg_1<=0;
+        //     ir_id_reg_1<=0;
+        //     ir_valid_id_reg_1<=0;
+        //     pre_id_reg_1<=0;
+        //     npc_id_reg_1<=0;
+        // end
         else begin
             ctr_id_reg_1 <= control11;
             excp_arg_id_reg_1<=excp_arg11;
@@ -1386,59 +1361,64 @@ module core_top(
             ir_id_reg_1<=ir11;
             ir_valid_id_reg_1<=ir_valid11;
             pre_id_reg_1<=pre11;
+            npc_id_reg_1<=npc11;
         end
     end
 
     //REG-EXE0
     always @(posedge clk )begin
-        if(!rstn) begin
-            ctr_reg_exe0_0 <= 0;
-            imm_reg_exe0_0<=0;
-            rk_reg_exe0_0<=0;
-            rj_reg_exe0_0<=0;
-            rd_reg_exe0_0<=0;
-            rrk_reg_exe0_0<=0;
-            rrj_reg_exe0_0<=0;
-            rrd_reg_exe0_0<=0;
-            pc_reg_exe0_0<=0;
-            ir_reg_exe0_0<=0;
-            ir_valid_reg_exe0_0<=0;
-            pre_reg_exe0_0<=0;
+        if(!rstn|flush_reg_exe0_0) begin
+            ctr_reg_exe0_0          <= 0;
+            imm_reg_exe0_0          <=0;
+            rk_reg_exe0_0           <=0;
+            rj_reg_exe0_0           <=0;
+            rd_reg_exe0_0           <=0;
+            rrk_reg_exe0_0          <=0;
+            rrj_reg_exe0_0          <=0;
+            rrd_reg_exe0_0          <=0;
+            pc_reg_exe0_0           <=0;
+            ir_reg_exe0_0           <=0;
+            ir_valid_reg_exe0_0     <=0;
+            pre_reg_exe0_0          <=0;
+            npc_reg_exe0_0          <=0;
         end
         else if(stall_reg_exe0_0);
-        else if(flush_reg_exe0_0) begin
-            ctr_reg_exe0_0 <= 0;
-            imm_reg_exe0_0<=0;
-            rk_reg_exe0_0<=0;
-            rj_reg_exe0_0<=0;
-            rd_reg_exe0_0<=0;
-            rrk_reg_exe0_0<=0;
-            rrj_reg_exe0_0<=0;
-            rrd_reg_exe0_0<=0;
-            pc_reg_exe0_0<=0;
-            ir_reg_exe0_0<=0;
-            ir_valid_reg_exe0_0<=0;
-            pre_reg_exe0_0<=0;
-        end
+        // else if(flush_reg_exe0_0) begin
+        //     ctr_reg_exe0_0 <= 0;
+        //     imm_reg_exe0_0<=0;
+        //     rk_reg_exe0_0<=0;
+        //     rj_reg_exe0_0<=0;
+        //     rd_reg_exe0_0<=0;
+        //     rrk_reg_exe0_0<=0;
+        //     rrj_reg_exe0_0<=0;
+        //     rrd_reg_exe0_0<=0;
+        //     pc_reg_exe0_0<=0;
+        //     ir_reg_exe0_0<=0;
+        //     ir_valid_reg_exe0_0<=0;
+        //     pre_reg_exe0_0<=0;
+        //     npc_reg_exe0_0<=0;
+        // end
         else begin
-            ctr_reg_exe0_0 <= ctr_id_reg_0;
-            imm_reg_exe0_0<=imm_id_reg_0;
-            rrk_reg_exe0_0<=rrk0_rf;
-            rrj_reg_exe0_0<=rrj0_rf;
-            rrd_reg_exe0_0<=rrd0_rf;
-            rk_reg_exe0_0<=rk_id_reg_0;
-            rj_reg_exe0_0<=rj_id_reg_0;
-            rd_reg_exe0_0<=rd_id_reg_0;
-            pc_reg_exe0_0<=pc_id_reg_0;
-            ir_reg_exe0_0<=ir_id_reg_0;
-            ir_valid_reg_exe0_0<=ir_valid_id_reg_0;
-            pre_reg_exe0_0<=pre_id_reg_0;
+            ctr_reg_exe0_0         <= ctr_id_reg_0;
+            imm_reg_exe0_0         <=imm_id_reg_0;
+            rrk_reg_exe0_0         <=rrk0_rf;
+            rrj_reg_exe0_0         <=rrj0_rf;
+            rrd_reg_exe0_0         <=rrd0_rf;
+            rk_reg_exe0_0          <=rk_id_reg_0;
+            rj_reg_exe0_0          <=rj_id_reg_0;
+            rd_reg_exe0_0          <=rd_id_reg_0;
+            pc_reg_exe0_0          <=pc_id_reg_0;
+            ir_reg_exe0_0          <=ir_id_reg_0;
+            ir_valid_reg_exe0_0    <=ir_valid_id_reg_0;
+            pre_reg_exe0_0         <=pre_id_reg_0;
+            npc_reg_exe0_0         <=npc_id_reg_0;
         end
     end
-
+    
+    reg [31:0]  ctr_reg_exe0_1_;
     always @(posedge clk )begin
-        if(!rstn) begin
-            ctr_reg_exe0_1 <= 0;
+        if(!rstn|flush_reg_exe0_1) begin
+            ctr_reg_exe0_1_<= 0;
             excp_arg_reg_exe0_1<=0;
             imm_reg_exe0_1<=0;
             rk_reg_exe0_1<=0;
@@ -1451,25 +1431,11 @@ module core_top(
             ir_reg_exe0_1<=0;
             ir_valid_reg_exe0_1<=0;
             pre_reg_exe0_1<=0;
+            npc_reg_exe0_1<=0;
         end
         else if(stall_reg_exe0_1);
-        else if(flush_reg_exe0_1) begin
-            ctr_reg_exe0_1 <= 0;
-            excp_arg_reg_exe0_1<=0;
-            imm_reg_exe0_1<=0;
-            rk_reg_exe0_1<=0;
-            rj_reg_exe0_1<=0;
-            rd_reg_exe0_1<=0;
-            rrk_reg_exe0_1<=0;
-            rrj_reg_exe0_1<=0;
-            rrd_reg_exe0_1<=0;
-            pc_reg_exe0_1<=0;
-            ir_reg_exe0_1<=0;
-            ir_valid_reg_exe0_1<=0;
-            pre_reg_exe0_1<=0;
-        end
         else begin
-            ctr_reg_exe0_1 <= ctr_id_reg_1;
+            ctr_reg_exe0_1_<= ctr_id_reg_1;
             excp_arg_reg_exe0_1<=excp_arg_id_reg_1;
             imm_reg_exe0_1<=imm_id_reg_1;
             rrk_reg_exe0_1<=rrk1_rf;
@@ -1482,8 +1448,12 @@ module core_top(
             ir_reg_exe0_1<=ir_id_reg_1;
             ir_valid_reg_exe0_1<=ir_valid_id_reg_1;
             pre_reg_exe0_1<=pre_id_reg_1;
+            npc_reg_exe0_1<=npc_id_reg_1;
         end
     end
+    always @(*) begin
+        ctr_reg_exe0_1 = stall_reg_exe0_1 ? 32'b0 : ctr_reg_exe0_1_;
+    end 
 
     //EXE0-EXE1
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
@@ -1492,11 +1462,11 @@ module core_top(
     always @(*) begin//�?测访存地�?是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
-        if(ctr_reg_exe0_1[23]&(|PLV)) begin 
+        if(ctr_reg_exe0_1[22]&(|PLV)) begin 
             ctr_reg_exe0_1_excp=liwai;
             excp_arg_reg_exe0_1_excp=excp_argIPE; 
         end//用户态访问越�?
-        else if(ctr_reg_exe0_1[3:0]==5)
+        else if(ctr_reg_exe0_1[3:0]==5&ctr_reg_exe0_1[11:7]!=8)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
                 2: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1505,14 +1475,23 @@ module core_top(
                 7: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
             endcase
         else if(ctr_reg_exe0_1[3:0]==6)
-            case (ctr_id_reg_1[11:7])//fot yuanzi, 0:load, 1:store
-                0: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
-                1: if(LLbit) if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+            case (ctr_reg_exe0_1[11:7])//for yuanzi, 11:load, 12:store
+                11: if(|addr_2[1:0]) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
+                12: 
+                if(LLbit) begin
+                    if(|addr_2[1:0]) begin 
+                        ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; 
+                    end
+                end
+                else begin
+                    ctr_reg_exe0_1_excp={ctr_reg_exe0_1[31:6],1'b0,ctr_reg_exe0_1[4:0]};
+                    excp_arg_reg_exe0_1_excp=0;
+                end
             endcase
     end
 
     always @(posedge clk )begin
-        if(!rstn) begin
+        if(!rstn|flush_exe0_exe1_0) begin
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
             result_exe0_exe1_0 <= 0;
@@ -1522,15 +1501,15 @@ module core_top(
             countresult_exe0_exe1_0<=0;
         end
         else if(stall_exe0_exe1_0);
-        else if(flush_exe0_exe1_0) begin
-            ctr_exe0_exe1_0 <= 0;
-            rd_exe0_exe1_0 <= 0;
-            result_exe0_exe1_0 <= 0;
-            pc_exe0_exe1_0<=0;
-            ir_exe0_exe1_0<=0;
-            ir_valid_exe0_exe1_0<=0;
-            countresult_exe0_exe1_0<=0;
-        end
+        // else if(flush_exe0_exe1_0) begin
+        //     ctr_exe0_exe1_0 <= 0;
+        //     rd_exe0_exe1_0 <= 0;
+        //     result_exe0_exe1_0 <= 0;
+        //     pc_exe0_exe1_0<=0;
+        //     ir_exe0_exe1_0<=0;
+        //     ir_valid_exe0_exe1_0<=0;
+        //     countresult_exe0_exe1_0<=0;
+        // end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
             rd_exe0_exe1_0 <= rd_reg_exe0_0;
@@ -1543,39 +1522,39 @@ module core_top(
     end
 
     always @(posedge clk )begin
-        if(!rstn) begin
+        if(!rstn|flush_exe0_exe1_1) begin
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
             result_exe0_exe1_1<=0;
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
-            addr_pipeline_dcache_reg<=0;
-            din_pipeline_dcache_reg<=0;
+            addr_pipeline_dcache_exe0_exe1<=0;
+            din_pipeline_dcache_exe0_exe1<=0;
             ir_valid_exe0_exe1_1<=0;
             countresult_exe0_exe1_1<=0;
             rand_index_exe0_exe1<=0;
         end
         else if(stall_exe0_exe1_1);
-        else if(flush_exe0_exe1_1) begin
-            ctr_exe0_exe1_1 <= 0;
-            rd_exe0_exe1_1<=0;
-            result_exe0_exe1_1<=0;
-            pc_exe0_exe1_1<=0;
-            ir_exe0_exe1_1<=0;
-            addr_pipeline_dcache_reg<=0;
-            din_pipeline_dcache_reg<=0;
-            ir_valid_exe0_exe1_1<=0;
-            countresult_exe0_exe1_1<=0;
-            rand_index_exe0_exe1<=0;
-        end
+        // else if(flush_exe0_exe1_1) begin
+        //     ctr_exe0_exe1_1 <= 0;
+        //     rd_exe0_exe1_1<=0;
+        //     result_exe0_exe1_1<=0;
+        //     pc_exe0_exe1_1<=0;
+        //     ir_exe0_exe1_1<=0;
+        //     addr_pipeline_dcache_exe0_exe1<=0;
+        //     din_pipeline_dcache_exe0_exe1<=0;
+        //     ir_valid_exe0_exe1_1<=0;
+        //     countresult_exe0_exe1_1<=0;
+        //     rand_index_exe0_exe1<=0;
+        // end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
             result_exe0_exe1_1<=(ctr_reg_exe0_1_excp[3:0]==7)?countresult1:aluresult1;
             pc_exe0_exe1_1<=pc_reg_exe0_1;
             ir_exe0_exe1_1<=ir_reg_exe0_1;
-            addr_pipeline_dcache_reg<=addr_pipeline_dcache;
-            din_pipeline_dcache_reg<=din_pipeline_dcache;
+            addr_pipeline_dcache_exe0_exe1<=addr_pipeline_dcache;
+            din_pipeline_dcache_exe0_exe1<=din_pipeline_dcache;
             ir_valid_exe0_exe1_1<=ir_valid_reg_exe0_1;
             countresult_exe0_exe1_1<=countresult;
             rand_index_exe0_exe1<=CSR_rand_index;
@@ -1609,7 +1588,7 @@ module core_top(
     end
 
     always @(posedge clk )begin
-        if(!rstn) begin
+        if(!rstn|flush_exe1_wb_0) begin
             ctr_exe1_wb_0 <= 0;
             rd_exe1_wb_0<=0;
             result_exe1_wb_0<=0;
@@ -1617,17 +1596,19 @@ module core_top(
             ir_exe1_wb_0<=0;
             ir_valid_exe1_wb_0<=0;
             countresult_exe1_wb_0<=0;
+            din_pipeline_dcache_exe1_wb<=0;
         end
         else if(stall_exe1_wb_0);
-        else if(flush_exe1_wb_0) begin
-            ctr_exe1_wb_0 <= 0;
-            rd_exe1_wb_0<=0;
-            result_exe1_wb_0<=0;
-            pc_exe1_wb_0<=0;
-            ir_exe1_wb_0<=0;
-            ir_valid_exe1_wb_0<=0;
-            countresult_exe1_wb_0<=0;
-        end
+        // else if(flush_exe1_wb_0) begin
+        //     ctr_exe1_wb_0 <= 0;
+        //     rd_exe1_wb_0<=0;
+        //     result_exe1_wb_0<=0;
+        //     pc_exe1_wb_0<=0;
+        //     ir_exe1_wb_0<=0;
+        //     ir_valid_exe1_wb_0<=0;
+        //     countresult_exe1_wb_0<=0;
+        //     din_pipeline_dcache_exe1_wb<=0;
+        // end
         else begin
             ctr_exe1_wb_0 <= ctr_exe0_exe1_0;
             rd_exe1_wb_0<=rd_exe0_exe1_0;
@@ -1636,11 +1617,12 @@ module core_top(
             ir_exe1_wb_0<=ir_exe0_exe1_0;
             ir_valid_exe1_wb_0<=ir_valid_exe0_exe1_0;
             countresult_exe1_wb_0<=countresult_exe0_exe1_0;
+            din_pipeline_dcache_exe1_wb<=din_pipeline_dcache_exe0_exe1;
         end
     end
 
     always @(posedge clk )begin
-        if(!rstn) begin
+        if(!rstn|flush_exe1_wb_1) begin
             ctr_exe1_wb_1 <= 0;
             rd_exe1_wb_1<=0;
             result_exe1_wb_1<=0;
@@ -1651,40 +1633,34 @@ module core_top(
             ir_valid_exe1_wb_1<=0;
             countresult_exe1_wb_1<=0;
             rand_index_exe1_wb<=0;
-            // ecode_exe1_wb<=0;
-            // ertn_flush_exe1_wb<=0;
-            // excp_flush_exe1_wb<=0;
+            LLbit_exe0_exe1<=0;
         end
         else if(stall_exe1_wb_1);
-        else if(flush_exe1_wb_1) begin
-            ctr_exe1_wb_1 <= 0;
-            rd_exe1_wb_1<=0;
-            result_exe1_wb_1<=0;
-            pc_exe1_wb_1<=0;
-            ir_exe1_wb_1<=0;
-            vaddr_exe1_wb<=0;
-            paddr_exe1_wb<=0;
-            ir_valid_exe1_wb_1<=0;
-            countresult_exe1_wb_1<=0;
-            rand_index_exe1_wb<=0;
-            // ecode_exe1_wb<=0;
-            // ertn_flush_exe1_wb<=0;
-            // excp_flush_exe1_wb<=0;
-        end
+        // else if(flush_exe1_wb_1) begin
+        //     ctr_exe1_wb_1 <= 0;
+        //     rd_exe1_wb_1<=0;
+        //     result_exe1_wb_1<=0;
+        //     pc_exe1_wb_1<=0;
+        //     ir_exe1_wb_1<=0;
+        //     vaddr_exe1_wb<=0;
+        //     paddr_exe1_wb<=0;
+        //     ir_valid_exe1_wb_1<=0;
+        //     countresult_exe1_wb_1<=0;
+        //     rand_index_exe1_wb<=0;
+        //     LLbit_exe0_exe1<=0;
+        // end
         else begin
             ctr_exe1_wb_1 <= ctr_exe0_exe1_1;
             rd_exe1_wb_1<=rd_exe0_exe1_1;
             result_exe1_wb_1<=result1;
             pc_exe1_wb_1<=pc_exe0_exe1_1;
             ir_exe1_wb_1<=ir_exe0_exe1_1;
-            vaddr_exe1_wb<=0;
-            paddr_exe1_wb<=addr_pipeline_dcache_reg;
+            vaddr_exe1_wb<=addr_pipeline_dcache_exe0_exe1;
+            paddr_exe1_wb<=MMU_pipeline_PADDR1;
             ir_valid_exe1_wb_1<=ir_valid_exe0_exe1_1;
             countresult_exe1_wb_1<=countresult_exe0_exe1_1;
             rand_index_exe1_wb<=rand_index_exe0_exe1;
-            // ecode_exe1_wb<=csr_ecode;
-            // ertn_flush_exe1_wb<=ertn_flush;
-            // excp_flush_exe1_wb<=excp_flush;
+            LLbit_exe0_exe1<=LLbit;
         end
     end
 
@@ -1704,7 +1680,7 @@ module core_top(
     wire mem_l2cache_dataOK  ;
     wire l2cache_mem_SUC     ;
 
-L1_L2cache #(
+    L1_L2cache #(
         .I_index_width  		( 4 		),
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
@@ -1731,7 +1707,7 @@ L1_L2cache #(
 
         //  Dcache
         .addr_pipeline_dcache   		( addr_pipeline_dcache          ),
-        .paddr_pipeline_dcache   		( MMU_pipeline_VADDR1   		),
+        .paddr_pipeline_dcache   		( MMU_pipeline_PADDR1   		),
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
@@ -1765,6 +1741,8 @@ L1_L2cache #(
         .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
     );
 
+
+
     l2_axi_package#(
         .offset_width(offset_width)
     )
@@ -1784,31 +1762,42 @@ L1_L2cache #(
         .mem_l2cache_dataOK(mem_l2cache_dataOK),
         .dma_sign(l2cache_mem_SUC),
         //AXI
-        .araddr   		( araddr   		),
-        .arvalid  		( arvalid  		),
-        .arready  		( arready  		),
-        .arlen    		( arlen    		),
-        .arsize   		( arsize   		),
-        .arburst  		( arburst  		),
-        .rdata    		( rdata    		),
-        .rresp    		( rresp    		),
-        .rvalid   		( rvalid   		),
-        .rready   		( rready   		),
-        .rlast    		( rlast    		),
-        .awaddr   		( awaddr   		),
-        .awvalid  		( awvalid  		),
-        .awready  		( awready  		),
-        .awlen    		( awlen    		),
-        .awsize   		( awsize   		),
-        .awburst  		( awburst  		),
-        .wdata    		( wdata    		),
-        .wstrb    		( wstrb    		),
-        .wvalid   		( wvalid   		),
-        .wready   		( wready   		),
-        .wlast    		( wlast    		),
-        .bresp    		( bresp    		),
-        .bvalid   		( bvalid   		),
-        .bready   		( bready   		)
+        .arid           (arid),
+        .araddr         (araddr),
+        .arlen          (arlen),
+        .arsize         (arsize),
+        .arburst        (arburst),
+        .arlock         (arlock),
+        .arcache        (arcache),
+        .arprot         (arprot),
+        .arvalid        (arvalid),
+        .arready        (arready),
+        .rid            (rid),
+        .rdata          (rdata),
+        .rresp          (rresp),
+        .rlast          (rlast),
+        .rvalid         (rvalid),
+        .rready         (rready),
+        .awid           (awid),
+        .awaddr         (awaddr),
+        .awlen          (awlen),
+        .awsize         (awsize),
+        .awburst        (awburst),
+        .awlock         (awlock),
+        .awcache        (awcache),
+        .awprot         (awprot),
+        .awvalid        (awvalid),
+        .awready        (awready),
+        .wid            (wid),
+        .wdata          (wdata),
+        .wstrb          (wstrb),
+        .wlast          (wlast),
+        .wvalid         (wvalid),
+        .wready         (wready),
+        .bid            (bid),
+        .bresp          (bresp),
+        .bvalid         (bvalid),
+        .bready         (bready)
     );
 
 `endif 
@@ -1821,18 +1810,9 @@ L1_L2cache #(
     assign debug0_wb_rf_wnum=wb_addr0;
     assign debug1_wb_rf_wnum=wb_addr1;
     assign debug0_wb_rf_wdata=wb_data0;
-    assign debug1_wb_rf_wdata=wb_data1;
+    assign debug1_wb_rf_wdata=ctr_exe1_wb_1[5]?din_pipeline_dcache_exe1_wb:wb_data1;
     assign debug0_wb_inst=ir_exe1_wb_0;
     assign debug1_wb_inst=ir_exe1_wb_1;
-    assign arid=0;
-    assign arlock=0;
-    assign arcache=0;
-    assign arprot=0;
-    assign awid=0;
-    assign awlock=0;
-    assign awcache=0;
-    assign awprot=0;
-    assign wid=0;
     wire ws_valid0,ws_valid1;
     assign ws_valid0=stall_exe1_wb_0?0:ir_valid_exe1_wb_0;
     assign ws_valid1=stall_exe1_wb_1?0:(ir_valid_exe1_wb_1&~excp_flush);
@@ -1860,7 +1840,7 @@ L1_L2cache #(
     
     // from wb_stage    
     wire [TLB_n-1:0]rand_index          =   rand_index_exe1_wb;
-    wire            ws_tlbfill_en       =   ctr_exe1_wb_0[27];
+    wire            ws_tlbfill_en       =   ctr_exe1_wb_1[27];
     wire            ws_excp_flush       =   excp_flush;
     wire            ws_ertn_flush       =   ertn_flush;
     wire     [5:0]  ws_csr_ecode        =   csr_ecode;
@@ -1870,12 +1850,10 @@ L1_L2cache #(
     wire            cnt_inst_diff1      =   ctr_exe1_wb_1[23];
     wire    [63:0]  ws_timer_64_diff    =   countresult_exe1_wb_1;
 
-    // wire     [7:0]  inst_ld_en_diff     =   (type_exe1_wb==5&(subtype_exe1_wb==0|subtype_exe1_wb==1|subtype_exe1_wb==2|subtype_exe1_wb==6|subtype_exe1_wb==7)|type_exe1_wb==6&subtype_exe1_wb==0);
     wire     [7:0]  inst_ld_en_diff     =   ctr_exe1_wb_1[4];
     wire    [31:0]  ld_paddr_diff       =   paddr_exe1_wb;
     wire    [31:0]  ld_vaddr_diff       =   vaddr_exe1_wb;
 
-    // wire    [ 7:0]  inst_st_en_diff     =   (type_exe1_wb==5&(subtype_exe1_wb==3|subtype_exe1_wb==4|subtype_exe1_wb==5)|type_exe1_wb==6&subtype_exe1_wb==1);
     wire    [ 7:0]  inst_st_en_diff     =   ctr_exe1_wb_1[5];
     wire    [31:0]  st_paddr_diff       =   paddr_exe1_wb;
     wire    [31:0]  st_vaddr_diff       =   vaddr_exe1_wb;
@@ -1946,11 +1924,15 @@ L1_L2cache #(
     reg     [31:0]  csr_tval_diff_0_reg     ;
     reg     [31:0]  csr_ticlr_diff_0_reg    ;
     reg     [31:0]  csr_llbctl_diff_0_reg   ;
+    reg     [31:0]  csr_llbctl_diff_0_last  ;
+    reg     [31:0]  csr_llbctl_diff_0_valid ;
     reg     [31:0]  csr_tlbrentry_diff_0_reg;
     reg     [31:0]  csr_dmw0_diff_0_reg     ;
     reg     [31:0]  csr_dmw1_diff_0_reg     ;
     reg     [31:0]  csr_pgdl_diff_0_reg     ;
     reg     [31:0]  csr_pgdh_diff_0_reg     ;
+
+    reg     stall_exe1_wb_1_reg;
 
     always @(posedge clk )begin
         if(!rstn) begin
@@ -1981,7 +1963,7 @@ L1_L2cache #(
             csr_pgdl_diff_0_reg         <=  0;
             csr_pgdh_diff_0_reg         <=  0;
         end
-        else if(!stall_exe1_wb_0)begin
+        else if(!stall_exe1_wb_1)begin
             csr_crmd_diff_0_reg         <=  csr_crmd_diff_0     ;
             csr_prmd_diff_0_reg         <=  csr_prmd_diff_0     ;
             csr_ectl_diff_0_reg         <=  csr_ectl_diff_0     ;
@@ -2002,13 +1984,25 @@ L1_L2cache #(
             csr_tcfg_diff_0_reg         <=  csr_tcfg_diff_0     ;
             csr_tval_diff_0_reg         <=  csr_tval_diff_0     ;
             csr_ticlr_diff_0_reg        <=  csr_ticlr_diff_0    ;
-            csr_llbctl_diff_0_reg       <=  csr_llbctl_diff_0   ;
+            csr_llbctl_diff_0_reg       <=  csr_llbctl_diff_0_valid;
             csr_tlbrentry_diff_0_reg    <=  csr_tlbrentry_diff_0;
             csr_dmw0_diff_0_reg         <=  csr_dmw0_diff_0     ;
             csr_dmw1_diff_0_reg         <=  csr_dmw1_diff_0     ;
             csr_pgdl_diff_0_reg         <=  csr_pgdl_diff_0     ;
             csr_pgdh_diff_0_reg         <=  csr_pgdh_diff_0     ;
         end
+    end
+    always @(posedge clk )begin
+        if(!rstn) csr_llbctl_diff_0_last <= 0;
+        else if(stall_exe0_exe1_1);
+        else csr_llbctl_diff_0_last <= csr_llbctl_diff_0;
+    end
+    always @(posedge clk )begin
+        if(!rstn) stall_exe1_wb_1_reg <= 0;
+        else stall_exe1_wb_1_reg <= stall_exe1_wb_1;
+    end
+    always @(*) begin
+        csr_llbctl_diff_0_valid=stall_exe1_wb_1_reg?csr_llbctl_diff_0_last:csr_llbctl_diff_0;
     end
 
     always @(posedge aclk) begin
@@ -2059,22 +2053,22 @@ L1_L2cache #(
     end
 
     DifftestInstrCommit DifftestInstrCommit0(
-        .clock              (aclk           ),
-        .coreid             (0              ),
-        .index              (1              ),
+        .clock              (aclk            ),
+        .coreid             (0               ),
+        .index              (1               ),
         .valid              (cmt_valid0      ),
         .pc                 (cmt_pc0         ),
         .instr              (cmt_inst0       ),
-        .skip               (0              ),
-        .is_TLBFILL         (0              ),
-        .TLBFILL_index      (0              ),
+        .skip               (0               ),
+        .is_TLBFILL         (cmt_tlbfill_en  ),
+        .TLBFILL_index      (cmt_rand_index  ),
         .is_CNTinst         (cmt_cnt_inst0   ),
         .timer_64_value     (cmt_timer_64    ),
         .wen                (cmt_wen0        ),
         .wdest              (cmt_wdest0      ),
         .wdata              (cmt_wdata0      ),
         .csr_rstat          (cmt_csr_rstat_en),
-        .csr_data           (cmt_csr_data   )
+        .csr_data           (cmt_csr_data    )
     );
 
     DifftestInstrCommit DifftestInstrCommit1(

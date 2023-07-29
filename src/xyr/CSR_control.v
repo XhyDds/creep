@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�??????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�???????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??????????，ex1�??????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???????????，ex1�???????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -140,6 +140,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             csr_era_diff_0=ERA;
             csr_badv_diff_0=BADV;
             csr_eentry_diff_0={EENTRY,6'b0};
+            rand_index=0;
             begin
             csr_tlbidx_diff_0=0;
             csr_tlbidx_diff_0[TLB_n-1:0]=TLBIDX_Index;
@@ -177,7 +178,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             csr_dmw1_diff_0={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     end
     
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn||(flushin&&!inte))
         begin   
@@ -204,7 +205,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             jumpc_reg<=jumpc;
         end
     end
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn)
         begin
@@ -232,28 +233,12 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     end
     always@(*)
     begin
-    flushout=1;
-    outpc=inpc+4;dout=0;
-    mask=~0;
     inpc=pipeline_CSR_inpc0;
     ecode=pipeline_CSR_excp_arg0[5:0];
     esubcode=pipeline_CSR_excp_arg0[14:6];
     mode=pipeline_CSR_subtype;
     evaddr=inpc;//TLB(F),ADEF,PIF,PPI
-    TI_cl=0;
-    inst_stop=0;nclk_stall=clk_stall;
-    TLBIDXout=0;TLBEHIout=0;
-    TLBELO0out=0;TLBELO1out=0;
-    TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
-    TLBIDXout[29:24]=TLBIDX_PS;
-    TLBIDXout[31]=TLBIDX_NE;
-    TLBEHIout[31:13]=TLBEHI;
-    TLBELO0out[6:0]=TLBELO0_VDPLVMATG;
-    TLBELO0out[TLB_PALEN-5:8]=TLBELO0_PPN;
-    TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
-    TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
-    
-    nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
+
     if(!inpc_valid)
         inpc=jumpc_reg;
     if(inte)
@@ -272,9 +257,33 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         end
     else if(ecode==ALE || (ecode==ADE && esubcode==ADEM))//ALE,ADEM
         evaddr=pipeline_CSR_evaddr0;
-   
+    end
+    
+    always@(*)
+    begin    
+    flushout=1;
+    outpc=inpc+4;
+    mask=~0;
+    inst_stop=0;
+    TI_cl=0;//TI_cl
+    nclk_stall=clk_stall;
+    
+    TLBIDXout=0;TLBEHIout=0;
+    TLBELO0out=0;TLBELO1out=0;
+    TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
+    TLBIDXout[29:24]=TLBIDX_PS;
+    TLBIDXout[31]=TLBIDX_NE;
+    TLBEHIout[31:13]=TLBEHI;
+    TLBELO0out[6:0]=TLBELO0_VDPLVMATG;
+    TLBELO0out[TLB_PALEN-5:8]=TLBELO0_PPN;
+    TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
+    TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
+    
+    nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
+    
     if((!stallin && !flushin && exe)||inte)
-        begin 
+        begin
+        //TI_cl=(csr_num=='h44 && dwcsr[0] && (mode==CSRWR || mode==CSRXCHG)); 
         case(mode)
             ERTN:
                 begin
@@ -311,7 +320,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                     TI_cl=1; 
                 end 
             CSRRD:
-                   flushout=0;
+                flushout=0;
             IDLE:
                 nclk_stall=1;           
         endcase
@@ -320,7 +329,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         flushout=0;
         end
-
+    end
+    
+    always@(*)
+    begin
+    dout=0;
     case(csr_num)
         'h0:
             dout={23'b0,CRMD};
@@ -397,7 +410,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     end
     
     assign dwcsr=(dout&(~mask))|(din&mask);
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn)
         begin
@@ -465,12 +478,12 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             end
                         LOAD:
                             begin
-                            if(~excp_arg1[15])
+                            //if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=1;
                             end
                         STORE:
                             begin
-                            if(~excp_arg1[15])
+                            //if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=0;
                             end 
                         CSRWR,CSRXCHG:

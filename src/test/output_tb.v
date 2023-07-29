@@ -65,6 +65,8 @@ begin
     resetn = 1'b0;
     #2000;
     resetn = 1'b1;
+    #10000000;//10ms
+    $finish;
 end
 always #5 clk=~clk;
 soc_lite_top #(.SIMULATION(1'b1)) soc_lite
@@ -94,24 +96,26 @@ wire [31:0] debug0_wb_pc;
 wire [3 :0] debug0_wb_rf_wen;
 wire [4 :0] debug0_wb_rf_wnum;
 wire [31:0] debug0_wb_rf_wdata;
+wire        debug0_stall_exe1_wb;
 
 wire [31:0] debug1_wb_pc;
 wire [3 :0] debug1_wb_rf_wen;
 wire [4 :0] debug1_wb_rf_wnum;
 wire [31:0] debug1_wb_rf_wdata;
-
+wire        debug1_stall_exe1_wb;
 
 assign soc_clk           = soc_lite.clk;
 assign debug0_wb_pc       = soc_lite.debug0_wb_pc;
 assign debug0_wb_rf_wen   = soc_lite.debug0_wb_rf_wen;
 assign debug0_wb_rf_wnum  = soc_lite.debug0_wb_rf_wnum;
 assign debug0_wb_rf_wdata = soc_lite.debug0_wb_rf_wdata;
+assign debug0_stall_exe1_wb=soc_lite.debug0_stall_exe1_wb;
 
 assign debug1_wb_pc       = soc_lite.debug1_wb_pc;
 assign debug1_wb_rf_wen   = soc_lite.debug1_wb_rf_wen;
 assign debug1_wb_rf_wnum  = soc_lite.debug1_wb_rf_wnum;
 assign debug1_wb_rf_wdata = soc_lite.debug1_wb_rf_wdata;
-
+assign debug1_stall_exe1_wb=soc_lite.debug1_stall_exe1_wb;
 
 //wdata[i*8+7 : i*8] is valid, only wehile wen[i] is valid
 wire [31:0] debug0_wb_rf_wdata_v,debug1_wb_rf_wdata_v;
@@ -135,21 +139,24 @@ reg        debug_end;
 // generate trace
 always @(posedge soc_clk)
 begin
-    if((|debug0_wb_rf_wen && debug0_wb_rf_wnum!=5'd0) && (|debug1_wb_rf_wen && debug1_wb_rf_wnum!=5'd0))
+    if(!(debug0_stall_exe1_wb||debug1_stall_exe1_wb))
     begin
-        $fdisplay(trace_ref, "%h %h %h %h\n%h %h %h %h", `CONFREG_OPEN_TRACE,
-            debug0_wb_pc, debug0_wb_rf_wnum, debug0_wb_rf_wdata_v,
-            `CONFREG_OPEN_TRACE,debug1_wb_pc, debug1_wb_rf_wnum, debug1_wb_rf_wdata_v);
-    end
-    else if(|debug1_wb_rf_wen && debug1_wb_rf_wnum!=5'd0)
-    begin
-        $fdisplay(trace_ref, "%h %h %h %h", `CONFREG_OPEN_TRACE,
-            debug1_wb_pc, debug1_wb_rf_wnum, debug1_wb_rf_wdata_v);
-    end
-    else if(|debug0_wb_rf_wen && debug0_wb_rf_wnum!=5'd0)
-    begin
-        $fdisplay(trace_ref, "%h %h %h %h", `CONFREG_OPEN_TRACE,
-            debug0_wb_pc, debug0_wb_rf_wnum, debug0_wb_rf_wdata_v);
+        if((|debug0_wb_rf_wen && debug0_wb_rf_wnum!=5'd0) && (|debug1_wb_rf_wen && debug1_wb_rf_wnum!=5'd0))
+        begin
+            $fdisplay(trace_ref, "%h %h %h %h\n%h %h %h %h", `CONFREG_OPEN_TRACE,
+                debug1_wb_pc, debug1_wb_rf_wnum, debug1_wb_rf_wdata_v,
+                `CONFREG_OPEN_TRACE,debug0_wb_pc, debug0_wb_rf_wnum, debug0_wb_rf_wdata_v);
+        end
+        else if(|debug1_wb_rf_wen && debug1_wb_rf_wnum!=5'd0)
+        begin
+            $fdisplay(trace_ref, "%h %h %h %h", `CONFREG_OPEN_TRACE,
+                debug1_wb_pc, debug1_wb_rf_wnum, debug1_wb_rf_wdata_v);
+        end
+        else if(|debug0_wb_rf_wen && debug0_wb_rf_wnum!=5'd0)
+        begin
+            $fdisplay(trace_ref, "%h %h %h %h", `CONFREG_OPEN_TRACE,
+                debug0_wb_pc, debug0_wb_rf_wnum, debug0_wb_rf_wdata_v);
+        end
     end
 end
 
