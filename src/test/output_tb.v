@@ -65,6 +65,8 @@ begin
     resetn = 1'b0;
     #2000;
     resetn = 1'b1;
+    #10000000;//10ms
+    $finish;
 end
 always #5 clk=~clk;
 soc_lite_top #(.SIMULATION(1'b1)) soc_lite
@@ -142,8 +144,8 @@ begin
         if((|debug0_wb_rf_wen && debug0_wb_rf_wnum!=5'd0) && (|debug1_wb_rf_wen && debug1_wb_rf_wnum!=5'd0))
         begin
             $fdisplay(trace_ref, "%h %h %h %h\n%h %h %h %h", `CONFREG_OPEN_TRACE,
-                debug0_wb_pc, debug0_wb_rf_wnum, debug0_wb_rf_wdata_v,
-                `CONFREG_OPEN_TRACE,debug1_wb_pc, debug1_wb_rf_wnum, debug1_wb_rf_wdata_v);
+                debug1_wb_pc, debug1_wb_rf_wnum, debug1_wb_rf_wdata_v,
+                `CONFREG_OPEN_TRACE,debug0_wb_pc, debug0_wb_rf_wnum, debug0_wb_rf_wdata_v);
         end
         else if(|debug1_wb_rf_wen && debug1_wb_rf_wnum!=5'd0)
         begin
