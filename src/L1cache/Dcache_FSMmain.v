@@ -282,7 +282,7 @@ always @(*) begin
         Operation:begin
             dcache_pipeline_ready = 1;
             FSM_rbuf_we = 1;
-            if(!flush_outside)begin
+            // if(!flush_outside)begin
                 if(FSM_rbuf_opcode[4:3] == 2'd0)begin
                     FSM_TagV_init = {1'b1,FSM_rbuf_addr[0]};
                 end
@@ -294,7 +294,7 @@ always @(*) begin
                     if(hit0)FSM_TagV_unvalid = 2'b01;
                     else if(hit1)FSM_TagV_unvalid = 2'b10;
                 end    
-            end
+            // end
         end
         // Flush:begin
         //     dcache_pipeline_ready=1;
