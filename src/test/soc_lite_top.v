@@ -86,11 +86,13 @@ wire [31:0] debug0_wb_pc;
 wire [3 :0] debug0_wb_rf_wen;
 wire [4 :0] debug0_wb_rf_wnum;
 wire [31:0] debug0_wb_rf_wdata;
+wire        debug0_stall_exe1_wb;
 
 wire [31:0] debug1_wb_pc;
 wire [3 :0] debug1_wb_rf_wen;
 wire [4 :0] debug1_wb_rf_wnum;
 wire [31:0] debug1_wb_rf_wdata;
+wire        debug1_stall_exe1_wb;
 
 //clk and resetn
 wire cpu_clk;
@@ -327,10 +329,12 @@ mycpu_top u_cpu(
     .debug0_wb_rf_wen  (debug0_wb_rf_wen  ),
     .debug0_wb_rf_wnum (debug0_wb_rf_wnum ),
     .debug0_wb_rf_wdata(debug0_wb_rf_wdata),
+    .debug0_stall_exe1_wb(debug0_stall_exe1_wb),
     .debug1_wb_pc      (debug1_wb_pc      ),
-    .debug1_wb_rf_we   (debug1_wb_rf_wen  ),
+    .debug1_wb_rf_wen  (debug1_wb_rf_wen  ),
     .debug1_wb_rf_wnum (debug1_wb_rf_wnum ),
-    .debug1_wb_rf_wdata(debug1_wb_rf_wdata)
+    .debug1_wb_rf_wdata(debug1_wb_rf_wdata),
+    .debug1_stall_exe1_wb(debug1_stall_exe1_wb)
 );
 //cpu axi wrap
 axi_wrap u_cpu_axi_wrap(
