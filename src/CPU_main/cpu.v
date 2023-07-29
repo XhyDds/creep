@@ -1,7 +1,7 @@
-//`define predictor
-`define DMA
-module mycpu_top(
-//module core_top(
+`define predictor
+// `define DMA
+// module mycpu_top(
+module core_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -1516,7 +1516,7 @@ module mycpu_top(
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_valid  		( pipeline_dcache_valid  		),
+        .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp     ),
         .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
