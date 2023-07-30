@@ -109,7 +109,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
     reg [31:0] dout_reg;//reg run_reg;
-    reg exe_reg,inte_reg;
+    //reg exe_reg,inte_reg;
+    reg run_reg;
     reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
     reg [31:0] jumpc_reg;reg TCFG_change;reg nexcp_flush,nertn_flush;
@@ -185,7 +186,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
         outpc_reg<=0;dout_reg<=0;
-        exe_reg<=0;inte_reg<=0;
+        //exe_reg<=0;inte_reg<=0;
+        run_reg<=0;//?
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
         csr_num_reg<=0;inst_stop_reg<=0;jumpc_reg<=0;
@@ -196,7 +198,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
         outpc_reg<=outpc;dout_reg<=dout;
-        exe_reg<=exe;inte_reg<=inte;
+        //exe_reg<=exe;inte_reg<=inte;
+        run_reg<=(!stallin && !flushin && exe)||inte;
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
@@ -432,7 +435,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         TCFG_change<=0;
         excp_flush<=0;ertn_flush<=0;
-            if((!stallin && !flushin && exe_reg)||inte_reg)
+            if(run_reg)//?
                 begin
                 if(mode_reg==IDLE && !clk_stall)
                     begin
