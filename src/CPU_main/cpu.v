@@ -1039,7 +1039,7 @@ module core_top(
     )u_ex_buffer(
         .clk(clk),
         .rstn(rstn),
-        .flag(ctr_reg_exe0_0[31]&ctr_reg_exe0_1[31]),
+        .flag({ctr_reg_exe0_0[31],ctr_reg_exe0_1[31]}),
         .stall(stall_reg_exe0_0|(~ctr_reg_exe0_0[31]&~ctr_reg_exe0_1[31])),
 
         .in_taken_pdc_0(pre_reg_exe0_0[33]),

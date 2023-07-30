@@ -5,7 +5,7 @@ module ex_buffer#(
 )(
     input clk,
     input rstn,
-    input flag, //0:一条指令输入  1:两条指令输入
+    input [1:0]flag, //0:一条指令输入  1:两条指令输入
     input stall,
     // input  [DATA_WIDTH-1:0] in_data_0,
     input        in_taken_pdc_0,   //上路
@@ -122,12 +122,12 @@ module ex_buffer#(
 
         pointer_plus=0;
         if(stall) ;
-            else if(~flag) begin//默认不会满
-                pointer_plus=2'd1;
-            end
-            else begin
-                pointer_plus=2'd2;
-            end
+        else if(flag!=2'b11) begin//默认不会满
+            pointer_plus=2'd1;
+        end
+        else begin
+            pointer_plus=2'd2;
+        end
     end
 
     always @(posedge clk) begin
@@ -157,9 +157,16 @@ module ex_buffer#(
         else begin
             //buffer_data
             if(stall) ;
-            else if(flag) begin//默认不会满
+            else if(flag==2'b01) begin//默认不会满
                 buffer_data[0]<=0;
                 buffer_data[1]<=in_data_1;
+                buffer_data[2]<=buffer_data[1];
+                buffer_data[3]<=buffer_data[2];
+                buffer_data[4]<=buffer_data[3];
+            end
+            else if(flag==2'b10) begin//默认不会满
+                buffer_data[0]<=0;
+                buffer_data[1]<=in_data_0;
                 buffer_data[2]<=buffer_data[1];
                 buffer_data[3]<=buffer_data[2];
                 buffer_data[4]<=buffer_data[3];
