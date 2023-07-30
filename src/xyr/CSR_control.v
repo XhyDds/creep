@@ -115,7 +115,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg [31:0] jumpc_reg;reg TCFG_change;reg nexcp_flush,nertn_flush;
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
-    assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
+    //assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
+    assign CSR_pipeline_flush=flushout_reg;
     assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||excp_arg1[15]||pipeline_CSR_type==LLSCW;
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall|nclk_stall;
