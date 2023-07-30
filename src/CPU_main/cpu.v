@@ -144,9 +144,9 @@ module core_top(
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr_exe0_exe1_0,ifbr_exe0_exe1_1;
 
-    assign flushup =            flush_pre_exe0_exe1_1&ctr_exe0_exe1_0[31];
-    assign flushdown =          flush_pre_exe0_exe1_1&~ctr_exe0_exe1_0[31]|flush_pre_exe0_exe1_0;
-    assign ifbr_exe0_exe1_0 =   ifbr_exe0_exe1_0_&~stall_exe0_exe1_0;
+    assign flushup =            (flush_pre_exe0_exe1_1&ctr_exe0_exe1_0[31])&~stall_exe1_wb_0;
+    assign flushdown =          (flush_pre_exe0_exe1_1&~ctr_exe0_exe1_0[31]|flush_pre_exe0_exe1_0)&~stall_exe0_exe1_1;
+    assign ifbr_exe0_exe1_0 =   ifbr_exe0_exe1_0_&~stall_exe0_exe1_0&~flushup;
     assign ifbr_exe0_exe1_1 =   ifbr_exe0_exe1_1_&~stall_exe0_exe1_1;
     // assign ifbr0 =              ~flushup&ifbr0_;
     assign flush_if0_if1 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -1117,8 +1117,8 @@ module core_top(
             PLV_if0_if1<=PLV;
             MMU_pipeline_excp_arg0_if0_if1<=MMU_pipeline_excp_arg0;
             //pre
-            pre_if0_if1<={26'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //37 36:35 34 33 32:30 29:0
+            pre_if0_if1<={25'b0,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //38 37 36:35 34 33 32:30 29:0
         end
     end
 
