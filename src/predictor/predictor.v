@@ -4,23 +4,26 @@ module predictor #(
                 h_width   = 14,
                 stack_len = 16,
                 queue_len = 16,
-                ADDR_WIDTH = 30
+                ADDR_WIDTH= 30
 )(
     input clk,
     input rstn,
     input update_en,
+    input stall,
     //来自ex段
     input [ADDR_WIDTH-1:0]pc_ex,
     input [2:0]mis_pdc,         //2:npc 1:kind 0:taken
     input [ADDR_WIDTH-1:0]npc_ex,
     input [2:0]kind_ex,
     input taken_real,
+    input [h_width-1:0] bh_ex,
     input [1:0]choice_real,     //1:btb/ras  0:g/h
 
     //预测
     output [ADDR_WIDTH-1:0]npc_pdc,
     output [2:0]kind_pdc,
     output taken_pdc,
+    output [h_width-1:0] bh_pdc,
     output [1:0]choice_pdc,     //1:btb/ras  0:g/h
     //当前
     input [ADDR_WIDTH-1:0]pc,
@@ -50,7 +53,6 @@ module predictor #(
     wire [h_width-1:0] gh;
     wire [h_width-1:0] bh;
     wire [h_width-1:0] gh_ex;
-    wire [h_width-1:0] bh_ex;
 
     single_hash#(
         .DATA_width(ADDR_WIDTH),
@@ -173,7 +175,9 @@ module predictor #(
     u_ghr(
         .clk(clk),
         .rstn(rstn),
+        .stall(stall),
         .gh(gh),
+        .gh_ex(gh_ex),
         .taken_pdc(taken_pdc),
         .mis_pdc(mis_pdc_taken),
         .is_jump_pdc(kind_pdc!=NOT_JUMP),
