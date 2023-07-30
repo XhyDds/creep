@@ -254,7 +254,7 @@ always @(*) begin
     end
 end
 //Mem
-assign addr_l2cache_mem_r = {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
+assign addr_l2cache_mem_r = rbuf_SUC ? rbuf_addr : {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
 assign addr_l2cache_mem_w = rbuf_SUC ? rbuf_addr : {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
 assign dout_l2cache_mem = rbuf_SUC ? rbuf_data : line;//
 assign l2cache_mem_SUC = rbuf_SUC;

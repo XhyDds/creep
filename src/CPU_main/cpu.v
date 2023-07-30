@@ -1,7 +1,7 @@
-`define predictor
+//`define predictor
 //`define DMA
-module mycpu_top(
-// module core_top(
+// module mycpu_top(
+module core_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -637,17 +637,6 @@ module mycpu_top(
         .divider_pipeline_dout    		( divresult1    		)
     );
 
-    // ibar u_ibar0(
-    //     //ports
-    //     .ctr        	( ctr_reg_exe0_0        		),
-    //     .ifibar 		( ifibar0 		)
-    // );
-
-    // ibar u_ibar1(
-    //     //ports
-    //     .ctr        	( ctr_reg_exe0_1_excp        		),
-    //     .ifibar 		( ifibar1 		)
-    // );
 `ifdef predictor
     wire [31:0]	pc_br0;
     wire ifbr_0;
