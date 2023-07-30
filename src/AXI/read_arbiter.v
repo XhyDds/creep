@@ -12,11 +12,13 @@ module read_arbiter#(
     input       l2cache_mem_rdy,
     output reg  mem_l2cache_dataOK,
     output reg  [(1<<offset_width)*32-1:0]din_mem_l2cache,
+    input  [2:0]l2cache_mem_size,
     //writebuffer
     input       [(1<<offset_width)*32-1:0]query_data,
     input       query_ok,
     //returnbuffer
     output reg  [7:0]l2_rlen,
+    output reg  [2:0]l2_rsize,
     output reg  arbiter_mem_req,
     input       mem_arbiter_addrOK,
     input       mem_arbiter_dataOK,
@@ -41,7 +43,7 @@ module read_arbiter#(
             IDLE: begin
                 if(l2cache_mem_req_r) begin
                     if(dma_sign)
-                        nxt = RET_AR;
+                        nxt = WRT_AR;
                     else if(query_ok)
                         nxt = WRT_AR;
                     else
@@ -75,6 +77,9 @@ module read_arbiter#(
         mem_l2cache_addrOK_r=0;
         mem_l2cache_dataOK=0;
         l2_rlen=(1<<offset_width)-1;
+
+        if(dma_sign) l2_rsize=l2cache_mem_size;
+        else l2_rsize=3'd2;
 
         arbiter_mem_req=0;
         case (crt)
