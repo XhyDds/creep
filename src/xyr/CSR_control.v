@@ -190,7 +190,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         run_reg<=0;//?
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
-        csr_num_reg<=0;inst_stop_reg<=0;jumpc_reg<=0;
+        csr_num_reg<=0;inst_stop_reg<=0;
         clk_stall<=0;
         //excp_flush<=0;ertn_flush<=0;
         end
@@ -205,9 +205,14 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
         clk_stall<=nclk_stall;
         //excp_flush<=nexcp_flush;ertn_flush<=nertn_flush;
-        if(jumpc_valid)
-            jumpc_reg<=jumpc;
         end
+    end
+    always@(posedge(clk),negedge(rstn))
+    begin
+    if(!rstn)
+        jumpc_reg<=0;
+    else if(jumpc_valid)
+        jumpc_reg<=jumpc;
     end
     always@(posedge(clk))
     begin
