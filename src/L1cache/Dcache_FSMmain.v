@@ -34,6 +34,7 @@ module Dcache_FSMmain#(
     input       [3:0]pipeline_dcache_wstrb,
     input       [31:0]pipeline_dcache_opcode,//好像不需要 用rbuf的即可
     input       pipeline_dcache_opflag,
+    output reg  ack_op,
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
     output      dcache_pipeline_stall,//stall form dcache
 
@@ -244,6 +245,7 @@ always @(*) begin
     FSM_Data_replace = 0;
     FSM_choose_word = FSM_rbuf_addr[2+offset_width-1:2];
     FSM_TagV_init = 0;
+    ack_op = 0;
     case (state)
         Idle:begin
             dcache_pipeline_ready=1;
@@ -282,6 +284,7 @@ always @(*) begin
         Operation:begin
             dcache_pipeline_ready = 1;
             FSM_rbuf_we = 1;
+            ack_op = 1;
             // if(!flush_outside)begin
                 if(FSM_rbuf_opcode[4:3] == 2'd0)begin
                     FSM_TagV_init = {1'b1,FSM_rbuf_addr[0]};

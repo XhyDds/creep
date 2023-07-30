@@ -49,7 +49,8 @@ module Dcache#(
     
     input       [3:0]pipeline_dcache_wstrb,//字节处理位
     input       [31:0]pipeline_dcache_opcode,//cache操作
-    input       pipeline_dcache_opflag,//0-正常访存 1-cache操作    
+    input       pipeline_dcache_opflag,//0-正常访存 1-cache操作   
+    output      ack_op, 
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
     output      dcache_pipeline_stall,//stall form dcache     不知道可不可以用ready代替，先留着
 
@@ -250,6 +251,7 @@ Dcache_FSMmain1(
     .pipeline_dcache_wstrb(pipeline_dcache_wstrb),
     .pipeline_dcache_opcode(pipeline_dcache_opcode),
     .pipeline_dcache_opflag(pipeline_dcache_opflag),
+    .ack_op(ack_op),
     .pipeline_dcache_ctrl(pipeline_dcache_ctrl),
     .dcache_pipeline_stall(dcache_pipeline_stall),
 

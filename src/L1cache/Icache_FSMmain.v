@@ -33,6 +33,7 @@ module Icache_FSMmain#(
     output      icache_pipeline_ready1,
     input       [31:0]pipeline_icache_opcode,//好像不需要 用rbuf的即可
     input       pipeline_icache_opflag,
+    output reg  ack_op,
     input       [31:0]pipeline_icache_ctrl,//stall flush branch ...
     output      icache_pipeline_stall,//stall form icache
 
@@ -159,6 +160,7 @@ always @(*) begin
     FSM_TagV_init = 2'b0;
     FSM_TagV_ibar = 0;
     FSM_TagV_unvalid = 2'b0;
+    ack_op = 0;
     case (state)
         Idle:begin
             icache_pipeline_ready=1;
@@ -188,6 +190,7 @@ always @(*) begin
         Operation:begin//所有op一周期可以做完 流水
             icache_pipeline_ready=1;
             FSM_rbuf_we=1;
+            ack_op = 1;
             if(!flush_outside)begin
                 if(FSM_rbuf_opcode[31])FSM_TagV_ibar = 1;
                 else if(FSM_rbuf_opcode[4:3] == 2'd0)begin

@@ -45,6 +45,7 @@ module Icache#(
     
     input       [31:0]pipeline_icache_opcode,//cache操作
     input       pipeline_icache_opflag,//0-正常访存 1-cache操作    
+    output      ack_op,
     input       [31:0]pipeline_icache_ctrl,//stall flush branch ...
     output      icache_pipeline_stall,//stall form icache     不知道可不可以用ready代替，先留着
 
@@ -249,6 +250,7 @@ Icache_FSMmain(
     .icache_pipeline_ready1(icache_pipeline_ready),
     .pipeline_icache_opcode(pipeline_icache_opcode),
     .pipeline_icache_opflag(pipeline_icache_opflag),
+    .ack_op(ack_op),
     .pipeline_icache_ctrl(pipeline_icache_ctrl),
     .icache_pipeline_stall(icache_pipeline_stall),
 
