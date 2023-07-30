@@ -38,6 +38,10 @@ module l2_axi_interface#(
     output reg [2:0]    arsize,
     output [1:0]        arburst,
 
+    output   [ 3:0]     arid,
+    output   [ 1:0]     arlock,
+    output   [ 3:0]     arcache,
+    output   [ 2:0]     arprot,
     // R
     input [31:0]        rdata,
     input [1:0]         rresp,
@@ -47,12 +51,16 @@ module l2_axi_interface#(
 
     // AW
     output [31:0]       awaddr,
-    output           awvalid,    //aw: arbiter->axi
+    output              awvalid,    //aw: arbiter->axi
     input               awready,    //aw: axi->arbiter
     output [7:0]        awlen,
     output [2:0]        awsize,
     output [1:0]        awburst,
 
+    output   [ 3:0]     awid,
+    output   [ 1:0]     awlock,
+    output   [ 3:0]     awcache,
+    output   [ 2:0]     awprot,
     // W
     output [31:0]       wdata,
     output [3:0]        wstrb,
@@ -65,6 +73,17 @@ module l2_axi_interface#(
     input               bvalid,     //b: axi->arbiter
     output reg          bready      //b: arbiter->axi
 );
+    //信号位
+    assign arid=0;
+    assign arlock=0;
+    assign arcache=0;
+    assign arprot=0;
+
+    assign awid=1;
+    assign awlock=0;
+    assign awcache=0;
+    assign awprot=0;
+    
     wire [2:0]         l2_rsize;
     wire [2:0]         l2_wsize;
     assign  l2_rsize=3'd2;
