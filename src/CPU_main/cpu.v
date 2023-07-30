@@ -1609,16 +1609,16 @@ module core_top(
 
 
 //debug begin here 
-    assign debug0_wb_pc=pc_exe1_wb_0;
-    assign debug1_wb_pc=pc_exe1_wb_1;
-    assign debug0_wb_rf_wen=stall_exe1_wb_0?0:{4{ifwb0}};
-    assign debug1_wb_rf_wen=stall_exe1_wb_1?0:{4{ifwb1}};
-    assign debug0_wb_rf_wnum=wb_addr0;
-    assign debug1_wb_rf_wnum=wb_addr1;
-    assign debug0_wb_rf_wdata=wb_data0;
-    assign debug1_wb_rf_wdata=ctr_exe1_wb_1[5]?din_pipeline_dcache_exe1_wb:wb_data1;
-    assign debug0_wb_inst=ir_exe1_wb_0;
-    assign debug1_wb_inst=ir_exe1_wb_1;
+    assign debug0_wb_pc=(ws_valid1)?pc_exe1_wb_0:pc_exe1_wb_1;
+    assign debug1_wb_pc=(ws_valid1)?pc_exe1_wb_1:pc_exe1_wb_0;
+    assign debug0_wb_rf_wen=(ws_valid1)?(stall_exe1_wb_0?0:{4{ifwb0}}):(stall_exe1_wb_1?0:{4{ifwb1}});
+    assign debug1_wb_rf_wen=(ws_valid1)?(stall_exe1_wb_1?0:{4{ifwb1}}):(stall_exe1_wb_0?0:{4{ifwb0}});
+    assign debug0_wb_rf_wnum=(ws_valid1)?wb_addr0:wb_addr1;
+    assign debug1_wb_rf_wnum=(ws_valid1)?wb_addr1:wb_addr0;
+    assign debug0_wb_rf_wdata=(ws_valid1)?wb_data0:(ctr_exe1_wb_1[5]?din_pipeline_dcache_exe1_wb:wb_data1);
+    assign debug1_wb_rf_wdata=(ws_valid1)?(ctr_exe1_wb_1[5]?din_pipeline_dcache_exe1_wb:wb_data1):wb_data0;
+    assign debug0_wb_inst=(ws_valid1)?ir_exe1_wb_0:ir_exe1_wb_1;
+    assign debug1_wb_inst=(ws_valid1)?ir_exe1_wb_1:ir_exe1_wb_0;
     assign debug0_stall_exe1_wb=stall_exe1_wb_0;
     assign debug1_stall_exe1_wb=stall_exe1_wb_1;
     wire ws_valid0,ws_valid1;
@@ -1652,8 +1652,8 @@ module core_top(
     wire            ws_excp_flush       =   excp_flush;
     wire            ws_ertn_flush       =   ertn_flush;
     wire     [5:0]  ws_csr_ecode        =   csr_ecode;
-    wire            ws_valid_diff0      =   ws_valid0;
-    wire            ws_valid_diff1      =   ws_valid1;
+    wire            ws_valid_diff0      =   (ws_valid1)?ws_valid0:ws_valid1;
+    wire            ws_valid_diff1      =   (ws_valid1)?ws_valid1:ws_valid0;
     wire            cnt_inst_diff0      =   ctr_exe1_wb_0[23];
     wire            cnt_inst_diff1      =   ctr_exe1_wb_1[23];
     wire    [63:0]  ws_timer_64_diff    =   countresult_exe1_wb_1;
