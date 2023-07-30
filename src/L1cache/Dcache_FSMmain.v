@@ -70,8 +70,7 @@ module Dcache_FSMmain#(
 
     //数据选择
     output reg  FSM_choose_way,
-    output reg  FSM_choose_return,
-    output reg  [offset_width-1:0]FSM_choose_word
+    output reg  FSM_choose_return
     
     );
 // wire [index_width:0]useparam1 = pipeline_dcache_wstrb;
@@ -94,7 +93,7 @@ wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 // wire flush_outside = pipeline_dcache_ctrl[1];
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6,Miss_r_waitdata1=5'd7;
 // localparam Flush=5'd5,Hit_w1=5'd7;
 always @(posedge clk) begin
     if(!rstn)state<=0;
@@ -210,13 +209,14 @@ always @(*) begin
         end
         Miss_r_waitdata:begin
             if(!mem_dcache_dataOK)next_state=Miss_r_waitdata;
-            else begin
-                if(pipeline_dcache_valid)begin
-                    if(opflag)next_state=Operation;
-                    else next_state=Lookup;
-                end
-                else next_state=Idle;
+            else next_state = Miss_r_waitdata1;
+        end
+        Miss_r_waitdata1:begin
+            if(pipeline_dcache_valid)begin
+                if(opflag)next_state=Operation;
+                else next_state=Lookup;
             end
+            else next_state=Idle;
         end
         Miss_w:begin
             if(!mem_dcache_addrOK)next_state=Miss_w;
@@ -243,7 +243,6 @@ always @(*) begin
     FSM_choose_way = 0;
     FSM_choose_return = 0;
     FSM_Data_replace = 0;
-    FSM_choose_word = FSM_rbuf_addr[2+offset_width-1:2];
     FSM_TagV_init = 0;
     ack_op = 0;
     case (state)
@@ -326,7 +325,7 @@ always @(*) begin
                 FSM_Data_replace=1;
                 FSM_rbuf_we=1;
                 FSM_choose_return=1;
-                dcache_pipeline_ready=1;
+                // dcache_pipeline_ready=1;
                 if(!FSM_rbuf_SUC)begin//强序读不需要写入cache
                     if(FSM_wal_sel_lru==1'd0)begin
                         FSM_Data_we[0]=1;
@@ -338,6 +337,9 @@ always @(*) begin
                     end
                 end
             end
+        end
+        Miss_r_waitdata1:begin
+            dcache_pipeline_ready=1;
         end
         Miss_w:begin
             dcache_mem_wr=1;

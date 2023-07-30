@@ -199,16 +199,20 @@ Dcache_TagV(
 //data choose
 //不需要stall所以不需要锁存？？
 wire choose_way,choose_return;
-wire [offset_width-1:0]choose_word;
-reg [31:0]data_out;
+wire [offset_width-1:0]choose_word = rbuf_addr[2+offset_width-1:2];
+reg [31:0]data_out,data_out_reg;
+reg choose_return_reg;
 reg [32*(1<<offset_width)-1:0]data_line;
-assign dout_dcache_pipeline = data_out;
 always @(*) begin
     if (choose_return) data_line = din_mem_dcache;
     else begin
         if (!choose_way) data_line = data0;
         else data_line = data1;
     end
+end
+always @(posedge clk) begin
+    choose_return_reg <= choose_return;
+    data_out_reg <= data_out;
 end
 always @(*) begin
     if(rbuf_SUC)data_out = data_line[31:0];
@@ -222,6 +226,8 @@ always @(*) begin
         endcase
     end
 end
+
+assign dout_dcache_pipeline = choose_return_reg ? data_out_reg : data_out;
 
 //Mem
 wire [1+offset_width:0]temp;
@@ -286,8 +292,7 @@ Dcache_FSMmain1(
 
     //data choose
     .FSM_choose_way(choose_way),
-    .FSM_choose_return(choose_return),
-    .FSM_choose_word(choose_word)
+    .FSM_choose_return(choose_return)
 );
 endmodule
 //锁存出去的data，上一个周期有stall则发上一个周期锁存的data

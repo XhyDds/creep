@@ -8,7 +8,7 @@ module cache_opctr (
     output [31:0]opcode_i,opcode_d,opcode_l2,
     output op_i,op_d,op_l2
 );
-writefirst_reg #(
+cache_myreg #(
     .width(1)
 )
 op_im(
@@ -19,7 +19,7 @@ op_im(
     .out(op_i)
     );
 
-writefirst_reg #(
+cache_myreg #(
     .width(1)
 )
 op_dm(
@@ -30,7 +30,7 @@ op_dm(
     .out(op_d)
     );
 
-writefirst_reg #(
+cache_myreg #(
     .width(1)
 )
 op_l2m(
@@ -41,7 +41,7 @@ op_l2m(
     .out(op_l2)
     );
 
-writefirst_reg #(
+cache_myreg #(
     .width(32)
 )
 addr_im(
@@ -52,7 +52,7 @@ addr_im(
     .out(addr_i)
     );
 
-writefirst_reg #(
+cache_myreg #(
     .width(32)
 )
 addr_dm(
@@ -63,7 +63,7 @@ addr_dm(
     .out(addr_d)
     );
 
-writefirst_reg #(
+cache_myreg #(
     .width(32)
 )
 addr_l2m(
@@ -74,7 +74,7 @@ addr_l2m(
     .out(addr_l2)
     );
 
-writefirst_reg #(
+cache_myreg #(
     .width(32)
 )
 opcode_im(
@@ -85,7 +85,7 @@ opcode_im(
     .out(opcode_i)
     );
 
-writefirst_reg #(
+cache_myreg #(
     .width(32)
 )
 opcode_dm(
@@ -96,7 +96,7 @@ opcode_dm(
     .out(opcode_d)
     );
 
-writefirst_reg #(
+cache_myreg #(
     .width(32)
 )
 opcode_l2m(
