@@ -34,7 +34,7 @@ module L2cache_rbuf#(
     input [1:0]from,//0-No 1-I 2-Dr 3-Dw
     output reg[1:0]rbuf_from,
     input [1:0]size,
-    output reg rbuf_size,
+    output reg rbuf_size
     );
 // reg rbuf_SUC1;
 always @(posedge clk)begin
