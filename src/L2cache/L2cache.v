@@ -63,6 +63,8 @@ reg [1:0]from;//0-No 1-I 2-Dr 3-Dw
 reg l1cache_l2cache_SUC;
 always @(*) begin
     l1cache_l2cache_SUC = 0;
+    l1cache_l2cache_size = 2'd0;
+    from = 2'd0;
     if(dcache_l2cache_req)begin
         if(!dcache_l2cache_wr)from = 2'd2;
         else from = 2'd3;
@@ -74,7 +76,6 @@ always @(*) begin
         l1cache_l2cache_SUC = icache_l2cache_SUC;
         l1cache_l2cache_size = 2'd2;
     end
-    else from = 2'd0;
 end
 assign addr_l1cache_l2cache = from[1] ? addr_dcache_l2cache : addr_icache_l2cache;
 assign din_l1cache_l2cache = din_dcache_l2cache;
