@@ -106,7 +106,7 @@ module core_top(
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
     reg [15:0]excp_arg_reg_exe0_1,excp_arg_reg_exe0_1_excp,excp_arg_id_reg_1;
-    reg [15:0]MMU_pipeline_excp_arg0_if1_fifo;
+    reg [15:0]MMU_pipeline_excp_arg0_if1_fifo,MMU_pipeline_excp_arg0_if0_if1;
 
     reg [63:0]ir_if1_fifo;
 
@@ -136,15 +136,15 @@ module core_top(
     wire ifidle;
     wire [15:0]MMU_pipeline_excp_arg1;
 
-    wire ifbr0,ifbr1,ifcacop_ibar;
+    wire ifbr0,ifbr1,ifcacop_ibar,ifsuc;
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre0,flush_pre1;
 
-    assign flushup=flush_pre1&ctr_reg_exe0_0[31];
-    assign flushdown=flush_pre1&~ctr_reg_exe0_0[31]|flush_pre0;
+    assign flushup =            flush_pre1&ctr_reg_exe0_0[31];
+    assign flushdown =          flush_pre1&~ctr_reg_exe0_0[31]|flush_pre0;
     assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -1003,7 +1003,7 @@ module core_top(
     assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
     assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
 
-    wire [29:0]npc_test;//给ccr用的测试线，�??要左移两位使用，0,4交替
+    wire [29:0] npc_test;//给ccr用的测试线，�??要左移两位使用，0,4交替
 
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
@@ -1085,6 +1085,7 @@ module core_top(
 `endif
 
     //PC
+    wire ifsuc=~MMU_pipeline_memtype1[0];
     wire [31:0]npc_pdc_32={npc_pdc,2'b0};
     reg ifnpc_pdc;
     always @(*) begin
@@ -1093,6 +1094,7 @@ module core_top(
         else if(ifbr1) npc=pc_br1;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
         else if(ifbr0) npc=pc_br0;
+        else if(ifsuc) npc=pc+4;
         `ifdef predictor
         else begin npc=npc_pdc_32;ifnpc_pdc=1; end
         `endif
@@ -1112,14 +1114,16 @@ module core_top(
             pc_if0_if1<=0;
             PLV_if0_if1<=0;
             pre_if0_if1<=0;
+            MMU_pipeline_excp_arg0_if0_if1<=0;
         end
         else if(stall_if0_if1);
         else begin
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
+            MMU_pipeline_excp_arg0_if0_if1<=MMU_pipeline_excp_arg0;
             //pre
-            pre_if0_if1<={27'b0,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //36:35 34 33 32:30 29:0
+            pre_if0_if1<={26'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //37 36:35 34 33 32:30 29:0
         end
     end
 
@@ -1156,7 +1160,7 @@ module core_top(
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_ready;
             flag_if1_fifo<=flag_icache_pipeline;
-            MMU_pipeline_excp_arg0_if1_fifo<=MMU_pipeline_excp_arg0;
+            MMU_pipeline_excp_arg0_if1_fifo<=MMU_pipeline_excp_arg0_if0_if1;
             npc_if1_fifo<=pc;
         end
     end
