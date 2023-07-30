@@ -21,6 +21,7 @@ module L2cache#(
     input       [31:0]addr_icache_l2cache,
     output      [32*(1<<L1_offset_width)-1:0]dout_l2cache_icache,
     input       icache_l2cache_req,
+    input       icache_l2cache_flush,
     input       icache_l2cache_SUC,
     output      l2cache_icache_addrOK,
     output      l2cache_icache_dataOK,

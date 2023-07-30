@@ -34,6 +34,7 @@ module L2cache_FSMmain#(
     output reg  ack_op,
     output reg  l2cache_icache_addrOK,
     output reg  l2cache_icache_dataOK,
+    input       icache_l2cache_flush,
     output reg  l2cache_dcache_addrOK,
     output reg  l2cache_dcache_dataOK,
 
@@ -97,7 +98,8 @@ always @(*) begin
     next_state = 0; 
     case (state)
         Idle:begin
-            if(opflag)next_state = Operation;
+            if(icache_l2cache_flush && from == 2'b01)next_state = Idle;//刷icache的访问
+            else if(opflag)next_state = Operation;
             else if(from)next_state = Lookup;
             else next_state = Idle;
         end 

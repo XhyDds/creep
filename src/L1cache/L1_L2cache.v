@@ -248,6 +248,7 @@ L2cache(
     .dout_l2cache_icache(dout_l2cache_icache),
     .icache_l2cache_req(icache_l2cache_req),
     .icache_l2cache_SUC(icache_l2cache_SUC),
+    .icache_l2cache_flush(pipeline_icache_ctrl[1]),//pipeline给icache的flush
     .l2cache_icache_addrOK(l2cache_icache_addrOK),
     .l2cache_icache_dataOK(l2cache_icache_dataOK),
     

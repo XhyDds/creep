@@ -167,12 +167,13 @@ always @(*) begin
             FSM_rbuf_we=1;
         end
         Lookup:begin
+            if(Miss)icache_mem_req = 1;
             if(!flush_outside)begin
                 if(FSM_rbuf_SUC)begin
                     if(hit0)FSM_TagV_unvalid = 2'b01;
                     else if(hit1)FSM_TagV_unvalid = 2'b10;
                 end
-                if(Miss)icache_mem_req = 1;
+                // if(Miss)icache_mem_req = 1;
                 else begin
                     if(hit0)begin FSM_choose_way=0; FSM_use0=1; end
                     else if(hit1)begin FSM_choose_way=1; FSM_use1=1; end
