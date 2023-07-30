@@ -731,6 +731,7 @@ module core_top(
     wire    pipeline_dcache_opflag;
     wire    pipeline_icache_opflag;
     wire    pipeline_MMU_valid;
+    wire [1:0]pipeline_dcache_size;
 
     cache_ctr u_cache_ctr(
         //ports
@@ -746,6 +747,7 @@ module core_top(
         .pipeline_dcache_valid  		( pipeline_dcache_valid  		),
         .pipeline_MMU_valid             ( pipeline_MMU_valid            ),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
+        .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_cache_opcode 		    ( pipeline_cache_opcode 		),
         .ifcacop_ibar                   ( ifcacop_ibar                  ),
         .pipeline_l2cache_opflag        ( pipeline_l2cache_opflag       ),
@@ -1482,8 +1484,8 @@ module core_top(
     wire l2cache_mem_req_r   ;
     wire l2cache_mem_req_w   ;
     wire l2cache_mem_rdy     ;
-    // wire l2cache_mem_size    ;
     wire [3:0]l2cache_mem_wstrb   ;
+    wire [1:0]l2cache_mem_size    ;
     wire mem_l2cache_addrOK_r;
     wire mem_l2cache_addrOK_w;
     wire mem_l2cache_dataOK  ;
@@ -1525,6 +1527,7 @@ module core_top(
         .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp     ),
         .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
+        .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe0_exe1_1,stall_to_dcache}),
@@ -1547,6 +1550,7 @@ module core_top(
         .l2cache_mem_rdy                ( l2cache_mem_rdy      ),
         .l2cache_mem_SUC                ( l2cache_mem_SUC      ),
         .l2cache_mem_wstrb              ( l2cache_mem_wstrb    ),
+        .l2cache_mem_size               ( l2cache_mem_size     ),
         .mem_l2cache_addrOK_r           ( mem_l2cache_addrOK_r ),
         .mem_l2cache_addrOK_w           ( mem_l2cache_addrOK_w ),
         .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
@@ -1568,6 +1572,7 @@ module core_top(
         .l2cache_mem_req_w(l2cache_mem_req_w),
         .l2cache_mem_rdy(l2cache_mem_rdy),
         .l2cache_axi_wstrb(l2cache_mem_wstrb),
+        .l2cache_mem_size(l2cache_mem_size),
         .mem_l2cache_addrOK_r(mem_l2cache_addrOK_r),
         .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),
         .mem_l2cache_dataOK(mem_l2cache_dataOK),
