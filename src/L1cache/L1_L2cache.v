@@ -1,10 +1,10 @@
 // `define MMU
 module L1_L2cache#(
-    parameter   I_index_width=2,
-                D_index_width=2,
-                L2_index_width=2,
+    parameter   I_index_width=8,
+                D_index_width=8,
+                L2_index_width=7,
                 L1_offset_width=2,
-                L2_offset_width=2
+                L2_offset_width=3
 )
 (
     input       clk,rstn,
@@ -64,6 +64,40 @@ module L1_L2cache#(
     input       mem_l2cache_addrOK_w, 
     input       mem_l2cache_dataOK
      );
+wire op_i,ack_i;
+wire [31:0]addr_i,opcode_i;
+wire op_d,ack_d;
+wire [31:0]addr_d,opcode_d;
+wire op_l2,ack_l2;
+wire [31:0]addr_l2,opcode_l2;
+cache_opctr cache_opctr(
+    .clk(clk),
+
+    .opin_i(pipeline_icache_opflag),
+    .addrin_i(addr_pipeline_icache),
+    .opcodein_i(pipeline_icache_opcode),
+    .ack_i(ack_i),
+    .op_i(op_i),
+    .opcode_i(opcode_i),
+    .addr_i(addr_i),
+
+    .opin_d(pipeline_dcache_opflag),
+    .addrin_d(addr_pipeline_dcache),
+    .opcodein_d(pipeline_dcache_opcode),
+    .ack_d(ack_d),
+    .op_d(op_d),
+    .opcode_d(opcode_d),
+    .addr_d(addr_d),
+
+    .opin_l2(pipeline_l2cache_opflag),
+    .addrin_l2(addr_pipeline_l2cache),
+    .opcodein_l2(pipeline_l2cache_opcode),
+    .ack_l2(ack_l2),
+    .op_l2(op_l2),
+    .opcode_l2(opcode_l2),
+    .addr_l2(addr_l2)
+
+    );
 
 wire [31:0]addr_icache_mem;
 wire [32*(1<<L1_offset_width)-1:0]din_mem_icache;
@@ -81,7 +115,7 @@ Icache(
     .clk(clk),
     .rstn(rstn),
 
-    .addr_pipeline_icache(addr_pipeline_icache),
+    .addr_pipeline_icache(op_i ? addr_i : addr_pipeline_icache),
     .paddr_pipeline_icache(paddr_pipeline_icache),
     .dout_icache_pipeline(dout_icache_pipeline),
     .pc_icache_pipeline(pc_icache_pipeline),
@@ -91,8 +125,9 @@ Icache(
     .pipeline_icache_valid(pipeline_icache_valid),
     .icache_pipeline_ready(icache_pipeline_ready),
 
-    .pipeline_icache_opcode(pipeline_icache_opcode),
-    .pipeline_icache_opflag(pipeline_icache_opflag),
+    .pipeline_icache_opcode(opcode_i),
+    .pipeline_icache_opflag(op_i),
+    .ack_op(ack_i),
     .pipeline_icache_ctrl(pipeline_icache_ctrl),
     .icache_pipeline_stall(icache_pipeline_stall),
 
@@ -125,7 +160,7 @@ Dcache(
     .clk(clk),
     .rstn(rstn),
 
-    .addr_pipeline_dcache(addr_pipeline_dcache),
+    .addr_pipeline_dcache(op_d ? addr_d : addr_pipeline_dcache),
     .paddr_pipeline_dcache(paddr_pipeline_dcache),
     .din_pipeline_dcache(din_pipeline_dcache),
     .pcin_pipeline_dcache(pcin_pipeline_dcache),
@@ -137,8 +172,9 @@ Dcache(
     .dcache_pipeline_ready(dcache_pipeline_ready),
 
     .pipeline_dcache_wstrb(pipeline_dcache_wstrb),
-    .pipeline_dcache_opcode(pipeline_dcache_opcode),
-    .pipeline_dcache_opflag(pipeline_dcache_opflag),
+    .pipeline_dcache_opcode(opcode_d),
+    .pipeline_dcache_opflag(op_d),
+    .ack_op(ack_d),
     .pipeline_dcache_ctrl(pipeline_dcache_ctrl),
     .dcache_pipeline_stall(dcache_pipeline_stall),
 
@@ -203,9 +239,10 @@ L2cache(
     .clk(clk),
     .rstn(rstn),
 
-    .pipeline_l2cache_opflag(pipeline_l2cache_opflag),
-    .pipeline_l2cache_opcode(pipeline_l2cache_opcode),
-    .addr_pipeline_l2cache(addr_pipeline_l2cache),
+    .pipeline_l2cache_opflag(op_l2),
+    .pipeline_l2cache_opcode(opcode_l2),
+    .addr_pipeline_l2cache(addr_l2),
+    .ack_op(ack_l2),
 
     .addr_icache_l2cache(addr_icache_l2cache),
     .dout_l2cache_icache(dout_l2cache_icache),
