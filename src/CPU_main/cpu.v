@@ -85,8 +85,6 @@ module core_top(
     npc_if1_fifo,
     npc_id_reg_0,       npc_id_reg_1,
     npc_reg_exe0_0,     npc_reg_exe0_1,
-    result_exe0_exe1_0, result_exe0_exe1_1,
-    result_exe1_wb_0,   result_exe1_wb_1,
     rrk_reg_exe0_0,     rrj_reg_exe0_0,
     rrk_reg_exe0_1,     rrj_reg_exe0_1,
     rrd_reg_exe0_0,     rrd_reg_exe0_1,
@@ -101,6 +99,10 @@ module core_top(
     vaddr_exe1_wb,      paddr_exe1_wb,
     vaddr_exe0_exe1,    paddr_exe0_exe1,
     pc_br_exe0_exe1_0,  pc_br_exe0_exe1_1;
+
+    (* max_fanout = "3" *)reg [31:0]
+    result_exe0_exe1_0, result_exe0_exe1_1,
+    result_exe1_wb_0,   result_exe1_wb_1;
 
     reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,ifbr_exe0_exe1_0_,ifbr_exe0_exe1_1_,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0;
 
@@ -231,7 +233,7 @@ module core_top(
         .pc1            ( pc1           ),
         .valid0         ( ir_valid0     ),
         .valid1         ( ir_valid1     ),
-        .stall_fetch_buffer(stall_fetch_buffer),
+        .stall_fetch_buffer(stall_fetch_buffer ),
         .plv            ( PLV_if1_fifo  ),
         .plv0           ( PLV0          ),
         .plv1           ( PLV1          ),
@@ -817,7 +819,7 @@ module core_top(
         .pipeline_CSR_mask      		( rrj1_forward      		    ),
         .CSR_pipeline_dout      		( privresult      		        ),
 
-        .pipeline_CSR_jumpc_valid       ( ifbr_exe0_exe1_0|ifbr_exe0_exe1_1|ifpriv            ),
+        .pipeline_CSR_jumpc_valid       ( ifbr_exe0_exe1_0|ifbr_exe0_exe1_1|ifpriv ),
         .pipeline_CSR_jumpc             ( npc                           ),
         .pipeline_CSR_inpc_valid        ( ir_valid_reg_exe0_1           ),
         .pipeline_CSR_inpc0     		( pc_reg_exe0_1     		    ),

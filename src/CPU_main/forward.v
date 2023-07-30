@@ -25,7 +25,7 @@ module forward (
         rrd1=rrd_reg_exe0_1;
 
         if(|rj0) if(rd_exe0_exe1_0==rj0&ifw0_exe0_exe1) rrj0=result_exe0_exe1_0;
-        else if((rd_exe0_exe1_1==rj0)&ifw1_exe0_exe1) rrj0=result_exe0_exe1_1;
+        else if(rd_exe0_exe1_1==rj0&ifw1_exe0_exe1) rrj0=result_exe0_exe1_1;
         else if(rd_exe1_wb_0==rj0&ifw0_exe1_wb) rrj0=result_exe1_wb_0;
         else if(rd_exe1_wb_1==rj0&ifw1_exe1_wb) rrj0=result_exe1_wb_1;
 
