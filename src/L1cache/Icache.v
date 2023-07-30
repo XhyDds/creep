@@ -171,7 +171,7 @@ Icache_TagV(
 //data choose
 //需要stall所以需要锁存
 wire choose_way,choose_return;
-wire [offset_width-1:0]choose_word;
+wire [offset_width-1:0]choose_word = rbuf_addr[2+offset_width-1:2];
 reg [63:0]data_out;
 reg data_flag;
 reg [32*(1<<offset_width)-1:0]data_line;
@@ -185,25 +185,28 @@ always @(*) begin
     end
 end
 always @(*) begin
-    case (choose_word)
-        2'd0:begin
-            data_out = data_line[63:0];
-            data_flag=1;
-        end
-        2'd1:begin
-            data_out = {32'h1234ABCD,data_line[63:32]};
-            data_flag=0;
-        end
-        2'd2:begin
-            data_out = data_line[127:64];
-            data_flag=1;
-        end
-        2'd3:begin
-            data_out = {32'h1234ABCD,data_line[127:96]};
-            data_flag=0;
-        end
-        default: data_out = 64'h1234ABCD1234ABCD;
-    endcase
+    if(rbuf_SUC)data_out = data_line[63:0];
+    else begin
+        case (choose_word)
+            2'd0:begin
+                data_out = data_line[63:0];
+                data_flag=1;
+            end
+            2'd1:begin
+                data_out = {32'd0,data_line[63:32]};
+                data_flag=0;
+            end
+            2'd2:begin
+                data_out = data_line[127:64];
+                data_flag=1;
+            end
+            2'd3:begin
+                data_out = {32'd0,data_line[127:96]};
+                data_flag=0;
+            end
+            default: data_out = 32'd0;
+        endcase
+    end
 end
 //锁存
 reg choose_stall;
@@ -226,6 +229,7 @@ assign icache_mem_SUC = rbuf_SUC;
 // `else 
 assign addr_icache_mem = {rbuf_addr[31:2+offset_width],{(offset_width+2){1'b0}}};
 // `endif
+assign icache_mem_size = 2'd2;
 
 //FSM
 Icache_FSMmain #(
@@ -247,7 +251,6 @@ Icache_FSMmain(
 
     //icache  mem
     .icache_mem_req(icache_mem_req),
-    .icache_mem_size(icache_mem_size),
     .mem_icache_addrOK(mem_icache_addrOK),
     .mem_icache_dataOK(mem_icache_dataOK),
 
@@ -274,8 +277,7 @@ Icache_FSMmain(
     //data choose
     // .FSM_choose_stall(choose_stall),
     .FSM_choose_way(choose_way),
-    .FSM_choose_return(choose_return),
-    .FSM_choose_word(choose_word)
+    .FSM_choose_return(choose_return)
 );
 endmodule
 

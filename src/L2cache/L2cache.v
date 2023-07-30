@@ -32,6 +32,7 @@ module L2cache#(
     input       dcache_l2cache_SUC,
     input       dcache_l2cache_wr,  //0-read 1-write
     input       [3:0]dcache_l2cache_wstrb,
+    input       [1:0]dcache_l2cache_size,
     output      l2cache_dcache_addrOK,
     output      l2cache_dcache_dataOK,
 
@@ -45,6 +46,7 @@ module L2cache#(
     output      l2cache_mem_rdy,
     output      l2cache_mem_SUC,
     output      [3:0]l2cache_mem_wstrb,
+    output      [1:0]l2cache_mem_size,
     input       mem_l2cache_addrOK_r,
     input       mem_l2cache_addrOK_w, 
     input       mem_l2cache_dataOK
@@ -55,6 +57,7 @@ wire [31:0]addr_l1cache_l2cache;
 wire [31:0]din_l1cache_l2cache;
 reg [32*(1<<L1_offset_width)-1:0]dout_l2cache_l1cache;
 wire [3:0]l1cache_l2cache_wstrb;
+reg [1:0]l1cache_l2cache_size;
 reg [1:0]from;//0-No 1-I 2-Dr 3-Dw
 reg l1cache_l2cache_SUC;
 always @(*) begin
@@ -63,10 +66,12 @@ always @(*) begin
         if(!dcache_l2cache_wr)from = 2'd2;
         else from = 2'd3;
         l1cache_l2cache_SUC = dcache_l2cache_SUC;
+        l1cache_l2cache_size = dcache_l2cache_size;
     end
     else if(icache_l2cache_req)begin
         from = 2'd1;
         l1cache_l2cache_SUC = icache_l2cache_SUC;
+        l1cache_l2cache_size = 2'd2;
     end
     else from = 2'd0;
 end
@@ -87,6 +92,7 @@ assign tag = addr_l1cache_l2cache[31:offset_width+index_width+2];
 wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_opaddr;
 wire [3:0]rbuf_wstrb;
 wire [1:0]rbuf_from;
+wire [1:0]rbuf_size;
 wire rbuf_opflag,rbuf_we,rbuf_SUC;
 
 wire [offset_width-1:0]rbuf_offset;
@@ -119,14 +125,15 @@ L2cache_rbuf L2cache_rbuf(
     .wstrb(l1cache_l2cache_wstrb),
     .rbuf_wstrb(rbuf_wstrb),
 
+    .size(l1cache_l2cache_size),
+    .rbuf_size(rbuf_size),
+
     .SUC(l1cache_l2cache_SUC),
     .rbuf_SUC(rbuf_SUC),
 
     .opaddr(addr_pipeline_l2cache),
     .rbuf_opaddr(rbuf_opaddr)
 );
-
-assign l2cache_mem_wstrb = rbuf_wstrb;
 
 //PLRU
 wire [way-1:0]use1;
@@ -237,17 +244,22 @@ always @(*) begin
 end
 wire choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
 always @(*) begin
-    case (choose_word)
-        1'd0: dout_l2cache_l1cache = line[127:0];
-        1'd1: dout_l2cache_l1cache = line[255:128];
-        default: dout_l2cache_l1cache = line;
-    endcase
+    if(rbuf_SUC)dout_l2cache_l1cache = line[127:0];//TLB时还要注意
+    else begin
+        case (choose_word)
+            1'd0: dout_l2cache_l1cache = line[127:0];
+            1'd1: dout_l2cache_l1cache = line[255:128];
+            default: dout_l2cache_l1cache = line;
+        endcase
+    end
 end
 //Mem
 assign addr_l2cache_mem_r = {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
 assign addr_l2cache_mem_w = rbuf_SUC ? rbuf_addr : {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
 assign dout_l2cache_mem = rbuf_SUC ? rbuf_data : line;//
 assign l2cache_mem_SUC = rbuf_SUC;
+assign l2cache_mem_wstrb = rbuf_wstrb;
+assign l2cache_mem_size = rbuf_size;
 
 //FSM
 L2cache_FSMmain #(
