@@ -76,7 +76,8 @@ module read_arbiter#(
     always @(*) begin
         mem_l2cache_addrOK_r=0;
         mem_l2cache_dataOK=0;
-        l2_rlen=(1<<offset_width)-1;
+        if(dma_sign) l2_rlen=0;
+        else l2_rlen=(1<<offset_width)-1;
 
         if(dma_sign) l2_rsize=l2cache_mem_size;
         else l2_rsize=3'd2;

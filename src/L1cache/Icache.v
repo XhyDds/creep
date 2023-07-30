@@ -75,7 +75,7 @@ assign ptag = paddr_pipeline_icache[31:offset_width+index_width+2];
 
 //rquest buffer
 wire [31:0]rbuf_addr,rbuf_opcode,rbuf_paddr;
-wire rbuf_opflag,rbuf_we,rbuf_stall;
+wire rbuf_opflag,rbuf_we,rbuf_stall,rbuf_SUC;
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
 wire [32-offset_width-index_width-2-1:0]rbuf_tag;
@@ -185,7 +185,10 @@ always @(*) begin
     end
 end
 always @(*) begin
-    if(rbuf_SUC)data_out = data_line[63:0];
+    if(rbuf_SUC)begin
+        data_out = data_line[63:0];
+        data_flag=0;
+    end
     else begin
         case (choose_word)
             2'd0:begin
@@ -204,7 +207,7 @@ always @(*) begin
                 data_out = {32'd0,data_line[127:96]};
                 data_flag=0;
             end
-            default: data_out = 32'd0;
+            default: data_out = 0;
         endcase
     end
 end

@@ -107,7 +107,6 @@ module write_arbiter#(
             end
             DMA_R: begin
                 mem_l2cache_addrOK_w=l2_bvalid;
-
                 l2_wstrb=l2cache_axi_wstrb;
                 l2_len=8'd0;
                 l2_wsize=3'd1;

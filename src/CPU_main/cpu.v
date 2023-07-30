@@ -1087,7 +1087,7 @@ module core_top(
 `endif
 
     //PC
-    wire ifsuc=~MMU_pipeline_memtype1[0];
+    assign ifsuc=~MMU_pipeline_memtype1[0];
     wire [31:0]npc_pdc_32={npc_pdc,2'b0};
     reg ifnpc_pdc;
     always @(*) begin
