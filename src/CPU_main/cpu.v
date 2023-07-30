@@ -136,7 +136,7 @@ module core_top(
     wire ifidle;
     wire [15:0]MMU_pipeline_excp_arg1;
 
-    wire ifbr0,ifbr1,ifcacop_ibar,ifsuc;
+    wire ifbr0,ifbr0_,ifbr1,ifcacop_ibar,ifsuc;
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
@@ -145,6 +145,7 @@ module core_top(
 
     assign flushup =            flush_pre1&ctr_reg_exe0_0[31];
     assign flushdown =          flush_pre1&~ctr_reg_exe0_0[31]|flush_pre0;
+    assign ifbr0 =              ~flushup&ifbr0_;
     assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -649,7 +650,7 @@ module core_top(
         .npc            ( npc_reg_exe0_0    ),
         .imm      		( imm_reg_exe0_0    ),
         .zero     		( zero0     		),
-        .ifbr     		( ifbr0    		    ),
+        .ifbr     		( ifbr0_    	    ),
         .ifbr_          ( ifbr_0            ),
         .brresult 		( pc_br0 	        ),
         .brresult_      ( brresult_0        ),
@@ -689,7 +690,7 @@ module core_top(
         .pc       		( pc_reg_exe0_0     ),
         .imm      		( imm_reg_exe0_0    ),
         .zero     		( zero0     		),
-        .ifbr     		( ifbr0    		    ),
+        .ifbr     		( ifbr0_   		    ),
         .brresult 		( pc_br0 	        ),
         .rrj            ( rrj0_forward      ),
         .stall          ( stall_reg_exe0_0  )
