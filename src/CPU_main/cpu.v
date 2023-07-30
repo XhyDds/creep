@@ -144,10 +144,10 @@ module core_top(
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr_exe0_exe1_0,ifbr_exe0_exe1_1;
 
-    assign flushup =            (flush_pre_exe0_exe1_1&ctr_exe0_exe1_0[31])&~stall_exe1_wb_0;
-    assign flushdown =          (flush_pre_exe0_exe1_1&~ctr_exe0_exe1_0[31]|flush_pre_exe0_exe1_0)&~stall_exe0_exe1_1;
-    assign ifbr_exe0_exe1_0 =   ifbr_exe0_exe1_0_&~stall_exe0_exe1_0&~flushup;
-    assign ifbr_exe0_exe1_1 =   ifbr_exe0_exe1_1_&~stall_exe0_exe1_1;
+    assign flushup =            (flush_pre_exe0_exe1_1&ctr_exe0_exe1_0[31])/*&~stall_exe1_wb_0*/;
+    assign flushdown =          (flush_pre_exe0_exe1_1&~ctr_exe0_exe1_0[31]|flush_pre_exe0_exe1_0)/*&~stall_exe0_exe1_1*/;
+    assign ifbr_exe0_exe1_0 =   ifbr_exe0_exe1_0_/*&~stall_exe0_exe1_0*/&~flushup;
+    assign ifbr_exe0_exe1_1 =   ifbr_exe0_exe1_1_/*&~stall_exe0_exe1_1*/;
     // assign ifbr0 =              ~flushup&ifbr0_;
     assign flush_if0_if1 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_if1_fifo =     ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -804,9 +804,9 @@ module core_top(
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        // .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
+        .pipeline_CSR_flush     		( flush_reg_exe0_1     		),
         .pipeline_CSR_flush             ( 0                             ),
-        // .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
+        .pipeline_CSR_stall     		( stall_reg_exe0_1     		),
         .pipeline_CSR_stall     		( 0                      		),
         .CSR_pipeline_clk_stall     	( ifidle               ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
@@ -1104,8 +1104,15 @@ module core_top(
         else if(!stall_pc|ifbr_exe0_exe1_0|ifbr_exe0_exe1_1|ifpriv|ifcacop_ibar) pc<=npc;
     end
 
+    //IF0-IF1
     always @(posedge clk) begin
-        if(!rstn|flush_if0_if1) begin
+        if(!rstn) begin
+            pc_if0_if1<=0;
+            PLV_if0_if1<=0;
+            pre_if0_if1<=0;
+            MMU_pipeline_excp_arg0_if0_if1<=0;
+        end
+        else if(flush_if0_if1) begin
             pc_if0_if1<=0;
             PLV_if0_if1<=0;
             pre_if0_if1<=0;
@@ -1137,7 +1144,17 @@ module core_top(
     assign ifflush_if1_fifo=flush_if0_if1|fflush_if0_if1;
 
     always @(posedge clk) begin
-        if(!rstn|flush_if1_fifo|ifflush_if1_fifo) begin
+        if(!rstn) begin
+            pc_if1_fifo<=0;
+            ir_if1_fifo<=0;
+            icache_valid_if1_fifo<=0;
+            flag_if1_fifo<=0;
+            PLV_if1_fifo<=0;
+            pre_if1_fifo<=0;
+            npc_if1_fifo<=0;
+            MMU_pipeline_excp_arg0_if1_fifo<=0;
+        end
+        else if(flush_if1_fifo|ifflush_if1_fifo) begin
             pc_if1_fifo<=0;
             ir_if1_fifo<=0;
             icache_valid_if1_fifo<=0;
@@ -1165,7 +1182,7 @@ module core_top(
 
     //ID-REG
     always @(posedge clk) begin
-        if(!rstn|flush_id_reg0) begin
+        if(!rstn) begin
             ctr_id_reg_0 <= 0;
             imm_id_reg_0<=0;
             rk_id_reg_0<=0;
@@ -1178,6 +1195,18 @@ module core_top(
             npc_id_reg_0<=0;
         end
         else if(stall_id_reg0);
+        else if(flush_id_reg0) begin
+            ctr_id_reg_0 <= 0;
+            imm_id_reg_0<=0;
+            rk_id_reg_0<=0;
+            rj_id_reg_0<=0;
+            rd_id_reg_0<=0;
+            pc_id_reg_0<=0;
+            ir_id_reg_0<=0;
+            ir_valid_id_reg_0<=0;
+            pre_id_reg_0<=0;
+            npc_id_reg_0<=0;
+        end
         else begin
             ctr_id_reg_0 <= control00;
             imm_id_reg_0<=imm00;
@@ -1193,7 +1222,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn|flush_id_reg1) begin
+        if(!rstn) begin
             ctr_id_reg_1 <= 0;
             excp_arg_id_reg_1<=0;
             imm_id_reg_1<=0;
@@ -1207,6 +1236,19 @@ module core_top(
             npc_id_reg_1<=0;
         end
         else if(stall_id_reg1);
+        else if(flush_id_reg1) begin
+            ctr_id_reg_1 <= 0;
+            excp_arg_id_reg_1<=0;
+            imm_id_reg_1<=0;
+            rk_id_reg_1<=0;
+            rj_id_reg_1<=0;
+            rd_id_reg_1<=0;
+            pc_id_reg_1<=0;
+            ir_id_reg_1<=0;
+            ir_valid_id_reg_1<=0;
+            pre_id_reg_1<=0;
+            npc_id_reg_1<=0;
+        end
         else begin
             ctr_id_reg_1 <= control11;
             excp_arg_id_reg_1<=excp_arg11;
@@ -1224,7 +1266,7 @@ module core_top(
 
     //REG-EXE0
     always @(posedge clk) begin
-        if(!rstn|flush_reg_exe0_0) begin
+        if(!rstn) begin
             ctr_reg_exe0_0          <= 0;
             imm_reg_exe0_0          <=0;
             rk_reg_exe0_0           <=0;
@@ -1240,6 +1282,21 @@ module core_top(
             npc_reg_exe0_0          <=0;
         end
         else if(stall_reg_exe0_0);
+        else if(flush_reg_exe0_0) begin
+            ctr_reg_exe0_0          <= 0;
+            imm_reg_exe0_0          <=0;
+            rk_reg_exe0_0           <=0;
+            rj_reg_exe0_0           <=0;
+            rd_reg_exe0_0           <=0;
+            rrk_reg_exe0_0          <=0;
+            rrj_reg_exe0_0          <=0;
+            rrd_reg_exe0_0          <=0;
+            pc_reg_exe0_0           <=0;
+            ir_reg_exe0_0           <=0;
+            ir_valid_reg_exe0_0     <=0;
+            pre_reg_exe0_0          <=0;
+            npc_reg_exe0_0          <=0;
+        end
         else begin
             ctr_reg_exe0_0         <= ctr_id_reg_0;
             imm_reg_exe0_0         <=imm_id_reg_0;
@@ -1257,10 +1314,9 @@ module core_top(
         end
     end
     
-    reg [31:0]  ctr_reg_exe0_1_;
     always @(posedge clk) begin
-        if(!rstn|flush_reg_exe0_1) begin
-            ctr_reg_exe0_1_<= 0;
+        if(!rstn) begin
+            ctr_reg_exe0_1<= 0;
             excp_arg_reg_exe0_1<=0;
             imm_reg_exe0_1<=0;
             rk_reg_exe0_1<=0;
@@ -1276,8 +1332,24 @@ module core_top(
             npc_reg_exe0_1<=0;
         end
         else if(stall_reg_exe0_1);
+        else if(flush_reg_exe0_1) begin
+            ctr_reg_exe0_1<= 0;
+            excp_arg_reg_exe0_1<=0;
+            imm_reg_exe0_1<=0;
+            rk_reg_exe0_1<=0;
+            rj_reg_exe0_1<=0;
+            rd_reg_exe0_1<=0;
+            rrk_reg_exe0_1<=0;
+            rrj_reg_exe0_1<=0;
+            rrd_reg_exe0_1<=0;
+            pc_reg_exe0_1<=0;
+            ir_reg_exe0_1<=0;
+            ir_valid_reg_exe0_1<=0;
+            pre_reg_exe0_1<=0;
+            npc_reg_exe0_1<=0;
+        end
         else begin
-            ctr_reg_exe0_1_<= ctr_id_reg_1;
+            ctr_reg_exe0_1<= ctr_id_reg_1;
             excp_arg_reg_exe0_1<=excp_arg_id_reg_1;
             imm_reg_exe0_1<=imm_id_reg_1;
             rrk_reg_exe0_1<=rrk1_rf;
@@ -1293,9 +1365,7 @@ module core_top(
             npc_reg_exe0_1<=npc_id_reg_1;
         end
     end
-    always @(*) begin
-        ctr_reg_exe0_1 = stall_reg_exe0_1|flush_reg_exe0_1 ? 32'b0 : ctr_reg_exe0_1_;
-    end
+
 
     //EXE0-EXE1
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
@@ -1333,7 +1403,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn|flush_exe0_exe1_0) begin
+        if(!rstn) begin
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
             result_exe0_exe1_0 <= 0;
@@ -1346,6 +1416,18 @@ module core_top(
             flush_pre_exe0_exe1_0<=0;
         end
         else if(stall_exe0_exe1_0);
+        else if(flush_exe0_exe1_0) begin
+            ctr_exe0_exe1_0 <= 0;
+            rd_exe0_exe1_0 <= 0;
+            result_exe0_exe1_0 <= 0;
+            pc_exe0_exe1_0<=0;
+            ir_exe0_exe1_0<=0;
+            ir_valid_exe0_exe1_0<=0;
+            countresult_exe0_exe1_0<=0;
+            pc_br_exe0_exe1_0<=0;
+            ifbr_exe0_exe1_0_<=0;
+            flush_pre_exe0_exe1_0<=0;
+        end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
             rd_exe0_exe1_0 <= rd_reg_exe0_0;
@@ -1361,7 +1443,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn|flush_exe0_exe1_1) begin
+        if(!rstn) begin
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
             result_exe0_exe1_1<=0;
@@ -1378,6 +1460,22 @@ module core_top(
             flush_pre_exe0_exe1_1<=0;
         end
         else if(stall_exe0_exe1_1);
+        else if(flush_exe0_exe1_1) begin
+            ctr_exe0_exe1_1 <= 0;
+            rd_exe0_exe1_1<=0;
+            result_exe0_exe1_1<=0;
+            pc_exe0_exe1_1<=0;
+            ir_exe0_exe1_1<=0;
+            addr_pipeline_dcache_exe0_exe1<=0;
+            paddr_exe0_exe1<=0;
+            din_pipeline_dcache_exe0_exe1<=0;
+            ir_valid_exe0_exe1_1<=0;
+            countresult_exe0_exe1_1<=0;
+            rand_index_exe0_exe1<=0;
+            pc_br_exe0_exe1_1<=0;
+            ifbr_exe0_exe1_1_<=0;
+            flush_pre_exe0_exe1_1<=0;
+        end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
@@ -1433,6 +1531,15 @@ module core_top(
             countresult_exe1_wb_0<=0;
         end
         else if(stall_exe1_wb_0);
+        else if(flush_exe1_wb_0) begin
+            ctr_exe1_wb_0 <= 0;
+            rd_exe1_wb_0<=0;
+            result_exe1_wb_0<=0;
+            pc_exe1_wb_0<=0;
+            ir_exe1_wb_0<=0;
+            ir_valid_exe1_wb_0<=0;
+            countresult_exe1_wb_0<=0;
+        end
         else begin
             ctr_exe1_wb_0 <= ctr_exe0_exe1_0;
             rd_exe1_wb_0<=rd_exe0_exe1_0;
@@ -1445,7 +1552,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn|flush_exe1_wb_1) begin
+        if(!rstn) begin
             ctr_exe1_wb_1 <= 0;
             rd_exe1_wb_1<=0;
             result_exe1_wb_1<=0;
@@ -1460,6 +1567,20 @@ module core_top(
             din_pipeline_dcache_exe1_wb<=0;
         end
         else if(stall_exe1_wb_1);
+        else if(flush_exe1_wb_1) begin
+            ctr_exe1_wb_1 <= 0;
+            rd_exe1_wb_1<=0;
+            result_exe1_wb_1<=0;
+            pc_exe1_wb_1<=0;
+            ir_exe1_wb_1<=0;
+            vaddr_exe1_wb<=0;
+            paddr_exe1_wb<=0;
+            ir_valid_exe1_wb_1<=0;
+            countresult_exe1_wb_1<=0;
+            rand_index_exe1_wb<=0;
+            LLbit_exe0_exe1<=0;
+            din_pipeline_dcache_exe1_wb<=0;
+        end
         else begin
             ctr_exe1_wb_1 <= ctr_exe0_exe1_1;
             rd_exe1_wb_1<=rd_exe0_exe1_1;
@@ -1529,7 +1650,7 @@ module core_top(
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp     ),
+        .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp&~flush_reg_exe0_1&~stall_reg_exe0_1     ),
         .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_size           ( pipeline_dcache_size          ),
