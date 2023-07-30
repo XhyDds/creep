@@ -206,6 +206,11 @@ module fetch_buffer_v2 (
                             pre_and_valid_and_plv[12]<=pre_and_valid_and_plv[13];
                             buffer_excp_arg[12]<=buffer_excp_arg[13];
                             buffer_npc[12]<=buffer_npc[13];
+                            buffer[13]<=buffer[14];
+                            bufferpc[13]<=bufferpc[14];
+                            pre_and_valid_and_plv[13]<=pre_and_valid_and_plv[14];
+                            buffer_excp_arg[13]<=buffer_excp_arg[14];
+                            buffer_npc[13]<=buffer_npc[14];
                             buffer[14]<=ir[0];
                             bufferpc[14]<=pc;
                             pre_and_valid_and_plv[14]<={pre,1'b1,plv};
