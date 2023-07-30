@@ -99,9 +99,10 @@ module core_top(
     addr_pipeline_dcache_exe0_exe1,
     din_pipeline_dcache_exe0_exe1,          din_pipeline_dcache_exe1_wb,
     vaddr_exe1_wb,      paddr_exe1_wb,
-    vaddr_exe0_exe1,    paddr_exe0_exe1;
+    vaddr_exe0_exe1,    paddr_exe0_exe1,
+    pc_br_exe0_exe1_0,  pc_br_exe0_exe1_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,ifbr_exe0_exe1_0_,ifbr_exe0_exe1_1_,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0;
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -136,26 +137,28 @@ module core_top(
     wire ifidle;
     wire [15:0]MMU_pipeline_excp_arg1;
 
-    wire ifbr0,ifbr0_,ifbr1,ifcacop_ibar,ifsuc;
+    wire ifbr0,ifbr1,ifcacop_ibar,ifsuc;
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
-    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre0,flush_pre1;
+    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr_exe0_exe1_0,ifbr_exe0_exe1_1;
 
-    assign flushup =            flush_pre1&ctr_reg_exe0_0[31];
-    assign flushdown =          flush_pre1&~ctr_reg_exe0_0[31]|flush_pre0;
-    assign ifbr0 =              ~flushup&ifbr0_;
-    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_reg_exe0_1 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdown;
-    assign flush_exe0_exe1_0 =  ifpriv|ifbr1|ifcacop_ibar|ifmmu_excp|ifidle|flushup;
-    assign flush_exe0_exe1_1 =  ifmmu_excp|excp_flush;
-    assign flush_exe1_wb_0 =    ifmmu_excp|excp_flush;
+    assign flushup =            flush_pre_exe0_exe1_1&ctr_exe0_exe1_0[31];
+    assign flushdown =          flush_pre_exe0_exe1_1&~ctr_exe0_exe1_0[31]|flush_pre_exe0_exe1_0;
+    assign ifbr_exe0_exe1_0 =   ifbr_exe0_exe1_0_&~stall_exe0_exe1_0;
+    assign ifbr_exe0_exe1_1 =   ifbr_exe0_exe1_1_&~stall_exe0_exe1_1;
+    // assign ifbr0 =              ~flushup&ifbr0_;
+    assign flush_if0_if1 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_if1_fifo =     ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_fifo_id =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_id_reg0 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_id_reg1 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_reg_exe0_0 =   ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_reg_exe0_1 =   ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_exe0_exe1_0 =  ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_exe0_exe1_1 =  ifpriv|ifmmu_excp|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|excp_flush|flushdown;
+    assign flush_exe1_wb_0 =    ifpriv|ifmmu_excp|ifbr_exe0_exe1_1|excp_flush|flushup;
     assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush;
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
@@ -404,38 +407,38 @@ module core_top(
         .rf_rdata       ( rf_rdata     		),
         .reg_num        ( reg_num     		),
         .infor_flag     ( infor_flag     		),
-        .reg0          (regs[0]    ),
-        .reg1           (regs[1]    ),
-        .reg2           (regs[2]    ),
-        .reg3           (regs[3]    ),
-        .reg4           (regs[4]    ),
-        .reg5           (regs[5]    ),
-        .reg6           (regs[6]    ),
-        .reg7           (regs[7]    ),
-        .reg8           (regs[8]    ),
-        .reg9           (regs[9]    ),
-        .reg10          (regs[10]   ),
-        .reg11          (regs[11]   ),
-        .reg12          (regs[12]   ),
-        .reg13          (regs[13]   ),
-        .reg14          (regs[14]   ),
-        .reg15          (regs[15]   ),
-        .reg16          (regs[16]   ),
-        .reg17          (regs[17]   ),
-        .reg18          (regs[18]   ),
-        .reg19          (regs[19]   ),
-        .reg20          (regs[20]   ),
-        .reg21          (regs[21]   ),
-        .reg22          (regs[22]   ),
-        .reg23          (regs[23]   ),
-        .reg24          (regs[24]   ),
-        .reg25          (regs[25]   ),
-        .reg26          (regs[26]   ),
-        .reg27          (regs[27]   ),
-        .reg28          (regs[28]   ),
-        .reg29          (regs[29]   ),
-        .reg30          (regs[30]   ),
-        .reg31          (regs[31]   )
+        .reg0           ( regs[0]           ),
+        .reg1           ( regs[1]           ),
+        .reg2           ( regs[2]           ),
+        .reg3           ( regs[3]           ),
+        .reg4           ( regs[4]           ),
+        .reg5           ( regs[5]           ),
+        .reg6           ( regs[6]           ),
+        .reg7           ( regs[7]           ),
+        .reg8           ( regs[8]           ),
+        .reg9           ( regs[9]           ),
+        .reg10          ( regs[10]          ),
+        .reg11          ( regs[11]          ),
+        .reg12          ( regs[12]          ),
+        .reg13          ( regs[13]          ),
+        .reg14          ( regs[14]          ),
+        .reg15          ( regs[15]          ),
+        .reg16          ( regs[16]          ),
+        .reg17          ( regs[17]          ),
+        .reg18          ( regs[18]          ),
+        .reg19          ( regs[19]          ),
+        .reg20          ( regs[20]          ),
+        .reg21          ( regs[21]          ),
+        .reg22          ( regs[22]          ),
+        .reg23          ( regs[23]          ),
+        .reg24          ( regs[24]          ),
+        .reg25          ( regs[25]          ),
+        .reg26          ( regs[26]          ),
+        .reg27          ( regs[27]          ),
+        .reg28          ( regs[28]          ),
+        .reg29          ( regs[29]          ),
+        .reg30          ( regs[30]          ),
+        .reg31          ( regs[31]          )
     );
 
     wire [31:0]	rrj0_forward;
@@ -640,7 +643,7 @@ module core_top(
 
 `ifdef predictor
     wire [31:0]	pc_br0;
-    wire ifbr_0;
+    wire ifbr__0;
     wire [31:0] brresult_0;
 
     br_pre u_br0(
@@ -650,18 +653,18 @@ module core_top(
         .npc            ( npc_reg_exe0_0    ),
         .imm      		( imm_reg_exe0_0    ),
         .zero     		( zero0     		),
-        .ifbr     		( ifbr0_    	    ),
-        .ifbr_          ( ifbr_0            ),
-        .brresult 		( pc_br0 	        ),
-        .brresult_      ( brresult_0        ),
+        .ifbr     		( ifbr0     	    ),
+        .ifbr_          ( ifbr__0            ),
+        .pc_br   		( pc_br0 	        ),
+        .brresult       ( brresult_0        ),
         .rrj            ( rrj0_forward      ),
         .pre            ( pre_reg_exe0_0    ),
-        .flush_pre      ( flush_pre0        ),
+        .flush_pre      ( flush_pre_0        ),
         .stall          ( stall_reg_exe0_0  )
     );
 
     wire [31:0]	pc_br1;
-    wire ifbr_1;
+    wire ifbr__1;
     wire [31:0]brresult_1;
 
     br_pre u_br1(
@@ -672,12 +675,12 @@ module core_top(
         .imm      		( imm_reg_exe0_1     ),
         .zero     		( zero1     		 ),
         .ifbr     		( ifbr1    		     ),
-        .ifbr_          ( ifbr_1             ),
-        .brresult 		( pc_br1		     ),
-        .brresult_      ( brresult_1         ),
+        .ifbr_          ( ifbr__1             ),
+        .pc_br 		    ( pc_br1		     ),
+        .brresult       ( brresult_1         ),
         .rrj            ( rrj1_forward       ),
         .pre            ( pre_reg_exe0_1     ),
-        .flush_pre      ( flush_pre1         ),
+        .flush_pre      ( flush_pre_1         ),
         .stall          ( stall_reg_exe0_1  )
     );
 `endif
@@ -690,8 +693,8 @@ module core_top(
         .pc       		( pc_reg_exe0_0     ),
         .imm      		( imm_reg_exe0_0    ),
         .zero     		( zero0     		),
-        .ifbr     		( ifbr0_   		    ),
-        .brresult 		( pc_br0 	        ),
+        .ifbr     		( ifbr0    		    ),
+        .pc_br   		( pc_br0 	        ),
         .rrj            ( rrj0_forward      ),
         .stall          ( stall_reg_exe0_0  )
     );
@@ -705,7 +708,7 @@ module core_top(
         .imm      		( imm_reg_exe0_1     ),
         .zero     		( zero1     		 ),
         .ifbr     		( ifbr1    		     ),
-        .brresult 		( pc_br1		     ),
+        .pc_br  		( pc_br1		     ),
         .rrj            ( rrj1_forward       ),
         .stall          ( stall_reg_exe0_1   )
     );
@@ -814,7 +817,7 @@ module core_top(
         .pipeline_CSR_mask      		( rrj1_forward      		    ),
         .CSR_pipeline_dout      		( privresult      		        ),
 
-        .pipeline_CSR_jumpc_valid       ( ifbr0|ifbr1|ifpriv            ),
+        .pipeline_CSR_jumpc_valid       ( ifbr_exe0_exe1_0|ifbr_exe0_exe1_1|ifpriv            ),
         .pipeline_CSR_jumpc             ( npc                           ),
         .pipeline_CSR_inpc_valid        ( ir_valid_reg_exe0_1           ),
         .pipeline_CSR_inpc0     		( pc_reg_exe0_1     		    ),
@@ -1047,21 +1050,21 @@ module core_top(
         .in_kind_pdc_0(pre_reg_exe0_0[32:30]),
         .in_npc_pdc_0(pre_reg_exe0_0[29:0]),
         .in_choice_pdc_0(pre_reg_exe0_0[36:35]),
-        .in_taken_ex_0(ifbr_0),
+        .in_taken_ex_0(ifbr__0),
         .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
         .in_npc_ex_0(pc_br0[31:2]),
         .in_pc_ex_0(pc_reg_exe0_0[31:2]),
-        .in_flush_pre_0(flush_pre0),
+        .in_flush_pre_0(flush_pre_0),
 
         .in_taken_pdc_1(pre_reg_exe0_1[33]),
         .in_kind_pdc_1(pre_reg_exe0_1[32:30]),
         .in_npc_pdc_1(pre_reg_exe0_1[29:0]),
         .in_choice_pdc_1(pre_reg_exe0_1[36:35]),
-        .in_taken_ex_1(ifbr_1),
+        .in_taken_ex_1(ifbr__1),
         .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
         .in_npc_ex_1(pc_br1[31:2]),
         .in_pc_ex_1(pc_reg_exe0_1[31:2]),
-        .in_flush_pre_1(flush_pre1),
+        .in_flush_pre_1(flush_pre_1),
 
         .out_taken_pdc (out_taken_pdc ),
         .out_kind_pdc  (out_kind_pdc  ),
@@ -1083,9 +1086,9 @@ module core_top(
     always @(*) begin
         ifnpc_pdc=0;
         if(ifpriv) npc=pc_priv;
-        else if(ifbr1) npc=pc_br1;
+        else if(ifbr_exe0_exe1_1) npc=pc_br_exe0_exe1_1;
+        else if(ifbr_exe0_exe1_0) npc=pc_br_exe0_exe1_0;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
-        else if(ifbr0) npc=pc_br0;
         else if(ifsuc) npc=pc+4;
         `ifdef predictor
         else begin npc=npc_pdc_32;ifnpc_pdc=1; end
@@ -1098,7 +1101,7 @@ module core_top(
 
     always @(posedge clk) begin
         if(!rstn) pc<=32'h1c000000;
-        else if(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) pc<=npc;
+        else if(!stall_pc|ifbr_exe0_exe1_0|ifbr_exe0_exe1_1|ifpriv|ifcacop_ibar) pc<=npc;
     end
 
     always @(posedge clk) begin
@@ -1291,7 +1294,7 @@ module core_top(
         end
     end
     always @(*) begin
-        ctr_reg_exe0_1 = stall_reg_exe0_1 ? 32'b0 : ctr_reg_exe0_1_;
+        ctr_reg_exe0_1 = stall_reg_exe0_1|flush_reg_exe0_1 ? 32'b0 : ctr_reg_exe0_1_;
     end
 
     //EXE0-EXE1
@@ -1338,6 +1341,9 @@ module core_top(
             ir_exe0_exe1_0<=0;
             ir_valid_exe0_exe1_0<=0;
             countresult_exe0_exe1_0<=0;
+            pc_br_exe0_exe1_0<=0;
+            ifbr_exe0_exe1_0_<=0;
+            flush_pre_exe0_exe1_0<=0;
         end
         else if(stall_exe0_exe1_0);
         else begin
@@ -1348,6 +1354,9 @@ module core_top(
             ir_exe0_exe1_0<=ir_reg_exe0_0;
             ir_valid_exe0_exe1_0<=ir_valid_reg_exe0_0;
             countresult_exe0_exe1_0<=countresult;
+            pc_br_exe0_exe1_0<=pc_br0;
+            ifbr_exe0_exe1_0_<=ifbr0;
+            flush_pre_exe0_exe1_0<=flush_pre_0;
         end
     end
 
@@ -1364,6 +1373,9 @@ module core_top(
             ir_valid_exe0_exe1_1<=0;
             countresult_exe0_exe1_1<=0;
             rand_index_exe0_exe1<=0;
+            pc_br_exe0_exe1_1<=0;
+            ifbr_exe0_exe1_1_<=0;
+            flush_pre_exe0_exe1_1<=0;
         end
         else if(stall_exe0_exe1_1);
         else begin
@@ -1378,6 +1390,9 @@ module core_top(
             ir_valid_exe0_exe1_1<=ir_valid_reg_exe0_1;
             countresult_exe0_exe1_1<=countresult;
             rand_index_exe0_exe1<=CSR_rand_index;
+            pc_br_exe0_exe1_1<=pc_br1;
+            ifbr_exe0_exe1_1_<=ifbr1;
+            flush_pre_exe0_exe1_1<=flush_pre_1;
         end
     end
 
@@ -1416,7 +1431,6 @@ module core_top(
             ir_exe1_wb_0<=0;
             ir_valid_exe1_wb_0<=0;
             countresult_exe1_wb_0<=0;
-            din_pipeline_dcache_exe1_wb<=0;
         end
         else if(stall_exe1_wb_0);
         else begin
@@ -1427,7 +1441,6 @@ module core_top(
             ir_exe1_wb_0<=ir_exe0_exe1_0;
             ir_valid_exe1_wb_0<=ir_valid_exe0_exe1_0;
             countresult_exe1_wb_0<=countresult_exe0_exe1_0;
-            din_pipeline_dcache_exe1_wb<=din_pipeline_dcache_exe0_exe1;
         end
     end
 
@@ -1444,6 +1457,7 @@ module core_top(
             countresult_exe1_wb_1<=0;
             rand_index_exe1_wb<=0;
             LLbit_exe0_exe1<=0;
+            din_pipeline_dcache_exe1_wb<=0;
         end
         else if(stall_exe1_wb_1);
         else begin
@@ -1458,6 +1472,7 @@ module core_top(
             countresult_exe1_wb_1<=countresult_exe0_exe1_1;
             rand_index_exe1_wb<=rand_index_exe0_exe1;
             LLbit_exe0_exe1<=LLbit;
+            din_pipeline_dcache_exe1_wb<=din_pipeline_dcache_exe0_exe1;
         end
     end
 

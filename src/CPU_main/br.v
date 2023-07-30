@@ -2,16 +2,16 @@ module br (
     input [31:0]ctr,pc,imm,rrj,
     input zero,stall,
     output reg ifbr,
-    output reg [31:0]brresult
+    output reg [31:0]pc_br
 );
     wire [3:0]type_ = ctr[3:0];
     wire [4:0]subtype = ctr[11:7];
     reg ifbr_;
     always @(*) begin
         ifbr_=0;
-        brresult=0;
+        pc_br=0;
         if(type_==1) begin
-            brresult=pc+imm;
+            pc_br=pc+imm;
             case (subtype)//可以合并
                 0: ifbr_=1;
                 1: ifbr_=zero;
@@ -24,11 +24,11 @@ module br (
         end
         else if(type_==8) 
             case (subtype)
-                0: begin brresult=rrj+imm;ifbr_=1; end
-                1: begin brresult=pc+imm;ifbr_=1; end
+                0: begin pc_br=rrj+imm;ifbr_=1; end
+                1: begin pc_br=pc+imm;ifbr_=1; end
             endcase
     end
     always @(*) begin
-        ifbr=stall?1'b0:ifbr_;
+        ifbr=ifbr_;
     end
 endmodule

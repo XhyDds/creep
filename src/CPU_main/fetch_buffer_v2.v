@@ -19,7 +19,7 @@ module fetch_buffer_v2 (
 );
     reg [31:0]buffer[0:15];//15为0，14最新，0最旧，是否会溢出？
     reg [31:0]bufferpc[0:15];
-    reg [66:0]pre_and_valid_and_plv[0:15];
+    reg [67:0]pre_and_valid_and_plv[0:15];
     reg [15:0]buffer_excp_arg[0:15];
     reg [31:0]buffer_npc[0:15];
     reg [3:0]pointer;//0~15
@@ -130,12 +130,12 @@ module fetch_buffer_v2 (
                             buffer_npc[12]<=buffer_npc[14];
                             buffer[13]<=ir[0];
                             bufferpc[13]<=pc;
-                            pre_and_valid_and_plv[13]<={pre,1'b1,plv};
+                            pre_and_valid_and_plv[13]<={1'b1,pre,1'b1,plv};
                             buffer_excp_arg[13]<=excp_arg;
                             buffer_npc[13]<=npc;
                             buffer[14]<=ir[1];
                             bufferpc[14]<=pc+4;
-                            pre_and_valid_and_plv[14]<={pre,1'b1,plv};
+                            pre_and_valid_and_plv[14]<={1'b0,pre,1'b1,plv};
                             buffer_excp_arg[14]<=0;
                             buffer_npc[14]<=npc;
                         end
@@ -213,7 +213,7 @@ module fetch_buffer_v2 (
                             buffer_npc[13]<=buffer_npc[14];
                             buffer[14]<=ir[0];
                             bufferpc[14]<=pc;
-                            pre_and_valid_and_plv[14]<={pre,1'b1,plv};
+                            pre_and_valid_and_plv[14]<={1'b0,pre,1'b1,plv};
                             buffer_excp_arg[14]<=excp_arg;
                             buffer_npc[14]<=npc;
                         end

@@ -143,7 +143,7 @@ module cache_ctr (
         else if(type_==9) begin //ibar
             pipeline_cache_opcode={1'b1,31'b0};
             pipeline_icache_opflag=1;
-            ifcacop_ibar=stall?0:1;
+            ifcacop_ibar=1;
         end
     end
 endmodule
