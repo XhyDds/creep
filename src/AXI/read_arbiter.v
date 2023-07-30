@@ -43,7 +43,7 @@ module read_arbiter#(
             IDLE: begin
                 if(l2cache_mem_req_r) begin
                     if(dma_sign)
-                        nxt = WRT_AR;
+                        nxt = RET_AR;
                     else if(query_ok)
                         nxt = WRT_AR;
                     else
