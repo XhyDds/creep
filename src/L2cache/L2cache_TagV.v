@@ -150,8 +150,8 @@ bram #(
 way3(
     .clk(clk),
 
-    .waddr((TagV_init == 3'b111) ? zero:TagV_addr_write),//写口
-    .din(TagV_din_write),
+    .waddr(TagV_addr_write),//写口
+    .din((TagV_init == 3'b110) ? zero:TagV_din_write),
     .we(TagV_we[3] || (TagV_init == 3'b111)),
 
     .raddr(TagV_addr_read),
