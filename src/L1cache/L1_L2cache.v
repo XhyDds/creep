@@ -1,10 +1,10 @@
 // `define MMU
 module L1_L2cache#(
-    parameter   I_index_width=2,
-                D_index_width=2,
-                L2_index_width=2,
+    parameter   I_index_width=8,
+                D_index_width=8,
+                L2_index_width=7,
                 L1_offset_width=2,
-                L2_offset_width=2
+                L2_offset_width=3
 )
 (
     input       clk,rstn,
