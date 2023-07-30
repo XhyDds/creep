@@ -2,7 +2,7 @@
 
 module L2cache#(
     parameter   index_width=2,
-                offset_width=2,
+                offset_width=3,
                 L1_offset_width=2,//两者相等
                 way=4
 )

@@ -154,7 +154,7 @@ always @(*) begin
                 if(FSM_rbuf_from != 2'b11 || FSM_rbuf_SUC)begin//强序读和正常读
                     next_state = Idle;
                 end
-                else begin
+                else begin//非强序写
                     next_state = replace_write;
                 end
             end
@@ -380,6 +380,8 @@ always @(*) begin
                     else begin//d-w
                         // FSM_use[FSM_way_sel_d] = 1;//还不能发use给lru单元
                         FSM_Data_we[FSM_way_sel_d] = 1;
+                        FSM_Dirtytable_way_select = FSM_way_sel_d;
+                        FSM_Dirtytable_set1 = 1;
                     end 
                 end
                 else begin
@@ -398,8 +400,8 @@ always @(*) begin
             // if(next_state != Idle)FSM_rbuf_we = 1;
             FSM_Data_we[FSM_way_sel_d_reg] = 1;
             FSM_use[FSM_way_sel_d_reg] = 1;
-            FSM_Dirtytable_way_select = FSM_way_sel_d_reg;
-            FSM_Dirtytable_set1 = 1;
+            // FSM_Dirtytable_way_select = FSM_way_sel_d_reg;
+            // FSM_Dirtytable_set1 = 1;
         end
         default:;
     endcase

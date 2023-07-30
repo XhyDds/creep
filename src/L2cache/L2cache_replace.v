@@ -29,30 +29,37 @@ module L2cache_replace#(//PLRU
     input       [way-1:0]use1,
     input       [way-1:0]valid,
 
-    input       [addr_width-1:0]addr,
-    output reg  [1:0]way_sel_d,
-    output reg  way_sel_i
+    input       [addr_width-1:0]addr,//读写同地址
+    output      [1:0]way_sel_d,
+    output      way_sel_i
     );
 reg [(1<<addr_width)-1:0]record[2:0];
-always @(*) begin
-    if(!valid[3])way_sel_d = 2'd3;
-    else if(!valid[2])way_sel_d = 2'd2;
-    else if(!valid[1])way_sel_d = 2'd1;
-    else if(!valid[0])way_sel_d = 2'd0;
-    else if(!record[addr][0])begin
-        if(!record[addr][1])way_sel_d = 2'd0;
-        else way_sel_d = 2'd1;
+reg [1:0]d;
+reg i;
+assign way_sel_d = d;
+assign way_sel_i = i;
+//d_sel
+always @(posedge clk) begin
+    if(!valid[3])d <= 2'd3;
+    else if(!valid[2])d <= 2'd2;
+    else if(!valid[1])d <= 2'd1;
+    else if(!valid[0])d <= 2'd0;
+    if(!record[addr][0])begin
+        if(!record[addr][1])d <= 2'd0;
+        else d <= 2'd1;
     end
     else begin
-        if(!record[addr][2])way_sel_d = 2'd2;
-        else way_sel_d = 2'd3;
+        if(!record[addr][2])d <= 2'd2;
+        else d <= 2'd3;
     end
 end
-always @(*) begin
-    if(!valid[0])way_sel_i = 2'd0;
-    else if(!valid[1])way_sel_i = 2'd1;
-    else way_sel_i = record[addr][1];
+//i_sel
+always @(posedge clk) begin
+    if(!valid[0])i <= 2'd0;
+    else if(!valid[1])i <= 2'd1;
+    else i <= record[addr][1];
 end
+//Write
 always @(posedge clk) begin
     if(use1[0])begin
         record[addr][0] <= 1'b1;
