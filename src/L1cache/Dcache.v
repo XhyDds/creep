@@ -85,6 +85,7 @@ assign ptag = paddr_pipeline_dcache[31:offset_width+index_width+2];
 //rquest buffer
 wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc,rbuf_paddr;
 wire rbuf_opflag,rbuf_type,rbuf_we,rbuf_SUC;
+wire [1:0]rbuf_size;
 wire [3:0]rbuf_wstrb;
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
@@ -123,7 +124,10 @@ Dcache_rbuf Dcache_rbuf(
     .rbuf_SUC(rbuf_SUC),
 
     .paddr(paddr_pipeline_dcache),
-    .rbuf_paddr(rbuf_paddr)
+    .rbuf_paddr(rbuf_paddr),
+
+    .size(dcache_mem_size),
+    .rbuf_size(rbuf_size)
 );
 
 //LRU
@@ -206,13 +210,16 @@ always @(*) begin
     end
 end
 always @(*) begin
-    case (choose_word)
-        2'd0: data_out = data_line[31:0];
-        2'd1: data_out = data_line[63:32];
-        2'd2: data_out = data_line[95:64];
-        2'd3: data_out = data_line[127:96];
-        default: data_out = 32'h1234ABCD;
-    endcase
+    if(rbuf_SUC)data_out = data_line[31:0];
+    else begin
+        case (choose_word)
+            2'd0: data_out = data_line[31:0];
+            2'd1: data_out = data_line[63:32];
+            2'd2: data_out = data_line[95:64];
+            2'd3: data_out = data_line[127:96];
+            default: data_out = 32'h1234ABCD;
+        endcase
+    end
 end
 
 //Mem
@@ -225,6 +232,8 @@ assign dcache_mem_SUC = rbuf_SUC;
 // `else 
 assign addr_dcache_mem = dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp};
 // `endif
+assign dcache_mem_size = rbuf_size;
+assign dcache_mem_wstrb = rbuf_wstrb;
 
 //FSM
 Dcache_FSMmain #(
@@ -247,8 +256,6 @@ Dcache_FSMmain1(
     //dcache  mem
     .dcache_mem_req(dcache_mem_req),
     .dcache_mem_wr(dcache_mem_wr),
-    .dcache_mem_size(dcache_mem_size),
-    .dcache_mem_wstrb(dcache_mem_wstrb),
     .mem_dcache_addrOK(mem_dcache_addrOK),
     .mem_dcache_dataOK(mem_dcache_dataOK),
     .mem_dcache_bvalid(mem_dcache_bvalid),

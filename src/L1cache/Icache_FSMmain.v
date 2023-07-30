@@ -37,7 +37,6 @@ module Icache_FSMmain#(
     output      icache_pipeline_stall,//stall form icache
 
     output reg  icache_mem_req,
-    output reg  [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
     input       mem_icache_addrOK,//发送的地址和数据都被接收
     input       mem_icache_dataOK,//返回的数据有效
 
@@ -64,8 +63,7 @@ module Icache_FSMmain#(
 
     //数据选择
     output reg  FSM_choose_way,
-    output reg  FSM_choose_return,
-    output reg  [offset_width-1:0]FSM_choose_word
+    output reg  FSM_choose_return
     
     );
 //对字节和byte的选择暂未加入
@@ -152,14 +150,12 @@ end
 always @(*) begin
     icache_pipeline_ready = 0;
     icache_mem_req = 0;
-    icache_mem_size = 2'd2;
     FSM_rbuf_we = 0;
     FSM_use0 = 0;
     FSM_use1 = 0;
     FSM_Data_we = 2'd0;
     FSM_choose_way = 0;
     FSM_choose_return = 0;
-    FSM_choose_word = FSM_rbuf_addr[2+offset_width-1:2];
     FSM_TagV_init = 2'b0;
     FSM_TagV_ibar = 0;
     FSM_TagV_unvalid = 2'b0;

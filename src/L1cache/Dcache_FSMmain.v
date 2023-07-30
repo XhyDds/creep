@@ -36,12 +36,9 @@ module Dcache_FSMmain#(
     input       pipeline_dcache_opflag,
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
     output      dcache_pipeline_stall,//stall form dcache
-    // output reg  [31:0]dcache_mem_addr,
-    // output reg  [31:0]dcache_mem_data,
+
     output reg  dcache_mem_req,
     output reg  dcache_mem_wr,//write-1  read-0
-    output reg  [1:0]dcache_mem_size,//0-1byte  1-2b    2-4b
-    output reg  [3:0]dcache_mem_wstrb,//字节写使能
     input       mem_dcache_addrOK,//发送的地址和数据都被接收
     input       mem_dcache_bvalid,//写有效
     input       mem_dcache_dataOK,//返回的数据有效
@@ -237,8 +234,6 @@ always @(*) begin
     dcache_pipeline_ready = 0;
     dcache_mem_req = 0;
     dcache_mem_wr = 0;
-    dcache_mem_size = 2'd2;
-    dcache_mem_wstrb = FSM_rbuf_wstrb;
     FSM_rbuf_we = 0;
     FSM_use0 = 0;
     FSM_use1 = 0;

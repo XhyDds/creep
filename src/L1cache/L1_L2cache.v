@@ -38,6 +38,7 @@ module L1_L2cache#(
     output      dcache_pipeline_ready,
     
     input       [3:0]pipeline_dcache_wstrb,//字节处理位
+    input       [1:0]pipeline_dcache_size,
     input       [31:0]pipeline_dcache_opcode,//cache操作
     input       pipeline_dcache_opflag,//0-正常访存 1-cache操作    
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
@@ -58,6 +59,7 @@ module L1_L2cache#(
     output      l2cache_mem_rdy,
     output      l2cache_mem_SUC,
     output      [3:0]l2cache_mem_wstrb,
+    output      [1:0]l2cache_mem_size,
     input       mem_l2cache_addrOK_r,
     input       mem_l2cache_addrOK_w, 
     input       mem_l2cache_dataOK
@@ -179,6 +181,7 @@ wire [3:0]dcache_l2cache_wstrb;
 wire l2cache_dcache_addrOK;
 wire l2cache_dcache_dataOK;
 wire dcache_l2cache_SUC;
+wire dcache_l2cache_size;
 
 assign addr_dcache_l2cache = addr_dcache_mem;
 assign din_dcache_l2cache = dout_dcache_mem;
@@ -189,6 +192,7 @@ assign dcache_l2cache_wstrb = dcache_mem_wstrb;
 assign mem_dcache_addrOK = l2cache_dcache_addrOK;
 assign mem_dcache_dataOK = l2cache_dcache_dataOK;
 assign dcache_l2cache_SUC = dcache_mem_SUC;
+assign dcache_l2cache_size = dcache_mem_size;
 
 L2cache #(
     .index_width(L2_index_width),
@@ -217,6 +221,7 @@ L2cache(
     .dcache_l2cache_wr(dcache_l2cache_wr),
     .dcache_l2cache_SUC(dcache_l2cache_SUC),
     .dcache_l2cache_wstrb(dcache_l2cache_wstrb),
+    .dcache_l2cache_size(dcache_l2cache_size),
     .l2cache_dcache_addrOK(l2cache_dcache_addrOK),
     .l2cache_dcache_dataOK(l2cache_dcache_dataOK),
 
@@ -229,6 +234,7 @@ L2cache(
     .l2cache_mem_rdy(l2cache_mem_rdy),
     .l2cache_mem_SUC(l2cache_mem_SUC),
     .l2cache_mem_wstrb(l2cache_mem_wstrb),
+    .l2cache_mem_size(l2cache_mem_size),
     .mem_l2cache_addrOK_r(mem_l2cache_addrOK_r),
     .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),
     .mem_l2cache_dataOK(mem_l2cache_dataOK)
