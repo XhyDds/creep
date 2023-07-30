@@ -1,7 +1,7 @@
 `define predictor
 //`define DMA
-//module mycpu_top(
-module core_top(
+module mycpu_top(
+// module core_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -1087,7 +1087,7 @@ module core_top(
 `endif
 
     //PC
-    assign ifsuc=~MMU_pipeline_memtype1[0];
+    assign ifsuc=~MMU_pipeline_memtype0[0];
     wire [31:0]npc_pdc_32={npc_pdc,2'b0};
     reg ifnpc_pdc;
     always @(*) begin
