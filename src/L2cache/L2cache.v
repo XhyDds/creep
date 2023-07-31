@@ -86,7 +86,7 @@ always @(*) begin
         l1cache_l2cache_size = 2'd2;
     end
 end
-assign addr_l1cache_l2cache =(from[1] ? addr_dcache_l2cache : addr_icache_l2cache);
+assign addr_l1cache_l2cache = (from[1] ? addr_dcache_l2cache : addr_icache_l2cache);
 assign din_l1cache_l2cache = din_dcache_l2cache;
 assign dout_l2cache_icache = dout_l2cache_l1cache;
 assign dout_l2cache_dcache = dout_l2cache_l1cache;

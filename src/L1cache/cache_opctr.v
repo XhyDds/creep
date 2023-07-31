@@ -1,5 +1,5 @@
 module cache_opctr (
-    input clk,
+    input clk,rstn,
     input opin_i,opin_d,opin_l2,
     input ack_i,ack_d,ack_l2,
     input [31:0]addrin_i,addrin_d,addrin_l2,
@@ -13,6 +13,7 @@ cache_myreg #(
 )
 op_im(
     .clk(clk),
+    .rstn(rstn),
     .we(opin_i),
     .clear(ack_i),
     .in(1),
@@ -24,6 +25,7 @@ cache_myreg #(
 )
 op_dm(
     .clk(clk),
+    .rstn(rstn),
     .we(opin_d),
     .clear(ack_d),
     .in(1),
@@ -35,6 +37,7 @@ cache_myreg #(
 )
 op_l2m(
     .clk(clk),
+    .rstn(rstn),
     .we(opin_l2),
     .clear(ack_l2),
     .in(1),
@@ -46,6 +49,7 @@ cache_myreg #(
 )
 addr_im(
     .clk(clk),
+    .rstn(rstn),
     .we(opin_i),
     .clear(ack_i),
     .in(addrin_i),
@@ -68,6 +72,7 @@ cache_myreg #(
 )
 addr_l2m(
     .clk(clk),
+    .rstn(rstn),
     .we(opin_l2),
     .clear(ack_l2),
     .in(addrin_l2),
@@ -79,6 +84,7 @@ cache_myreg #(
 )
 opcode_im(
     .clk(clk),
+    .rstn(rstn),
     .we(opin_i),
     .clear(ack_i),
     .in(opcodein_i),
@@ -90,6 +96,7 @@ cache_myreg #(
 )
 opcode_dm(
     .clk(clk),
+    .rstn(rstn),
     .we(opin_d),
     .clear(ack_d),
     .in(opcodein_d),
@@ -101,6 +108,7 @@ cache_myreg #(
 )
 opcode_l2m(
     .clk(clk),
+    .rstn(rstn),
     .we(opin_l2),
     .clear(ack_l2),
     .in(opcodein_l2),
