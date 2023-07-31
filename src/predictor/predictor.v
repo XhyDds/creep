@@ -155,6 +155,8 @@ module predictor #(
     //历史查取
     wire try_to_pdc=(kind_ex!=NOT_JUMP);
 
+    assign bh_pdc=bh;
+
     bht#(
         .k_width(k_width),
         .bh_width(h_width)
@@ -197,6 +199,7 @@ module predictor #(
         .update_en(update_en),
         .npc_ex(npc_ex),
         .pc_ex_gh_hashed(pc_ex_gh_hashed),
+        .pc_ex_bh_hashed(pc_ex_bh_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_btb_ras),
         .mis_pdc(mis_pdc_npc),
@@ -205,6 +208,7 @@ module predictor #(
         .taken_pdc(taken_pdc),
         .choice_btb_ras(choice_pdc_btb_ras),
         .pc_gh_hashed(pc_gh_hashed),
+        .pc_bh_hashed(pc_bh_hashed),
         .pc(pc),
         .npc_test(npc_test)
     );
@@ -237,22 +241,22 @@ module predictor #(
             times_mis_ras    <=0;
         end
         else begin
-            if(mis_pdc_npc)             times_mis_npc    <=times_mis_npc    +1;
-            if(mis_pdc_kind)            times_mis_kind   <=times_mis_kind   +1;
-            if(mis_pdc_taken)           times_mis_taken  <=times_mis_taken  +1;
+            if(mis_pdc_npc&&update_en)             times_mis_npc    <=times_mis_npc    +1;
+            if(mis_pdc_kind&&update_en)            times_mis_kind   <=times_mis_kind   +1;
+            if(mis_pdc_taken&&update_en)           times_mis_taken  <=times_mis_taken  +1;
 
-            if(~mis_pdc_taken&&kind_ex!=NOT_JUMP)
+            if(~mis_pdc_taken&&kind_ex!=NOT_JUMP&&update_en)
                                         times_total_npc  <=times_total_npc  +1;
                                         times_total_kind <=times_total_kind +1;
-            if(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP) 
+            if(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP&&update_en) 
                                         times_total_taken<=times_total_taken+1;
 
-            if(mis_pdc_taken&&(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP)) begin
+            if(mis_pdc_taken&&(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP)&&update_en) begin
                 if(choice_real_b_g)     times_mis_gh     <=times_mis_gh     +1;
                 else                    times_mis_bh     <=times_mis_bh     +1;
             end
 
-            if(mis_pdc_npc&&(kind_ex==RET)) begin
+            if(mis_pdc_npc&&(kind_ex==RET)&&update_en) begin
                 if(choice_real_btb_ras) times_mis_ras    <=times_mis_ras    +1;
                 else                    times_mis_btb    <=times_mis_btb    +1;
             end

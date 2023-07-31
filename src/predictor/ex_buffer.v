@@ -1,6 +1,6 @@
 //尚未完成
 module ex_buffer#(
-    parameter length = 5
+    parameter length = 6
             // ,DATA_WIDTH=99
 )(
     input clk,
@@ -73,7 +73,7 @@ module ex_buffer#(
     wire [1:0]  out_choice_pdc_1;
     wire        out_flush_pre_1;
 
-    wire pack_size=out_pc_ex_0[0]&out_flush_pre_0;//后一条指令被刷掉
+    wire pack_size=out_pc_ex_0[0]|out_flush_pre_0;//后一条指令被刷掉
 
     assign out_taken_pdc_0=out_data_0[0]    ;
     assign out_kind_pdc_0 =out_data_0[3:1]  ;
@@ -157,35 +157,39 @@ module ex_buffer#(
 
     always @(posedge clk)begin
         if(!rstn) begin
-            buffer_data[0]<=0;
+            // buffer_data[0]<=0;
             buffer_data[1]<=0;
             buffer_data[2]<=0;
             buffer_data[3]<=0;
             buffer_data[4]<=0;
+            buffer_data[5]<=0;
         end
         else begin
             //buffer_data
             if(stall) ;
             else if(flag==2'b01) begin//默认不会满
-                buffer_data[0]<=0;
+                // buffer_data[0]<=0;
                 buffer_data[1]<=in_data_1;
                 buffer_data[2]<=buffer_data[1];
                 buffer_data[3]<=buffer_data[2];
                 buffer_data[4]<=buffer_data[3];
+                buffer_data[5]<=buffer_data[4];
             end
             else if(flag==2'b10) begin//默认不会满
-                buffer_data[0]<=0;
+                // buffer_data[0]<=0;
                 buffer_data[1]<=in_data_0;
                 buffer_data[2]<=buffer_data[1];
                 buffer_data[3]<=buffer_data[2];
                 buffer_data[4]<=buffer_data[3];
+                buffer_data[5]<=buffer_data[4];
             end
             else begin
-                buffer_data[0]<=0;
+                // buffer_data[0]<=0;
                 buffer_data[1]<=in_data_0;
                 buffer_data[2]<=in_data_1;
-                buffer_data[3]<=buffer_data[2];
-                buffer_data[4]<=buffer_data[3];
+                buffer_data[3]<=buffer_data[1];
+                buffer_data[4]<=buffer_data[2];
+                buffer_data[5]<=buffer_data[3];
             end
         end
     end
@@ -261,7 +265,7 @@ module ex_buffer#(
     end
 
     //寄存，截断传播
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk) begin
         if(!rstn)begin
             update_en     <=0;
             out_taken_pdc <=0;

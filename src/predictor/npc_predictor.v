@@ -9,6 +9,7 @@ module npc_predictor#(
     //ex
     input [ADDR_WIDTH-1:0] npc_ex,
     input [gh_width-1:0] pc_ex_gh_hashed,
+    input [gh_width-1:0] pc_ex_bh_hashed,
     input [2:0]kind_ex,
     input choice_real,
     input mis_pdc,   //地址预测错误
@@ -20,6 +21,7 @@ module npc_predictor#(
     output reg[ADDR_WIDTH-1:0] npc_test,
     //当前
     input [gh_width-1:0] pc_gh_hashed,
+    input [gh_width-1:0] pc_bh_hashed,
     input [ADDR_WIDTH-1:0] pc
 );
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
@@ -48,9 +50,9 @@ module npc_predictor#(
     )
     btb_table(
         .clk(clk),
-        .hashed_pc(pc_gh_hashed),
+        .hashed_pc(pc_bh_hashed),
         .npc_pdc(npc_btb),
-        .hashed_pc_update(pc_ex_gh_hashed),
+        .hashed_pc_update(pc_ex_bh_hashed),
         .npc_real(npc_ex),
         .update_en((kind_ex!=3'd0)&&update_en)
     );

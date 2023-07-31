@@ -1041,7 +1041,7 @@ module core_top(
     );
 
     ex_buffer #(
-        .length(4)
+        .length(6)
     )u_ex_buffer(
         .clk(clk),
         .rstn(rstn),
