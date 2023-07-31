@@ -80,9 +80,10 @@ module ras #(
                         ret_stk[4'd10]<=ret_stk[4'd13];
                         ret_stk[4'd11]<=ret_stk[4'd14];
                         ret_stk[4'd12]<=ret_stk[4'd15];
-                        ret_stk[4'd13]<=0;
-                        ret_stk[4'd14]<=0;
-                        ret_stk[4'd15]<=0;
+
+                        ret_stk[4'd13]<=ret_stk[4'd15];
+                        ret_stk[4'd14]<=ret_stk[4'd15];
+                        ret_stk[4'd15]<=ret_stk[4'd15];
                     end
                     else begin//pop2
                         ret_stk[4'd0]<=ret_stk[4'd2];
@@ -99,11 +100,12 @@ module ras #(
                         ret_stk[4'd11]<=ret_stk[4'd13];
                         ret_stk[4'd12]<=ret_stk[4'd14];
                         ret_stk[4'd13]<=ret_stk[4'd15];
-                        ret_stk[4'd14]<=0;
-                        ret_stk[4'd15]<=0;
+
+                        ret_stk[4'd14]<=ret_stk[4'd15];
+                        ret_stk[4'd15]<=ret_stk[4'd15];
                     end
                 end
-                else if(error_crt==1'b1)begin
+                else begin
                     if(is_ret_pdc) begin//pop
                         ret_stk[4'd0]<=ret_stk[4'd1];
                         ret_stk[4'd1]<=ret_stk[4'd2];
@@ -120,7 +122,8 @@ module ras #(
                         ret_stk[4'd12]<=ret_stk[4'd13];
                         ret_stk[4'd13]<=ret_stk[4'd14];
                         ret_stk[4'd14]<=ret_stk[4'd15];
-                        ret_stk[4'd15]<=0;
+
+                        ret_stk[4'd15]<=ret_stk[4'd15];
                     end
                     else ;//-
                 end
@@ -145,7 +148,8 @@ module ras #(
                     ret_stk[4'd12]<=ret_stk[4'd13];
                     ret_stk[4'd13]<=ret_stk[4'd14];
                     ret_stk[4'd14]<=ret_stk[4'd15];
-                    ret_stk[4'd15]<=0;
+
+                    ret_stk[4'd15]<=ret_stk[4'd15];
                 end
             end
         end
@@ -165,7 +169,8 @@ module ras #(
             ret_stk[4'd12]<=ret_stk[4'd13];
             ret_stk[4'd13]<=ret_stk[4'd14];
             ret_stk[4'd14]<=ret_stk[4'd15];
-            ret_stk[4'd15]<=0;
+
+            ret_stk[4'd15]<=ret_stk[4'd15];
         end
     end
 

@@ -1,7 +1,8 @@
 //单端口dram
 module sp_dram #(
     parameter ADDR_WIDTH = 8,
-              DATA_WIDTH = 2
+              DATA_WIDTH = 2,
+              INIT_NUM   = 0
             //   INIT_FILE = "C:\Users\lenovo\Desktop\data_init.coe"
 )
 (
@@ -19,7 +20,7 @@ module sp_dram #(
     integer i;
     initial begin
         for (i = 0; i < (1 << ADDR_WIDTH); i = i + 1) begin
-            ram[i] = 0;
+            ram[i] = INIT_NUM;
         end
     end
 
