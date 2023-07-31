@@ -4,23 +4,26 @@ module predictor #(
                 h_width   = 14,
                 stack_len = 16,
                 queue_len = 16,
-                ADDR_WIDTH = 30
+                ADDR_WIDTH= 30
 )(
     input clk,
     input rstn,
     input update_en,
+    input stall,
     //来自ex段
     input [ADDR_WIDTH-1:0]pc_ex,
     input [2:0]mis_pdc,         //2:npc 1:kind 0:taken
     input [ADDR_WIDTH-1:0]npc_ex,
     input [2:0]kind_ex,
     input taken_real,
+    input [h_width-1:0] bh_ex,
     input [1:0]choice_real,     //1:btb/ras  0:g/h
 
     //预测
     output [ADDR_WIDTH-1:0]npc_pdc,
     output [2:0]kind_pdc,
     output taken_pdc,
+    output [h_width-1:0] bh_pdc,
     output [1:0]choice_pdc,     //1:btb/ras  0:g/h
     //当前
     input [ADDR_WIDTH-1:0]pc,
@@ -50,7 +53,6 @@ module predictor #(
     wire [h_width-1:0] gh;
     wire [h_width-1:0] bh;
     wire [h_width-1:0] gh_ex;
-    wire [h_width-1:0] bh_ex;
 
     single_hash#(
         .DATA_width(ADDR_WIDTH),
@@ -153,6 +155,8 @@ module predictor #(
     //历史查取
     wire try_to_pdc=(kind_ex!=NOT_JUMP);
 
+    assign bh_pdc=bh;
+
     bht#(
         .k_width(k_width),
         .bh_width(h_width)
@@ -173,7 +177,9 @@ module predictor #(
     u_ghr(
         .clk(clk),
         .rstn(rstn),
+        .stall(stall),
         .gh(gh),
+        .gh_ex(gh_ex),
         .taken_pdc(taken_pdc),
         .mis_pdc(mis_pdc_taken),
         .is_jump_pdc(kind_pdc!=NOT_JUMP),
@@ -193,6 +199,7 @@ module predictor #(
         .update_en(update_en),
         .npc_ex(npc_ex),
         .pc_ex_gh_hashed(pc_ex_gh_hashed),
+        .pc_ex_bh_hashed(pc_ex_bh_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_btb_ras),
         .mis_pdc(mis_pdc_npc),
@@ -201,6 +208,7 @@ module predictor #(
         .taken_pdc(taken_pdc),
         .choice_btb_ras(choice_pdc_btb_ras),
         .pc_gh_hashed(pc_gh_hashed),
+        .pc_bh_hashed(pc_bh_hashed),
         .pc(pc),
         .npc_test(npc_test)
     );
@@ -233,22 +241,22 @@ module predictor #(
             times_mis_ras    <=0;
         end
         else begin
-            if(mis_pdc_npc)             times_mis_npc    <=times_mis_npc    +1;
-            if(mis_pdc_kind)            times_mis_kind   <=times_mis_kind   +1;
-            if(mis_pdc_taken)           times_mis_taken  <=times_mis_taken  +1;
+            if(mis_pdc_npc&&update_en)             times_mis_npc    <=times_mis_npc    +1;
+            if(mis_pdc_kind&&update_en)            times_mis_kind   <=times_mis_kind   +1;
+            if(mis_pdc_taken&&update_en)           times_mis_taken  <=times_mis_taken  +1;
 
-            if(~mis_pdc_taken&&kind_ex!=NOT_JUMP)
+            if(~mis_pdc_taken&&kind_ex!=NOT_JUMP&&update_en)
                                         times_total_npc  <=times_total_npc  +1;
                                         times_total_kind <=times_total_kind +1;
-            if(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP) 
+            if(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP&&update_en) 
                                         times_total_taken<=times_total_taken+1;
 
-            if(mis_pdc_taken&&(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP)) begin
+            if(mis_pdc_taken&&(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP)&&update_en) begin
                 if(choice_real_b_g)     times_mis_gh     <=times_mis_gh     +1;
                 else                    times_mis_bh     <=times_mis_bh     +1;
             end
 
-            if(mis_pdc_npc&&(kind_ex==RET)) begin
+            if(mis_pdc_npc&&(kind_ex==RET)&&update_en) begin
                 if(choice_real_btb_ras) times_mis_ras    <=times_mis_ras    +1;
                 else                    times_mis_btb    <=times_mis_btb    +1;
             end
