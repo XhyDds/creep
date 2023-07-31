@@ -46,7 +46,6 @@ reg [(1<<addr_width)-1:0]valid0;
 reg [(1<<addr_width)-1:0]valid1;
 reg [(1<<addr_width)-1:0]valid2; 
 reg [(1<<addr_width)-1:0]valid3;
-assign valid={v3,v2,v1,v0};
 assign TagV_dout=TagV_data[TagV_way_select];
 
 always @(posedge clk) begin
@@ -70,6 +69,7 @@ end
 
 //valid 寄存 写优先
 reg v0,v1,v2,v3;
+assign valid={v3,v2,v1,v0};
 always @(posedge clk) begin
     if(TagV_addr_write != TagV_addr_read)begin
         v0 <= valid0[TagV_addr_read];
