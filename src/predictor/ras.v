@@ -103,7 +103,7 @@ module ras #(
                         ret_stk[4'd15]<=0;
                     end
                 end
-                else if(error_crt==1'b1)begin
+                else begin
                     if(is_ret_pdc) begin//pop
                         ret_stk[4'd0]<=ret_stk[4'd1];
                         ret_stk[4'd1]<=ret_stk[4'd2];
