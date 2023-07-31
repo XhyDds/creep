@@ -698,8 +698,7 @@ module core_top(
         .alu2      		( alu2_0      		),
         .ifbr     		( ifbr0    		    ),
         .pc_br   		( pc_br0 	        ),
-        .rrj            ( rrj0_forward      ),
-        .stall          ( stall_reg_exe0_0  )
+        .rrj            ( rrj0_forward      )
     );
 
     wire [31:0]	pc_br1;
@@ -713,8 +712,7 @@ module core_top(
         .alu2      		( alu2_1      		 ),
         .ifbr     		( ifbr1    		     ),
         .pc_br  		( pc_br1		     ),
-        .rrj            ( rrj1_forward       ),
-        .stall          ( stall_reg_exe0_1   )
+        .rrj            ( rrj1_forward       )
     );
 `endif
 
@@ -1064,6 +1062,7 @@ module core_top(
         .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
         .in_npc_ex_0(pc_br0[31:2]),
         .in_pc_ex_0(pc_reg_exe0_0[31:2]),
+        .in_pack_size_0(pre_reg_exe0_0[38]),
         .in_flush_pre_0(flush_pre_0),
 
         .in_taken_pdc_1(pre_reg_exe0_1[33]),
@@ -1075,6 +1074,7 @@ module core_top(
         .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
         .in_npc_ex_1(pc_br1[31:2]),
         .in_pc_ex_1(pc_reg_exe0_1[31:2]),
+        .in_pack_size_1(pre_reg_exe0_1[38]),
         .in_flush_pre_1(flush_pre_1),
 
         .out_taken_pdc (out_taken_pdc ),
