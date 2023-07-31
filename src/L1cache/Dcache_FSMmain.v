@@ -92,7 +92,7 @@ wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 // wire flush_outside = pipeline_dcache_ctrl[1];
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6,Miss_r_waitdata1=5'd7;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6,Miss_r_waitdata1=5'd7;
 // localparam Flush=5'd5,Hit_w1=5'd7;
 always @(posedge clk) begin
     if(!rstn)state<=0;
@@ -112,7 +112,6 @@ always @(*) begin
                 if(Miss)begin
                     // if(flush_outside)next_state = Flush;
                     if(!FSM_rbuf_type)begin//r
-                        // if(!mem_dcache_addrOK)next_state=Miss_r;
                         next_state = Miss_r_waitdata;
                     end
                     else begin
@@ -202,10 +201,6 @@ always @(*) begin
         // end
         // `endif
 
-        Miss_r:begin
-            if(!mem_dcache_addrOK)next_state=Miss_r;
-            else next_state=Miss_r_waitdata;
-        end
         Miss_r_waitdata:begin
             if(!mem_dcache_dataOK)next_state=Miss_r_waitdata;
             else next_state = Miss_r_waitdata1;
@@ -315,10 +310,6 @@ always @(*) begin
         //         FSM_rbuf_we = 1;
         //     end
         // end
-        Miss_r:begin
-            dcache_mem_wr=0;
-            dcache_mem_req=1;
-        end
         Miss_r_waitdata:begin
             dcache_mem_wr=0;
             dcache_mem_req=1;

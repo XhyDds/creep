@@ -111,7 +111,6 @@ wire [32*(1<<L1_offset_width)-1:0]din_mem_icache;
 wire icache_mem_req;
 wire icache_mem_SUC;
 wire [1:0]icache_mem_size;
-wire mem_icache_addrOK;
 wire mem_icache_dataOK;
 
 Icache #(
@@ -144,7 +143,6 @@ Icache(
     .icache_mem_req(icache_mem_req),
     .icache_mem_SUC(icache_mem_SUC),
     .icache_mem_size(icache_mem_size),
-    .mem_icache_addrOK(mem_icache_addrOK),
     .mem_icache_dataOK(mem_icache_dataOK)
     );
 
