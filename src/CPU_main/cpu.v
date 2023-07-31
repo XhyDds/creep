@@ -104,7 +104,7 @@ module core_top(
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,ifbr_exe0_exe1_0_,ifbr_exe0_exe1_1_,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,ifbr_exe0_exe1_0,ifbr_exe0_exe1_1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1;
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -144,12 +144,10 @@ module core_top(
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
-    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr_exe0_exe1_0,ifbr_exe0_exe1_1;
+    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1;
 
     assign flushup =            flush_pre_1&ctr_reg_exe0_0[31];
     assign flushdown =          flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0;
-    assign ifbr_exe0_exe1_0 =   ifbr_exe0_exe1_0_&~flushup;
-    assign ifbr_exe0_exe1_1 =   ifbr_exe0_exe1_1_;
     assign flush_if0_if1 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_if1_fifo =     ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_fifo_id =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -1423,7 +1421,7 @@ module core_top(
             ir_valid_exe0_exe1_0<=0;
             countresult_exe0_exe1_0<=0;
             pc_br_exe0_exe1_0<=0;
-            ifbr_exe0_exe1_0_<=0;
+            ifbr_exe0_exe1_0<=0;
             flush_pre_exe0_exe1_0<=0;
             pre_exe0_exe1_0<=0;
             ifbr__exe0_exe1_0<=0;
@@ -1438,7 +1436,7 @@ module core_top(
             ir_valid_exe0_exe1_0<=0;
             countresult_exe0_exe1_0<=0;
             pc_br_exe0_exe1_0<=0;
-            ifbr_exe0_exe1_0_<=0;
+            ifbr_exe0_exe1_0<=0;
             flush_pre_exe0_exe1_0<=0;
             pre_exe0_exe1_0<=0;
             ifbr__exe0_exe1_0<=0;
@@ -1452,7 +1450,7 @@ module core_top(
             ir_valid_exe0_exe1_0<=ir_valid_reg_exe0_0;
             countresult_exe0_exe1_0<=countresult;
             pc_br_exe0_exe1_0<=pc_br0;
-            ifbr_exe0_exe1_0_<=ifbr0;
+            ifbr_exe0_exe1_0<=ifbr0&~flushup;
             flush_pre_exe0_exe1_0<=flush_pre_0;
             pre_exe0_exe1_0<=pre_reg_exe0_0;
             ifbr__exe0_exe1_0<=ifbr__0;
@@ -1473,7 +1471,7 @@ module core_top(
             countresult_exe0_exe1_1<=0;
             rand_index_exe0_exe1<=0;
             pc_br_exe0_exe1_1<=0;
-            ifbr_exe0_exe1_1_<=0;
+            ifbr_exe0_exe1_1<=0;
             flush_pre_exe0_exe1_1<=0;
             pre_exe0_exe1_1<=0;
             ifbr__exe0_exe1_1<=0;
@@ -1492,7 +1490,7 @@ module core_top(
             countresult_exe0_exe1_1<=0;
             rand_index_exe0_exe1<=0;
             pc_br_exe0_exe1_1<=0;
-            ifbr_exe0_exe1_1_<=0;
+            ifbr_exe0_exe1_1<=0;
             flush_pre_exe0_exe1_1<=0;
             pre_exe0_exe1_1<=0;
             ifbr__exe0_exe1_1<=0;
@@ -1510,7 +1508,7 @@ module core_top(
             countresult_exe0_exe1_1<=countresult;
             rand_index_exe0_exe1<=CSR_rand_index;
             pc_br_exe0_exe1_1<=pc_br1;
-            ifbr_exe0_exe1_1_<=ifbr1;
+            ifbr_exe0_exe1_1<=ifbr1;
             flush_pre_exe0_exe1_1<=flush_pre_1;
             pre_exe0_exe1_1<=pre_reg_exe0_1;
             ifbr__exe0_exe1_1<=ifbr__1;
