@@ -87,12 +87,16 @@ always @(posedge clk) begin
         else begin
             if(TagV_unvalid[0])v0 <= 0;
             else if(TagV_we[0])v0 <= 1;
+            else v0 <= valid0[TagV_addr_read];
             if(TagV_unvalid[1])v1 <= 0;
             else if(TagV_we[1])v1 <= 1;
+            else v1 <= valid1[TagV_addr_read];
             if(TagV_unvalid[2])v2 <= 0;
             else if(TagV_we[2])v2 <= 1;
+            else v2 <= valid2[TagV_addr_read];
             if(TagV_unvalid[3])v3 <= 0;
             else if(TagV_we[3])v3 <= 1;
+            else v3 <= valid3[TagV_addr_read];
         end
     end
 end

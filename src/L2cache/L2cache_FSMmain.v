@@ -45,6 +45,12 @@ module L2cache_FSMmain#(
     input       mem_l2cache_addrOK_r,
     input       mem_l2cache_dataOK,
 
+    //L2-prefetch port
+    input       req_pref_l2cache,
+    output      ack_l2cache_pref,
+    output      addr_choose_pref,
+    output      dataOK_pref_l2cache,
+
     //模块间信号
 
     //reqbuf
@@ -90,6 +96,7 @@ reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
 localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9,checkDirty1=5'd10,SUC_w1=5'd11;
+// localparam pf_
 always @(posedge clk)begin
     if(!rstn)state<=0;
     else state<=next_state;

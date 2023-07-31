@@ -38,6 +38,14 @@ module L2cache#(
     output      l2cache_dcache_addrOK,
     output      l2cache_dcache_dataOK,
 
+    //L2-prefetch port
+    input       req_pref_l2cache,
+    output      ack_l2cache_pref,
+    input       [31:0]addr_l2cache_pref,
+    output      hit_l2cache_pref,//ack时取走hit
+    output      miss_l2cache_pref,//dataOK时取走miss
+    output      dataOK_pref_l2cache,
+
     //mem port(AXI bridge)
     output      [31:0]addr_l2cache_mem_r,
     output      [31:0]addr_l2cache_mem_w,
@@ -56,6 +64,7 @@ module L2cache#(
 
 //仲裁逻辑：Dcache优先
 wire [31:0]addr_l1cache_l2cache;
+wire addr_choose_pref;
 wire [31:0]din_l1cache_l2cache;
 reg [32*(1<<L1_offset_width)-1:0]dout_l2cache_l1cache;
 wire [3:0]l1cache_l2cache_wstrb;
@@ -78,7 +87,7 @@ always @(*) begin
         l1cache_l2cache_size = 2'd2;
     end
 end
-assign addr_l1cache_l2cache = from[1] ? addr_dcache_l2cache : addr_icache_l2cache;
+assign addr_l1cache_l2cache = addr_choose_pref ? addr_l2cache_pref : (from[1] ? addr_dcache_l2cache : addr_icache_l2cache);
 assign din_l1cache_l2cache = din_dcache_l2cache;
 assign dout_l2cache_icache = dout_l2cache_l1cache;
 assign dout_l2cache_dcache = dout_l2cache_l1cache;
@@ -213,6 +222,10 @@ L2cache_TagV(
     .TagV_we(TagV_we)
 );
 
+assign hit_l2cache_pref = &hit;
+reg miss_pref;
+// assign 
+
 //Dirtytable
 wire Dirty,Dirtytable_set0,Dirtytable_set1;
 wire [1:0]Dirtytable_way_select;
@@ -289,6 +302,14 @@ L2cache_FSMmain(
     .mem_l2cache_addrOK_r(mem_l2cache_addrOK_r),
     .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),
     .mem_l2cache_dataOK(mem_l2cache_dataOK),
+
+    //prefetch
+    .req_pref_l2cache(req_pref_l2cache),
+    .ack_l2cache_pref(ack_l2cache_pref),
+    .addr_choose_pref(addr_choose_pref),
+    .hit_l2cache_pref(hit_l2cache_pref),
+    .miss_l2cache_pref(miss_l2cache_pref),
+    .dataOK_pref_l2cache(dataOK_pref_l2cache),
 
     //request buffer
     .FSM_rbuf_we(rbuf_we),

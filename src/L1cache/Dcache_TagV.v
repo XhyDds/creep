@@ -70,9 +70,12 @@ always @(posedge clk) begin
         else begin
             if(TagV_unvalid[0])v0 <= 0;
             else if(TagV_we[0])v0 <= 1;
+            else v0 <= valid0[TagV_addr_read];
             if(TagV_unvalid[1])v1 <= 0;
             else if(TagV_we[1])v1 <= 1;
+            else v1 <= valid1[TagV_addr_read];
         end
+        
     end
 end
 

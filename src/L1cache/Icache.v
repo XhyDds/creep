@@ -170,7 +170,6 @@ Icache_TagV(
 );
 
 //data choose
-//需要stall所以需要锁存
 wire choose_way,choose_return;
 wire [offset_width-1:0]choose_word = rbuf_addr[2+offset_width-1:2];
 reg [63:0]data_out;
