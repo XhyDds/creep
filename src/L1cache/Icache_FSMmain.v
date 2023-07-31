@@ -105,8 +105,9 @@ always @(*) begin
             if(Miss)begin//Miss优先级应该比Stall高
                 if(flush_outside)next_state = Flush;
                 else begin
-                    if(!mem_icache_addrOK)next_state = Miss_r;
-                    else next_state = Miss_r_waitdata;//加速握手
+                    // if(!mem_icache_addrOK)next_state = Miss_r;
+                    // else next_state = Miss_r_waitdata;
+                    next_state = Miss_r_waitdata;
                 end
             end
             else begin//Hit
@@ -211,6 +212,7 @@ always @(*) begin
             icache_mem_req=1;
         end
         Miss_r_waitdata:begin
+            icache_mem_req=1;
             if(mem_icache_dataOK)begin
                 FSM_rbuf_we=1;
                 FSM_choose_return=1;

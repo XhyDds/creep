@@ -112,8 +112,8 @@ always @(*) begin
                 if(Miss)begin
                     // if(flush_outside)next_state = Flush;
                     if(!FSM_rbuf_type)begin//r
-                        if(!mem_dcache_addrOK)next_state=Miss_r;
-                        else next_state = Miss_r_waitdata;
+                        // if(!mem_dcache_addrOK)next_state=Miss_r;
+                        next_state = Miss_r_waitdata;
                     end
                     else begin
                         if(!mem_dcache_addrOK)next_state=Miss_w;
@@ -320,6 +320,8 @@ always @(*) begin
             dcache_mem_req=1;
         end
         Miss_r_waitdata:begin
+            dcache_mem_wr=0;
+            dcache_mem_req=1;
             if(mem_dcache_dataOK)begin
                 FSM_Data_replace=1;
                 FSM_rbuf_we=1;
