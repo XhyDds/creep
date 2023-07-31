@@ -78,7 +78,7 @@ wire [31:0]addr_d,opcode_d;
 wire op_l2,ack_l2;
 wire [31:0]addr_l2,opcode_l2;
 cache_opctr cache_opctr(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .opin_i(pipeline_icache_opflag),
     .addrin_i(addr_pipeline_icache),
