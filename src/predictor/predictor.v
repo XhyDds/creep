@@ -40,7 +40,7 @@ module predictor #(
     wire choice_real_b_g    =choice_real[0];
 
     wire choice_pdc_b_g,choice_pdc_btb_ras;
-    assign choice_pdc={choice_pdc_b_g,choice_pdc_btb_ras};
+    assign choice_pdc={choice_pdc_btb_ras,choice_pdc_b_g};
 
     //hash
     wire [k_width-1:0] pc_hashed;
@@ -128,6 +128,7 @@ module predictor #(
         .pc_ex(pc_ex),
         .pc_ex_gh_hashed(pc_ex_gh_hashed),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
+        .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_b_g),
         .taken_real(taken_real),
@@ -136,6 +137,7 @@ module predictor #(
         .choice_b_g(choice_pdc_b_g),
         .pc_gh_hashed(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
+        .pc_hashed(pc_hashed),
         .pc(pc),
         .update_en(update_en)
     );
@@ -202,6 +204,7 @@ module predictor #(
         .ret_pc_ex(ret_pc_ex),
         .pc_ex_gh_hashed(pc_ex_gh_hashed),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
+        .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_btb_ras),
         .mis_pdc(mis_pdc_npc),
@@ -211,6 +214,7 @@ module predictor #(
         .choice_btb_ras(choice_pdc_btb_ras),
         .pc_gh_hashed(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
+        .pc_hashed(pc_hashed),
         .pc(pc),
         .npc_test(npc_test)
     );

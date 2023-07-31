@@ -9,6 +9,7 @@ module aim_predictor#(
     input  [ADDR_WIDTH-1:0] pc_ex,
     input  [gh_width-1:0] pc_ex_gh_hashed,
     input  [bh_width-1:0] pc_ex_bh_hashed,
+    input  [bh_width-1:0] pc_ex_hashed,
     input  [2:0]kind_ex,
     input  choice_real,
     input  taken_real,
@@ -19,6 +20,7 @@ module aim_predictor#(
     //当前
     input  [gh_width-1:0] pc_gh_hashed,
     input  [bh_width-1:0] pc_bh_hashed,
+    input  [bh_width-1:0] pc_hashed,
     input  [ADDR_WIDTH-1:0] pc
 );
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
@@ -36,7 +38,7 @@ module aim_predictor#(
 
     wire try_to_pdc=(kind_ex==DIRECT_JUMP);
 
-    bpht#(
+    bpht#(              //pc+bh
         .bh_width(bh_width)
     )
     bpht_b(
@@ -48,7 +50,7 @@ module aim_predictor#(
         .update_en(try_to_pdc&&update_en)
     );
 
-    gpht#(
+    gpht#(              //pc+gh
         .gh_width(gh_width)
     )
     gpht_g(
@@ -60,7 +62,7 @@ module aim_predictor#(
         .update_en(try_to_pdc&&update_en)
     );
 
-    cpht#(
+    cpht#(              //pc
         .ch_width(gh_width)
     )
     cpht_b_g(

@@ -10,6 +10,7 @@ module npc_predictor#(
     input [ADDR_WIDTH-1:0] npc_ex,
     input [gh_width-1:0] pc_ex_gh_hashed,
     input [gh_width-1:0] pc_ex_bh_hashed,
+    input [gh_width-1:0] pc_ex_hashed,
     input [2:0]kind_ex,
     input choice_real,
     input [29:0]ret_pc_ex,
@@ -23,6 +24,7 @@ module npc_predictor#(
     //当前
     input [gh_width-1:0] pc_gh_hashed,
     input [gh_width-1:0] pc_bh_hashed,
+    input [gh_width-1:0] pc_hashed,
     input [ADDR_WIDTH-1:0] pc
 );
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
@@ -53,7 +55,7 @@ module npc_predictor#(
     wire [ADDR_WIDTH-1:0]npc_btb;
     wire [ADDR_WIDTH-1:0]npc_ras;
 
-    btb#(
+    btb#(                   //pc+bh
         .gh_width(gh_width),
         .ADDR_WIDTH(ADDR_WIDTH)
     )
@@ -82,14 +84,14 @@ module npc_predictor#(
         .update_en(update_en)
     );
 
-    cpht#(
+    cpht#(              //pc
         .ch_width(gh_width)
     )
     cpht_btb_ras(
         .clk(clk),
-        .hashed_pc(pc_gh_hashed),
+        .hashed_pc(pc_hashed),
         .choice_pdc(choice_btb_ras),
-        .hashed_pc_update(pc_ex_gh_hashed),
+        .hashed_pc_update(pc_ex_hashed),
         .choice_real(choice_real),
         .update_en((kind_ex==RET)&&update_en)
     );
