@@ -14,6 +14,7 @@ module predictor #(
     input [ADDR_WIDTH-1:0]pc_ex,
     input [2:0]mis_pdc,         //2:npc 1:kind 0:taken
     input [ADDR_WIDTH-1:0]npc_ex,
+    input [ADDR_WIDTH-1:0]ret_pc_ex,
     input [2:0]kind_ex,
     input taken_real,
     input [h_width-1:0] bh_ex,
@@ -198,6 +199,7 @@ module predictor #(
         .rstn(rstn),
         .update_en(update_en),
         .npc_ex(npc_ex),
+        .ret_pc_ex(ret_pc_ex),
         .pc_ex_gh_hashed(pc_ex_gh_hashed),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
         .kind_ex(kind_ex),
