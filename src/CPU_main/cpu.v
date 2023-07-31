@@ -1009,6 +1009,7 @@ module core_top(
     wire [29:0] out_npc_ex    ;
     wire [29:0] out_pc_ex     ;
     wire [1:0]  out_choice_pdc;
+    wire [29:0] ret_pc_ex     ;
     wire update_en;
 
     predictor #(
@@ -1025,6 +1026,7 @@ module core_top(
         .stall              ( stall_reg_exe0_0  ),
 
         .pc_ex       		( out_pc_ex         ),
+        .ret_pc_ex          ( ret_pc_ex         ),
         .mis_pdc     		( mis_pdc     		),
         .npc_ex      		( out_npc_ex  	    ),
         .kind_ex     		( out_kind_ex       ),
@@ -1083,6 +1085,8 @@ module core_top(
         .out_npc_ex    (out_npc_ex    ),
         .out_pc_ex     (out_pc_ex     ),
         .out_choice_pdc(out_choice_pdc),
+
+        .ret_pc_ex(ret_pc_ex),
 
         .update_en     (update_en)
     );

@@ -43,9 +43,11 @@ module ex_buffer#(
     output reg   [29:0] out_pc_ex     ,
     output reg   [1:0]  out_choice_pdc,
 
+    output reg   [29:0] ret_pc_ex,
+
     output reg   update_en
 );
-    localparam NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,CALL = 3'd2,RET = 3'd3,INDIRECT_JUMP = 3'd4,OTHER_JUMP = 3'd5;
+    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
 
     wire [115:0] in_data_0={in_flush_pre_0,in_bh_pdc_0,in_pack_size_0,in_choice_pdc_0,in_pc_ex_0,in_npc_ex_0,in_kind_ex_0,in_taken_ex_0,in_npc_pdc_0,in_kind_pdc_0,in_taken_pdc_0};
     wire [115:0] in_data_1={in_flush_pre_1,in_bh_pdc_1,in_pack_size_1,in_choice_pdc_1,in_pc_ex_1,in_npc_ex_1,in_kind_ex_1,in_taken_ex_1,in_npc_pdc_1,in_kind_pdc_1,in_taken_pdc_1};
@@ -78,6 +80,12 @@ module ex_buffer#(
     wire        out_flush_pre_1;
 
     wire pack_size=(~out_pack_size_0)|out_flush_pre_0; //后一条指令被刷掉:0:两条 1:一条
+
+    reg [29:0] ret_pc_ex_;
+    always @(*) begin
+        if(out_kind_ex_0!=CALL && out_kind_ex_1==CALL && pack_size==0) ret_pc_ex_=out_pc_ex_1+1;
+        else ret_pc_ex_=out_pc_ex_0+1;
+    end
 
     assign out_taken_pdc_0=out_data_0[0]    ;
     assign out_kind_pdc_0 =out_data_0[3:1]  ;
@@ -283,6 +291,7 @@ module ex_buffer#(
             out_npc_ex    <=0;
             out_pc_ex     <=0;
             out_choice_pdc<=0;
+            ret_pc_ex     <=0;
         end
         else begin
             update_en     <=update_en_     ;
@@ -295,6 +304,7 @@ module ex_buffer#(
             out_npc_ex    <=out_npc_ex_    ;
             out_pc_ex     <=out_pc_ex_     ;
             out_choice_pdc<=out_choice_pdc_;
+            ret_pc_ex     <=ret_pc_ex_;
         end
     end
     
