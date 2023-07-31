@@ -104,7 +104,7 @@ module core_top(
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,ifbr_exe0_exe1_0_,ifbr_exe0_exe1_1_,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,ifbr_exe0_exe1_0_,ifbr_exe0_exe1_1_,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1;
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -1056,7 +1056,7 @@ module core_top(
         .in_kind_pdc_0(pre_exe0_exe1_0[32:30]),
         .in_npc_pdc_0(pre_exe0_exe1_0[29:0]),
         .in_choice_pdc_0(pre_exe0_exe1_0[36:35]),
-        .in_taken_ex_0(ifbr_exe0_exe1_0),
+        .in_taken_ex_0(ifbr__exe0_exe1_0),
         .in_kind_ex_0(ctr_exe0_exe1_0[26:24]),
         .in_npc_ex_0(pc_br_exe0_exe1_0[31:2]),
         .in_pc_ex_0(pc_exe0_exe1_0[31:2]),
@@ -1066,7 +1066,7 @@ module core_top(
         .in_kind_pdc_1(pre_exe0_exe1_1[32:30]),
         .in_npc_pdc_1(pre_exe0_exe1_1[29:0]),
         .in_choice_pdc_1(pre_exe0_exe1_1[36:35]),
-        .in_taken_ex_1(ifbr_exe0_exe1_1),
+        .in_taken_ex_1(ifbr__exe0_exe1_1),
         .in_kind_ex_1(ctr_exe0_exe1_1[26:24]),
         .in_npc_ex_1(pc_br_exe0_exe1_1[31:2]),
         .in_pc_ex_1(pc_exe0_exe1_1[31:2]),
@@ -1422,6 +1422,7 @@ module core_top(
             ifbr_exe0_exe1_0_<=0;
             flush_pre_exe0_exe1_0<=0;
             pre_exe0_exe1_0<=0;
+            ifbr__exe0_exe1_0<=0;
         end
         else if(stall_exe0_exe1_0);
         else if(flush_exe0_exe1_0) begin
@@ -1436,6 +1437,7 @@ module core_top(
             ifbr_exe0_exe1_0_<=0;
             flush_pre_exe0_exe1_0<=0;
             pre_exe0_exe1_0<=0;
+            ifbr__exe0_exe1_0<=0;
         end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
@@ -1449,6 +1451,7 @@ module core_top(
             ifbr_exe0_exe1_0_<=ifbr0;
             flush_pre_exe0_exe1_0<=flush_pre_0;
             pre_exe0_exe1_0<=pre_reg_exe0_0;
+            ifbr__exe0_exe1_0<=ifbr__0;
         end
     end
 
@@ -1469,6 +1472,7 @@ module core_top(
             ifbr_exe0_exe1_1_<=0;
             flush_pre_exe0_exe1_1<=0;
             pre_exe0_exe1_1<=0;
+            ifbr__exe0_exe1_1<=0;
         end
         else if(stall_exe0_exe1_1);
         else if(flush_exe0_exe1_1) begin
@@ -1487,6 +1491,7 @@ module core_top(
             ifbr_exe0_exe1_1_<=0;
             flush_pre_exe0_exe1_1<=0;
             pre_exe0_exe1_1<=0;
+            ifbr__exe0_exe1_1<=0;
         end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
@@ -1504,6 +1509,7 @@ module core_top(
             ifbr_exe0_exe1_1_<=ifbr1;
             flush_pre_exe0_exe1_1<=flush_pre_1;
             pre_exe0_exe1_1<=pre_reg_exe0_1;
+            ifbr__exe0_exe1_1<=ifbr__1;
         end
     end
 
