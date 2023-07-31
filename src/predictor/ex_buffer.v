@@ -231,6 +231,7 @@ module ex_buffer#(
             out_kind_pdc_  =out_kind_pdc_0 ;
             out_npc_pdc_   =out_npc_pdc_0  ;
             out_choice_pdc_=out_choice_pdc_0;
+            out_bh_pdc_    =out_bh_pdc_0   ;
             out_taken_ex_  =out_taken_ex_0 ;
             out_kind_ex_   =out_kind_ex_0  ;
             out_npc_ex_    =out_npc_ex_0   ;
@@ -241,8 +242,8 @@ module ex_buffer#(
             out_kind_pdc_  =out_kind_pdc_0 ;
             out_npc_pdc_   =out_npc_pdc_0  ;
             out_choice_pdc_=out_choice_pdc_0;
-            out_pc_ex_     =out_pc_ex_0    ;
             out_bh_pdc_    =out_bh_pdc_0   ;
+            out_pc_ex_     =out_pc_ex_0    ;
 
             out_taken_ex_  =out_taken_ex_0||out_taken_ex_1;
             //kind
