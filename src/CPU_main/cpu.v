@@ -699,8 +699,7 @@ module core_top(
         .alu2      		( alu2_0      		),
         .ifbr     		( ifbr0    		    ),
         .pc_br   		( pc_br0 	        ),
-        .rrj            ( rrj0_forward      ),
-        .stall          ( stall_reg_exe0_0  )
+        .rrj            ( rrj0_forward      )
     );
 
     wire [31:0]	pc_br1;
@@ -714,8 +713,7 @@ module core_top(
         .alu2      		( alu2_1      		 ),
         .ifbr     		( ifbr1    		     ),
         .pc_br  		( pc_br1		     ),
-        .rrj            ( rrj1_forward       ),
-        .stall          ( stall_reg_exe0_1   )
+        .rrj            ( rrj1_forward       )
     );
 `endif
 
@@ -989,6 +987,7 @@ module core_top(
     wire [29:0]npc_pdc;
     wire [2:0]kind_pdc;
     wire taken_pdc;
+    wire [13:0]bh_pdc;
     wire [1:0]choice_pdc;
 
 `ifdef predictor
@@ -1008,6 +1007,7 @@ module core_top(
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
     wire [29:0] out_npc_pdc   ;
+    wire [13:0] out_bh_ex     ;
     wire        out_taken_ex  ;
     wire [2:0]  out_kind_ex   ;
     wire [29:0] out_npc_ex    ;
@@ -1026,17 +1026,20 @@ module core_top(
         .clk         		( clk         		),
         .rstn        		( rstn        		),
         .update_en          ( update_en         ),
+        .stall              ( stall_reg_exe0_0  ),
 
         .pc_ex       		( out_pc_ex         ),
         .mis_pdc     		( mis_pdc     		),
         .npc_ex      		( out_npc_ex  	    ),
         .kind_ex     		( out_kind_ex       ),
         .taken_real  		( out_taken_ex 		),
+        .bh_ex              ( out_bh_ex         ),
         .choice_real 		( choice_real 		),
 
         .npc_pdc     		( npc_pdc  	    	),
         .kind_pdc    		( kind_pdc       	),
         .taken_pdc   		( taken_pdc        	),
+        .bh_pdc             ( bh_pdc            ),
         .choice_pdc  		( choice_pdc    	),
 
         .pc          		( pc[31:2]          ),
@@ -1044,36 +1047,41 @@ module core_top(
     );
 
     ex_buffer #(
-        .length(4)
+        .length(6)
     )u_ex_buffer(
         .clk(clk),
         .rstn(rstn),
-        .flag({ctr_reg_exe0_0[31],ctr_reg_exe0_1[31]}),
-        .stall(stall_reg_exe0_0|(~ctr_reg_exe0_0[31]&~ctr_reg_exe0_1[31])),
+        .flag({ctr_reg_exe0_0[31]&~(flush_pre&ctr_reg_exe0_0[31]),ctr_reg_exe0_1[31]&~flushdown}),
+        .stall(stall_reg_exe0_0|(~(ctr_reg_exe0_0[31]&~(flush_pre&ctr_reg_exe0_0[31]))&~(ctr_reg_exe0_1[31]&~flushdown))),
 
         .in_taken_pdc_0(pre_reg_exe0_0[33]),
         .in_kind_pdc_0(pre_reg_exe0_0[32:30]),
         .in_npc_pdc_0(pre_reg_exe0_0[29:0]),
         .in_choice_pdc_0(pre_reg_exe0_0[36:35]),
+        .in_bh_pdc_0(pre_reg_exe0_0[52:39]),
         .in_taken_ex_0(ifbr__0),
         .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
         .in_npc_ex_0(pc_br0[31:2]),
         .in_pc_ex_0(pc_reg_exe0_0[31:2]),
+        .in_pack_size_0(pre_reg_exe0_0[53]),
         .in_flush_pre_0(flush_pre_0),
 
         .in_taken_pdc_1(pre_reg_exe0_1[33]),
         .in_kind_pdc_1(pre_reg_exe0_1[32:30]),
         .in_npc_pdc_1(pre_reg_exe0_1[29:0]),
         .in_choice_pdc_1(pre_reg_exe0_1[36:35]),
+        .in_bh_pdc_1(pre_reg_exe0_1[52:39]),
         .in_taken_ex_1(ifbr__1),
         .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
         .in_npc_ex_1(pc_br1[31:2]),
         .in_pc_ex_1(pc_reg_exe0_1[31:2]),
+        .in_pack_size_1(pre_reg_exe0_1[53]),
         .in_flush_pre_1(flush_pre_1),
 
         .out_taken_pdc (out_taken_pdc ),
         .out_kind_pdc  (out_kind_pdc  ),
         .out_npc_pdc   (out_npc_pdc   ),
+        .out_bh_pdc    (out_bh_ex     ),
         .out_taken_ex  (out_taken_ex  ),
         .out_kind_ex   (out_kind_ex   ),
         .out_npc_ex    (out_npc_ex    ),
@@ -1129,8 +1137,8 @@ module core_top(
             PLV_if0_if1<=PLV;
             MMU_pipeline_excp_arg0_if0_if1<=MMU_pipeline_excp_arg0;
             //pre
-            pre_if0_if1<={25'b0,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //38 37 36:35 34 33 32:30 29:0
+            pre_if0_if1<={10'b0,1'b0,bh_pdc,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //53 52:39 38 37 36:35 34 33 32:30 29:0
         end
     end
 
