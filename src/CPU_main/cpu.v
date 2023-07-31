@@ -143,16 +143,17 @@ module core_top(
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
-    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown;
+    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1;
 
     assign flushup =            flush_pre_1&ctr_reg_exe0_0[31];
-    assign flushdown =          flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0;
+    assign flushdown =          flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0&ctr_id_reg_1[31];
+    assign flushdownpre =       flush_pre_0&~ctr_id_reg_1[31];
     assign flush_if0_if1 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_if1_fifo =     ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_fifo_id =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_id_reg0 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_id_reg1 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_id_reg1 =      ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle|flushdownpre;
     assign flush_reg_exe0_0 =   ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_reg_exe0_1 =   ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle|flushdown;
     assign flush_exe0_exe1_0 =  ifpriv|ifbr_exe0_exe1_1|ifbr_exe0_exe1_0|ifcacop_ibar|ifmmu_excp|ifidle|flushup;
