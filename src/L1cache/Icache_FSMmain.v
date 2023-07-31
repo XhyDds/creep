@@ -38,7 +38,6 @@ module Icache_FSMmain#(
     output      icache_pipeline_stall,//stall form icache
 
     output reg  icache_mem_req,
-    input       mem_icache_addrOK,//发送的地址和数据都被接收
     input       mem_icache_dataOK,//返回的数据有效
 
     //模块间信号
@@ -88,7 +87,7 @@ assign icache_pipeline_ready1=icache_pipeline_ready&rstn_reg;//初始态不能�
 wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 reg [4:0]state;
 reg [4:0]next_state;
-localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Operation=5'd4,Flush=5'd5;
+localparam Idle=5'd0,Lookup=5'd1,Miss_r_waitdata=5'd2,Operation=5'd3,Flush=5'd4;
 always @(posedge clk)begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -105,8 +104,7 @@ always @(*) begin
             if(Miss)begin//Miss优先级应该比Stall高
                 if(flush_outside)next_state = Flush;
                 else begin
-                    if(!mem_icache_addrOK)next_state = Miss_r;
-                    else next_state = Miss_r_waitdata;//加速握手
+                    next_state = Miss_r_waitdata;
                 end
             end
             else begin//Hit
@@ -133,10 +131,6 @@ always @(*) begin
                 if(opflag)next_state = Operation;
                 else next_state = Lookup;
             end
-        end
-        Miss_r:begin
-            if(!mem_icache_addrOK)next_state = Miss_r;
-            else next_state = Miss_r_waitdata;
         end
         Miss_r_waitdata:begin
             if(!mem_icache_dataOK)next_state = Miss_r_waitdata;
@@ -207,10 +201,8 @@ always @(*) begin
                 end
             end
         end
-        Miss_r:begin
-            icache_mem_req=1;
-        end
         Miss_r_waitdata:begin
+            icache_mem_req=1;
             if(mem_icache_dataOK)begin
                 FSM_rbuf_we=1;
                 FSM_choose_return=1;

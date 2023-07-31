@@ -62,7 +62,7 @@ module L2cache#(
 );
 
 //仲裁逻辑：Dcache优先
-wire [31:0]addr_l1cache_l2cache;
+reg [31:0]addr_l1cache_l2cache;
 wire addr_choose_pref;
 wire [31:0]din_l1cache_l2cache;
 reg [32*(1<<L1_offset_width)-1:0]dout_l2cache_l1cache;
@@ -74,15 +74,23 @@ always @(*) begin
     l1cache_l2cache_SUC = 0;
     l1cache_l2cache_size = 2'd0;
     from = 2'd0;
+    addr_l1cache_l2cache = 0;
     if(dcache_l2cache_req)begin
         if(!dcache_l2cache_wr)from = 2'd2;
         else from = 2'd3;
         l1cache_l2cache_SUC = dcache_l2cache_SUC;
         l1cache_l2cache_size = dcache_l2cache_size;
+        addr_l1cache_l2cache = addr_dcache_l2cache;
     end
     else if(icache_l2cache_req)begin
         from = 2'd1;
         l1cache_l2cache_SUC = icache_l2cache_SUC;
+        l1cache_l2cache_size = 2'd2;
+        addr_l1cache_l2cache = addr_icache_l2cache;
+    end
+    else if(req_pref_l2cache)begin
+        l1cache_l2cache_SUC = 0;
+        addr_l1cache_l2cache = addr_pref_l2cache;
         l1cache_l2cache_size = 2'd2;
     end
 end
@@ -104,7 +112,7 @@ wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_opaddr;
 wire [3:0]rbuf_wstrb;
 wire [1:0]rbuf_from;
 wire [1:0]rbuf_size;
-wire rbuf_opflag,rbuf_we,rbuf_SUC;
+wire rbuf_opflag,rbuf_we,rbuf_SUC,rbuf_prefetch;
 
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
@@ -143,7 +151,10 @@ L2cache_rbuf L2cache_rbuf(
     .rbuf_SUC(rbuf_SUC),
 
     .opaddr(addr_pipeline_l2cache),
-    .rbuf_opaddr(rbuf_opaddr)
+    .rbuf_opaddr(rbuf_opaddr),
+
+    .prefetch(req_pref_l2cache),
+    .rbuf_prefetch(rbuf_prefetch)
 );
 
 //PLRU
@@ -287,6 +298,7 @@ L2cache_FSMmain(
     .ack_op(ack_op),
     .l2cache_icache_addrOK(l2cache_icache_addrOK),
     .l2cache_icache_dataOK(l2cache_icache_dataOK),
+    .icache_l2cache_flush(icache_l2cache_flush),
     .l2cache_dcache_addrOK(l2cache_dcache_addrOK),
     .l2cache_dcache_dataOK(l2cache_dcache_dataOK),
 

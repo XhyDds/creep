@@ -56,7 +56,6 @@ module Icache#(
     output      icache_mem_req,
     output      icache_mem_SUC,
     output      [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
-    input       mem_icache_addrOK,
     input       mem_icache_dataOK
     );
 
@@ -255,7 +254,6 @@ Icache_FSMmain(
 
     //icache  mem
     .icache_mem_req(icache_mem_req),
-    .mem_icache_addrOK(mem_icache_addrOK),
     .mem_icache_dataOK(mem_icache_dataOK),
 
     //request buffer
