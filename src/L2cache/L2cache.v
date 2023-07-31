@@ -40,6 +40,7 @@ module L2cache#(
 
     //L2-prefetch port
     input       req_pref_l2cache,
+    input       type_pref_l2cache,
     input       [31:0]addr_pref_l2cache,
     output      hit_l2cache_pref,//ack时取走hit
     output      miss_l2cache_pref,//dataOK时取走miss
@@ -109,9 +110,9 @@ assign tag = addr_l1cache_l2cache[31:offset_width+index_width+2];
 //request buffer
 wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_opaddr;
 wire [3:0]rbuf_wstrb;
-wire [1:0]rbuf_from;
+wire [1:0]rbuf_from,rbuf_from_pref;
 wire [1:0]rbuf_size;
-wire rbuf_opflag,rbuf_we,rbuf_SUC,rbuf_prefetch;
+wire rbuf_opflag,rbuf_we,rbuf_SUC,rbuf_prefetch,rbuf_pref_type;
 
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
@@ -153,7 +154,36 @@ L2cache_rbuf L2cache_rbuf(
     .rbuf_opaddr(rbuf_opaddr),
 
     .prefetch(req_pref_l2cache),
-    .rbuf_prefetch(rbuf_prefetch)
+    .rbuf_prefetch(rbuf_prefetch),
+
+    .pref_type(type_pref_l2cache),
+    .rbuf_pref_type(rbuf_pref_type)
+);
+
+//pref buffer
+wire inpref;
+wire [31:0]data_pref,addr_pref;
+wire [3:0]wstrb_pref;
+wire [1:0]from_pref;
+wire [offset_width-1:0]offset_pref;
+wire [index_width-1:0]index_pref;
+wire [32-offset_width-index_width-2-1:0]tag_pref;
+assign offset_pref = addr_pref[offset_width+1:2];
+assign index_pref = addr_pref[offset_width+index_width+1:offset_width+2];
+assign tag_pref = addr_pref[31:offset_width+index_width+2];
+L2cache_pref_reqbuf L2cache_pref_reqbuf(
+    .clk(clk),
+    .rstn(rstn),
+
+    .data_l1(din_l1cache_l2cache),
+    .addr_l1(dcache_mem_req ? addr_dcache_l2cache : (icache_mem_req ? addr_icache_l2cache : 0)),
+    .from(from),
+    .wstrb_l1(dcache_l2cache_wstrb),
+
+    .data_l1_pref(data_pref),
+    .addr_l1_pref(addr_pref),
+    .from_pref(from_pref),
+    .wstrb_pref(wstrb_pref)
 );
 
 //PLRU
@@ -188,17 +218,17 @@ L2cache_Data #(
 L2cache_Data(
     .clk(clk),
     
-    .Data_addr_read(Data_writeback ? rbuf_index : index),
+    .Data_addr_read(Data_writeback ? rbuf_index : index),//pref不用改
     .Data_dout0(data0),
     .Data_dout1(data1),
     .Data_dout2(data2),
     .Data_dout3(data3),
 
     .Data_din_write(din_mem_l2cache),//一整行
-    .Data_din_write_32(rbuf_data),
-    .Data_addr_write(rbuf_index),
-    .Data_offset(rbuf_offset),
-    .Data_choose_byte(rbuf_wstrb),
+    .Data_din_write_32(inpref ? data_pref : rbuf_data),
+    .Data_addr_write(inpref ? index_pref : rbuf_index),
+    .Data_offset(inpref ? offset_pref : rbuf_offset),
+    .Data_choose_byte(inpref ? wstrb_pref : rbuf_wstrb),
     .Data_we(Data_we),
     .Data_replace(Data_replace)
 );
@@ -218,15 +248,15 @@ L2cache_TagV(
     .clk(clk),
 
     .TagV_addr_read(Data_writeback ? rbuf_index : index),
-    .TagV_din_compare(rbuf_tag),
+    .TagV_din_compare(inpref ? tag_pref : rbuf_tag),
     .hit(hit),
     .valid(valid),
     .TagV_way_select(TagV_way_select),
     .TagV_dout(TagV_dout),
     
     .TagV_init(TagV_init),
-    .TagV_din_write(rbuf_tag),
-    .TagV_addr_write(rbuf_index),
+    .TagV_din_write(inpref ? tag_pref : rbuf_tag),
+    .TagV_addr_write(inpref ? index_pref : rbuf_index),
     .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
 );
@@ -240,7 +270,7 @@ L2cache_Dirtytable #(
 L2cache_Dirtytable(
     .clk(clk),
     
-    .Dirtytable_addr(rbuf_index),
+    .Dirtytable_addr(inpref ? index_pref : rbuf_index),
     .Dirtytable_way_select(Dirtytable_way_select),
     .Dirtytable_set0(Dirtytable_set0),
     .Dirtytable_set1(Dirtytable_set1),
@@ -263,7 +293,7 @@ always @(*) begin
         endcase
     end
 end
-wire choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
+wire choose_word = inpref ? offset_pref[offset_width -1 : L1_offset_width] : rbuf_offset[offset_width -1 : L1_offset_width];
 always @(*) begin
     if(rbuf_SUC)dout_l2cache_l1cache = line[127:0];//TLB时还要注意
     else begin
@@ -323,6 +353,10 @@ L2cache_FSMmain(
     .FSM_rbuf_opaddr(rbuf_opaddr),
     .FSM_rbuf_opflag(rbuf_opflag),
     .FSM_rbuf_prefetch(rbuf_prefetch),
+    .FSM_rbuf_pref_type(rbuf_pref_type),
+
+    //pref req buf
+    .FSM_from_pref(from_pref),
 
     //req
     .FSM_SUC(l1cache_l2cache_SUC),
@@ -352,6 +386,7 @@ L2cache_FSMmain(
     .FSM_Dirty(Dirty),
 
     //Data Choose
+    .FSM_inpref(inpref),
     .FSM_choose_way(choose_way),
     .FSM_choose_return(choose_return)
     
