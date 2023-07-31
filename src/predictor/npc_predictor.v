@@ -27,6 +27,14 @@ module npc_predictor#(
 );
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
 
+    // parameter   NOT_JUMP = 3'd0,
+    //             DIRECT_JUMP = 3'd1,
+    //             //
+    //             RET = 3'd4,
+    //             INDIRECT_JUMP = 3'd5,
+    //             CALL = 3'd6,
+    //             JUMP=3'd7;
+
     // assign npc_test=pc+1;
     // npc_test
     reg [29:0]offset_test;
@@ -89,16 +97,16 @@ module npc_predictor#(
     always @(*) begin
         if(taken_pdc) begin
             case (kind_pdc)
-                NOT_JUMP:       npc_pdc=(~pc[0])?(pc+2):(pc+1);
+                NOT_JUMP:       npc_pdc=(({ADDR_WIDTH{~pc[0]}})&(pc+2))|(({ADDR_WIDTH{pc[0]}})&(pc+1));
                 DIRECT_JUMP:    npc_pdc=npc_btb;
+                RET:            npc_pdc=(({ADDR_WIDTH{choice_btb_ras}})&npc_ras)|(({ADDR_WIDTH{~choice_btb_ras}})&npc_btb);
+                INDIRECT_JUMP:  npc_pdc=npc_btb;
                 JUMP:           npc_pdc=npc_btb;
                 CALL:           npc_pdc=npc_btb;
-                RET:            npc_pdc=choice_btb_ras?npc_ras:npc_btb;
-                INDIRECT_JUMP:  npc_pdc=npc_btb;
-                OTHER_JUMP:     npc_pdc=npc_btb;
-                default:        npc_pdc=(~pc[0])?(pc+2):(pc+1);
+                // OTHER_JUMP:     npc_pdc=npc_btb;
+                default:        npc_pdc=(({ADDR_WIDTH{~pc[0]}})&(pc+2))|(({ADDR_WIDTH{pc[0]}})&(pc+1));
             endcase
         end
-        else                    npc_pdc=(~pc[0])?(pc+2):(pc+1);
+        else                    npc_pdc=(({ADDR_WIDTH{~pc[0]}})&(pc+2))|(({ADDR_WIDTH{pc[0]}})&(pc+1));
     end
 endmodule
