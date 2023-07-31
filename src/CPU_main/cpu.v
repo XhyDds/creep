@@ -1050,19 +1050,19 @@ module core_top(
     )u_ex_buffer(
         .clk(clk),
         .rstn(rstn),
-        .flag({ctr_reg_exe0_0[31],ctr_reg_exe0_1[31]}),
-        .stall(stall_reg_exe0_0|(~ctr_reg_exe0_0[31]&~ctr_reg_exe0_1[31])),
+        .flag({ctr_reg_exe0_0[31]&~(flush_pre&ctr_reg_exe0_0[31]),ctr_reg_exe0_1[31]&~flushdown}),
+        .stall(stall_reg_exe0_0|(~(ctr_reg_exe0_0[31]&~(flush_pre&ctr_reg_exe0_0[31]))&~(ctr_reg_exe0_1[31]&~flushdown))),
 
         .in_taken_pdc_0(pre_reg_exe0_0[33]),
         .in_kind_pdc_0(pre_reg_exe0_0[32:30]),
         .in_npc_pdc_0(pre_reg_exe0_0[29:0]),
         .in_choice_pdc_0(pre_reg_exe0_0[36:35]),
         .in_bh_pdc_0(pre_reg_exe0_0[52:39]),
-        .in_taken_ex_0(ifbr_0),
+        .in_taken_ex_0(ifbr__0),
         .in_kind_ex_0(ctr_reg_exe0_0[26:24]),
         .in_npc_ex_0(pc_br0[31:2]),
         .in_pc_ex_0(pc_reg_exe0_0[31:2]),
-        .in_pack_size_0(pre_reg_exe0_0[38]),
+        .in_pack_size_0(pre_reg_exe0_0[53]),
         .in_flush_pre_0(flush_pre_0),
 
         .in_taken_pdc_1(pre_reg_exe0_1[33]),
@@ -1070,11 +1070,11 @@ module core_top(
         .in_npc_pdc_1(pre_reg_exe0_1[29:0]),
         .in_choice_pdc_1(pre_reg_exe0_1[36:35]),
         .in_bh_pdc_1(pre_reg_exe0_1[52:39]),
-        .in_taken_ex_1(ifbr_1),
+        .in_taken_ex_1(ifbr__1),
         .in_kind_ex_1(ctr_reg_exe0_1[26:24]),
         .in_npc_ex_1(pc_br1[31:2]),
         .in_pc_ex_1(pc_reg_exe0_1[31:2]),
-        .in_pack_size_1(pre_reg_exe0_1[38]),
+        .in_pack_size_1(pre_reg_exe0_1[53]),
         .in_flush_pre_1(flush_pre_1),
 
         .out_taken_pdc (out_taken_pdc ),
@@ -1136,8 +1136,8 @@ module core_top(
             PLV_if0_if1<=PLV;
             MMU_pipeline_excp_arg0_if0_if1<=MMU_pipeline_excp_arg0;
             //pre
-            pre_if0_if1<={11'b0,bh_pdc,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //52:39 38 37 36:35 34 33 32:30 29:0
+            pre_if0_if1<={10'b0,1'b0,bh_pdc,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //53 52:39 38 37 36:35 34 33 32:30 29:0
         end
     end
 

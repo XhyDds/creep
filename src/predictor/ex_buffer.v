@@ -77,7 +77,7 @@ module ex_buffer#(
     wire        out_pack_size_1;
     wire        out_flush_pre_1;
 
-    wire pack_size=~out_pack_size_0|out_flush_pre_0; //后一条指令被刷掉:0:两条 1:一条
+    wire pack_size=(~out_pack_size_0)|out_flush_pre_0; //后一条指令被刷掉:0:两条 1:一条
 
     assign out_taken_pdc_0=out_data_0[0]    ;
     assign out_kind_pdc_0 =out_data_0[3:1]  ;
