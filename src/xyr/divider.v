@@ -15,9 +15,10 @@ module divider#(//din1/din2
     
 );
     localparam Tdiv=2;
-    localparam Wait=0,Aline=1,Div=2,Waitout=3;
+    localparam Wait=0,Aline=1,Div=2,Waitout=3,Datain=4;
     localparam DIVW=0,MODW=1,DIVWU=2,MODWU=3;
     wire exe;reg busy;wire [WIDTH-1:0] din1,din2;
+    reg [WIDTH-1:0] din1_reg1,din2_reg1;
     reg [WIDTH-1:0] dout;wire [4:0] mode;reg [4:0]mode_reg,nmode;
     reg [2:0] ns,cs;reg [WIDTH:0]temp;
     reg [WIDTH-1:0] remainder,nremainder,quotient,nquotient,din2_reg,ndin2_reg;
@@ -43,6 +44,7 @@ module divider#(//din1/din2
         din2_reg<=0;
         counter<=0; 
         dout<=0;
+        din1_reg1<=0;
         end
     else
         begin
@@ -51,7 +53,8 @@ module divider#(//din1/din2
         quotient<=nquotient;
         counter<=ncounter;
         mode_reg<=nmode;
-        din2_reg<=ndin2_reg;           
+        din2_reg<=ndin2_reg;
+        din1_reg1<=din1;din2_reg1=din2;           
         if(mode_reg==DIVW||mode_reg==DIVWU)
             dout<=quotient;
         else
@@ -85,26 +88,30 @@ module divider#(//din1/din2
             busy=0;
             if(exe)
                 begin
-                if(|din2)
-                    ns=Aline;
-                else
-                    ns=Waitout; 
-                nquotient=0;nremainder=0;
-                nmode=mode;
-                if((mode==DIVW||mode==MODW)&&din1[WIDTH-1])
-                    nremainder=0-din1;
-                else
-                    nremainder=din1;
-                if((mode==DIVW||mode==MODW)&&din2[WIDTH-1])
-                    ndin2_reg=0-din2;
-                else
-                    ndin2_reg=din2;
+                ns=Datain;
                 end
             else
                 begin
                 ns=Wait;
                 end
             end
+        Datain:
+             begin
+             if(|din2_reg1)
+                    ns=Aline;
+                else
+                    ns=Waitout; 
+             nquotient=0;nremainder=0;
+             nmode=mode;
+             if((mode==DIVW||mode==MODW)&&din1_reg1[WIDTH-1])
+                 nremainder=0-din1_reg1;
+             else
+                 nremainder=din1_reg1;
+             if((mode==DIVW||mode==MODW)&&din2_reg1[WIDTH-1])
+                 ndin2_reg=0-din2_reg1;
+             else
+                 ndin2_reg=din2_reg1;
+             end
         Aline:
             begin
             ncounter={1'b0,n1}-{1'b0,n2};
