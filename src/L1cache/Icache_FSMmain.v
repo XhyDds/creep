@@ -162,6 +162,10 @@ always @(*) begin
         end
         Lookup:begin
             if(Miss)icache_mem_req = 1;
+            else begin
+                icache_pipeline_ready = 1;
+                FSM_rbuf_we = 1;
+            end
             if(!flush_outside)begin
                 if(FSM_rbuf_SUC)begin
                     if(hit0)FSM_TagV_unvalid = 2'b01;
@@ -172,10 +176,6 @@ always @(*) begin
                     if(hit0)begin FSM_choose_way=0; FSM_use0=1; end
                     else if(hit1)begin FSM_choose_way=1; FSM_use1=1; end
                 end
-            end
-            if(next_state == Lookup || next_state == Operation || next_state ==Flush)begin
-                icache_pipeline_ready = 1;
-                FSM_rbuf_we = 1;
             end
         end
         Flush:begin
