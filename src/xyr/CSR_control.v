@@ -120,7 +120,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign CSR_pipeline_flush=flushout_reg;
     assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||excp_arg1[15]||pipeline_CSR_type==LLSCW;
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
-    assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall|nclk_stall;
+    assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;//|nclk_stall
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
     assign csr_num=pipeline_CSR_excp_arg0;
     assign inte=|({ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]})?CRMD[2]&~inst_stop_reg:0;
@@ -191,7 +191,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
         csr_num_reg<=0;inst_stop_reg<=0;
-        clk_stall<=0;
+        
         //excp_flush<=0;ertn_flush<=0;
         end
     else if(!stallin||inte)
@@ -203,16 +203,23 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
-        clk_stall<=nclk_stall;
+        
         //excp_flush<=nexcp_flush;ertn_flush<=nertn_flush;
         end
     end
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn)
+        begin
         jumpc_reg<=0;
-    else if(jumpc_valid)
-        jumpc_reg<=jumpc;
+        clk_stall<=0;
+        end
+    else 
+        begin
+        clk_stall<=nclk_stall;
+        if(jumpc_valid)
+            jumpc_reg<=jumpc;
+        end
     end
     always@(posedge(clk))
     begin
