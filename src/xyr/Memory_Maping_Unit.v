@@ -79,40 +79,42 @@ module Memory_Maping_Unit#(
     assign stall1=pipeline_MMU_stall1,flush1=pipeline_MMU_flush1;
              
     //0·�����߼�
-   
+    always@(*)
+    begin
+    PADDR0=0;
+    memtype0=0;
+    if(CRMDin[4:3]==2'b01)//DA==1,PG==0
+        begin
+        PADDR0=0;
+        PADDR0=VADDR0;
+        if(optype0==FETCH)
+            memtype0=CRMDin[6:5];
+        else
+            memtype0=CRMDin[8:7];
+        end
+    else if(DMW0_plvOK && DMW0in[31:29]==VADDR0[31:29])
+        begin
+        PADDR0={DMW0in[27:25],VADDR0[28:0]};
+        memtype0=DMW0in[5:4];
+        end
+    else if(DMW1_plvOK && DMW1in[31:29]==VADDR0[31:29])
+        begin
+        PADDR0={DMW1in[27:25],VADDR0[28:0]};
+        memtype0=DMW1in[5:4];
+        end
+    end
     always@(*)
     begin
     if(flush0)
         begin
-        PADDR0=0;
-        memtype0=0;
         excp_arg0=0;
         end
     else
         begin
-        PADDR0=0;
-        memtype0=0;
         excp_arg0=0;
-        if(CRMDin[4:3]==2'b01)//DA==1,PG==0
+        if(CRMDin[4:3]==2'b01 || (DMW0_plvOK && DMW0in[31:29]==VADDR0[31:29]) || 
+        (DMW1_plvOK && DMW1in[31:29]==VADDR0[31:29]))//DA==1,PG==0
             begin
-            PADDR0=0;
-            PADDR0=VADDR0;
-            excp_arg0=0;
-            if(optype0==FETCH)
-                memtype0=CRMDin[6:5];
-            else
-                memtype0=CRMDin[8:7];
-            end
-        else if(DMW0_plvOK && DMW0in[31:29]==VADDR0[31:29])
-            begin
-            PADDR0={DMW0in[27:25],VADDR0[28:0]};
-            memtype0=DMW0in[5:4];
-            excp_arg0=0;
-            end
-        else if(DMW1_plvOK && DMW1in[31:29]==VADDR0[31:29])
-            begin
-            PADDR0={DMW1in[27:25],VADDR0[28:0]};
-            memtype0=DMW1in[5:4];
             excp_arg0=0;
             end
         else if(CRMDin[1:0]!=0 && VADDR0[31]==1)
@@ -131,36 +133,40 @@ module Memory_Maping_Unit#(
    
     always@(*)
     begin
+    PADDR1=0;
+    memtype1=0;
+    if(CRMDin[4:3]==2'b01)//DA==1,PG==0
+        begin
+        PADDR1=0;
+        PADDR1=VADDR1;
+        if(optype1==FETCH)
+            memtype1=CRMDin[6:5];
+        else
+            memtype1=CRMDin[8:7];
+        end
+    else if(DMW0_plvOK && DMW0in[31:29]==VADDR1[31:29])
+        begin
+        PADDR1={DMW0in[27:25],VADDR1[28:0]};
+        memtype1=DMW0in[5:4];
+        end
+    else if(DMW1_plvOK && DMW1in[31:29]==VADDR1[31:29])
+        begin
+        PADDR1={DMW1in[27:25],VADDR1[28:0]};
+        memtype1=DMW1in[5:4];
+        end
+    end
+    always@(*)
+    begin
     if(flush1)
         begin
-        PADDR1=0;excp_arg1=0;
-        memtype1=0;
+        excp_arg1=0;
         end
     else
         begin
-        PADDR1=0;
-        memtype1=0;
         excp_arg1=0;
-        if(CRMDin[4:3]==2'b01)//DA==1,PG==0
+        if(CRMDin[4:3]==2'b01 || (DMW0_plvOK && DMW0in[31:29]==VADDR1[31:29]) || 
+        (DMW1_plvOK && DMW1in[31:29]==VADDR1[31:29]))//DA==1,PG==0
             begin
-            PADDR1=0;
-            PADDR1=VADDR1;
-            excp_arg1=0;
-            if(optype1==FETCH)
-                memtype1=CRMDin[6:5];
-            else
-                memtype1=CRMDin[8:7];
-            end
-        else if(DMW0_plvOK && DMW0in[31:29]==VADDR1[31:29])
-            begin
-            PADDR1={DMW0in[27:25],VADDR1[28:0]};
-            memtype1=DMW0in[5:4];
-            excp_arg1=0;
-            end
-        else if(DMW1_plvOK && DMW1in[31:29]==VADDR1[31:29])
-            begin
-            PADDR1={DMW1in[27:25],VADDR1[28:0]};
-            memtype1=DMW1in[5:4];
             excp_arg1=0;
             end
         else if(CRMDin[1:0]!=0 && VADDR1[31]==1)
@@ -170,11 +176,9 @@ module Memory_Maping_Unit#(
             else
                 excp_arg1={VADDR_valid1,ADEM,ADE}; 
             end
-        
-        else 
-            excp_arg1=0;    
-        
-        end
+        else
+            excp_arg1=0;
+       end 
     end
 endmodule
 
