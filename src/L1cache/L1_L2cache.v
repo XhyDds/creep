@@ -51,6 +51,7 @@ module L1_L2cache#(
 
     //L2-prefetch port
     input       req_pref_l2cache,    
+    input       type_pref_l2cache,//指令或数据 0-指令 1-数据
     input       [31:0]addr_pref_l2cache,    
     output      complete_l2cache_pref,
     output      hit_l2cache_pref,//预取请求的Hit
@@ -269,6 +270,7 @@ L2cache(
     .l2cache_dcache_dataOK(l2cache_dcache_dataOK),
 
     .req_pref_l2cache(req_pref_l2cache),
+    .type_pref_l2cache(type_pref_l2cache),
     .addr_pref_l2cache(addr_pref_l2cache),
     .hit_l2cache_pref(hit_l2cache_pref),
     .miss_l2cache_pref(miss_l2cache_pref),
