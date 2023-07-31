@@ -307,8 +307,6 @@ L2cache_FSMmain(
     .req_pref_l2cache(req_pref_l2cache),
     .ack_l2cache_pref(ack_l2cache_pref),
     .addr_choose_pref(addr_choose_pref),
-    .hit_l2cache_pref(hit_l2cache_pref),
-    .miss_l2cache_pref(miss_l2cache_pref),
     .dataOK_pref_l2cache(dataOK_pref_l2cache),
 
     //request buffer
