@@ -94,6 +94,10 @@ wire opflag;
 assign opflag=pipeline_l2cache_opflag;
 reg [4:0]state;
 reg [4:0]next_state;
+reg flush;
+always @(posedge clk) begin
+    flush <= icache_l2cache_flush;//迟一个周期撤销
+end
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
 localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9,checkDirty1=5'd10,SUC_w1=5'd11;
 localparam prefetch_check=5'd12;
@@ -105,14 +109,13 @@ always @(*) begin
     next_state = 0; 
     case (state)
         Idle:begin
-            if(icache_l2cache_flush && from == 2'b01)next_state = Idle;//刷icache的访问
-            else if(opflag)next_state = Operation;
+            if(opflag)next_state = Operation;
             else if(from)next_state = Lookup;
-            // else if(req_pref_l2cache)next_state = prefetch;
             else next_state = Idle;
         end 
         Lookup:begin
-            if(FSM_rbuf_SUC)begin
+            if(flush && FSM_rbuf_from == 2'b01)next_state = Idle;
+            else if(FSM_rbuf_SUC)begin
                 if(FSM_rbuf_from == 2'b11)next_state = SUC_w;
                 else next_state = replace1;
             end
@@ -261,6 +264,7 @@ always @(*) begin
             l2cache_dcache_addrOK = 1;//实际写入后发addrOK
         end
         Lookup:begin
+            if(!(FSM_rbuf_from == 2'b01 && flush))begin
             if(FSM_hit[0] || FSM_hit[1] || FSM_hit[2] || FSM_hit[3])begin
                 if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
                     if(FSM_hit[0])begin
@@ -308,17 +312,7 @@ always @(*) begin
                         FSM_Dirtytable_set1 = 1;
                     end
                 end
-                // if(next_state == Lookup)begin
-                //     if(from[1])begin
-                //         if(~from[0])l2cache_dcache_addrOK = 1;
-                //         else l2cache_dcache_addrOK = ~ FSM_SUC;//强序写时先不发addrOK
-                //         FSM_rbuf_we = 1;
-                //     end
-                //     else if(from == 2'b01)begin
-                //         l2cache_icache_addrOK = 1;
-                //         FSM_rbuf_we = 1;
-                //     end
-                // end
+            end
             end
         end
         checkDirty:begin
