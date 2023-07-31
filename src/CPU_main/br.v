@@ -1,5 +1,5 @@
 module br (
-    input [31:0]ctr,pc,imm,rrj,
+    input [31:0]ctr,pc,imm,rrj,alu1,alu2,
     input zero,stall,
     output reg ifbr,
     output reg [31:0]pc_br

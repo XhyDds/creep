@@ -7,7 +7,7 @@ module alu (
     wire [3:0]aluop=ctr[21:18];
     always @(*) begin
         aluresult=0;
-        if(type_==0|type_==8|type_==1)
+        if(type_==0|type_==8)
         case (aluop)
             0:aluresult=alu1&alu2;
             1:aluresult=alu1|alu2;

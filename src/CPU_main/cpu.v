@@ -596,7 +596,7 @@ module core_top(
         .rstn                        		( rstn                        		),
         .pipeline_muitiplier_flush   		( flush_exe0_exe1_1   		),
         .pipeline_muitiplier_stall   		( stall_exe0_exe1_1   		),
-        // .pipeline_muitiplier_type 		    ( ctr_reg_exe0_1_excp[3:0] 		),
+        // .pipeline_muitiplier_type 		( ctr_reg_exe0_1_excp[3:0] 	    	),
         .pipeline_muitiplier_subtype 		( ctr_reg_exe0_1_excp[11:7] 		),
         .pipeline_muitiplier_din1    		( rrj1_forward    		),
         .pipeline_muitiplier_din2    		( rrk1_forward    		),
@@ -648,42 +648,42 @@ module core_top(
     wire ifbr__0;
     wire [31:0] brresult_0;
 
-    br_pre u_br0(
+    br_pre u_br_pre0(
         //ports
         .ctr      		( ctr_reg_exe0_0    ),
         .pc       		( pc_reg_exe0_0     ),
         .npc            ( npc_reg_exe0_0    ),
         .imm      		( imm_reg_exe0_0    ),
-        .zero     		( zero0     		),
+        .alu1      		( alu1_0      		),
+        .alu2      		( alu2_0      		),
         .ifbr     		( ifbr0     	    ),
-        .ifbr_          ( ifbr__0            ),
+        .ifbr_          ( ifbr__0           ),
         .pc_br   		( pc_br0 	        ),
         .brresult       ( brresult_0        ),
         .rrj            ( rrj0_forward      ),
         .pre            ( pre_reg_exe0_0    ),
-        .flush_pre      ( flush_pre_0        ),
-        .stall          ( stall_reg_exe0_0  )
+        .flush_pre      ( flush_pre_0       )
     );
 
     wire [31:0]	pc_br1;
     wire ifbr__1;
     wire [31:0]brresult_1;
 
-    br_pre u_br1(
+    br_pre u_br_pre1(
         //ports
         .ctr      		( ctr_reg_exe0_1_excp),
         .pc       		( pc_reg_exe0_1      ),
         .npc            ( npc_reg_exe0_1     ),
         .imm      		( imm_reg_exe0_1     ),
-        .zero     		( zero1     		 ),
+        .alu1      		( alu1_1      		 ),
+        .alu2      		( alu2_1      		 ),
         .ifbr     		( ifbr1    		     ),
-        .ifbr_          ( ifbr__1             ),
+        .ifbr_          ( ifbr__1            ),
         .pc_br 		    ( pc_br1		     ),
         .brresult       ( brresult_1         ),
         .rrj            ( rrj1_forward       ),
         .pre            ( pre_reg_exe0_1     ),
-        .flush_pre      ( flush_pre_1         ),
-        .stall          ( stall_reg_exe0_1  )
+        .flush_pre      ( flush_pre_1        )
     );
 `endif
 `ifndef predictor
@@ -694,7 +694,8 @@ module core_top(
         .ctr      		( ctr_reg_exe0_0    ),
         .pc       		( pc_reg_exe0_0     ),
         .imm      		( imm_reg_exe0_0    ),
-        .zero     		( zero0     		),
+        .alu1      		( alu1_0      		),
+        .alu2      		( alu2_0      		),
         .ifbr     		( ifbr0    		    ),
         .pc_br   		( pc_br0 	        ),
         .rrj            ( rrj0_forward      ),
@@ -708,7 +709,8 @@ module core_top(
         .ctr      		( ctr_reg_exe0_1_excp),
         .pc       		( pc_reg_exe0_1      ),
         .imm      		( imm_reg_exe0_1     ),
-        .zero     		( zero1     		 ),
+        .alu1      		( alu1_1      		 ),
+        .alu2      		( alu2_1      		 ),
         .ifbr     		( ifbr1    		     ),
         .pc_br  		( pc_br1		     ),
         .rrj            ( rrj1_forward       ),
