@@ -41,7 +41,6 @@ module Dcache_FSMmain#(
     output reg  dcache_mem_req,
     output reg  dcache_mem_wr,//write-1  read-0
     input       mem_dcache_addrOK,//发送的地址和数据都被接收
-    input       mem_dcache_bvalid,//写有效
     input       mem_dcache_dataOK,//返回的数据有效
 
     //模块间信号

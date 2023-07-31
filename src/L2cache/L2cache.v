@@ -40,11 +40,10 @@ module L2cache#(
 
     //L2-prefetch port
     input       req_pref_l2cache,
-    output      ack_l2cache_pref,
-    input       [31:0]addr_l2cache_pref,
+    input       [31:0]addr_pref_l2cache,
     output      hit_l2cache_pref,//ack时取走hit
     output      miss_l2cache_pref,//dataOK时取走miss
-    output      dataOK_pref_l2cache,
+    output      complete_l2cache_pref,
 
     //mem port(AXI bridge)
     output      [31:0]addr_l2cache_mem_r,
@@ -87,7 +86,7 @@ always @(*) begin
         l1cache_l2cache_size = 2'd2;
     end
 end
-assign addr_l1cache_l2cache = addr_choose_pref ? addr_l2cache_pref : (from[1] ? addr_dcache_l2cache : addr_icache_l2cache);
+assign addr_l1cache_l2cache =(from[1] ? addr_dcache_l2cache : addr_icache_l2cache);
 assign din_l1cache_l2cache = din_dcache_l2cache;
 assign dout_l2cache_icache = dout_l2cache_l1cache;
 assign dout_l2cache_dcache = dout_l2cache_l1cache;
@@ -222,10 +221,6 @@ L2cache_TagV(
     .TagV_we(TagV_we)
 );
 
-assign hit_l2cache_pref = &hit;
-reg miss_pref;
-// assign 
-
 //Dirtytable
 wire Dirty,Dirtytable_set0,Dirtytable_set1;
 wire [1:0]Dirtytable_way_select;
@@ -305,9 +300,9 @@ L2cache_FSMmain(
 
     //prefetch
     .req_pref_l2cache(req_pref_l2cache),
-    .ack_l2cache_pref(ack_l2cache_pref),
-    .addr_choose_pref(addr_choose_pref),
-    .dataOK_pref_l2cache(dataOK_pref_l2cache),
+    .hit_l2cache_pref(hit_l2cache_pref),
+    .miss_l2cache_pref(miss_l2cache_pref),
+    .complete_l2cache_pref(complete_l2cache_pref),
 
     //request buffer
     .FSM_rbuf_we(rbuf_we),
