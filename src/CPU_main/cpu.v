@@ -808,9 +808,9 @@ module core_top(
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .pipeline_CSR_flush     		( flush_reg_exe0_1     		),
+        .pipeline_CSR_flush     		( flush_exe0_exe1_1     		),
         // .pipeline_CSR_flush          ( 0                             ),
-        .pipeline_CSR_stall     		( stall_reg_exe0_1     		),
+        .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
         // .pipeline_CSR_stall     		( 0                      		),
         .CSR_pipeline_clk_stall     	( ifidle               ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
@@ -1525,7 +1525,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn|flush_exe1_wb_0) begin
+        if(!rstn) begin
             ctr_exe1_wb_0 <= 0;
             rd_exe1_wb_0<=0;
             result_exe1_wb_0<=0;
@@ -1654,7 +1654,7 @@ module core_top(
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp&~flush_reg_exe0_1&~stall_reg_exe0_1     ),
+        .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp&~flush_exe0_exe1_1&~stall_exe0_exe1_1     ),
         .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_size           ( pipeline_dcache_size          ),
