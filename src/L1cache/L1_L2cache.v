@@ -50,12 +50,11 @@ module L1_L2cache#(
     input       [31:0]pipeline_l2cache_opcode,
 
     //L2-prefetch port
-    input       req_pref_l2cache,   
-    output      ack_l2cache_pref,    
-    input       [31:0]addr_l2cache_pref,    
-    output      hit_l2cache_pref,   
-    output      miss_l2cache_pref,//dataOK时取走miss    
-    output      dataOK_pref_l2cache,    
+    input       req_pref_l2cache,    
+    input       [31:0]addr_pref_l2cache,    
+    output      complete_l2cache_pref,
+    output      hit_l2cache_pref,//预取请求的Hit
+    output      miss_l2cache_pref,//预取过程中来自L1访问的Miss 
     
     //L2-Mem port
     output      [31:0]addr_l2cache_mem_r,
@@ -272,11 +271,10 @@ L2cache(
     .l2cache_dcache_dataOK(l2cache_dcache_dataOK),
 
     .req_pref_l2cache(req_pref_l2cache),
-    .ack_l2cache_pref(ack_l2cache_pref),
-    .addr_l2cache_pref(addr_l2cache_pref),
+    .addr_pref_l2cache(addr_pref_l2cache),
     .hit_l2cache_pref(hit_l2cache_pref),
     .miss_l2cache_pref(miss_l2cache_pref),
-    .dataOK_pref_l2cache(dataOK_pref_l2cache),
+    .complete_l2cache_pref(complete_l2cache_pref),
 
     .addr_l2cache_mem_r(addr_l2cache_mem_r),
     .addr_l2cache_mem_w(addr_l2cache_mem_w),

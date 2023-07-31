@@ -47,9 +47,9 @@ module L2cache_FSMmain#(
 
     //L2-prefetch port
     input       req_pref_l2cache,
-    output      ack_l2cache_pref,
-    output      addr_choose_pref,
-    output      dataOK_pref_l2cache,
+    output reg  hit_l2cache_pref,
+    output reg  miss_l2cache_pref,
+    output reg  complete_l2cache_pref,
 
     //模块间信号
 
@@ -96,7 +96,7 @@ reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
 localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9,checkDirty1=5'd10,SUC_w1=5'd11;
-// localparam pf_
+localparam prefetch_check=5'd12;
 always @(posedge clk)begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -108,6 +108,7 @@ always @(*) begin
             if(icache_l2cache_flush && from == 2'b01)next_state = Idle;//刷icache的访问
             else if(opflag)next_state = Operation;
             else if(from)next_state = Lookup;
+            // else if(req_pref_l2cache)next_state = prefetch;
             else next_state = Idle;
         end 
         Lookup:begin
@@ -116,12 +117,8 @@ always @(*) begin
                 else next_state = replace1;
             end
             else begin
-                if(((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3])))begin
-                    next_state = checkDirty;
-                end
-                else begin//Hit非流水化 砍最长路径
-                    // if(opflag)next_state = Operation;
-                    // if(from)next_state = Lookup;
+                if(((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3])))next_state = checkDirty;
+                else begin
                     next_state = Idle;
                 end
             end
@@ -134,11 +131,6 @@ always @(*) begin
             next_state = Idle;
         end
         checkDirty:begin
-            // if(FSM_Dirty)next_state = writeback;
-            // else begin
-            //     if(!FSM_rbuf_opflag)next_state = replace1;
-            //     else next_state = Idle;
-            // end
             next_state = checkDirty1;
         end
         checkDirty1:begin
@@ -203,6 +195,11 @@ always @(posedge clk) begin
         else hit_record <= 2'b00;
     end
 end
+// reg pref_we,prefetch;
+// always @() begin
+//     if(pref_we)prefetch <= 1;
+//     else if(clear_miss_pref)prefetch <= 0;
+// end
 always @(*) begin
     l2cache_icache_addrOK = 0;
     l2cache_icache_dataOK = 0;
