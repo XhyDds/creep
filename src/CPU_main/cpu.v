@@ -100,7 +100,7 @@ module core_top(
     vaddr_exe0_exe1,    paddr_exe0_exe1,
     pc_br_exe0_exe1_0,  pc_br_exe0_exe1_1;
 
-    (* max_fanout = "3" *)reg [31:0]
+    (* MAX_FANOUT = 3 *)reg [31:0]
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
