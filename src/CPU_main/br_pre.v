@@ -9,19 +9,6 @@ module br_pre (
     wire iftwo=pre[38];
     wire [3:0]type_ = ctr[3:0];
     wire [4:0]subtype = ctr[11:7];
-    wire [3:0]aluop = ctr[21:18];
-    reg [31:0]aluresult;
-    wire zero;
-    always @(*) begin
-        aluresult=0;
-        if(type_==1)
-        case (aluop)
-            5:aluresult=alu1-alu2;
-            9:aluresult=$signed(alu1)<$signed(alu2)?1:0;
-            10:aluresult=alu1<alu2?1:0;
-        endcase
-    end
-    assign zero=~|aluresult;
     
     always @(*) begin
         ifbr_=0;
@@ -29,12 +16,12 @@ module br_pre (
         if(type_==1) begin
             case (subtype)//可以合并
                 0: ifbr_=1;
-                1: ifbr_=zero;
-                2: ifbr_=!zero;
-                3: ifbr_=!zero;
-                4: ifbr_=zero;
-                5: ifbr_=!zero;
-                6: ifbr_=zero;
+                1: ifbr_=~|(alu1^alu2);
+                2: ifbr_=|(alu1^alu2);
+                3: ifbr_=$signed(alu1)<$signed(alu2);
+                4: ifbr_=~($signed(alu1)<$signed(alu2));
+                5: ifbr_=alu1<alu2;
+                6: ifbr_=~(alu1<alu2);
             endcase
         end
         else if(type_==8) begin

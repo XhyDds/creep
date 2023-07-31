@@ -454,6 +454,7 @@ module core_top(
 
     forward u_forward(
         //ports
+        .flush_exe1_wb_0(flushup),
         .ctr_exe1_wb_0(ctr_exe1_wb_0),
         .ctr_exe1_wb_1(ctr_exe1_wb_1),
         .ctr_exe0_exe1_0(ctr_exe0_exe1_0),
