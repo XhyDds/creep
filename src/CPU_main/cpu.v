@@ -1628,6 +1628,9 @@ module core_top(
     `ifdef DMA
         assign dma = 1'b1;
     `endif
+    `ifndef DMA
+        assign dma = 1'b0;
+    `endif
     
     wire [31:0]addr_l2cache_mem_r  ;
     wire [31:0]addr_l2cache_mem_w  ;
@@ -1770,6 +1773,7 @@ module core_top(
 
 
 //debug begin here 
+    wire ws_valid0,ws_valid1;
     assign debug0_wb_pc=(ws_valid1)?pc_exe1_wb_0:pc_exe1_wb_1;
     assign debug1_wb_pc=(ws_valid1)?pc_exe1_wb_1:pc_exe1_wb_0;
     assign debug0_wb_rf_wen=(ws_valid1)?(stall_exe1_wb_0?0:{4{ifwb0}}):(stall_exe1_wb_1?0:{4{ifwb1}});
@@ -1782,7 +1786,6 @@ module core_top(
     assign debug1_wb_inst=(ws_valid1)?ir_exe1_wb_1:ir_exe1_wb_0;
     assign debug0_stall_exe1_wb=stall_exe1_wb_0;
     assign debug1_stall_exe1_wb=stall_exe1_wb_1;
-    wire ws_valid0,ws_valid1;
     assign ws_valid0=stall_exe1_wb_0?0:ir_valid_exe1_wb_0;
     assign ws_valid1=stall_exe1_wb_1?0:(ir_valid_exe1_wb_1&~excp_flush);
     assign ws_valid=ws_valid0|ws_valid1;
