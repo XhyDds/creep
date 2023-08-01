@@ -130,12 +130,12 @@ module fetch_buffer_v2 (
                             buffer_npc[12]<=buffer_npc[14];
                             buffer[13]<=ir[0];
                             bufferpc[13]<=pc;
-                            pre_and_valid_and_plv[13]<={10'b0,1'b1,pre[52:39],1'b1,pre[37:0],1'b1,plv};
+                            pre_and_valid_and_plv[13]<={pre[63:54],1'b1,pre[52:39],1'b1,pre[37:0],1'b1,plv};
                             buffer_excp_arg[13]<=excp_arg;
                             buffer_npc[13]<=npc;
                             buffer[14]<=ir[1];
                             bufferpc[14]<=pc+4;
-                            pre_and_valid_and_plv[14]<={10'b0,1'b1,pre[52:0],1'b1,plv};
+                            pre_and_valid_and_plv[14]<={pre[63:54],1'b1,pre[52:0],1'b1,plv};
                             buffer_excp_arg[14]<=0;
                             buffer_npc[14]<=npc;
                         end
@@ -213,7 +213,7 @@ module fetch_buffer_v2 (
                             buffer_npc[13]<=buffer_npc[14];
                             buffer[14]<=ir[0];
                             bufferpc[14]<=pc;
-                            pre_and_valid_and_plv[14]<={10'b0,1'b0,pre[52:0],1'b1,plv};
+                            pre_and_valid_and_plv[14]<={pre[63:54],1'b0,pre[52:0],1'b1,plv};
                             buffer_excp_arg[14]<=excp_arg;
                             buffer_npc[14]<=npc;
                         end
