@@ -85,6 +85,7 @@ module divider#(//din1/din2
     case(cs)
         Wait:
             begin
+            nmode=mode;
             busy=0;
             if(exe)
                 begin
@@ -102,12 +103,12 @@ module divider#(//din1/din2
                 else
                     ns=Waitout; 
              nquotient=0;nremainder=0;
-             nmode=mode;
-             if((mode==DIVW||mode==MODW)&&din1_reg1[WIDTH-1])
+             //nmode=mode;
+             if((mode_reg==DIVW||mode_reg==MODW)&&din1_reg1[WIDTH-1])
                  nremainder=0-din1_reg1;
              else
                  nremainder=din1_reg1;
-             if((mode==DIVW||mode==MODW)&&din2_reg1[WIDTH-1])
+             if((mode_reg==DIVW||mode_reg==MODW)&&din2_reg1[WIDTH-1])
                  ndin2_reg=0-din2_reg1;
              else
                  ndin2_reg=din2_reg1;
