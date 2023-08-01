@@ -72,15 +72,18 @@ module predictor #(
 
     (* MAX_FANOUT = 3 *)reg [k_width-1:0] pc_hashed_reg;
     reg [ADDR_WIDTH-1:0] pc_reg;
+    reg [h_width-1:0] gh_reg;
 
     always @(posedge clk) begin
         if(!rstn) begin
             pc_hashed_reg<=0;
-            pc_reg<=0;
+            pc_reg<=30'h7000_0000;
+            gh_reg<=0;
         end
         else begin
             pc_hashed_reg<=pc_hashed;
             pc_reg<=pc;
+            gh_reg<=gh;
         end
     end
 
@@ -109,7 +112,7 @@ module predictor #(
     )
     combine_hash_pc_gh(
         .data1_raw(pc_hashed_reg),
-        .data2_raw(gh),
+        .data2_raw(gh_reg),
         .data_hashed(pc_gh_hashed)
     );
 
@@ -220,7 +223,7 @@ module predictor #(
         .gh(gh),
         .gh_ex(gh_ex),
         .taken_pdc(taken_pdc),
-        .mis_pdc(mis_pdc_taken),
+        .mis_pdc(taken_pdch_ex_g[1]!=taken_real),
         .is_jump_pdc(kind_pdc!=NOT_JUMP),
         .is_jump_ex(kind_ex!=NOT_JUMP),
         .update_en (update_en)
@@ -235,6 +238,7 @@ module predictor #(
     u_npc_predictor(
         .clk(clk),
         .rstn(rstn),
+        .stall(stall),
         .update_en(update_en),
         .npc_ex(npc_ex),
         .ret_pc_ex(ret_pc_ex),

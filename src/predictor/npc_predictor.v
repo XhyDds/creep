@@ -5,6 +5,7 @@ module npc_predictor#(
 )(
     input clk,
     input rstn,
+    input stall,
     input update_en,
     //ex
     input [ADDR_WIDTH-1:0] npc_ex,
@@ -101,7 +102,8 @@ module npc_predictor#(
     );
 
     always @(*) begin
-        if(taken_pdc) begin
+        if(stall) npc_pdc=pc_reg;
+        else if(taken_pdc) begin
             case (kind_pdc)
                 NOT_JUMP:       npc_pdc=(({ADDR_WIDTH{~pc_reg[0]}})&(pc_reg+2))|(({ADDR_WIDTH{pc_reg[0]}})&(pc_reg+1));
                 DIRECT_JUMP:    npc_pdc=npc_btb;
@@ -114,5 +116,15 @@ module npc_predictor#(
             endcase
         end
         else                    npc_pdc=(({ADDR_WIDTH{~pc_reg[0]}})&(pc_reg+2))|(({ADDR_WIDTH{pc_reg[0]}})&(pc_reg+1));
+    end
+
+    reg [ADDR_WIDTH-1:0] npc_pdc_reg;
+    always @(posedge clk) begin
+        if(!rstn) begin
+            npc_pdc_reg<=30'h7000_0002;
+        end
+        else begin
+            npc_pdc_reg<=npc_pdc;
+        end
     end
 endmodule

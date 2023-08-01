@@ -29,6 +29,8 @@ module small_dram#(
         for(i = 0; i < DATA_WIDTH/2; i = i+1) begin
             always @(posedge clk) begin
                 if(we[i]) ram[waddr][(i+1)*2-1:(i*2)] <= din[(i+1)*2-1:(i*2)];
+            end
+            always @(*) begin
                 dout_r[(i+1)*2-1:(i*2)] = ram[raddr][(i+1)*2-1:(i*2)];
             end
         end

@@ -15,7 +15,7 @@ module btb#(
     sp_dram#(
         .ADDR_WIDTH(gh_width),
         .DATA_WIDTH(ADDR_WIDTH),
-        .INIT_NUM(30'h0700_0000)
+        .INIT_NUM(30'h0700_0002)
     )
     btb_regs(
         .clk(clk),
