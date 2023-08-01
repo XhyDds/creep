@@ -72,7 +72,7 @@ module core_top(
 );
     wire clk=aclk;
     wire rstn=aresetn;
-    parameter offset_width = 3;
+    parameter offset_width = 4;
 
     reg [31:0]pc,npc,
     ctr_id_reg_0,       ctr_id_reg_1,       
@@ -1713,8 +1713,8 @@ module core_top(
         .I_index_width  		( 4 		),
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
-        .L1_offset_width 		( 2 		),
-        .L2_offset_width 		( 3 		))
+        .L1_offset_width 		( 3 		),
+        .L2_offset_width 		( 4 		))
     u_L1_L2cache(
         //ports
         .clk                    		( clk                    		),
