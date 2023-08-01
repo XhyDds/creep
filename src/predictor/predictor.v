@@ -18,7 +18,7 @@ module predictor #(
     input [2:0]kind_ex,
     input taken_real,
     input [h_width-1:0] bh_ex,
-    input [1:0]choice_real,     //1:btb/ras  0:g/h
+    input [1:0]choice_real,     //1:ras/btb  0:g/h
     input [1:0]choice_pdc_ex,
     input [7:0]out_pdch,
 
@@ -27,7 +27,7 @@ module predictor #(
     output [2:0]kind_pdc,
     output taken_pdc,
     output [h_width-1:0] bh_pdc,
-    output [1:0]choice_pdc,     //1:btb/ras  0:g/h
+    output [1:0]choice_pdc,     //1:ras/btb  0:g/h
     output [7:0]pdch,
     //当前
     input [ADDR_WIDTH-1:0]pc,
@@ -283,7 +283,7 @@ module predictor #(
         .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_btb_ras),
-        .choice_pdch_ex(choice_pdch_ex_btb_ras),//btb_ras
+        .choice_pdch_ex(choice_pdch_ex_btb_ras),//ras_btb
         .mis_pdc(mis_pdc_npc),
         .npc_pdc(npc_pdc),
         .kind_pdc(kind_pdc),
