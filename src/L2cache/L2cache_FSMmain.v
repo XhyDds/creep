@@ -90,7 +90,7 @@ module L2cache_FSMmain#(
     output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
 
     //Data Choose
-    output      FSM_inpref,
+    output reg  FSM_inpref,
     output reg  [1:0]FSM_choose_way,
     output reg  FSM_choose_return
     );
