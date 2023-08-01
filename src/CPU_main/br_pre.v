@@ -16,8 +16,10 @@ module br_pre (
         if(type_==1) begin
             case (subtype)//可以合并
                 0: ifbr_=1;
-                1: ifbr_=~|(alu1^alu2);
-                2: ifbr_=|(alu1^alu2);
+                // 1: ifbr_=~|(alu1^alu2);
+                // 2: ifbr_=|(alu1^alu2);
+                1: ifbr_=alu1==alu2;
+                2: ifbr_=alu1!=alu2;
                 3: ifbr_=$signed(alu1)<$signed(alu2);
                 4: ifbr_=~($signed(alu1)<$signed(alu2));
                 5: ifbr_=alu1<alu2;
@@ -32,6 +34,7 @@ module br_pre (
 
     always @(*) begin
         ifbr=(npc!=(ifbr_?brresult:{pc[31:3]+29'b1,3'b0})|((iftaken_pdc!=ifbr_)&ctr[30]))&ctr[31];
+        // ifbr=(npc!=(({32{ifbr_}}&brresult)|({32{~ifbr_}}&{pc[31:3]+29'b1,3'b0}))|((iftaken_pdc!=ifbr_)&ctr[30]))&ctr[31];
         pc_br=ifbr_?brresult:pc+4;
         flush_pre=iftwo&ifnpc_pdc&iftaken_pdc&ctr[30]&ctr[31];
     end
