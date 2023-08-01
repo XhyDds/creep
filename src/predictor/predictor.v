@@ -19,6 +19,7 @@ module predictor #(
     input taken_real,
     input [h_width-1:0] bh_ex,
     input [1:0]choice_real,     //1:btb/ras  0:g/h
+    input [1:0]choice_pdc_ex,
 
     //预测
     output [ADDR_WIDTH-1:0]npc_pdc,
@@ -43,9 +44,9 @@ module predictor #(
     assign choice_pdc={choice_pdc_btb_ras,choice_pdc_b_g};
 
     //hash
-    wire [k_width-1:0] pc_hashed;
-    wire [h_width-1:0] pc_gh_hashed;
-    wire [h_width-1:0] pc_bh_hashed;
+    (* MAX_FANOUT = 3 *)wire [k_width-1:0] pc_hashed;
+    (* MAX_FANOUT = 3 *)wire [h_width-1:0] pc_gh_hashed;
+    (* MAX_FANOUT = 3 *)wire [h_width-1:0] pc_bh_hashed;
 
     wire [k_width-1:0] pc_ex_hashed;
     wire [h_width-1:0] pc_ex_gh_hashed;
@@ -132,6 +133,7 @@ module predictor #(
         .kind_ex(kind_ex),
         .choice_real(choice_real_b_g),
         .taken_real(taken_real),
+        .choice_pdc_ex(choice_pdc_ex),
         .kind_pdc(kind_pdc),
         .taken_pdc(taken_pdc),
         .choice_b_g(choice_pdc_b_g),
@@ -169,6 +171,7 @@ module predictor #(
         .hashed_pc(pc_hashed),
         .bh_pdc(bh),
         .hashed_pc_update(pc_ex_hashed),
+        .bh_ex(bh_ex),
         .outcome_real(taken_real),
         .update_en(try_to_pdc&&update_en)
     );
@@ -207,6 +210,7 @@ module predictor #(
         .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_btb_ras),
+        .choice_pdc_ex(choice_pdc_ex),
         .mis_pdc(mis_pdc_npc),
         .npc_pdc(npc_pdc),
         .kind_pdc(kind_pdc),

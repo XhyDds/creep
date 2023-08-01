@@ -12,6 +12,7 @@ module aim_predictor#(
     input  [bh_width-1:0] pc_ex_hashed,
     input  [2:0]kind_ex,
     input  choice_real,
+    input  choice_pdc_ex,
     input  taken_real,
     //预测
     input  [2:0]kind_pdc,
@@ -71,6 +72,7 @@ module aim_predictor#(
         .choice_pdc(choice_b_g),
         .hashed_pc_update(pc_ex_gh_hashed),
         .choice_real(choice_real),
+        .choice_pdc_ex(choice_pdc_ex),
         .update_en(try_to_pdc&&update_en)
     );
 

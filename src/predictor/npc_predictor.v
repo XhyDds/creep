@@ -14,6 +14,7 @@ module npc_predictor#(
     input [2:0]kind_ex,
     input choice_real,
     input [29:0]ret_pc_ex,
+    input choice_pdc_ex,
     input mis_pdc,   //地址预测错误
     //预测
     output reg[ADDR_WIDTH-1:0] npc_pdc,
@@ -93,6 +94,7 @@ module npc_predictor#(
         .choice_pdc(choice_btb_ras),
         .hashed_pc_update(pc_ex_hashed),
         .choice_real(choice_real),
+        .choice_pdc_ex(choice_pdc_ex),
         .update_en((kind_ex==RET)&&update_en)
     );
 
