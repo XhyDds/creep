@@ -217,10 +217,14 @@ always @(*) begin
     if(rbuf_SUC)data_out = data_line[31:0];
     else begin
         case (choose_word)
-            2'd0: data_out = data_line[31:0];
-            2'd1: data_out = data_line[63:32];
-            2'd2: data_out = data_line[95:64];
-            2'd3: data_out = data_line[127:96];
+            'd0: data_out = data_line[31:0];
+            'd1: data_out = data_line[63:32];
+            'd2: data_out = data_line[95:64];
+            'd3: data_out = data_line[127:96];
+            'd4: data_out = data_line[159:128];
+            'd5: data_out = data_line[191:160];
+            'd6: data_out = data_line[223:192];
+            'd7: data_out = data_line[255:224];
             default: data_out = 32'h1234ABCD;
         endcase
     end

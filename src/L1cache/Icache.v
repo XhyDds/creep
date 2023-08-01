@@ -190,20 +190,36 @@ always @(*) begin
     end
     else begin
         case (choose_word)
-            2'd0:begin
+            'd0:begin
                 data_out = data_line[63:0];
                 data_flag=1;
             end
-            2'd1:begin
+            'd1:begin
                 data_out = {32'd0,data_line[63:32]};
                 data_flag=0;
             end
-            2'd2:begin
+            'd2:begin
                 data_out = data_line[127:64];
                 data_flag=1;
             end
-            2'd3:begin
+            'd3:begin
                 data_out = {32'd0,data_line[127:96]};
+                data_flag=0;
+            end
+            'd4:begin
+                data_out = data_line[191:128];
+                data_flag=1;
+            end
+            'd5:begin
+                data_out = {32'd0,data_line[191:160]};
+                data_flag=0;
+            end
+            'd6:begin
+                data_out = data_line[255:192];
+                data_flag=1;
+            end
+            'd7:begin
+                data_out = {32'd0,data_line[255:224]};
                 data_flag=0;
             end
             default: data_out = 0;
