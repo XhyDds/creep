@@ -210,7 +210,7 @@ reg sel_i,we_sel;
 always @(posedge clk) begin
     if(we_sel)begin
         sel_d <= FSM_way_sel_d;
-        sel_i <= FSM_wal_sel_i;
+        sel_i <= FSM_way_sel_i;
     end
 end
 reg hit_record_we;
