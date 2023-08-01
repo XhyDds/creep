@@ -64,9 +64,13 @@ module predictor #(
     assign pdch={taken_pdch_g,taken_pdch_b,choice_pdch_btb_ras,choice_pdch_b_g};
 
     //hash
-    (* MAX_FANOUT = 3 *)wire [k_width-1:0] pc_hashed;
-    (* MAX_FANOUT = 3 *)wire [h_width-1:0] pc_gh_hashed;
-    (* MAX_FANOUT = 3 *)wire [h_width-1:0] pc_bh_hashed;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed1;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed2;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed1;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed1;
 
     wire [k_width-1:0] pc_ex_hashed;
     wire [h_width-1:0] pc_ex_gh_hashed;
@@ -106,6 +110,24 @@ module predictor #(
         .DATA_width(ADDR_WIDTH),
         .HASH_width(k_width)
     )
+    single_hash_pc1(
+        .data_raw(pc),
+        .data_hashed(pc_hashed1)
+    );
+
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(k_width)
+    )
+    single_hash_pc2(
+        .data_raw(pc),
+        .data_hashed(pc_hashed2)
+    );
+
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(k_width)
+    )
     single_hash_pc_ex(
         .data_raw(pc_ex),
         .data_hashed(pc_ex_hashed)
@@ -121,6 +143,16 @@ module predictor #(
         .data2_raw(gh_reg),
         .data_hashed(pc_gh_hashed)
     );
+    combine_hash#(
+        .DATA1_width(k_width),
+        .DATA2_width(h_width),
+        .HASH_width(h_width)
+    )
+    combine_hash_pc_gh1(
+        .data1_raw(pc_hashed_reg),
+        .data2_raw(gh_reg),
+        .data_hashed(pc_gh_hashed1)
+    );
 
     combine_hash#(
         .DATA1_width(k_width),
@@ -131,6 +163,16 @@ module predictor #(
         .data1_raw(pc_hashed_reg),
         .data2_raw(bh),
         .data_hashed(pc_bh_hashed)
+    );
+        combine_hash#(
+        .DATA1_width(k_width),
+        .DATA2_width(h_width),
+        .HASH_width(h_width)
+    )
+    combine_hash_pc_bh1(
+        .data1_raw(pc_hashed_reg),
+        .data2_raw(bh),
+        .data_hashed(pc_bh_hashed1)
     );
 
     combine_hash#(
@@ -166,7 +208,6 @@ module predictor #(
         .pc_ex(pc_ex),
         .pc_ex_gh_hashed(pc_ex_gh_hashed),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
-        .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_b_g),
         .taken_real(taken_real),
@@ -179,9 +220,9 @@ module predictor #(
         .choice_pdch(choice_pdch_b_g),
         .taken_pdch_b(taken_pdch_b),
         .taken_pdch_g(taken_pdch_g),
-        .pc_gh_hashed(pc_gh_hashed),
+        .pc_gh_hashed1(pc_gh_hashed1),
+        .pc_gh_hashed2(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
-        .pc_hashed(pc_hashed),
         .pc(pc),
         .update_en(update_en)
     );
@@ -192,7 +233,7 @@ module predictor #(
     )
     u_kt(
         .clk(clk),
-        .hashed_pc(pc_hashed),
+        .hashed_pc(pc_hashed1),
         .kind_pdc(kind_pdc),
         .hashed_pc_update(pc_ex_hashed),
         .kind_real(kind_ex),
@@ -210,7 +251,7 @@ module predictor #(
     )
     u_bht(
         .clk(clk),
-        .hashed_pc(pc_hashed),
+        .hashed_pc(pc_hashed2),
         .bh_pdc(bh),
         .hashed_pc_update(pc_ex_hashed),
         .bh_ex(bh_ex),
@@ -248,7 +289,6 @@ module predictor #(
         .update_en(update_en),
         .npc_ex(npc_ex),
         .ret_pc_ex(ret_pc_ex),
-        .pc_ex_gh_hashed(pc_ex_gh_hashed),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
         .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
@@ -260,8 +300,7 @@ module predictor #(
         .taken_pdc(taken_pdc),
         .choice_btb_ras(choice_pdc_btb_ras),
         .choice_pdch(choice_pdch_btb_ras),
-        .pc_gh_hashed(pc_gh_hashed),
-        .pc_bh_hashed(pc_bh_hashed),
+        .pc_bh_hashed(pc_bh_hashed1),
         .pc_hashed_reg(pc_hashed_reg),
         .pc_reg(pc_reg),
         .npc_test(npc_test)

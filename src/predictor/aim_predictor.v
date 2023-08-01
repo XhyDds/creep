@@ -9,7 +9,6 @@ module aim_predictor#(
     input  [ADDR_WIDTH-1:0] pc_ex,
     input  [gh_width-1:0] pc_ex_gh_hashed,
     input  [bh_width-1:0] pc_ex_bh_hashed,
-    input  [bh_width-1:0] pc_ex_hashed,
     input  [2:0]kind_ex,
     input  choice_real,
     input  [1:0]choice_pdch_ex,
@@ -24,9 +23,9 @@ module aim_predictor#(
     output [1:0]taken_pdch_b,
     output [1:0]taken_pdch_g,
     //当前
-    input  [gh_width-1:0] pc_gh_hashed,
+    input  [gh_width-1:0] pc_gh_hashed1,
+    input  [gh_width-1:0] pc_gh_hashed2,
     input  [bh_width-1:0] pc_bh_hashed,
-    input  [bh_width-1:0] pc_hashed,
     input  [ADDR_WIDTH-1:0] pc
 );
     // parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
@@ -63,7 +62,7 @@ module aim_predictor#(
     )
     gpht_g(
         .clk(clk),
-        .hashed_pc(pc_gh_hashed),
+        .hashed_pc(pc_gh_hashed1),
         .g_taken_pdc(taken_g),
         .taken_pdch_g(taken_pdch_g),
         .hashed_pc_update(pc_ex_gh_hashed),
@@ -77,7 +76,7 @@ module aim_predictor#(
     )
     cpht_b_g(
         .clk(clk),
-        .hashed_pc(pc_gh_hashed),
+        .hashed_pc(pc_gh_hashed2),
         .choice_pdc(choice_b_g),
         .choice_pdch(choice_pdch),
         .hashed_pc_update(pc_ex_gh_hashed),

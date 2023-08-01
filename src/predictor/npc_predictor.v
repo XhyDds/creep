@@ -9,7 +9,6 @@ module npc_predictor#(
     input update_en,
     //ex
     input [ADDR_WIDTH-1:0] npc_ex,
-    input [gh_width-1:0] pc_ex_gh_hashed,
     input [gh_width-1:0] pc_ex_bh_hashed,
     input [gh_width-1:0] pc_ex_hashed,
     input [2:0]kind_ex,
@@ -25,7 +24,6 @@ module npc_predictor#(
     output [1:0]choice_pdch,
     output reg[ADDR_WIDTH-1:0] npc_test,
     //当前
-    input [gh_width-1:0] pc_gh_hashed,
     input [gh_width-1:0] pc_bh_hashed,
     input [gh_width-1:0] pc_hashed_reg,
     input [ADDR_WIDTH-1:0] pc_reg
