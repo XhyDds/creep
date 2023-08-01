@@ -16,7 +16,7 @@ module bht#(
 
     assign _bh_new={bh_ex[bh_width-2:0],outcome_real};
 
-    sp_dram#(
+    sp_bram#(
         .ADDR_WIDTH(k_width),
         .DATA_WIDTH(bh_width)
     )

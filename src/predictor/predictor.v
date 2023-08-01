@@ -45,6 +45,7 @@ module predictor #(
 
     //hash
     (* MAX_FANOUT = 3 *)wire [k_width-1:0] pc_hashed;
+    (* MAX_FANOUT = 3 *)wire [k_width-1:0] pc_hashed_reg;
     (* MAX_FANOUT = 3 *)wire [h_width-1:0] pc_gh_hashed;
     (* MAX_FANOUT = 3 *)wire [h_width-1:0] pc_bh_hashed;
 
@@ -80,7 +81,7 @@ module predictor #(
         .HASH_width(h_width)
     )
     combine_hash_pc_gh(
-        .data1_raw(pc_hashed),
+        .data1_raw(pc_hashed_reg),
         .data2_raw(gh),
         .data_hashed(pc_gh_hashed)
     );
@@ -91,7 +92,7 @@ module predictor #(
         .HASH_width(h_width)
     )
     combine_hash_pc_bh(
-        .data1_raw(pc_hashed),
+        .data1_raw(pc_hashed_reg),
         .data2_raw(bh),
         .data_hashed(pc_bh_hashed)
     );
@@ -133,7 +134,7 @@ module predictor #(
         .kind_ex(kind_ex),
         .choice_real(choice_real_b_g),
         .taken_real(taken_real),
-        .choice_pdc_ex(choice_pdc_ex),
+        .choice_pdc_ex(choice_pdc_ex[0]),//b_g
         .kind_pdc(kind_pdc),
         .taken_pdc(taken_pdc),
         .choice_b_g(choice_pdc_b_g),
@@ -210,7 +211,7 @@ module predictor #(
         .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_btb_ras),
-        .choice_pdc_ex(choice_pdc_ex),
+        .choice_pdc_ex(choice_pdc_ex[1]),//btb_ras
         .mis_pdc(mis_pdc_npc),
         .npc_pdc(npc_pdc),
         .kind_pdc(kind_pdc),
@@ -218,7 +219,7 @@ module predictor #(
         .choice_btb_ras(choice_pdc_btb_ras),
         .pc_gh_hashed(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
-        .pc_hashed(pc_hashed),
+        .pc_hashed_reg(pc_hashed_reg),
         .pc(pc),
         .npc_test(npc_test)
     );
