@@ -20,8 +20,7 @@ module predictor #(
     input [h_width-1:0] bh_ex,
     input [1:0]choice_real,     //1:btb/ras  0:g/h
     input [1:0]choice_pdc_ex,
-    input [1:0]choice_pdch_ex_b_g,
-    input [1:0]choice_pdch_ex_btb_ras,
+    input [7:0]out_pdch,
 
     //预测
     output [ADDR_WIDTH-1:0]npc_pdc,
@@ -29,8 +28,7 @@ module predictor #(
     output taken_pdc,
     output [h_width-1:0] bh_pdc,
     output [1:0]choice_pdc,     //1:btb/ras  0:g/h
-    output [1:0]choice_pdch_b_g,
-    output [1:0]choice_pdch_btb_ras,
+    output [7:0]pdch,
     //当前
     input [ADDR_WIDTH-1:0]pc,
     output[ADDR_WIDTH-1:0]npc_test
@@ -46,6 +44,18 @@ module predictor #(
 
     wire choice_pdc_b_g,choice_pdc_btb_ras;
     assign choice_pdc={choice_pdc_btb_ras,choice_pdc_b_g};
+
+    wire [1:0]choice_pdch_ex_b_g    =out_pdch[1:0];
+    wire [1:0]choice_pdch_ex_btb_ras=out_pdch[3:2];
+    wire [1:0]taken_pdch_ex_b       =out_pdch[5:4];
+    wire [1:0]taken_pdch_ex_g       =out_pdch[7:6];
+
+    wire [1:0]choice_pdch_b_g    ;
+    wire [1:0]choice_pdch_btb_ras;
+    wire [1:0]taken_pdch_b       ;
+    wire [1:0]taken_pdch_g       ;
+
+    assign pdch={taken_pdch_g,taken_pdch_b,choice_pdch_btb_ras,choice_pdch_b_g};
 
     //hash
     (* MAX_FANOUT = 3 *)wire [k_width-1:0] pc_hashed;
@@ -152,10 +162,14 @@ module predictor #(
         .choice_real(choice_real_b_g),
         .taken_real(taken_real),
         .choice_pdch_ex(choice_pdch_ex_b_g),//b_g
+        .taken_pdch_ex_b(taken_pdch_ex_b),
+        .taken_pdch_ex_g(taken_pdch_ex_g),
         .kind_pdc(kind_pdc),
         .taken_pdc(taken_pdc),
-        .choice_pdch(choice_pdch_b_g),
         .choice_b_g(choice_pdc_b_g),
+        .choice_pdch(choice_pdch_b_g),
+        .taken_pdch_b(taken_pdch_b),
+        .taken_pdch_g(taken_pdch_g),
         .pc_gh_hashed(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
         .pc_hashed(pc_hashed),

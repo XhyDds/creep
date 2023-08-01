@@ -1013,11 +1013,8 @@ module core_top(
     wire [29:0] ret_pc_ex     ;
     wire update_en;
 
-    wire[1:0] choice_pdch_btb_ras;
-    wire[1:0] choice_pdch_b_g;
-    wire[1:0] choice_pdch_ex_btb_ras;
-    wire[1:0] choice_pdch_ex_b_g;
-
+    wire[7:0] out_pdch;
+    wire [7:0] pdch;
 
     predictor #(
         .k_width       		( 14   		),
@@ -1041,16 +1038,14 @@ module core_top(
         .bh_ex              ( out_bh_ex         ),
         .choice_real 		( choice_real 		),
         .choice_pdc_ex      ( out_choice_pdc    ),
-        .choice_pdch_ex_btb_ras(choice_pdch_ex_btb_ras),
-        .choice_pdch_ex_b_g (choice_pdch_ex_b_g),
+        .out_pdch           ( out_pdch          ),
 
         .npc_pdc     		( npc_pdc  	    	),
         .kind_pdc    		( kind_pdc       	),
         .taken_pdc   		( taken_pdc        	),
         .bh_pdc             ( bh_pdc            ),
         .choice_pdc  		( choice_pdc    	),
-        .choice_pdch_btb_ras(choice_pdch_btb_ras),
-        .choice_pdch_b_g    (choice_pdch_b_g   ),
+        .pdch               ( pdch              ),
 
         .pc          		( npc[31:2]          ),
         .npc_test           ( npc_test          )
@@ -1075,6 +1070,7 @@ module core_top(
         .in_flush_pre_0(flush_pre_exe0_exe1_0 | ifbr_exe0_exe1_0),
         .in_bh_pdc_0(pre_exe0_exe1_0[52:39]),
         .in_pack_size_0(pre_exe0_exe1_0[53]),
+        .in_pdch_0(pre_exe0_exe1_1[61:54]),
 
         .in_taken_pdc_1(pre_exe0_exe1_1[33]),
         .in_kind_pdc_1(pre_exe0_exe1_1[32:30]),
@@ -1087,6 +1083,7 @@ module core_top(
         .in_flush_pre_1(flush_pre_exe0_exe1_1 | ifbr_exe0_exe1_1),
         .in_bh_pdc_1(pre_exe0_exe1_1[52:39]),
         .in_pack_size_1(pre_exe0_exe1_1[53]),
+        .in_pdch_1(pre_exe0_exe1_1[61:54]),
 
         .out_taken_pdc (out_taken_pdc ),
         .out_kind_pdc  (out_kind_pdc  ),
@@ -1097,6 +1094,7 @@ module core_top(
         .out_npc_ex    (out_npc_ex    ),
         .out_pc_ex     (out_pc_ex     ),
         .out_choice_pdc(out_choice_pdc),
+        .out_pdch      (out_bh_pdc),
 
         .ret_pc_ex(ret_pc_ex),
 
@@ -1149,8 +1147,8 @@ module core_top(
             PLV_if0_if1<=PLV;
             MMU_pipeline_excp_arg0_if0_if1<=MMU_pipeline_excp_arg0;
             //pre
-            pre_if0_if1<={10'b0,1'b0,bh_pdc,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //53 52:39 38 37 36:35 34 33 32:30 29:0
+            pre_if0_if1<={2'b0,pdch,1'b0,bh_pdc,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //61:54 53 52:39 38 37 36:35 34 33 32:30 29:0
         end
     end
 

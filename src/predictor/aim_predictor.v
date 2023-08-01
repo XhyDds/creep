@@ -14,11 +14,15 @@ module aim_predictor#(
     input  choice_real,
     input  [1:0]choice_pdch_ex,
     input  taken_real,
+    input  [1:0]taken_pdch_ex_b,
+    input  [1:0]taken_pdch_ex_g,
     //预测
     input  [2:0]kind_pdc,
     output reg taken_pdc,
     output choice_b_g,    //0:b,1:g
     output [1:0]choice_pdch,
+    output [1:0]taken_pdch_b,
+    output [1:0]taken_pdch_g,
     //当前
     input  [gh_width-1:0] pc_gh_hashed,
     input  [bh_width-1:0] pc_bh_hashed,
@@ -47,8 +51,10 @@ module aim_predictor#(
         .clk(clk),
         .hashed_pc(pc_bh_hashed),
         .b_taken_pdc(taken_b),
+        .taken_pdch_b(taken_pdch_b),
         .hashed_pc_update(pc_ex_bh_hashed),
         .b_taken_real(taken_real),
+        .taken_pdch_ex_b(taken_pdch_ex_b),
         .update_en(try_to_pdc&&update_en)
     );
 
@@ -59,8 +65,10 @@ module aim_predictor#(
         .clk(clk),
         .hashed_pc(pc_gh_hashed),
         .g_taken_pdc(taken_g),
+        .taken_pdch_g(taken_pdch_g),
         .hashed_pc_update(pc_ex_gh_hashed),
         .g_taken_real(taken_real),
+        .taken_pdch_ex_g(taken_pdch_ex_g),
         .update_en(try_to_pdc&&update_en)
     );
 
