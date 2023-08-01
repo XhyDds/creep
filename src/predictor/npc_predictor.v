@@ -20,7 +20,7 @@ module npc_predictor#(
     output reg[ADDR_WIDTH-1:0] npc_pdc,
     input [2:0]kind_pdc,
     input taken_pdc,
-    output choice_btb_ras,    //0:btb,1:ras
+    output choice_btb_ras,    //0:ras,1:btb
     output [1:0]choice_pdch,
     output reg[ADDR_WIDTH-1:0] npc_test,
     //当前
@@ -116,7 +116,7 @@ module npc_predictor#(
             case (kind_pdc)
                 NOT_JUMP:       npc_pdc=(({ADDR_WIDTH{~pc_reg[0]}})&(pc_reg+2))|(({ADDR_WIDTH{pc_reg[0]}})&(pc_reg+1));
                 DIRECT_JUMP:    npc_pdc=npc_btb;
-                RET:            npc_pdc=(({ADDR_WIDTH{choice_btb_ras}})&npc_ras)|(({ADDR_WIDTH{~choice_btb_ras}})&npc_btb);
+                RET:            npc_pdc=(({ADDR_WIDTH{choice_btb_ras}})&npc_btb)|(({ADDR_WIDTH{~choice_btb_ras}})&npc_ras);
                 INDIRECT_JUMP:  npc_pdc=npc_btb;
                 JUMP:           npc_pdc=npc_btb;
                 CALL:           npc_pdc=npc_btb;

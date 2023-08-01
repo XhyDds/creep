@@ -1,13 +1,4 @@
-# len=5
-# offset=2
-with open('config.txt','r') as file:
-    config=file.read()
-for line in config.split('\n'):
-    if line.startswith('L2_offset_width'):
-        offset=int(line.split('=')[1])
-    if line.startswith('WriteBuffer_len'):
-        len=int(line.split('=')[1])
-code='''
+
 // 写缓冲队列
 // 非循环队列
 // 支持query,insert,get三项功能
@@ -19,8 +10,8 @@ code='''
 // push时
 
 module WriteBuffer #(
-    parameter   length='''+str(len)+''',
-                offset_width='''+str(offset)+'''
+    parameter   length=5,
+                offset_width=4
 ) (
     input  clk,
     input  rstn,
@@ -63,11 +54,7 @@ module WriteBuffer #(
     //pull(->axi)
     //state machine
     parameter IDLE_L = 4'd0,
-            PULL=4'd4,'''
-offset=1<<offset
-for i in range(offset):
-    code+='''SEND_'''+str(i)+'''=5'd'''+str(i+5)+''','''
-code+='''_SEND=5'd'''+str(offset+5)+''';
+            PULL=4'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,SEND_8=5'd13,SEND_9=5'd14,SEND_10=5'd15,SEND_11=5'd16,SEND_12=5'd17,SEND_13=5'd18,SEND_14=5'd19,SEND_15=5'd20,_SEND=5'd21;
     //外部输入
     //组合action
     reg pointer_minus;
@@ -90,19 +77,86 @@ code+='''_SEND=5'd'''+str(offset+5)+''';
             PULL: begin
                 out_valid=1;
                 out_addr=buffer_addr[pointer];
-            end'''
-for i in range(offset-1):
-    code+='''
-            SEND_'''+str(i)+''': begin
+            end
+            SEND_0: begin
                 out_valid=1;
-                out_data=_out_data['''+str(i*32+31)+''':'''+str(i*32)+'''];
+                out_data=_out_data[31:0];
                 out_wvalid=1;
-            end'''
-code+='''
-            SEND_'''+str(offset-1)+''': begin
+            end
+            SEND_1: begin
+                out_valid=1;
+                out_data=_out_data[63:32];
+                out_wvalid=1;
+            end
+            SEND_2: begin
+                out_valid=1;
+                out_data=_out_data[95:64];
+                out_wvalid=1;
+            end
+            SEND_3: begin
+                out_valid=1;
+                out_data=_out_data[127:96];
+                out_wvalid=1;
+            end
+            SEND_4: begin
+                out_valid=1;
+                out_data=_out_data[159:128];
+                out_wvalid=1;
+            end
+            SEND_5: begin
+                out_valid=1;
+                out_data=_out_data[191:160];
+                out_wvalid=1;
+            end
+            SEND_6: begin
+                out_valid=1;
+                out_data=_out_data[223:192];
+                out_wvalid=1;
+            end
+            SEND_7: begin
+                out_valid=1;
+                out_data=_out_data[255:224];
+                out_wvalid=1;
+            end
+            SEND_8: begin
+                out_valid=1;
+                out_data=_out_data[287:256];
+                out_wvalid=1;
+            end
+            SEND_9: begin
+                out_valid=1;
+                out_data=_out_data[319:288];
+                out_wvalid=1;
+            end
+            SEND_10: begin
+                out_valid=1;
+                out_data=_out_data[351:320];
+                out_wvalid=1;
+            end
+            SEND_11: begin
+                out_valid=1;
+                out_data=_out_data[383:352];
+                out_wvalid=1;
+            end
+            SEND_12: begin
+                out_valid=1;
+                out_data=_out_data[415:384];
+                out_wvalid=1;
+            end
+            SEND_13: begin
+                out_valid=1;
+                out_data=_out_data[447:416];
+                out_wvalid=1;
+            end
+            SEND_14: begin
+                out_valid=1;
+                out_data=_out_data[479:448];
+                out_wvalid=1;
+            end
+            SEND_15: begin
                 out_valid=1;
                 out_last=1;
-                out_data=_out_data['''+str(offset*32-1)+''':'''+str(offset*32-32)+'''];
+                out_data=_out_data[511:480];
                 out_wvalid=1;
             end
             _SEND: begin
@@ -172,24 +226,32 @@ code+='''
     end
     //时序action
     always @(posedge clk)begin
-        if(!rstn) begin'''
-for i in range(len):
-    code+='''
-            buffer_addr[32'd'''+str(i)+''']<=0;
-            buffer_data[32'd'''+str(i)+''']<=0;'''
-code+='''
+        if(!rstn) begin
+            buffer_addr[32'd0]<=0;
+            buffer_data[32'd0]<=0;
+            buffer_addr[32'd1]<=0;
+            buffer_data[32'd1]<=0;
+            buffer_addr[32'd2]<=0;
+            buffer_data[32'd2]<=0;
+            buffer_addr[32'd3]<=0;
+            buffer_data[32'd3]<=0;
+            buffer_addr[32'd4]<=0;
+            buffer_data[32'd4]<=0;
         end
         else begin
             case (crt_push)
                 IDLE_H: begin
                     if(nxt_push==PUSH) begin
                         buffer_addr[32'd0]<=in_addr;
-                        buffer_data[32'd0]<=in_data;'''
-for i in range(0,len-1):
-    code+='''
-                        buffer_addr[32'd'''+str(i+1)+''']<=buffer_addr[32'd'''+str(i)+'''];
-                        buffer_data[32'd'''+str(i+1)+''']<=buffer_data[32'd'''+str(i)+'''];'''
-code+='''
+                        buffer_data[32'd0]<=in_data;
+                        buffer_addr[32'd1]<=buffer_addr[32'd0];
+                        buffer_data[32'd1]<=buffer_data[32'd0];
+                        buffer_addr[32'd2]<=buffer_addr[32'd1];
+                        buffer_data[32'd2]<=buffer_data[32'd1];
+                        buffer_addr[32'd3]<=buffer_addr[32'd2];
+                        buffer_data[32'd3]<=buffer_data[32'd2];
+                        buffer_addr[32'd4]<=buffer_addr[32'd3];
+                        buffer_data[32'd4]<=buffer_data[32'd3];
                     end
                     else ;
                 end
@@ -213,24 +275,21 @@ code+='''
 
     //query
     reg res[length-1:0];
-    always @(*) begin'''
-for i in range(len):
-    code+='''
-        res[32'd'''+str(i)+''']=(query_addr==buffer_addr[32'd'''+str(i)+''']);'''
-code+='''
+    always @(*) begin
+        res[32'd0]=(query_addr==buffer_addr[32'd0]);
+        res[32'd1]=(query_addr==buffer_addr[32'd1]);
+        res[32'd2]=(query_addr==buffer_addr[32'd2]);
+        res[32'd3]=(query_addr==buffer_addr[32'd3]);
+        res[32'd4]=(query_addr==buffer_addr[32'd4]);
     end
 
     always @(*) begin
-             if(res[3'd0]==1'b1) begin query_ok=1;query_data=buffer_data[32'd0]; end'''
-for i in range(1,len):
-    code+='''
-        else if(res[3'd'''+str(i)+''']==1'b1) begin query_ok=1;query_data=buffer_data[32'd'''+str(i)+''']; end'''
-code+='''
+             if(res[3'd0]==1'b1) begin query_ok=1;query_data=buffer_data[32'd0]; end
+        else if(res[3'd1]==1'b1) begin query_ok=1;query_data=buffer_data[32'd1]; end
+        else if(res[3'd2]==1'b1) begin query_ok=1;query_data=buffer_data[32'd2]; end
+        else if(res[3'd3]==1'b1) begin query_ok=1;query_data=buffer_data[32'd3]; end
+        else if(res[3'd4]==1'b1) begin query_ok=1;query_data=buffer_data[32'd4]; end
         else                     begin query_ok=0;query_data=0                 ; end
     end
 
 endmodule
-'''
-# print(code)
-with open('WriteBuffer.v','w+') as f:
-    f.write(code)
