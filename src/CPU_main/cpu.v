@@ -1034,6 +1034,7 @@ module core_top(
         .taken_real  		( out_taken_ex 		),
         .bh_ex              ( out_bh_ex         ),
         .choice_real 		( choice_real 		),
+        .choice_pdc_ex      ( out_choice_pdc    ),
 
         .npc_pdc     		( npc_pdc  	    	),
         .kind_pdc    		( kind_pdc       	),

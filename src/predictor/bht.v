@@ -9,23 +9,21 @@ module bht#(
     //update
     input [k_width-1:0]hashed_pc_update,
     input outcome_real,
+    input [bh_width-1:0]bh_ex,
     input update_en
 );
-    wire[k_width-1:0] _bh_old;
     wire[k_width-1:0] _bh_new;
 
-    assign _bh_new={_bh_old[bh_width-2:0],outcome_real};
+    assign _bh_new={bh_ex[bh_width-2:0],outcome_real};
 
-    dp_dram#(
+    sp_dram#(
         .ADDR_WIDTH(k_width),
         .DATA_WIDTH(bh_width)
     )
     bht_regs(
         .clk(clk),
-        .araddr(hashed_pc),
-        .adout(bh_pdc),
-        .braddr(hashed_pc_update),
-        .bdout(_bh_old),
+        .raddr(hashed_pc),
+        .dout(bh_pdc),
         .waddr(hashed_pc_update),
         .din(_bh_new),
         .we(update_en)
