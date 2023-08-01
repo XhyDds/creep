@@ -96,7 +96,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     localparam INT='H0,PIL='H1,PIS='H2,PIF='H3,PME='H4,PPI='H7,
     ADE='H8,ALE='H9,SYS='HB,BRK='HC,INE='HD,IPE='HE,FPD='HF,
     FPE='H12,TLBR='H3F;
-    localparam ADEF='H0,ADEM='H1;
+    localparam ADEF='H0,ADEM='H1,DEFAULT='H0;
     reg [4:0] mode;wire [31:0] din;reg [31:0]dout,mask;
     wire [8:0] ESTATin;reg flushout;wire stallin,flushin;
     wire exe;wire [15:0] excp_arg1;reg clk_stall,nclk_stall;
@@ -253,7 +253,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     ecode=pipeline_CSR_excp_arg0[5:0];
     esubcode=pipeline_CSR_excp_arg0[14:6];
     mode=pipeline_CSR_subtype;
-    evaddr=inpc;//TLB(F),ADEF,PIF,PPI
+    evaddr=inpc;//TLBR(F),ADEF,PIF,PPI
 
     if(!inpc_valid)
         inpc=jumpc_reg;
@@ -261,7 +261,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         mode=INTE;
         ecode=INT;
-        esubcode=0;
+        esubcode=DEFAULT;
         end 
     else if(excp_arg1[15])
         begin
@@ -269,9 +269,9 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         inpc=pipeline_CSR_inpc1; 
         ecode=excp_arg1[5:0];
         esubcode=excp_arg1[14:6];
-        evaddr=pipeline_CSR_evaddr1;//TPB(L,S),PIL,PIS,PME
+        evaddr=pipeline_CSR_evaddr1;//TLBR(L,S),PIL,PIS,PME,ADEM
         end
-    else if(ecode==ALE || (ecode==ADE && esubcode==ADEM))//ALE,ADEM
+    else if(ecode==ALE)//ALE
         evaddr=pipeline_CSR_evaddr0;
     end
     //control
