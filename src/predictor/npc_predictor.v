@@ -46,18 +46,22 @@ module npc_predictor#(
 
     // assign npc_test=pc_reg+1;
     // npc_test
-    reg [29:0]offset_test;
-    always @(posedge clk)begin
-        if(!rstn)  begin
-            offset_test<=0;
-            npc_test<=0;
-        end 
-        else begin
-            npc_test<=offset_test;
-            if(offset_test==0) offset_test<=0;
-            else offset_test<=1;
-        end
+    always @(*) begin
+        if(pc_reg[0]) npc_test=pc_reg+1;
+        else npc_test=pc_reg+2;
     end
+    // reg [29:0]offset_test;
+    // always @(posedge clk)begin
+    //     if(!rstn)  begin
+    //         offset_test<=0;
+    //         npc_test<=0;
+    //     end 
+    //     else begin
+    //         npc_test<=offset_test;
+    //         if(offset_test==0) offset_test<=0;
+    //         else offset_test<=1;
+    //     end
+    // end
     
     wire [ADDR_WIDTH-1:0]npc_btb;
     wire [ADDR_WIDTH-1:0]npc_ras;

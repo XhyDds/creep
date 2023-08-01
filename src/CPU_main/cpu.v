@@ -100,13 +100,21 @@ module core_top(
     vaddr_exe1_wb,      paddr_exe1_wb,
     vaddr_exe0_exe1,    paddr_exe0_exe1,
     pc_br_exe0_exe1_0,  pc_br_exe0_exe1_1,
-    brresult_exe0_exe1_0,                   brresult_exe0_exe1_1;
+    brresult_exe0_exe1_0,                   brresult_exe0_exe1_1,
+    npc_reg;
 
     (* MAX_FANOUT = 3 *)reg [31:0]
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,flush_if0_if1_reg;
+
+    always @(posedge clk) begin
+        if(!rstn) flush_if0_if1_reg<=0;
+        else flush_if0_if1_reg<=ifbr0|ifbr1|ifpriv|ifcacop_ibar;
+        if(!rstn) npc_reg<=0;
+        else npc_reg<=npc;
+    end
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -152,9 +160,9 @@ module core_top(
     assign flushup =            flush_pre_1&ctr_reg_exe0_0[31];
     assign flushdown =          flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0&ctr_id_reg_1[31];
     assign flushdownpre =       flush_pre_0&~ctr_id_reg_1[31];
-    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
+    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
+    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
     assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdownpre;
     assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -164,7 +172,7 @@ module core_top(
     assign flush_exe1_wb_0 =    ifpriv|ifmmu_excp|ifbr1|excp_flush;
     assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush;
 
-    assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
+    assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|flush_if0_if1_reg;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
     assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache;
@@ -1056,7 +1064,7 @@ module core_top(
         .clk         		( clk         		),
         .rstn        		( rstn        		),
         .update_en          ( update_en         ),
-        .stall              ( ~(!stall_pc|ifbr_exe0_exe1_0|ifbr_exe0_exe1_1|ifpriv|ifcacop_ibar) ),
+        .stall              ( ~(!stall_pc|flush_if0_if1_reg) ),
 
         .pc_ex       		( out_pc_ex         ),
         .ret_pc_ex          ( ret_pc_ex         ),
@@ -1137,13 +1145,15 @@ module core_top(
     reg ifnpc_pdc;
     always @(*) begin
         ifnpc_pdc=0;
-        if(ifpriv) npc=pc_priv;
+        if(flush_if0_if1_reg) npc=npc_reg;
+        else if(ifpriv) npc=pc_priv;
         else if(ifbr1) npc=pc_br1;
         else if(ifbr0) npc=pc_br0;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
         else if(ifsuc) npc=pc+4;
         `ifdef predictor
         else begin npc=npc_pdc_32;ifnpc_pdc=1; end
+        // else begin npc={npc_test,2'b0};ifnpc_pdc=1; end
         `endif
         `ifndef predictor
         else if(pc[2]) npc=pc+4;
