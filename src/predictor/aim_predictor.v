@@ -17,7 +17,7 @@ module aim_predictor#(
     input  [1:0]taken_pdch_ex_g,
     //预测
     input  [2:0]kind_pdc,
-    output reg taken_pdc,
+    output taken_pdc,
     output choice_b_g,    //0:b,1:g
     output [1:0]choice_pdch,
     output [1:0]taken_pdch_b,
