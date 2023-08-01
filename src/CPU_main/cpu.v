@@ -172,7 +172,7 @@ module core_top(
     assign flush_exe1_wb_0 =    ifpriv|ifmmu_excp|ifbr1|excp_flush;
     assign flush_exe1_wb_1 =    ifmmu_excp|excp_flush;
 
-    assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|flush_if0_if1_reg;
+    assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
     assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache;
