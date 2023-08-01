@@ -49,6 +49,11 @@ module dispatcher (
     end
 
     always @(*) begin
+        if0 = ~stall1 & ~xiangguan & upable & ~stall0;
+        if1 = ~stall1;
+    end
+
+    always @(*) begin
         if (stall1) begin
             rk00=0;
             rk11=0;
@@ -62,8 +67,8 @@ module dispatcher (
             control11=0;
             excp_arg00=0;
             excp_arg11=0;
-            if0=0;
-            if1=0;
+            // if0=0;
+            // if1=0;
             pc00=0;
             pc11=0;
             ir00=0;
@@ -88,8 +93,8 @@ module dispatcher (
             control11=control1;
             excp_arg00=excp_arg0;
             excp_arg11=excp_arg1;
-            if0=1;
-            if1=1;
+            // if0=1;
+            // if1=1;
             pc00=pc0;
             pc11=pc1;
             ir00=ir0;
@@ -132,8 +137,8 @@ module dispatcher (
             control11=control1;
             excp_arg00=0;
             excp_arg11=excp_arg1;
-            if0=0;
-            if1=1;
+            // if0=0;
+            // if1=1;
             pc00=0;
             pc11=pc1;
             ir00=0;

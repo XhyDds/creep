@@ -246,6 +246,7 @@ always @(*) begin
     hit_l2cache_pref = 0;
     complete_l2cache_pref = 0;
     FSM_inpref = 0;
+    miss_l2cache_pref = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
