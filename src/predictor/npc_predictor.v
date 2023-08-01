@@ -14,19 +14,20 @@ module npc_predictor#(
     input [2:0]kind_ex,
     input choice_real,
     input [29:0]ret_pc_ex,
-    input choice_pdc_ex,
+    input [1:0]choice_pdch_ex,
     input mis_pdc,   //地址预测错误
     //预测
     output reg[ADDR_WIDTH-1:0] npc_pdc,
     input [2:0]kind_pdc,
     input taken_pdc,
     output choice_btb_ras,    //0:btb,1:ras
+    output [1:0]choice_pdch,
     output reg[ADDR_WIDTH-1:0] npc_test,
     //当前
     input [gh_width-1:0] pc_gh_hashed,
     input [gh_width-1:0] pc_bh_hashed,
     input [gh_width-1:0] pc_hashed_reg,
-    input [ADDR_WIDTH-1:0] pc
+    input [ADDR_WIDTH-1:0] pc_reg
 );
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
 
@@ -38,7 +39,7 @@ module npc_predictor#(
     //             CALL = 3'd6,
     //             JUMP=3'd7;
 
-    // assign npc_test=pc+1;
+    // assign npc_test=pc_reg+1;
     // npc_test
     reg [29:0]offset_test;
     always @(posedge clk)begin
@@ -56,7 +57,7 @@ module npc_predictor#(
     wire [ADDR_WIDTH-1:0]npc_btb;
     wire [ADDR_WIDTH-1:0]npc_ras;
 
-    btb#(                   //pc+bh
+    btb#(                   //pc_reg+bh
         .gh_width(gh_width),
         .ADDR_WIDTH(ADDR_WIDTH)
     )
@@ -85,32 +86,33 @@ module npc_predictor#(
         .update_en(update_en)
     );
 
-    cpht#(              //pc
+    cpht#(              //pc_reg
         .ch_width(gh_width)
     )
     cpht_btb_ras(
         .clk(clk),
         .hashed_pc(pc_hashed_reg),
         .choice_pdc(choice_btb_ras),
+        .choice_pdch(choice_pdch),
         .hashed_pc_update(pc_ex_hashed),
         .choice_real(choice_real),
-        .choice_pdc_ex(choice_pdc_ex),
+        .choice_pdch_ex(choice_pdch_ex),
         .update_en((kind_ex==RET)&&update_en)
     );
 
     always @(*) begin
         if(taken_pdc) begin
             case (kind_pdc)
-                NOT_JUMP:       npc_pdc=(({ADDR_WIDTH{~pc[0]}})&(pc+2))|(({ADDR_WIDTH{pc[0]}})&(pc+1));
+                NOT_JUMP:       npc_pdc=(({ADDR_WIDTH{~pc_reg[0]}})&(pc_reg+2))|(({ADDR_WIDTH{pc_reg[0]}})&(pc_reg+1));
                 DIRECT_JUMP:    npc_pdc=npc_btb;
                 RET:            npc_pdc=(({ADDR_WIDTH{choice_btb_ras}})&npc_ras)|(({ADDR_WIDTH{~choice_btb_ras}})&npc_btb);
                 INDIRECT_JUMP:  npc_pdc=npc_btb;
                 JUMP:           npc_pdc=npc_btb;
                 CALL:           npc_pdc=npc_btb;
                 // OTHER_JUMP:     npc_pdc=npc_btb;
-                default:        npc_pdc=(({ADDR_WIDTH{~pc[0]}})&(pc+2))|(({ADDR_WIDTH{pc[0]}})&(pc+1));
+                default:        npc_pdc=(({ADDR_WIDTH{~pc_reg[0]}})&(pc_reg+2))|(({ADDR_WIDTH{pc_reg[0]}})&(pc_reg+1));
             endcase
         end
-        else                    npc_pdc=(({ADDR_WIDTH{~pc[0]}})&(pc+2))|(({ADDR_WIDTH{pc[0]}})&(pc+1));
+        else                    npc_pdc=(({ADDR_WIDTH{~pc_reg[0]}})&(pc_reg+2))|(({ADDR_WIDTH{pc_reg[0]}})&(pc_reg+1));
     end
 endmodule

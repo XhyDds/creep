@@ -5,9 +5,10 @@ module cpht#(
     //query
     input [ch_width-1:0]hashed_pc,//hash(pc,gh)
     output choice_pdc,
+    output [1:0]choice_pdch,
     //update
     input [ch_width-1:0]hashed_pc_update,
-    input choice_pdc_ex,
+    input [1:0]choice_pdch_ex,
     input choice_real,
     input update_en
 );
@@ -30,7 +31,7 @@ module cpht#(
     );
 
     transformer_2bit core(
-        .crt(choice_pdc_ex),
+        .crt(choice_pdch_ex),
         .nxt(_cph_new),
         .taken(choice_real)
     );
