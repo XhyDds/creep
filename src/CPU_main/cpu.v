@@ -1013,6 +1013,12 @@ module core_top(
     wire [29:0] ret_pc_ex     ;
     wire update_en;
 
+    wire[1:0] choice_pdch_btb_ras;
+    wire[1:0] choice_pdch_b_g;
+    wire[1:0] choice_pdch_ex_btb_ras;
+    wire[1:0] choice_pdch_ex_b_g;
+
+
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
@@ -1035,12 +1041,16 @@ module core_top(
         .bh_ex              ( out_bh_ex         ),
         .choice_real 		( choice_real 		),
         .choice_pdc_ex      ( out_choice_pdc    ),
+        .choice_pdch_ex_btb_ras(choice_pdch_ex_btb_ras),
+        .choice_pdch_ex_b_g (choice_pdch_ex_b_g),
 
         .npc_pdc     		( npc_pdc  	    	),
         .kind_pdc    		( kind_pdc       	),
         .taken_pdc   		( taken_pdc        	),
         .bh_pdc             ( bh_pdc            ),
         .choice_pdc  		( choice_pdc    	),
+        .choice_pdch_btb_ras(choice_pdch_btb_ras),
+        .choice_pdch_b_g    (choice_pdch_b_g   ),
 
         .pc          		( npc[31:2]          ),
         .npc_test           ( npc_test          )

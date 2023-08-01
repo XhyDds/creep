@@ -12,12 +12,13 @@ module aim_predictor#(
     input  [bh_width-1:0] pc_ex_hashed,
     input  [2:0]kind_ex,
     input  choice_real,
-    input  choice_pdc_ex,
+    input  [1:0]choice_pdch_ex,
     input  taken_real,
     //预测
     input  [2:0]kind_pdc,
     output reg taken_pdc,
     output choice_b_g,    //0:b,1:g
+    output [1:0]choice_pdch,
     //当前
     input  [gh_width-1:0] pc_gh_hashed,
     input  [bh_width-1:0] pc_bh_hashed,
@@ -70,9 +71,10 @@ module aim_predictor#(
         .clk(clk),
         .hashed_pc(pc_gh_hashed),
         .choice_pdc(choice_b_g),
+        .choice_pdch(choice_pdch),
         .hashed_pc_update(pc_ex_gh_hashed),
         .choice_real(choice_real),
-        .choice_pdc_ex(choice_pdc_ex),
+        .choice_pdch_ex(choice_pdch_ex),
         .update_en(try_to_pdc&&update_en)
     );
 

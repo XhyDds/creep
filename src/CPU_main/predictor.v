@@ -20,6 +20,8 @@ module predictor #(
     input [h_width-1:0] bh_ex,
     input [1:0]choice_real,     //1:btb/ras  0:g/h
     input [1:0]choice_pdc_ex,
+    input [1:0]choice_pdch_ex_b_g,
+    input [1:0]choice_pdch_ex_btb_ras,
 
     //预测
     output [ADDR_WIDTH-1:0]npc_pdc,
@@ -27,6 +29,8 @@ module predictor #(
     output taken_pdc,
     output [h_width-1:0] bh_pdc,
     output [1:0]choice_pdc,     //1:btb/ras  0:g/h
+    output [1:0]choice_pdch_b_g,
+    output [1:0]choice_pdch_btb_ras,
     //当前
     input [ADDR_WIDTH-1:0]pc,
     output[ADDR_WIDTH-1:0]npc_test
@@ -45,7 +49,6 @@ module predictor #(
 
     //hash
     (* MAX_FANOUT = 3 *)wire [k_width-1:0] pc_hashed;
-    (* MAX_FANOUT = 3 *)wire [k_width-1:0] pc_hashed_reg;
     (* MAX_FANOUT = 3 *)wire [h_width-1:0] pc_gh_hashed;
     (* MAX_FANOUT = 3 *)wire [h_width-1:0] pc_bh_hashed;
 
@@ -56,6 +59,20 @@ module predictor #(
     wire [h_width-1:0] gh;
     wire [h_width-1:0] bh;
     wire [h_width-1:0] gh_ex;
+
+    (* MAX_FANOUT = 3 *)reg [k_width-1:0] pc_hashed_reg;
+    reg [ADDR_WIDTH-1:0] pc_reg;
+
+    always @(posedge clk) begin
+        if(!rstn) begin
+            pc_hashed_reg<=0;
+            pc_reg<=0;
+        end
+        else begin
+            pc_hashed_reg<=pc_hashed;
+            pc_reg<=pc;
+        end
+    end
 
     single_hash#(
         .DATA_width(ADDR_WIDTH),
@@ -134,9 +151,10 @@ module predictor #(
         .kind_ex(kind_ex),
         .choice_real(choice_real_b_g),
         .taken_real(taken_real),
-        .choice_pdc_ex(choice_pdc_ex[0]),//b_g
+        .choice_pdch_ex(choice_pdch_ex_b_g),//b_g
         .kind_pdc(kind_pdc),
         .taken_pdc(taken_pdc),
+        .choice_pdch(choice_pdch_b_g),
         .choice_b_g(choice_pdc_b_g),
         .pc_gh_hashed(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
@@ -211,16 +229,17 @@ module predictor #(
         .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_btb_ras),
-        .choice_pdc_ex(choice_pdc_ex[1]),//btb_ras
+        .choice_pdch_ex(choice_pdch_ex_btb_ras),//btb_ras
         .mis_pdc(mis_pdc_npc),
         .npc_pdc(npc_pdc),
         .kind_pdc(kind_pdc),
         .taken_pdc(taken_pdc),
         .choice_btb_ras(choice_pdc_btb_ras),
+        .choice_pdch(choice_pdch_btb_ras),
         .pc_gh_hashed(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
         .pc_hashed_reg(pc_hashed_reg),
-        .pc(pc),
+        .pc_reg(pc_reg),
         .npc_test(npc_test)
     );
 
