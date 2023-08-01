@@ -111,7 +111,8 @@ module npc_predictor#(
 
     always @(*) begin
         if(stall) npc_pdc=pc_reg;
-        else if(taken_pdc) begin
+        else 
+        if(taken_pdc) begin
             case (kind_pdc)
                 NOT_JUMP:       npc_pdc=(({ADDR_WIDTH{~pc_reg[0]}})&(pc_reg+2))|(({ADDR_WIDTH{pc_reg[0]}})&(pc_reg+1));
                 DIRECT_JUMP:    npc_pdc=npc_btb;

@@ -164,16 +164,6 @@ module predictor #(
         .data2_raw(bh),
         .data_hashed(pc_bh_hashed)
     );
-        combine_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(h_width),
-        .HASH_width(h_width)
-    )
-    combine_hash_pc_bh1(
-        .data1_raw(pc_hashed_reg),
-        .data2_raw(bh),
-        .data_hashed(pc_bh_hashed1)
-    );
 
     combine_hash#(
         .DATA1_width(k_width),
