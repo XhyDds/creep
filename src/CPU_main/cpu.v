@@ -1041,7 +1041,7 @@ module core_top(
         .bh_pdc             ( bh_pdc            ),
         .choice_pdc  		( choice_pdc    	),
 
-        .pc          		( pc[31:2]          ),
+        .pc          		( npc[31:2]          ),
         .npc_test           ( npc_test          )
     );
 
