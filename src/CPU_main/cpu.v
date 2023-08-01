@@ -1079,8 +1079,8 @@ module core_top(
     )u_ex_buffer(
         .clk(clk),
         .rstn(rstn),
-        .flag({ctr_exe0_exe1_0[31],ctr_exe0_exe1_1[31]}),
-        .stall(stall_exe0_exe1_0|(~ctr_exe0_exe1_0[31]&~ctr_exe0_exe1_1[31])),
+        .flag({ctr_exe0_exe1_0[31]&!flush_exe1_wb_0,ctr_exe0_exe1_1[31]&!flush_exe1_wb_1}),
+        .stall(stall_exe0_exe1_0|(~(ctr_exe0_exe1_0[31]&!flush_exe1_wb_0)&~(ctr_exe0_exe1_1[31]&!flush_exe1_wb_1))),
 
         .in_taken_pdc_0(pre_exe0_exe1_0[33]),
         .in_kind_pdc_0(pre_exe0_exe1_0[32:30]),
