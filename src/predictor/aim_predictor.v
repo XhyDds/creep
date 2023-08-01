@@ -29,15 +29,15 @@ module aim_predictor#(
     input  [bh_width-1:0] pc_hashed,
     input  [ADDR_WIDTH-1:0] pc
 );
-    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
+    // parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
     
-    // parameter   NOT_JUMP = 3'd0,
-    //             DIRECT_JUMP = 3'd1,
-    //             //
-    //             RET = 3'd4,
-    //             INDIRECT_JUMP = 3'd5,
-    //             CALL = 3'd6,
-    //             JUMP=3'd7;
+    parameter   NOT_JUMP = 3'd0,
+                DIRECT_JUMP = 3'd1,
+                //
+                RET = 3'd4,
+                INDIRECT_JUMP = 3'd5,
+                CALL = 3'd6,
+                JUMP=3'd7;
 
     wire taken_b;
     wire taken_g;       
@@ -86,23 +86,23 @@ module aim_predictor#(
         .update_en(try_to_pdc&&update_en)
     );
 
-    always @(*) begin
-        case (kind_pdc)
-            NOT_JUMP:       taken_pdc=0;
-            JUMP:           taken_pdc=1;
-            CALL:           taken_pdc=1;
-            DIRECT_JUMP:    taken_pdc=(choice_b_g&taken_g)|(~choice_b_g&taken_b);
-            RET:            taken_pdc=1;
-            INDIRECT_JUMP:  taken_pdc=1;
-            // OTHER_JUMP:     taken_pdc=choice_b_g?taken_g:taken_b;
-            default:        taken_pdc=0;
-        endcase
-    end
+    // always @(*) begin
+    //     case (kind_pdc)
+    //         NOT_JUMP:       taken_pdc=0;
+    //         JUMP:           taken_pdc=1;
+    //         CALL:           taken_pdc=1;
+    //         DIRECT_JUMP:    taken_pdc=(choice_b_g&taken_g)|(~choice_b_g&taken_b);
+    //         RET:            taken_pdc=1;
+    //         INDIRECT_JUMP:  taken_pdc=1;
+    //         // OTHER_JUMP:     taken_pdc=choice_b_g?taken_g:taken_b;
+    //         default:        taken_pdc=0;
+    //     endcase
+    // end
 
 //     assign taken_pdc= ( kind_pdc[2] &  1)
 //                     | (~kind_pdc[2] &  kind_pdc[0] & (choice_b_g&taken_g)|(~choice_b_g&taken_b) )
 //                     | (~kind_pdc[2] & ~kind_pdc[0] & 0);
 
-    // assign taken_pdc= kind_pdc[2]
-    //                 | ( kind_pdc[0] & (choice_b_g&taken_g)|(~choice_b_g&taken_b) );
+    assign taken_pdc= kind_pdc[2]
+                    | ( kind_pdc[0] & (choice_b_g&taken_g)|(~choice_b_g&taken_b) );
 endmodule

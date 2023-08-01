@@ -51,7 +51,13 @@ module ex_buffer#(
 
     output reg   update_en
 );
-    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
+    parameter   NOT_JUMP = 3'd0,
+                DIRECT_JUMP = 3'd1,
+                //
+                RET = 3'd4,
+                INDIRECT_JUMP = 3'd5,
+                CALL = 3'd6,
+                JUMP=3'd7;
 
     wire [123:0] in_data_0={in_pdch_0,in_flush_pre_0,in_bh_pdc_0,in_pack_size_0,in_choice_pdc_0,in_pc_ex_0,in_npc_ex_0,in_kind_ex_0,in_taken_ex_0,in_npc_pdc_0,in_kind_pdc_0,in_taken_pdc_0};
     wire [123:0] in_data_1={in_pdch_1,in_flush_pre_1,in_bh_pdc_1,in_pack_size_1,in_choice_pdc_1,in_pc_ex_1,in_npc_ex_1,in_kind_ex_1,in_taken_ex_1,in_npc_pdc_1,in_kind_pdc_1,in_taken_pdc_1};
@@ -278,9 +284,6 @@ module ex_buffer#(
             end
             else if(out_kind_ex_0==INDIRECT_JUMP||out_kind_ex_1==INDIRECT_JUMP) begin
                 out_kind_ex_=INDIRECT_JUMP;
-            end
-            else if(out_kind_ex_0==OTHER_JUMP||out_kind_ex_1==OTHER_JUMP) begin
-                out_kind_ex_=OTHER_JUMP;
             end
             else begin
                 out_kind_ex_=NOT_JUMP;

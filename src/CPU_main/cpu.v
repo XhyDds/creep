@@ -1016,7 +1016,13 @@ module core_top(
     wire [1:0]choice_real;
     wire choice_real_btb_ras;
     wire choice_real_g_h;
-    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
+    parameter   NOT_JUMP = 3'd0,
+                DIRECT_JUMP = 3'd1,
+                //
+                RET = 3'd4,
+                INDIRECT_JUMP = 3'd5,
+                CALL = 3'd6,
+                JUMP=3'd7;
     assign mis_pdc={(out_npc_ex!=out_npc_pdc),(out_kind_ex!=out_kind_pdc),(out_taken_ex!=out_taken_pdc)};
     assign choice_real={choice_real_btb_ras,choice_real_g_h};
     assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];

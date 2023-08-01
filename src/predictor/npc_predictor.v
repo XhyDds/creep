@@ -30,7 +30,13 @@ module npc_predictor#(
     input [gh_width-1:0] pc_hashed_reg,
     input [ADDR_WIDTH-1:0] pc_reg
 );
-    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
+    parameter   NOT_JUMP = 3'd0,
+                DIRECT_JUMP = 3'd1,
+                //
+                RET = 3'd4,
+                INDIRECT_JUMP = 3'd5,
+                CALL = 3'd6,
+                JUMP=3'd7;
 
     // parameter   NOT_JUMP = 3'd0,
     //             DIRECT_JUMP = 3'd1,

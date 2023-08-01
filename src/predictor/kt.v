@@ -10,7 +10,13 @@ module kt#(
     input [2:0]kind_real,
     input update_en
 );
-    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
+    parameter   NOT_JUMP = 3'd0,
+                DIRECT_JUMP = 3'd1,
+                //
+                RET = 3'd4,
+                INDIRECT_JUMP = 3'd5,
+                CALL = 3'd6,
+                JUMP=3'd7;
     
     sp_bram#(
         .ADDR_WIDTH(k_width),

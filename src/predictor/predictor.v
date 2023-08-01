@@ -33,7 +33,13 @@ module predictor #(
     input [ADDR_WIDTH-1:0]pc,
     output[ADDR_WIDTH-1:0]npc_test
 );
-    parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
+    parameter   NOT_JUMP = 3'd0,
+                DIRECT_JUMP = 3'd1,
+                //
+                RET = 3'd4,
+                INDIRECT_JUMP = 3'd5,
+                CALL = 3'd6,
+                JUMP=3'd7;
 
     wire mis_pdc_npc   = mis_pdc[2];
     wire mis_pdc_kind  = mis_pdc[1];
@@ -296,10 +302,10 @@ module predictor #(
             if(~mis_pdc_taken&&kind_ex!=NOT_JUMP&&update_en)
                                         times_total_npc  <=times_total_npc  +1;
                                         times_total_kind <=times_total_kind +1;
-            if(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP&&update_en) 
+            if(kind_ex==DIRECT_JUMP&&update_en) 
                                         times_total_taken<=times_total_taken+1;
 
-            if(mis_pdc_taken&&(kind_ex==DIRECT_JUMP||kind_ex==OTHER_JUMP)&&update_en) begin
+            if(mis_pdc_taken&&(kind_ex==DIRECT_JUMP)&&update_en) begin
                 if(choice_real_b_g)     times_mis_gh     <=times_mis_gh     +1;
                 else                    times_mis_bh     <=times_mis_bh     +1;
             end
