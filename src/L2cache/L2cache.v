@@ -176,7 +176,7 @@ L2cache_pref_reqbuf L2cache_pref_reqbuf(
     .rstn(rstn),
 
     .data_l1(din_l1cache_l2cache),
-    .addr_l1(dcache_mem_req ? addr_dcache_l2cache : (icache_mem_req ? addr_icache_l2cache : 0)),
+    .addr_l1(dcache_l2cache_req ? addr_dcache_l2cache : (icache_l2cache_req ? addr_icache_l2cache : 0)),
     .from(from),
     .wstrb_l1(dcache_l2cache_wstrb),
 
