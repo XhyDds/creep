@@ -205,9 +205,13 @@ always @(*) begin
         default:next_state = Idle;
     endcase
 end
-reg [1:0]FSM_way_sel_d_reg;
+reg [1:0]sel_d;
+reg sel_i,we_sel;
 always @(posedge clk) begin
-    FSM_way_sel_d_reg <= FSM_way_sel_d;
+    if(we_sel)begin
+        sel_d <= FSM_way_sel_d;
+        sel_i <= FSM_wal_sel_i;
+    end
 end
 reg hit_record_we;
 reg [1:0]hit_record;
@@ -247,6 +251,7 @@ always @(*) begin
     complete_l2cache_pref = 0;
     FSM_inpref = 0;
     miss_l2cache_pref = 0;
+    we_sel = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
@@ -292,15 +297,15 @@ always @(*) begin
                 miss_l2cache_pref = 0;
                 FSM_Data_replace = 1;
                 if(~FSM_rbuf_pref_type)begin//inst
-                    FSM_use[{1'b0,FSM_way_sel_i}] = 1;
-                    FSM_Data_we[{1'b0,FSM_way_sel_i}] = 1;
-                    FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
+                    FSM_use[{1'b0,sel_i}] = 1;
+                    FSM_Data_we[{1'b0,sel_i}] = 1;
+                    FSM_Dirtytable_way_select = {1'b0,sel_i};
                     FSM_Dirtytable_set0 = 1;
                 end
                 else begin
-                    FSM_use[FSM_way_sel_d] = 1;
-                    FSM_Data_we[FSM_way_sel_d] = 1;
-                    FSM_Dirtytable_way_select = FSM_way_sel_d;
+                    FSM_use[sel_d] = 1;
+                    FSM_Data_we[sel_d] = 1;
+                    FSM_Dirtytable_way_select = sel_d;
                     FSM_Dirtytable_set0 = 1;
                 end
             end
@@ -349,15 +354,15 @@ always @(*) begin
                 miss_l2cache_pref = 1;
                 FSM_Data_replace = 1;
                 if(~FSM_rbuf_pref_type)begin//inst
-                    FSM_use[{1'b0,FSM_way_sel_i}] = 1;
-                    FSM_Data_we[{1'b0,FSM_way_sel_i}] = 1;
-                    FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
+                    FSM_use[{1'b0,sel_i}] = 1;
+                    FSM_Data_we[{1'b0,sel_i}] = 1;
+                    FSM_Dirtytable_way_select = {1'b0,sel_i};
                     FSM_Dirtytable_set0 = 1;
                 end
                 else begin
-                    FSM_use[FSM_way_sel_d] = 1;
-                    FSM_Data_we[FSM_way_sel_d] = 1;
-                    FSM_Dirtytable_way_select = FSM_way_sel_d;
+                    FSM_use[sel_d] = 1;
+                    FSM_Data_we[sel_d] = 1;
+                    FSM_Dirtytable_way_select = sel_d;
                     FSM_Dirtytable_set0 = 1;
                 end
             end
@@ -409,6 +414,7 @@ always @(*) begin
             end
         end
         checkDirty:begin
+            we_sel = 1;//记录这个周期的wal_sel
             if(!FSM_rbuf_opflag)begin
                 if(~FSM_rbuf_prefetch)begin
                     if(FSM_rbuf_from == 2'b01)FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
@@ -439,12 +445,12 @@ always @(*) begin
             l2cache_mem_req_w = 1;
             if(!FSM_rbuf_opflag)begin
                 if(FSM_rbuf_from == 2'b01)begin
-                    FSM_choose_way = {1'b0,FSM_way_sel_i};//选择写数据
-                    FSM_TagV_way_select = {1'b0,FSM_way_sel_i};//选择写地址
+                    FSM_choose_way = {1'b0,sel_i};//选择写数据
+                    FSM_TagV_way_select = {1'b0,sel_i};//选择写地址
                 end
                 else begin
-                    FSM_choose_way = FSM_way_sel_d;
-                    FSM_TagV_way_select = FSM_way_sel_d;
+                    FSM_choose_way = sel_d;
+                    FSM_TagV_way_select = sel_d;
                 end
             end
             else begin
@@ -470,23 +476,23 @@ always @(*) begin
                     if(FSM_rbuf_from == 2'b01)begin//i-r
                         FSM_rbuf_we = 1;
                         l2cache_icache_dataOK = 1;
-                        FSM_use[{1'b0,FSM_way_sel_i}] = 1;
-                        FSM_Data_we[{1'b0,FSM_way_sel_i}] = 1;
-                        FSM_Dirtytable_way_select = {1'b0,FSM_way_sel_i};
+                        FSM_use[{1'b0,sel_i}] = 1;
+                        FSM_Data_we[{1'b0,sel_i}] = 1;
+                        FSM_Dirtytable_way_select = {1'b0,sel_i};
                         FSM_Dirtytable_set0 = 1;
                     end
                     else if(FSM_rbuf_from == 2'b10)begin//d-r
                         FSM_rbuf_we = 1;
                         l2cache_dcache_dataOK = 1;
-                        FSM_use[FSM_way_sel_d] = 1;
-                        FSM_Data_we[FSM_way_sel_d] = 1;
-                        FSM_Dirtytable_way_select = FSM_way_sel_d;
+                        FSM_use[sel_d] = 1;
+                        FSM_Data_we[sel_d] = 1;
+                        FSM_Dirtytable_way_select = sel_d;
                         FSM_Dirtytable_set0 = 1;
                     end
                     else begin//d-w
                         // FSM_use[FSM_way_sel_d] = 1;//还不能发use给lru单元
-                        FSM_Data_we[FSM_way_sel_d] = 1;
-                        FSM_Dirtytable_way_select = FSM_way_sel_d;
+                        FSM_Data_we[sel_d] = 1;
+                        FSM_Dirtytable_way_select = sel_d;
                         FSM_Dirtytable_set1 = 1;
                     end 
                 end
@@ -504,9 +510,9 @@ always @(*) begin
         end
         replace_write:begin//写一个字  用上一个周期的FSM_way_sel_d  上一次写会改变vaild
             // if(next_state != Idle)FSM_rbuf_we = 1;
-            FSM_Data_we[FSM_way_sel_d_reg] = 1;
-            FSM_use[FSM_way_sel_d_reg] = 1;
-            // FSM_Dirtytable_way_select = FSM_way_sel_d_reg;
+            FSM_Data_we[sel_d] = 1;
+            FSM_use[sel_d] = 1;
+            // FSM_Dirtytable_way_select = sel_d;
             // FSM_Dirtytable_set1 = 1;
         end
         default:;
