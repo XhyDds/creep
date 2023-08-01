@@ -274,43 +274,26 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     else if(ecode==ALE || (ecode==ADE && esubcode==ADEM))//ALE,ADEM
         evaddr=pipeline_CSR_evaddr0;
     end
-    
+    //control
     always@(*)
     begin    
     flushout=1;
-    outpc=inpc+4;
-    mask=~0;
     inst_stop=0;
     TI_cl=0;//TI_cl
     nclk_stall=clk_stall;
     
-    TLBIDXout=0;TLBEHIout=0;
-    TLBELO0out=0;TLBELO1out=0;
-    TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
-    TLBIDXout[29:24]=TLBIDX_PS;
-    TLBIDXout[31]=TLBIDX_NE;
-    TLBEHIout[31:13]=TLBEHI;
-    TLBELO0out[6:0]=TLBELO0_VDPLVMATG;
-    TLBELO0out[TLB_PALEN-5:8]=TLBELO0_PPN;
-    TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
-    TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
-    
     nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
-    
     if((!stallin && !flushin && exe)||inte)
         begin
-        //TI_cl=(csr_num=='h44 && dwcsr[0] && (mode==CSRWR || mode==CSRXCHG)); 
         case(mode)
             ERTN:
                 begin
                 nertn_flush=1;
                 flushout=1;
-                outpc=ERA;
                 end
             CSRXCHG:
                 begin
                 flushout=1;                        
-                mask=pipeline_CSR_mask;
                 if(csr_num=='h44 && dwcsr[0])
                     TI_cl=1;
                 end
@@ -319,15 +302,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                inst_stop=1;
                flushout=1; 
                nclk_stall=0; 
-               if(ecode==TLBR)
-                    begin
-                    outpc={TLBRENTRY,6'b0};
-                    end
-               else
-                    begin
-                    nexcp_flush=1;
-                    outpc={EENTRY,6'b0};
-                    end
+               if(ecode!=TLBR)
+                     nexcp_flush=1;
                end 
             CSRWR:
                 begin
@@ -345,6 +321,49 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         flushout=0;
         end
+    end
+    //outpc
+    always@(*)
+    begin    
+    outpc=inpc+4;
+    case(mode)
+        ERTN:
+            begin
+            outpc=ERA;
+            end
+        INTE:
+           begin
+           if(ecode==TLBR)
+                begin
+                outpc={TLBRENTRY,6'b0};
+                end
+           else
+                begin
+                outpc={EENTRY,6'b0};
+                end
+           end          
+    endcase
+    end
+    
+    always@(*)
+    begin    
+    mask=~0;
+    
+    TLBIDXout=0;TLBEHIout=0;
+    TLBELO0out=0;TLBELO1out=0;
+    TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
+    TLBIDXout[29:24]=TLBIDX_PS;
+    TLBIDXout[31]=TLBIDX_NE;
+    TLBEHIout[31:13]=TLBEHI;
+    TLBELO0out[6:0]=TLBELO0_VDPLVMATG;
+    TLBELO0out[TLB_PALEN-5:8]=TLBELO0_PPN;
+    TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
+    TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
+    
+    if(mode==CSRXCHG)
+        mask=pipeline_CSR_mask;
+    else
+        mask=~0;
     end
     
     always@(*)
