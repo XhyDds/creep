@@ -41,10 +41,10 @@ module write_arbiter#(
     input    [3:0]l2cache_axi_wstrb,
     input    dma_sign,
     //state_machine
-    input    [3:0]crt,
-    input    [3:0]nxt
+    input    [4:0]crt,
+    input    [4:0]nxt
 );
-    parameter IDLE = 4'd0,DMA_AW=4'd1 , DMA_W=4'd2 , DMA_R=4'd3;
+    parameter IDLE = 5'd0,DMA_AW=5'd1 , DMA_W=5'd2 , DMA_R=5'd3;
 
     always @(*) begin
         mem_l2cache_addrOK_w=0;

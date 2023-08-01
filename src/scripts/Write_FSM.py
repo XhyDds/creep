@@ -1,4 +1,13 @@
-module Write_FSM(
+# len=5
+# offset=2
+with open('config.txt','r') as file:
+    config=file.read()
+for line in config.split('\n'):
+    if line.startswith('L2_offset_width'):
+        offset=int(line.split('=')[1])
+    if line.startswith('WriteBuffer_len'):
+        len=int(line.split('=')[1])
+code='''module Write_FSM(
     input  clk,
     input  rstn,
 
@@ -16,7 +25,11 @@ module Write_FSM(
     output reg [4:0] nxt
 );
     parameter IDLE = 5'd0,DMA_AW=5'd1 , DMA_W=5'd2 , DMA_R=5'd3,
-        PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,_SEND=5'd13;
+        PULL=5'd4,'''
+offset=1<<offset
+for i in range(offset):
+    code+='''SEND_'''+str(i)+'''=5'd'''+str(i+5)+''','''
+code+='''_SEND=5'd'''+str(offset+5)+''';
 
     always @(posedge clk)begin
         if (!rstn) begin
@@ -53,38 +66,17 @@ module Write_FSM(
             PULL:       begin
                 if(out_awready)     nxt=SEND_0;
                 else                nxt=PULL;
-            end
-            SEND_0: begin
-                if(out_wready)      nxt=SEND_1;
-                else                nxt=SEND_0;
-            end
-            SEND_1: begin
-                if(out_wready)      nxt=SEND_2;
-                else                nxt=SEND_1;
-            end
-            SEND_2: begin
-                if(out_wready)      nxt=SEND_3;
-                else                nxt=SEND_2;
-            end
-            SEND_3: begin
-                if(out_wready)      nxt=SEND_4;
-                else                nxt=SEND_3;
-            end
-            SEND_4: begin
-                if(out_wready)      nxt=SEND_5;
-                else                nxt=SEND_4;
-            end
-            SEND_5: begin
-                if(out_wready)      nxt=SEND_6;
-                else                nxt=SEND_5;
-            end
-            SEND_6: begin
-                if(out_wready)      nxt=SEND_7;
-                else                nxt=SEND_6;
-            end
-            SEND_7: begin
+            end'''
+for i in range(offset-1):
+    code+='''
+            SEND_'''+str(i)+''': begin
+                if(out_wready)      nxt=SEND_'''+str(i+1)+''';
+                else                nxt=SEND_'''+str(i)+''';
+            end'''
+code+='''
+            SEND_'''+str(offset-1)+''': begin
                 if(out_wready)      nxt=_SEND;
-                else                nxt=SEND_7;
+                else                nxt=SEND_'''+str(offset-1)+''';
             end
             _SEND: begin
                 if(out_bvalid)      nxt=IDLE;
@@ -95,3 +87,7 @@ module Write_FSM(
     end
     //signal
 endmodule
+'''
+# print(code)
+with open('Write_FSM.v','w+') as f:
+    f.write(code)

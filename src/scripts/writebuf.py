@@ -46,8 +46,8 @@ module WriteBuffer #(
     output reg query_ok,                       //query是否成功
 
     //状态机
-    input  [3:0] crt_pull,
-    input  [3:0] nxt_pull,
+    input  [4:0] crt_pull,
+    input  [4:0] nxt_pull,
     output reg [31:0] pointer,
     input  dma_sign
 );
@@ -62,8 +62,8 @@ module WriteBuffer #(
 
     //pull(->axi)
     //state machine
-    parameter IDLE_L = 4'd0,
-            PULL=4'd4,'''
+    parameter IDLE_L = 5'd0,
+            PULL=5'd4,'''
 offset=1<<offset
 for i in range(offset):
     code+='''SEND_'''+str(i)+'''=5'd'''+str(i+5)+''','''
