@@ -1050,7 +1050,7 @@ module core_top(
         .clk         		( clk         		),
         .rstn        		( rstn        		),
         .update_en          ( update_en         ),
-        .stall              ( stall_reg_exe0_0  ),
+        .stall              ( ~(!stall_pc|ifbr_exe0_exe1_0|ifbr_exe0_exe1_1|ifpriv|ifcacop_ibar) ),
 
         .pc_ex       		( out_pc_ex         ),
         .ret_pc_ex          ( ret_pc_ex         ),
@@ -1093,7 +1093,7 @@ module core_top(
         .in_flush_pre_0(flush_pre_exe0_exe1_0 | ifbr0),
         .in_bh_pdc_0(pre_exe0_exe1_0[52:39]),
         .in_pack_size_0(pre_exe0_exe1_0[53]),
-        .in_pdch_0(pre_exe0_exe1_1[61:54]),
+        .in_pdch_0(pre_exe0_exe1_0[61:54]),
 
         .in_taken_pdc_1(pre_exe0_exe1_1[33]),
         .in_kind_pdc_1(pre_exe0_exe1_1[32:30]),
@@ -1117,7 +1117,7 @@ module core_top(
         .out_npc_ex    (out_npc_ex    ),
         .out_pc_ex     (out_pc_ex     ),
         .out_choice_pdc(out_choice_pdc),
-        .out_pdch      (out_bh_pdc),
+        .out_pdch      (out_pdch),
 
         .ret_pc_ex(ret_pc_ex),
 
