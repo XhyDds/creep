@@ -10,10 +10,10 @@ module IO_mask(
     assign allow=&allow_c;
     initial
     begin
-    base[0]<=32'h1faf_0000;
-    width[0]<=6'd16;
-    base[1]<=32'hbfaf_0000;
-    width[1]<=6'd16;
+    base[0]=32'h1faf_0000;
+    width[0]=6'd16;
+    base[1]=32'hbfaf_0000;
+    width[1]=6'd16;
     end
     genvar i;
     generate
