@@ -12,7 +12,7 @@ module kt#(
 );
     parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
     
-    sp_dram#(
+    sp_bram#(
         .ADDR_WIDTH(k_width),
         .DATA_WIDTH(3)
     )
