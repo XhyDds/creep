@@ -64,13 +64,13 @@ module predictor #(
     assign pdch={taken_pdch_g,taken_pdch_b,choice_pdch_btb_ras,choice_pdch_b_g};
 
     //hash
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed1;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed2;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed1;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed1;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed1;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed2;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed1;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed1;
 
     wire [k_width-1:0] pc_ex_hashed;
     wire [h_width-1:0] pc_ex_gh_hashed;
