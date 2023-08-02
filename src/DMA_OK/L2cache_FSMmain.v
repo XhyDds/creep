@@ -82,7 +82,7 @@ assign opflag=pipeline_l2cache_opflag;
 reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
-localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9,checkDirty1=5'd10;
+localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9,checkDirty1=5'd10,SUC_w1=5'd11;
 always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -104,16 +104,19 @@ always @(*) begin
                 if(((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3])))begin
                     next_state = checkDirty;
                 end
-                else begin//Hit流水化
+                else begin//Hit非流水化 砍最长路径
                     // if(opflag)next_state = Operation;
-                    if(from)next_state = Lookup;
-                    else next_state = Idle;
+                    // if(from)next_state = Lookup;
+                    next_state = Idle;
                 end
             end
         end
         SUC_w:begin
             if(!mem_l2cache_addrOK_w)next_state = SUC_w;
-            else next_state = Idle;
+            else next_state = SUC_w1;
+        end
+        SUC_w1:begin
+            next_state = Idle;
         end
         checkDirty:begin
             // if(FSM_Dirty)next_state = writeback;
@@ -238,7 +241,9 @@ always @(*) begin
         end
         SUC_w:begin
             l2cache_mem_req_w = 1;
-            if(next_state == Idle)l2cache_dcache_addrOK = 1;//实际写入后发addrOK
+        end
+        SUC_w1:begin
+            l2cache_dcache_addrOK = 1;//实际写入后发addrOK
         end
         Lookup:begin
             if(FSM_hit[0] || FSM_hit[1] || FSM_hit[2] || FSM_hit[3])begin
@@ -288,17 +293,17 @@ always @(*) begin
                         FSM_Dirtytable_set1 = 1;
                     end
                 end
-                if(next_state == Lookup)begin
-                    if(from[1])begin
-                        if(~from[0])l2cache_dcache_addrOK = 1;
-                        else l2cache_dcache_addrOK = ~ FSM_SUC;//强序写时先不发addrOK
-                        FSM_rbuf_we = 1;
-                    end
-                    else if(from == 2'b01)begin
-                        l2cache_icache_addrOK = 1;
-                        FSM_rbuf_we = 1;
-                    end
-                end
+                // if(next_state == Lookup)begin
+                //     if(from[1])begin
+                //         if(~from[0])l2cache_dcache_addrOK = 1;
+                //         else l2cache_dcache_addrOK = ~ FSM_SUC;//强序写时先不发addrOK
+                //         FSM_rbuf_we = 1;
+                //     end
+                //     else if(from == 2'b01)begin
+                //         l2cache_icache_addrOK = 1;
+                //         FSM_rbuf_we = 1;
+                //     end
+                // end
             end
         end
         checkDirty:begin
@@ -384,7 +389,7 @@ always @(*) begin
             end
         end
         replace_write:begin//写一个字  用上一个周期的FSM_way_sel_d  上一次写会改变vaild
-            if(next_state != Idle)FSM_rbuf_we = 1;
+            // if(next_state != Idle)FSM_rbuf_we = 1;
             FSM_Data_we[FSM_way_sel_d_reg] = 1;
             FSM_use[FSM_way_sel_d_reg] = 1;
             FSM_Dirtytable_way_select = FSM_way_sel_d_reg;
