@@ -1,6 +1,7 @@
 module data_pre#(
     parameter ADDR_WIDTH = 32,
-              INST_WIDTH = 32
+              INST_WIDTH = 32,
+              HASH_WIDTH = 14
 )(
     input         clk,
     input         rstn,
@@ -58,15 +59,15 @@ module data_pre#(
     wire [ADDR_WIDTH-1:0] naddr_pdc_off;
     wire offset_valid;
     sp_bram#(
-        .ADDR_WIDTH(INST_WIDTH),
+        .ADDR_WIDTH(HASH_WIDTH),
         .DATA_WIDTH(ADDR_WIDTH+1),
         .INIT_NUM(0)
     )u_offset(
         .clk(clk),
-        .raddr(inst_pc),
+        .raddr(inst_pc_hashed),
         .dout({paddr_pdc_off,offset_valid}),
         .enb(1),
-        .waddr(inst_pc),
+        .waddr(inst_pc_hashed),
         .din({addr,1'b1}),
         .we(inst_valid)
     );
@@ -79,15 +80,15 @@ module data_pre#(
     reg  [ADDR_WIDTH-1:0] paddr_pdc_ptr;
     wire ptr_valid;
     sp_bram#(
-        .ADDR_WIDTH(ADDR_WIDTH),
+        .ADDR_WIDTH(HASH_WIDTH),
         .DATA_WIDTH(ADDR_WIDTH+1),
         .INIT_NUM(0)
     )u_pointer(
         .clk(clk),
-        .raddr(addr),
+        .raddr(addr_hashed),
         .dout({naddr_pdc_ptr,ptr_valid}),
         .enb(1),
-        .waddr(paddr_pdc_ptr),
+        .waddr(paddr_pdc_ptr_hashed),
         .din({addr,1'b1}),
         .we((paddr_pdc_ptr!=addr))
     );
@@ -100,15 +101,15 @@ module data_pre#(
     wire [1:0] spare_pdc;
 
     sp_bram#(
-        .ADDR_WIDTH(ADDR_WIDTH),
+        .ADDR_WIDTH(HASH_WIDTH),
         .DATA_WIDTH(4),
         .INIT_NUM(4'b0110)
     )u_cpt_spt(
         .clk(clk),
-        .raddr(ann_inst_pc),
+        .raddr(ann_inst_pc_hashed),
         .dout({choice_pdc,spare_pdc}),
         .enb(1),
-        .waddr(ann_inst_pc_upt),
+        .waddr(ann_inst_pc_upt_hashed),
         .din({choice_upt,spare_upt}),
         .we(ann_update_en)
     );
@@ -127,15 +128,15 @@ module data_pre#(
     //以pc为索引，存储 有效(~hit)
     wire [1:0] hit_pdc;
     sp_bram#(
-        .ADDR_WIDTH(ADDR_WIDTH),
+        .ADDR_WIDTH(HASH_WIDTH),
         .DATA_WIDTH(2),
         .INIT_NUM(2'b01)
     )u_hpt(
         .clk(clk),
-        .raddr(addr),
+        .raddr(ann_addr_hashed),
         .dout(hit_pdc),
         .enb(1),
-        .waddr(ann_addr_upt),
+        .waddr(ann_addr_upt_hashed),
         .din(hit_upt),
         .we(ann_update_en)
     );
@@ -202,4 +203,70 @@ module data_pre#(
         end
         else ;
     end
+
+    //hash
+    wire [HASH_WIDTH-1:0] inst_pc_hashed;
+    wire [HASH_WIDTH-1:0] addr_hashed;
+    wire [HASH_WIDTH-1:0] paddr_pdc_ptr_hashed;
+    wire [HASH_WIDTH-1:0] ann_inst_pc_hashed;
+    wire [HASH_WIDTH-1:0] ann_inst_pc_upt_hashed;
+    wire [HASH_WIDTH-1:0] ann_addr_hashed;
+    wire [HASH_WIDTH-1:0] ann_addr_upt_hashed;
+
+    single_hash#(
+        .DATA_width(INST_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_inst_pc_hashed(
+        .data_raw(inst_pc),
+        .data_hashed(inst_pc_hashed)
+    );
+
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_addr_hashed(
+        .data_raw(addr),
+        .data_hashed(addr_hashed)
+    );
+
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_paddr_pdc_ptr_hashed(
+        .data_raw(paddr_pdc_ptr),
+        .data_hashed(paddr_pdc_ptr_hashed)
+    );
+
+    single_hash#(
+        .DATA_width(INST_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_ann_inst_pc_hashed(
+        .data_raw(ann_inst_pc),
+        .data_hashed(ann_inst_pc_hashed)
+    );
+
+    single_hash#(
+        .DATA_width(INST_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_ann_inst_pc_upt_hashed(
+        .data_raw(ann_inst_pc_upt),
+        .data_hashed(ann_inst_pc_upt_hashed)
+    );
+
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_ann_addr_hashed(
+        .data_raw(ann_addr),
+        .data_hashed(ann_addr_hashed)
+    );
+
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_ann_addr_upt_hashed(
+        .data_raw(ann_addr_upt),
+        .data_hashed(ann_addr_upt_hashed)
+    );
+
 endmodule
