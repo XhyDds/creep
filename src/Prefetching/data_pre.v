@@ -65,6 +65,7 @@ module data_pre#(
         .clk(clk),
         .raddr(inst_pc),
         .dout({paddr_pdc_off,offset_valid}),
+        .enb(1),
         .waddr(inst_pc),
         .din({addr,1'b1}),
         .we(inst_valid)
@@ -85,6 +86,7 @@ module data_pre#(
         .clk(clk),
         .raddr(addr),
         .dout({naddr_pdc_ptr,ptr_valid}),
+        .enb(1),
         .waddr(paddr_pdc_ptr),
         .din({addr,1'b1}),
         .we((paddr_pdc_ptr!=addr))
@@ -105,6 +107,7 @@ module data_pre#(
         .clk(clk),
         .raddr(ann_inst_pc),
         .dout({choice_pdc,spare_pdc}),
+        .enb(1),
         .waddr(ann_inst_pc_upt),
         .din({choice_upt,spare_upt}),
         .we(ann_update_en)
@@ -131,6 +134,7 @@ module data_pre#(
         .clk(clk),
         .raddr(addr),
         .dout(hit_pdc),
+        .enb(1),
         .waddr(ann_addr_upt),
         .din(hit_upt),
         .we(ann_update_en)

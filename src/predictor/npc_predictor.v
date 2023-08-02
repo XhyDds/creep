@@ -35,17 +35,6 @@ module npc_predictor#(
                 INDIRECT_JUMP = 3'd5,
                 CALL = 3'd6,
                 JUMP=3'd7;
-
-    // parameter   NOT_JUMP = 3'd0,
-    //             DIRECT_JUMP = 3'd1,
-    //             //
-    //             RET = 3'd4,
-    //             INDIRECT_JUMP = 3'd5,
-    //             CALL = 3'd6,
-    //             JUMP=3'd7;
-
-    // assign npc_test=pc_reg+1;
-    // npc_test
     always @(*) begin
         if(pc_reg[0]) npc_test=pc_reg+1;
         else npc_test=pc_reg+2;
@@ -110,8 +99,8 @@ module npc_predictor#(
     );
 
     always @(*) begin
-        if(stall) npc_pdc=pc_reg;
-        else 
+        // if(stall) npc_pdc=pc_reg;
+        // else 
         if(taken_pdc) begin
             case (kind_pdc)
                 NOT_JUMP:       npc_pdc=(({ADDR_WIDTH{~pc_reg[0]}})&(pc_reg+2))|(({ADDR_WIDTH{pc_reg[0]}})&(pc_reg+1));
@@ -127,13 +116,13 @@ module npc_predictor#(
         else                    npc_pdc=(({ADDR_WIDTH{~pc_reg[0]}})&(pc_reg+2))|(({ADDR_WIDTH{pc_reg[0]}})&(pc_reg+1));
     end
 
-    reg [ADDR_WIDTH-1:0] npc_pdc_reg;
-    always @(posedge clk) begin
-        if(!rstn) begin
-            npc_pdc_reg<=30'h0700_0002;
-        end
-        else begin
-            npc_pdc_reg<=npc_pdc;
-        end
-    end
+    // reg [ADDR_WIDTH-1:0] npc_pdc_reg;
+    // always @(posedge clk) begin
+    //     if(!rstn) begin
+    //         npc_pdc_reg<=30'h0700_0002;
+    //     end
+    //     else begin
+    //         npc_pdc_reg<=npc_pdc;
+    //     end
+    // end
 endmodule
