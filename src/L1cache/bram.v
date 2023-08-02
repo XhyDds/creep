@@ -35,7 +35,7 @@ module bram #(
     output [DATA_WIDTH-1:0] dout
 ); 
     reg [DATA_WIDTH-1:0] dout_r;
-    reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
+    (*ram_style="block"*)reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
     integer i;
     initial begin

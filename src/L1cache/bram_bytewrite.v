@@ -33,7 +33,7 @@ module bram_bytewrite#(
     output [DATA_WIDTH-1:0] dout   // Data Output
 ); 
     reg [DATA_WIDTH-1:0] dout_r;  
-    reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
+    (*ram_style="block"*)reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
     // initial $readmemh(INIT_FILE, ram); // initialize memory
     integer j;
