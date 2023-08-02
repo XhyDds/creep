@@ -35,7 +35,8 @@ module bram #(
     output [DATA_WIDTH-1:0] dout
 ); 
 
-wire [DATA_WIDTH-1:0]dout_1,din_reg;
+wire [DATA_WIDTH-1:0]dout_1;
+reg [DATA_WIDTH-1:0]din_reg;
 reg choose;
 always @(posedge clk)begin
     din_reg <= din;
@@ -48,7 +49,7 @@ ip_bram #(
     .RAM_DEPTH(1<<ADDR_WIDTH)
 )
 ip_bram(
-    .aclk(clk),
+    .clka(clk),
     .addra(waddr),
     .addrb(raddr),
     .dina(din),

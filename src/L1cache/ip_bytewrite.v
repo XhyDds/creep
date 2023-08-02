@@ -14,7 +14,7 @@ module ip_bytewrite #(
   output [(NB_COL*COL_WIDTH)-1:0] doutb         // RAM output data
 );
 
-  reg [(NB_COL*COL_WIDTH)-1:0] ram [RAM_DEPTH-1:0];
+  (*RAM_STYLE="block"*)reg [(NB_COL*COL_WIDTH)-1:0] ram [RAM_DEPTH-1:0];
   reg [(NB_COL*COL_WIDTH)-1:0] dout_reg = {(NB_COL*COL_WIDTH){1'b0}};
 
   // The following code either initializes the memory values to a specified file or to all zeros to match hardware
@@ -30,16 +30,16 @@ module ip_bytewrite #(
     end
   endgenerate
 
-  always @(posedge <clka>)
-    if (<enb>)
-      dout_reg <= ram[<addrb>];
+  always @(posedge clka)
+    if (enb)
+      dout_reg <= ram[addrb];
 
   generate
   genvar i;
      for (i = 0; i < NB_COL; i = i+1) begin: byte_write
-       always @(posedge <clka>)
-         if (<wea>[i])
-           ram[<addra>][(i+1)*COL_WIDTH-1:i*COL_WIDTH] <= dina[(i+1)*COL_WIDTH-1:i*COL_WIDTH];
+       always @(posedge clka)
+         if (wea[i])
+           ram[addra][(i+1)*COL_WIDTH-1:i*COL_WIDTH] <= dina[(i+1)*COL_WIDTH-1:i*COL_WIDTH];
       end
   endgenerate
 

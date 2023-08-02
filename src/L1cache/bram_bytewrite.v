@@ -32,7 +32,8 @@ module bram_bytewrite#(
     input [DATA_WIDTH/8-1:0]we,    // Write Enable
     output [DATA_WIDTH-1:0] dout   // Data Output
 ); 
-wire [DATA_WIDTH-1:0]dout1,din_reg;
+wire [DATA_WIDTH-1:0]dout1;
+reg [DATA_WIDTH-1:0]din_reg;
 reg [DATA_WIDTH/8-1:0]choose;
 always @(posedge clk)begin
     din_reg <= din;
@@ -47,16 +48,17 @@ generate
 endgenerate
 
 ip_bytewrite #(
-    .NB_COL(8),
-    .COL_WIDTH(DATA_WIDTH/8),
+    .NB_COL(DATA_WIDTH/8),
+    .COL_WIDTH(8),
     .RAM_DEPTH(1<< ADDR_WIDTH)
-)(
+)
+ip_bytewrite(
     .clka(clk),
     .addra(waddr),
     .addrb(raddr),
     .dina(din),
     .wea(we),
     .enb(1'b1),
-    .doutb(dout)
+    .doutb(dout1)
 );
 endmodule

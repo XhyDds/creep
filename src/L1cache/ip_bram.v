@@ -13,7 +13,7 @@ module ip_bram #(
     output [RAM_WIDTH-1:0] doutb                  // RAM output data
 );
 
-  reg [RAM_WIDTH-1:0] ram [RAM_DEPTH-1:0];
+  (*RAM_STYLE="block"*)reg [RAM_WIDTH-1:0] ram [RAM_DEPTH-1:0];
   reg [RAM_WIDTH-1:0] dout_reg = {RAM_WIDTH{1'b0}};
 
   // The following code either initializes the memory values to a specified file or to all zeros to match hardware
