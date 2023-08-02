@@ -34,22 +34,30 @@ module bram #(
     input we,                     // Write Enable
     output [DATA_WIDTH-1:0] dout
 ); 
-    reg [DATA_WIDTH-1:0] dout_r;
-    reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
-    integer i;
-    initial begin
-        for (i = 0; i < (1 << ADDR_WIDTH); i = i + 1) begin
-            ram[i] = 0;
-        end
-    end
+wire [DATA_WIDTH-1:0]dout_1;
+reg [DATA_WIDTH-1:0]din_reg;
+reg choose;
+always @(posedge clk)begin
+    din_reg <= din;
+    choose <= we && (raddr == waddr);
+end
+assign dout = choose ? din_reg : dout_1;
 
-    // assign dout = (addr_r==waddr&&we)?din:ram[addr_r];//write first
-    assign dout = dout_r;
+ip_bram #(
+    .RAM_WIDTH(DATA_WIDTH),
+    .RAM_DEPTH(1<<ADDR_WIDTH)
+)
+ip_bram(
+    .clka(clk),
+    .addra(waddr),
+    .addrb(raddr),
+    .dina(din),
+    .wea(we),
+    .enb(1'b1),
+    .doutb(dout_1)
+);
 
-    always @(posedge clk) begin
-        dout_r <= (waddr == raddr && we) ? din : ram[raddr];
-        if (we) ram[waddr] <= din;
-    end
+
 
 endmodule

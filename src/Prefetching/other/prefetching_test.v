@@ -1,4 +1,4 @@
-module prefetching#(
+module prefetching_test#(
     parameter ADDR_WIDTH    = 32,
               L2cache_width = 3
 )(
@@ -88,13 +88,13 @@ module prefetching#(
 
     always @(posedge clk) begin
         if(!rstn) begin
-            addr_pref_l2cache<={8'h1C,addr_prefetching[23:0]};
+            addr_pref_l2cache<={8'h0,addr_prefetching[23:0]};
         end
         else begin
             case (crt)
                 IDLE: begin
                     if(nxt==REQ) 
-                        addr_pref_l2cache<={8'h1C,addr_prefetching[23:0]};
+                        addr_pref_l2cache<={8'h0,addr_prefetching[23:0]};
                     else
                         addr_pref_l2cache<={32'h1234ABCD};
                 end
