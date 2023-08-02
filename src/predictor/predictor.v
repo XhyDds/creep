@@ -87,7 +87,7 @@ module predictor #(
     always @(posedge clk) begin
         if(!rstn) begin
             pc_hashed_reg<=0;
-            pc_reg<=30'h7000_0000;
+            pc_reg<=30'h0700_0000;
             gh_reg<=0;
         end
         else begin

@@ -130,7 +130,7 @@ module npc_predictor#(
     reg [ADDR_WIDTH-1:0] npc_pdc_reg;
     always @(posedge clk) begin
         if(!rstn) begin
-            npc_pdc_reg<=30'h7000_0002;
+            npc_pdc_reg<=30'h0700_0002;
         end
         else begin
             npc_pdc_reg<=npc_pdc;
