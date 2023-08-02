@@ -22,12 +22,12 @@
 
 module L2cache_Dirtytable#(
     parameter   addr_width=4,
-                way=4
+                way=8
 )
 (   
     input       clk,
     input       [addr_width-1:0]Dirtytable_addr,
-    input       [1:0]Dirtytable_way_select,
+    input       [2:0]Dirtytable_way_select,
     input       Dirtytable_set1,
     input       Dirtytable_set0,
     output      Dirty

@@ -4,7 +4,7 @@ module L2cache#(
     parameter   index_width=2,
                 offset_width=3,
                 L1_offset_width=2,//两者相等
-                way=4
+                way=8
 )
 (
     //四路 写回写分配
@@ -189,8 +189,8 @@ L2cache_pref_reqbuf L2cache_pref_reqbuf(
 //PLRU
 wire [way-1:0]use1;
 wire [way-1:0]valid;
-wire [1:0]way_sel_d;
-wire way_sel_i;
+wire [2:0]way_sel_d;
+wire [1:0]way_sel_i;
 L2cache_replace #(
     .way(way),
     .addr_width(index_width)
@@ -206,7 +206,7 @@ L2cache_replace(
 
 //Data
 wire [way-1:0]Data_we;
-wire [(1<<offset_width)*32-1:0]data0,data1,data2,data3;
+wire [(1<<offset_width)*32-1:0]data0,data1,data2,data3,data4,data5,data6,data7;
 wire Data_replace;
 wire Data_writeback;
 L2cache_Data #(
@@ -223,6 +223,10 @@ L2cache_Data(
     .Data_dout1(data1),
     .Data_dout2(data2),
     .Data_dout3(data3),
+    .Data_dout4(data4),
+    .Data_dout5(data5),
+    .Data_dout6(data6),
+    .Data_dout7(data7),
 
     .Data_din_write(din_mem_l2cache),//一整行
     .Data_din_write_32(inpref ? data_pref : rbuf_data),
@@ -235,8 +239,8 @@ L2cache_Data(
 
 //Tag
 wire [way-1:0]TagV_we,hit,TagV_unvalid;
-wire [1:0]TagV_way_select;
-wire [2:0]TagV_init;
+wire [2:0]TagV_way_select;
+wire [3:0]TagV_init;
 wire [32-2-index_width-offset_width-1:0]TagV_dout;
 assign TagV_we = Data_we;
 L2cache_TagV #(
@@ -263,7 +267,7 @@ L2cache_TagV(
 
 //Dirtytable
 wire Dirty,Dirtytable_set0,Dirtytable_set1;
-wire [1:0]Dirtytable_way_select;
+wire [2:0]Dirtytable_way_select;
 L2cache_Dirtytable #(
     .addr_width(index_width)
 )
@@ -278,17 +282,21 @@ L2cache_Dirtytable(
 );
 
 //data choose
-wire [1:0]choose_way;
+wire [2:0]choose_way;
 wire choose_return;
 reg [32*(1<<offset_width)-1:0]line;
 always @(*) begin
     if(choose_return)line = din_mem_l2cache;
     else begin
         case (choose_way)
-            2'd0: line = data0;
-            2'd1: line = data1;
-            2'd2: line = data2;
-            2'd3: line = data3;
+            3'd0: line = data0;
+            3'd1: line = data1;
+            3'd2: line = data2;
+            3'd3: line = data3;
+            3'd4: line = data4;
+            3'd5: line = data5;
+            3'd6: line = data6;
+            3'd7: line = data7;
             default: line = 64'h1234ABCD;
         endcase
     end

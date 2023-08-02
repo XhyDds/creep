@@ -23,7 +23,7 @@
 module L2cache_FSMmain#(
     parameter   index_width=8,
                 offset_width=2,
-                way=4
+                way=8
 )
 (
     input clk,rstn,
@@ -72,26 +72,26 @@ module L2cache_FSMmain#(
     
     //PLRU
     output reg  [way-1:0]FSM_use,
-    input       [1:0]FSM_way_sel_d,
-    input       FSM_way_sel_i,
+    input       [2:0]FSM_way_sel_d,
+    input       [1:0]FSM_way_sel_i,
 
     //Data TagV
     input       [way-1:0]FSM_hit,
     output reg  [way-1:0]FSM_Data_we,
     output reg  [way-1:0]FSM_TagV_unvalid,
     output reg  FSM_Data_replace,
-    output reg  [1:0]FSM_TagV_way_select,
+    output reg  [2:0]FSM_TagV_way_select,
     output reg  FSM_Data_writeback,
-    output reg  [2:0]FSM_TagV_init,
+    output reg  [3:0]FSM_TagV_init,
 
     //Dirtytable
     input       FSM_Dirty,
-    output reg  [1:0]FSM_Dirtytable_way_select,
+    output reg  [2:0]FSM_Dirtytable_way_select,
     output reg  FSM_Dirtytable_set1,FSM_Dirtytable_set0,
 
     //Data Choose
     output reg  FSM_inpref,
-    output reg  [1:0]FSM_choose_way,
+    output reg  [2:0]FSM_choose_way,
     output reg  FSM_choose_return
     );
 wire opflag=pipeline_l2cache_opflag;
@@ -198,15 +198,16 @@ always @(*) begin
                 next_state = checkDirty;
             end
             else if(FSM_rbuf_opcode[4:3] == 2'd2)begin//先命中，其他同二
-                if((!FSM_hit[0])&&(!FSM_hit[1])&&(!FSM_hit[2])&&(!FSM_hit[3]))next_state = Idle;
+                if(~Hit)next_state = Idle;
                 else next_state = checkDirty;
             end
         end
         default:next_state = Idle;
     endcase
 end
-reg [1:0]sel_d;
-reg sel_i,we_sel;
+reg [2:0]sel_d;
+reg [1:0]sel_i;
+reg we_sel;
 always @(posedge clk) begin
     if(we_sel)begin
         sel_d <= FSM_way_sel_d;
@@ -214,14 +215,17 @@ always @(posedge clk) begin
     end
 end
 reg hit_record_we;
-reg [1:0]hit_record;
+reg [2:0]hit_record;
 always @(posedge clk) begin
     if(hit_record_we)begin
-        if(FSM_hit[0])hit_record <= 2'b00;
-        else if(FSM_hit[1])hit_record <= 2'b01;
-        else if(FSM_hit[2])hit_record <= 2'b10;
-        else if(FSM_hit[3])hit_record <= 2'b11;
-        else hit_record <= 2'b00;
+        if(FSM_hit[0])hit_record <= 3'd0;
+        else if(FSM_hit[1])hit_record <= 3'd1;
+        else if(FSM_hit[2])hit_record <= 3'd2;
+        else if(FSM_hit[3])hit_record <= 3'd3;
+        else if(FSM_hit[4])hit_record <= 3'd4;
+        else if(FSM_hit[5])hit_record <= 3'd5;
+        else if(FSM_hit[6])hit_record <= 3'd6;
+        else if(FSM_hit[7])hit_record <= 3'd7;
     end
 end
 always @(*) begin
@@ -266,21 +270,28 @@ always @(*) begin
         Operation:begin
             ack_op = 1;
             if(FSM_rbuf_opcode[4:3] == 2'd0)begin//Tag、valid置零
-                FSM_TagV_init = {1'b1,FSM_rbuf_opaddr[1:0]};
+                FSM_TagV_init = {1'b1,FSM_rbuf_opaddr[2:0]};
             end
             else if(FSM_rbuf_opcode[4:3] == 2'd1)begin
-                if(FSM_rbuf_opaddr[1:0] == 2'd0)FSM_TagV_unvalid = 4'b0001;
-                else if(FSM_rbuf_opaddr[1:0] == 2'd1)FSM_TagV_unvalid = 4'b0010;
-                else if(FSM_rbuf_opaddr[1:0] == 2'd2)FSM_TagV_unvalid = 4'b0100;
-                else FSM_TagV_unvalid = 4'b1000;
+                if(FSM_rbuf_opaddr[2:0] == 3'd0)FSM_TagV_unvalid = 8'b00000001;
+                else if(FSM_rbuf_opaddr[2:0] == 3'd1)FSM_TagV_unvalid = 8'b00000010;
+                else if(FSM_rbuf_opaddr[2:0] == 3'd2)FSM_TagV_unvalid = 8'b00000100;
+                else if(FSM_rbuf_opaddr[2:0] == 3'd3)FSM_TagV_unvalid = 8'b00001000;
+                else if(FSM_rbuf_opaddr[2:0] == 3'd4)FSM_TagV_unvalid = 8'b00010000;
+                else if(FSM_rbuf_opaddr[2:0] == 3'd5)FSM_TagV_unvalid = 8'b00100000;
+                else if(FSM_rbuf_opaddr[2:0] == 3'd6)FSM_TagV_unvalid = 8'b01000000;
+                else if(FSM_rbuf_opaddr[2:0] == 3'd7)FSM_TagV_unvalid = 8'b10000000;
             end
             else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
                 hit_record_we = 1;
-                if(FSM_hit[0])FSM_TagV_unvalid = 4'b0001;
-                else if(FSM_hit[1])FSM_TagV_unvalid = 4'b0010;
-                else if(FSM_hit[2])FSM_TagV_unvalid = 4'b0100;
-                else if(FSM_hit[3])FSM_TagV_unvalid = 4'b1000;
-                else FSM_TagV_unvalid = 4'b0000;
+                if(FSM_hit[0])FSM_TagV_unvalid = 8'b00000001;
+                else if(FSM_hit[1])FSM_TagV_unvalid = 8'b00000010;
+                else if(FSM_hit[2])FSM_TagV_unvalid = 8'b00000100;
+                else if(FSM_hit[3])FSM_TagV_unvalid = 8'b00001000;
+                else if(FSM_hit[4])FSM_TagV_unvalid = 8'b00010000;
+                else if(FSM_hit[5])FSM_TagV_unvalid = 8'b00100000;
+                else if(FSM_hit[6])FSM_TagV_unvalid = 8'b01000000;
+                else if(FSM_hit[7])FSM_TagV_unvalid = 8'b10000000;
             end
         end
         prefetch_check:begin
@@ -313,10 +324,14 @@ always @(*) begin
                 FSM_inpref = 1;
                 if(Hit)begin
                     if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
-                        if(FSM_hit[0])FSM_choose_way = 2'd0;
-                        else if(FSM_hit[1])FSM_choose_way = 2'd1;
-                        else if(FSM_hit[2])FSM_choose_way = 2'd2;
-                        else if(FSM_hit[3])FSM_choose_way = 2'd3;//不更新lru
+                        if(FSM_hit[0])FSM_choose_way = 3'd0;
+                        else if(FSM_hit[1])FSM_choose_way = 3'd1;
+                        else if(FSM_hit[2])FSM_choose_way = 3'd2;
+                        else if(FSM_hit[3])FSM_choose_way = 3'd3;
+                        else if(FSM_hit[4])FSM_choose_way = 3'd4;
+                        else if(FSM_hit[5])FSM_choose_way = 3'd5;
+                        else if(FSM_hit[6])FSM_choose_way = 3'd6;
+                        else if(FSM_hit[7])FSM_choose_way = 3'd7;
                         if(FSM_from_pref[1])l2cache_dcache_dataOK =1;
                         else l2cache_icache_dataOK = 1;
                     end
@@ -324,22 +339,42 @@ always @(*) begin
                         l2cache_dcache_addrOK = 1;
                         if(FSM_hit[0])begin
                             FSM_Data_we[0] = 1;
-                            FSM_Dirtytable_way_select = 2'd0;
+                            FSM_Dirtytable_way_select = 3'd0;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[1])begin
                             FSM_Data_we[1] = 1;
-                            FSM_Dirtytable_way_select = 2'd1;
+                            FSM_Dirtytable_way_select = 3'd1;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[2])begin
                             FSM_Data_we[2] = 1;
-                            FSM_Dirtytable_way_select = 2'd2;
+                            FSM_Dirtytable_way_select = 3'd2;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[3])begin
                             FSM_Data_we[3] = 1;
-                            FSM_Dirtytable_way_select = 2'd3;
+                            FSM_Dirtytable_way_select = 3'd3;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[4])begin
+                            FSM_Data_we[4] = 1;
+                            FSM_Dirtytable_way_select = 3'd4;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[5])begin
+                            FSM_Data_we[5] = 1;
+                            FSM_Dirtytable_way_select = 3'd5;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[6])begin
+                            FSM_Data_we[6] = 1;
+                            FSM_Dirtytable_way_select = 3'd6;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[7])begin
+                            FSM_Data_we[7] = 1;
+                            FSM_Dirtytable_way_select = 3'd7;
                             FSM_Dirtytable_set1 = 1;
                         end
                     end
@@ -375,12 +410,16 @@ always @(*) begin
         end
         Lookup:begin
             if(!(FSM_rbuf_from == 2'b01 && flush))begin
-            if(FSM_hit[0] || FSM_hit[1] || FSM_hit[2] || FSM_hit[3])begin
+            if(Hit)begin
                 if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
-                    if(FSM_hit[0])begin FSM_use[0] = 1; FSM_choose_way = 2'd0; end
-                    else if(FSM_hit[1])begin FSM_use[1] = 1; FSM_choose_way = 2'd1; end
-                    else if(FSM_hit[2])begin FSM_use[2] = 1; FSM_choose_way = 2'd2; end
-                    else if(FSM_hit[3])begin FSM_use[3] = 1; FSM_choose_way = 2'd3; end
+                    if(FSM_hit[0])begin FSM_use[0] = 1; FSM_choose_way = 3'd0; end
+                    else if(FSM_hit[1])begin FSM_use[1] = 1; FSM_choose_way = 3'd1; end
+                    else if(FSM_hit[2])begin FSM_use[2] = 1; FSM_choose_way = 3'd2; end
+                    else if(FSM_hit[3])begin FSM_use[3] = 1; FSM_choose_way = 3'd3; end
+                    else if(FSM_hit[4])begin FSM_use[4] = 1; FSM_choose_way = 3'd4; end
+                    else if(FSM_hit[5])begin FSM_use[5] = 1; FSM_choose_way = 3'd5; end
+                    else if(FSM_hit[6])begin FSM_use[6] = 1; FSM_choose_way = 3'd6; end
+                    else if(FSM_hit[7])begin FSM_use[7] = 1; FSM_choose_way = 3'd7; end
                     if(FSM_rbuf_from[1])l2cache_dcache_dataOK =1;
                     else l2cache_icache_dataOK = 1;
                 end
@@ -388,25 +427,49 @@ always @(*) begin
                     if(FSM_hit[0])begin
                         FSM_use[0] = 1;
                         FSM_Data_we[0] = 1;
-                        FSM_Dirtytable_way_select = 2'd0;
+                        FSM_Dirtytable_way_select = 3'd0;
                         FSM_Dirtytable_set1 = 1;
                     end
                     else if(FSM_hit[1])begin
                         FSM_use[1] = 1;
                         FSM_Data_we[1] = 1;
-                        FSM_Dirtytable_way_select = 2'd1;
+                        FSM_Dirtytable_way_select = 3'd1;
                         FSM_Dirtytable_set1 = 1;
                     end
                     else if(FSM_hit[2])begin
                         FSM_use[2] = 1;
                         FSM_Data_we[2] = 1;
-                        FSM_Dirtytable_way_select = 2'd2;
+                        FSM_Dirtytable_way_select = 3'd2;
                         FSM_Dirtytable_set1 = 1;
                     end
                     else if(FSM_hit[3])begin
                         FSM_use[3] = 1;
                         FSM_Data_we[3] = 1;
-                        FSM_Dirtytable_way_select = 2'd3;
+                        FSM_Dirtytable_way_select = 3'd3;
+                        FSM_Dirtytable_set1 = 1;
+                    end
+                    else if(FSM_hit[4])begin
+                        FSM_use[4] = 1;
+                        FSM_Data_we[4] = 1;
+                        FSM_Dirtytable_way_select = 3'd4;
+                        FSM_Dirtytable_set1 = 1;
+                    end
+                    else if(FSM_hit[5])begin
+                        FSM_use[5] = 1;
+                        FSM_Data_we[5] = 1;
+                        FSM_Dirtytable_way_select = 3'd5;
+                        FSM_Dirtytable_set1 = 1;
+                    end
+                    else if(FSM_hit[6])begin
+                        FSM_use[6] = 1;
+                        FSM_Data_we[6] = 1;
+                        FSM_Dirtytable_way_select = 3'd6;
+                        FSM_Dirtytable_set1 = 1;
+                    end
+                    else if(FSM_hit[7])begin
+                        FSM_use[7] = 1;
+                        FSM_Data_we[7] = 1;
+                        FSM_Dirtytable_way_select = 3'd7;
                         FSM_Dirtytable_set1 = 1;
                     end
                 end
@@ -426,7 +489,7 @@ always @(*) begin
                 end
             end
             else begin
-                if(FSM_rbuf_opcode[4:3] == 2'd1)FSM_Dirtytable_way_select = FSM_rbuf_opaddr[1:0];
+                if(FSM_rbuf_opcode[4:3] == 2'd1)FSM_Dirtytable_way_select = FSM_rbuf_opaddr[2:0];
                 else if(FSM_rbuf_opcode[4:3] == 2'd2)FSM_Dirtytable_way_select = hit_record;
             end
         end
@@ -455,8 +518,8 @@ always @(*) begin
             end
             else begin
                 if(FSM_rbuf_opcode[4:3] == 2'd1)begin
-                    FSM_choose_way = FSM_rbuf_opaddr[1:0];
-                    FSM_TagV_way_select = FSM_rbuf_opaddr[1:0];
+                    FSM_choose_way = FSM_rbuf_opaddr[2:0];
+                    FSM_TagV_way_select = FSM_rbuf_opaddr[2:0];
                 end
                 else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
                     FSM_choose_way = hit_record;
@@ -509,11 +572,8 @@ always @(*) begin
             end
         end
         replace_write:begin//写一个字  用上一个周期的FSM_way_sel_d  上一次写会改变vaild
-            // if(next_state != Idle)FSM_rbuf_we = 1;
             FSM_Data_we[sel_d] = 1;
             FSM_use[sel_d] = 1;
-            // FSM_Dirtytable_way_select = sel_d;
-            // FSM_Dirtytable_set1 = 1;
         end
         default:;
     endcase
