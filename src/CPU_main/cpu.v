@@ -1717,9 +1717,9 @@ module core_top(
     L1_L2cache #(
         .I_index_width  		( 7 		),
         .D_index_width  		( 7 		),
-        .L2_index_width  		( 8 		),
+        .L2_index_width  		( 7 		),
         .L1_offset_width 		( 3 		),
-        .L2_offset_width 		( 4 		))
+        .L2_offset_width 		( 3 		))
     u_L1_L2cache(
         //ports
         .clk                    		( clk                   		),
@@ -1787,20 +1787,20 @@ module core_top(
         .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
     );
 
-    prefetching_test#(
-        .ADDR_WIDTH(32),
-        .L2cache_width(3)
-    )
-    prefetching_test(
-        .clk(clk),
-        .rstn(rstn),
-        .req_pref_l2cache(req_pref_l2cache),
-        .type_pref_l2cache(type_pref_l2cache),
-        .addr_pref_l2cache(addr_pref_l2cache),
-        .complete_l2cache_pref(complete_l2cache_pref),
-        .hit_l2cache_pref(hit_l2cache_pref),
-        .miss_l2cache_pref(miss_l2cache_pref)
-    );
+    // prefetching_test#(
+    //     .ADDR_WIDTH(32),
+    //     .L2cache_width(3)
+    // )
+    // prefetching_test(
+    //     .clk(clk),
+    //     .rstn(rstn),
+    //     .req_pref_l2cache(req_pref_l2cache),
+    //     .type_pref_l2cache(type_pref_l2cache),
+    //     .addr_pref_l2cache(addr_pref_l2cache),
+    //     .complete_l2cache_pref(complete_l2cache_pref),
+    //     .hit_l2cache_pref(hit_l2cache_pref),
+    //     .miss_l2cache_pref(miss_l2cache_pref)
+    // );
 
 
     l2_axi_package#(

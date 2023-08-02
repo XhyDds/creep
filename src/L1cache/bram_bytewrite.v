@@ -43,8 +43,8 @@ end
 generate
     genvar i;
     for(i = 0; i < DATA_WIDTH/8; i = i+1) begin
-            assign dout[(i+1)*8-1:(i*8)] = (choose[i]) ? din_reg[(i+1)*8-1:(i*8)] : dout1[(i+1)*8-1:(i*8)];
-        end
+        assign dout[(i+1)*8-1:(i*8)] = (choose[i]) ? din_reg[(i+1)*8-1:(i*8)] : dout1[(i+1)*8-1:(i*8)];
+    end
 endgenerate
 
 ip_bytewrite #(
