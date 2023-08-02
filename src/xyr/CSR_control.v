@@ -92,7 +92,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign CSR_pipeline_DMW1={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     
     localparam PRIV=3,LLSCW=6,PRIV_MMU=10;
-    localparam LOAD=11,STORE=12,ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10;
+    localparam LOAD=11,STORE=12,ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10,
+    TLBSRCH=1,TLBRD=2,TLBWR=3,TLBFILL=4;
     localparam INT='H0,PIL='H1,PIS='H2,PIF='H3,PME='H4,PPI='H7,
     ADE='H8,ALE='H9,SYS='HB,BRK='HC,INE='HD,IPE='HE,FPD='HF,
     FPE='H12,TLBR='H3F;
@@ -102,8 +103,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     wire exe;wire [15:0] excp_arg1;reg clk_stall,nclk_stall;
     reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;wire inpc_valid;reg [5:0]ecode;
-    reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;
-    reg inst_stop,inst_stop_reg;wire [31:0] jumpc;wire jumpc_valid;
+    reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;
+    reg rand_en;reg inst_stop,inst_stop_reg;wire [31:0] jumpc;wire jumpc_valid;
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;wire [9:0] ASIDin;
     
@@ -131,6 +132,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign ASIDin=pipeline_CSR_ASID;
     assign inpc_valid=pipeline_CSR_inpc_valid,jumpc_valid=pipeline_CSR_jumpc_valid;
     assign jumpc=pipeline_CSR_jumpc;
+    Random rand_(.en(rand_en),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
+    
     
     always@(*)
     begin
@@ -142,11 +145,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             csr_era_diff_0=ERA;
             csr_badv_diff_0=BADV;
             csr_eentry_diff_0={EENTRY,6'b0};
-            rand_index=0;
             begin
             csr_tlbidx_diff_0=0;
             csr_tlbidx_diff_0[TLB_n-1:0]=TLBIDX_Index;
-
+            rand_index=randnum[TLB_n-1:0];
+            //rand_index=0;
             csr_tlbidx_diff_0[29:24]=TLBIDX_PS;
             csr_tlbidx_diff_0[31]=TLBIDX_NE;
             end
@@ -314,7 +317,16 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             CSRRD:
                 flushout=0;
             IDLE:
-                nclk_stall=1;           
+                nclk_stall=1;
+            TLBWR:
+                begin
+                flushout=1; 
+                end
+            TLBFILL:
+                begin
+                tlbfill_en=1;
+                flushout=1; 
+                end      
         endcase
         end
     else
@@ -344,11 +356,9 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
            end          
     endcase
     end
-    
+    //TLB
     always@(*)
-    begin    
-    mask=~0;
-    
+    begin
     TLBIDXout=0;TLBEHIout=0;
     TLBELO0out=0;TLBELO1out=0;
     TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
@@ -359,6 +369,28 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     TLBELO0out[TLB_PALEN-5:8]=TLBELO0_PPN;
     TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
     TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
+    rand_en=0;
+    case(mode)
+        TLBWR:
+            begin
+            if(ecode==TLBR)
+                TLBIDXout[31]=0;//NE=0,E=1
+            end
+        TLBFILL:
+            begin
+            rand_en=1; 
+            if(ecode==TLBR)
+                TLBIDXout[31]=0;//NE=0,E=1
+            TLBIDXout[TLB_n-1:0]=randnum[TLB_n-1:0];
+            //TLBIDXout[TLB_n-1:0]=0;
+            end      
+    endcase
+    end
+    //mask
+    always@(*)
+    begin    
+    mask=~0;
+
     
     if(mode==CSRXCHG)
         mask=pipeline_CSR_mask;
@@ -513,14 +545,44 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             end
                         LOAD:
                             begin
-                            //if(~excp_arg1[15])
+                            if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=1;
                             end
                         STORE:
                             begin
-                            //if(~excp_arg1[15])
+                            if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=0;
                             end 
+                        TLBSRCH:
+                            begin
+                            TLBIDX_NE<=TLBIDXin[31];
+                            if(!TLBIDXin[31])
+                                TLBIDX_Index<=TLBIDXin[TLB_n-1:0];
+                            end
+                        TLBRD:
+                            begin
+                                TLBIDX_NE<=TLBIDXin[31];
+                                if(!TLBIDXin[31])//NE=0
+                                    begin
+                                    ASID_ASID<=ASIDin;
+                                    TLBEHI<=TLBEHIin[31:13];
+                                    TLBELO0_VDPLVMATG<=TLBELO0in[6:0];
+                                    TLBELO0_PPN<=TLBELO0in[TLB_PALEN-5:8];
+                                    TLBELO1_VDPLVMATG<=TLBELO1in[6:0];
+                                    TLBELO1_PPN<=TLBELO1in[TLB_PALEN-5:8];
+                                    TLBIDX_PS<=TLBIDXin[29:24];
+                                    end
+                                else
+                                    begin
+                                    ASID_ASID<=0;
+                                    TLBEHI<=0;
+                                    TLBELO0_VDPLVMATG<=0;
+                                    TLBELO0_PPN<=0;
+                                    TLBELO1_VDPLVMATG<=0;
+                                    TLBELO1_PPN<=0;
+                                    TLBIDX_PS<=0;
+                                    end
+                            end
                         CSRWR,CSRXCHG:
                            case(csr_num_reg)
                                 'h0:
@@ -629,3 +691,19 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     
 endmodule
 
+
+
+module Random(
+    input en, clk, rstn,
+    input [31:0] seed,
+    output reg [31:0] randnum
+    );
+    always @(posedge clk) begin
+        if(!rstn)   randnum <= 32'b0;
+        else if(en) begin
+          if(|randnum)  randnum <= {randnum[30:0], ((((randnum[31] ^ randnum[6]) ^ randnum[4]) ^ randnum[2]) ^ randnum[1]) ^ randnum[0]};
+          else          randnum <= {seed[31:1],1'b1};
+        end
+    end
+  
+endmodule
