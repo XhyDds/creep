@@ -107,14 +107,14 @@ module core_top(
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,flush_if0_if1_reg;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0;
 
-    always @(posedge clk) begin
-        if(!rstn) flush_if0_if1_reg<=0;
-        else flush_if0_if1_reg<=ifbr0|ifbr1|ifpriv|ifcacop_ibar;
-        if(!rstn) npc_reg<=0;
-        else npc_reg<=npc;
-    end
+    // always @(posedge clk) begin
+    //     if(!rstn) flush_if0_if1_reg<=0;
+    //     else flush_if0_if1_reg<=ifbr0|ifbr1|ifpriv|ifcacop_ibar;
+    //     if(!rstn) npc_reg<=0;
+    //     else npc_reg<=npc;
+    // end
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -160,9 +160,9 @@ module core_top(
     assign flushup =            flush_pre_1&ctr_reg_exe0_0[31];
     assign flushdown =          flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0&ctr_id_reg_1[31];
     assign flushdownpre =       flush_pre_0&~ctr_id_reg_1[31];
-    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
-    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
-    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
+    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdownpre;
     assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -1064,7 +1064,7 @@ module core_top(
         .clk         		( clk         		),
         .rstn        		( rstn        		),
         .update_en          ( update_en         ),
-        .stall              ( ~(!stall_pc|flush_if0_if1_reg) ),
+        .stall              ( ~(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) ),
 
         .pc_ex       		( out_pc_ex         ),
         .ret_pc_ex          ( ret_pc_ex         ),
@@ -1152,8 +1152,7 @@ module core_top(
     reg ifnpc_pdc;
     always @(*) begin
         ifnpc_pdc=0;
-        if(flush_if0_if1_reg) npc=npc_reg;
-        else if(ifpriv) npc=pc_priv;
+        if(ifpriv) npc=pc_priv;
         else if(ifbr1) npc=pc_br1;
         else if(ifbr0) npc=pc_br0;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
