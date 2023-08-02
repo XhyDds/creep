@@ -5,34 +5,33 @@ module cpht#(
     //query
     input [ch_width-1:0]hashed_pc,//hash(pc,gh)
     output choice_pdc,
+    output [1:0]choice_pdch,
     //update
     input [ch_width-1:0]hashed_pc_update,
+    input [1:0]choice_pdch_ex,
     input choice_real,
     input update_en
 );
     wire[1:0] _cph;
     assign choice_pdc=_cph[1];
 
-    wire[1:0] _cph_old;
     wire[1:0] _cph_new;
 
-    dp_dram#(
+    sp_dram#(
         .ADDR_WIDTH(ch_width),
         .DATA_WIDTH(2)
     )
     cpht_regs(
         .clk(clk),
-        .araddr(hashed_pc),
-        .adout(_cph),
-        .braddr(hashed_pc_update),
-        .bdout(_cph_old),
+        .raddr(hashed_pc),
+        .dout(_cph),
         .waddr(hashed_pc_update),
         .din(_cph_new),
         .we(update_en)
     );
 
     transformer_2bit core(
-        .crt(_cph_old),
+        .crt(choice_pdch_ex),
         .nxt(_cph_new),
         .taken(choice_real)
     );

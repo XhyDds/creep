@@ -43,7 +43,7 @@ wire [data_width-1:0]TagV_data[way-1:0];
 reg [(1<<addr_width)-1:0]valid0; 
 reg [(1<<addr_width)-1:0]valid1;
 
-// always @(posedge clk,negedge rstn) begin
+// always @(posedge clk)begin
 //     if(!rstn)begin
 //         valid0<=0;
 //         valid1<=0;

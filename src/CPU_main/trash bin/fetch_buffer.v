@@ -24,11 +24,11 @@ module fetch_buffer (
     // assign ir[2]=irin[95:64];
     // assign ir[3]=irin[127:96];
     // assign icache_valid=(ir_reg!=irin);
-    // always @(posedge clk,negedge rstn) begin
+    // always @(posedge clk)begin
     //     if(!rstn) ir_reg<=0;
     //     else ir_reg<=irin;
     // end
-    always @(posedge clk,negedge rstn) begin:fetch_buffer
+    always @(posedge clk)begin:fetch_buffer
         integer i;
         if(!rstn|flush) 
             begin
@@ -206,11 +206,11 @@ endmodule
 //     // assign ir[2]=irin[95:64];
 //     // assign ir[3]=irin[127:96];
 //     // assign icache_valid=(ir_reg!=irin);
-//     // always @(posedge clk,negedge rstn) begin
+//     // always @(posedge clk)begin
 //     //     if(!rstn) ir_reg<=0;
 //     //     else ir_reg<=irin;
 //     // end
-//     always @(posedge clk,negedge rstn) begin:fetch_buffer
+//     always @(posedge clk)begin:fetch_buffer
 //         integer i;
 //         if(!rstn|flush) 
 //             begin

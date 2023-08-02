@@ -32,7 +32,7 @@ module bram_bytewrite#(
     input [DATA_WIDTH/8-1:0]we,    // Write Enable
     output [DATA_WIDTH-1:0] dout   // Data Output
 ); 
-    reg [ADDR_WIDTH-1:0] addr_r;  // Address Register
+    reg [DATA_WIDTH-1:0] dout_r;  
     reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
     // initial $readmemh(INIT_FILE, ram); // initialize memory
@@ -43,17 +43,16 @@ module bram_bytewrite#(
         end
     end
 
-    always @(posedge clk) begin
-        // addr_r <= raddr == waddr ? waddr : raddr;????
-        addr_r <= raddr;
-    end
-    assign dout = ram[addr_r];
+    // always @(posedge clk) begin
+    //     dout_r <= ram[raddr];
+    // end
+    assign dout = dout_r;
     generate
         genvar i;
         for(i = 0; i < DATA_WIDTH/8; i = i+1) begin
             always @(posedge clk) begin
-                if(we[i])
-                    ram[waddr][(i+1)*8-1:(i*8)] <= din[(i+1)*8-1:(i*8)];
+                if(we[i]) ram[waddr][(i+1)*8-1:(i*8)] <= din[(i+1)*8-1:(i*8)];
+                dout_r[(i+1)*8-1:(i*8)] <= (waddr == raddr && we[i]) ? din[(i+1)*8-1:(i*8)] : ram[raddr][(i+1)*8-1:(i*8)];
             end
         end
     endgenerate

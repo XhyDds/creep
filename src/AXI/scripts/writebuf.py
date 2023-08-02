@@ -57,7 +57,7 @@ for i in range(offset):
     code+='''SEND_'''+str(i)+'''=4'd'''+str(i+2)+''','''
 code+='''_SEND=4'd'''+str(offset+2)+''';
     reg [3:0] crt_pull,nxt_pull;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if (!rstn) begin
             crt_pull<=IDLE_L;
         end
@@ -132,7 +132,7 @@ code+='''
         endcase
     end
     //时序action
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             _out_data<=0;
         end
@@ -153,7 +153,7 @@ code+='''
     //statemachine
     parameter IDLE_H = 4'd0,PUSH=4'd1;
     reg [3:0] crt_push,nxt_push;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if (!rstn) begin
             crt_push<=IDLE_H;
         end
@@ -191,7 +191,7 @@ code+='''
         endcase
     end
     //时序action
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin'''
 for i in range(len):
     code+='''
@@ -219,7 +219,7 @@ code+='''
     end
 
     //pointer仲裁
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             pointer<=0;
         end

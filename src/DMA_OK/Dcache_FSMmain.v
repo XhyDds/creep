@@ -99,7 +99,7 @@ wire flush_outside = pipeline_dcache_ctrl[1];
 reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Miss_r=5'd2,Miss_r_waitdata=5'd3,Miss_w=5'd4,Flush=5'd5,Operation=5'd7,Hit_w=5'd8,Hit_w1=5'd9;
-always @(posedge clk,negedge rstn) begin
+always @(posedge clk)begin
     if(!rstn)state<=0;
     else state<=next_state;
 end

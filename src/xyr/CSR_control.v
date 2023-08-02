@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�??????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�???????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�??????????，ex1�??????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???????????，ex1�???????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�?????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -92,34 +92,35 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign CSR_pipeline_DMW1={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     
     localparam PRIV=3,LLSCW=6,PRIV_MMU=10;
-    localparam LOAD=11,STORE=12,ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10,
-    TLBSRCH=1,TLBRD=2,TLBWR=3,TLBFILL=4;
+    localparam LOAD=11,STORE=12,ERTN=6,IDLE=7,INTE=0,CSRRD=8,CSRWR=9,CSRXCHG=10;
     localparam INT='H0,PIL='H1,PIS='H2,PIF='H3,PME='H4,PPI='H7,
     ADE='H8,ALE='H9,SYS='HB,BRK='HC,INE='HD,IPE='HE,FPD='HF,
     FPE='H12,TLBR='H3F;
-    localparam ADEF='H0,ADEM='H1;
+    localparam ADEF='H0,ADEM='H1,DEFAULT='H0;
     reg [4:0] mode;wire [31:0] din;reg [31:0]dout,mask;
     wire [8:0] ESTATin;reg flushout;wire stallin,flushin;
     wire exe;wire [15:0] excp_arg1;reg clk_stall,nclk_stall;
     reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;wire inpc_valid;reg [5:0]ecode;
-    reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;
-    reg rand_en;reg inst_stop,inst_stop_reg;wire [31:0] jumpc;wire jumpc_valid;
+    reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;
+    reg inst_stop,inst_stop_reg;wire [31:0] jumpc;wire jumpc_valid;
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;wire [9:0] ASIDin;
     
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
     reg [31:0] dout_reg;//reg run_reg;
-    reg exe_reg,inte_reg;
+    //reg exe_reg,inte_reg;
+    reg run_reg;
     reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
     reg [31:0] jumpc_reg;reg TCFG_change;reg nexcp_flush,nertn_flush;
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
-    assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
+    //assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
+    assign CSR_pipeline_flush=flushout_reg;
     assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||excp_arg1[15]||pipeline_CSR_type==LLSCW;
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
-    assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall|nclk_stall;
+    assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;//|nclk_stall
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
     assign csr_num=pipeline_CSR_excp_arg0;
     assign inte=|({ESTATin[8],TI_INTE,ESTATin[7:0],ESTAT_IS}&{ECFG_LIE[12:11],ECFG_LIE[9:0]})?CRMD[2]&~inst_stop_reg:0;
@@ -130,7 +131,6 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign ASIDin=pipeline_CSR_ASID;
     assign inpc_valid=pipeline_CSR_inpc_valid,jumpc_valid=pipeline_CSR_jumpc_valid;
     assign jumpc=pipeline_CSR_jumpc;
-    Random rand_(.en(rand_en),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
     
     always@(*)
     begin
@@ -142,11 +142,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             csr_era_diff_0=ERA;
             csr_badv_diff_0=BADV;
             csr_eentry_diff_0={EENTRY,6'b0};
+            rand_index=0;
             begin
             csr_tlbidx_diff_0=0;
             csr_tlbidx_diff_0[TLB_n-1:0]=TLBIDX_Index;
-            //rand_index=randnum[TLB_n-1:0];
-            rand_index=0;
+
             csr_tlbidx_diff_0[29:24]=TLBIDX_PS;
             csr_tlbidx_diff_0[31]=TLBIDX_NE;
             end
@@ -180,34 +180,48 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
             csr_dmw1_diff_0={DMW1_VSEG,1'b0,DMW1_PSEG,19'b0,DMW1_MAT,DMW1_PLV3,2'b0,DMW1_PLV0};
     end
     
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn||(flushin&&!inte))
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
         outpc_reg<=0;dout_reg<=0;
-        exe_reg<=0;inte_reg<=0;
+        //exe_reg<=0;inte_reg<=0;
+        run_reg<=0;//?
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
-        csr_num_reg<=0;inst_stop_reg<=0;jumpc_reg<=0;
-        clk_stall<=0;
+        csr_num_reg<=0;inst_stop_reg<=0;
+        
         //excp_flush<=0;ertn_flush<=0;
         end
     else if(!stallin||inte)
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
         outpc_reg<=outpc;dout_reg<=dout;
-        exe_reg<=exe;inte_reg<=inte;
+        //exe_reg<=exe;inte_reg<=inte;
+        run_reg<=(!stallin && !flushin && exe)||inte;
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
-        clk_stall<=nclk_stall;
+        
         //excp_flush<=nexcp_flush;ertn_flush<=nertn_flush;
+        end
+    end
+    always@(posedge(clk))
+    begin
+    if(!rstn)
+        begin
+        jumpc_reg<=0;
+        clk_stall<=0;
+        end
+    else 
+        begin
+        clk_stall<=nclk_stall;
         if(jumpc_valid)
             jumpc_reg<=jumpc;
         end
     end
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn)
         begin
@@ -235,16 +249,106 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     end
     always@(*)
     begin
-    flushout=1;
-    outpc=inpc+4;dout=0;
-    mask=~0;
     inpc=pipeline_CSR_inpc0;
     ecode=pipeline_CSR_excp_arg0[5:0];
     esubcode=pipeline_CSR_excp_arg0[14:6];
     mode=pipeline_CSR_subtype;
-    evaddr=inpc;//TLB(F),ADEF,PIF,PPI
-    TI_cl=0;rand_en=0;
-    inst_stop=0;nclk_stall=clk_stall;
+    evaddr=inpc;//TLBR(F),ADEF,PIF,PPI
+
+    if(!inpc_valid)
+        inpc=jumpc_reg;
+    if(inte)
+        begin
+        mode=INTE;
+        ecode=INT;
+        esubcode=DEFAULT;
+        end 
+    else if(excp_arg1[15])
+        begin
+        mode=INTE;
+        inpc=pipeline_CSR_inpc1; 
+        ecode=excp_arg1[5:0];
+        esubcode=excp_arg1[14:6];
+        evaddr=pipeline_CSR_evaddr1;//TLBR(L,S),PIL,PIS,PME,ADEM
+        end
+    else if(ecode==ALE)//ALE
+        evaddr=pipeline_CSR_evaddr0;
+    end
+    //control
+    always@(*)
+    begin    
+    flushout=1;
+    inst_stop=0;
+    TI_cl=0;//TI_cl
+    nclk_stall=clk_stall;
+    
+    nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
+    if((!stallin && !flushin && exe)||inte)
+        begin
+        case(mode)
+            ERTN:
+                begin
+                nertn_flush=1;
+                flushout=1;
+                end
+            CSRXCHG:
+                begin
+                flushout=1;                        
+                if(csr_num=='h44 && dwcsr[0])
+                    TI_cl=1;
+                end
+            INTE:
+               begin
+               inst_stop=1;
+               flushout=1; 
+               nclk_stall=0; 
+               if(ecode!=TLBR)
+                     nexcp_flush=1;
+               end 
+            CSRWR:
+                begin
+                flushout=1; 
+                 if(csr_num=='h44&&dwcsr[0])
+                    TI_cl=1; 
+                end 
+            CSRRD:
+                flushout=0;
+            IDLE:
+                nclk_stall=1;           
+        endcase
+        end
+    else
+        begin
+        flushout=0;
+        end
+    end
+    //outpc
+    always@(*)
+    begin    
+    outpc=inpc+4;
+    case(mode)
+        ERTN:
+            begin
+            outpc=ERA;
+            end
+        INTE:
+           begin
+           if(ecode==TLBR)
+                begin
+                outpc={TLBRENTRY,6'b0};
+                end
+           else
+                begin
+                outpc={EENTRY,6'b0};
+                end
+           end          
+    endcase
+    end
+    
+    always@(*)
+    begin    
+    mask=~0;
+    
     TLBIDXout=0;TLBEHIout=0;
     TLBELO0out=0;TLBELO1out=0;
     TLBIDXout[TLB_n-1:0]=TLBIDX_Index;
@@ -256,90 +360,15 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
     TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
     
-    nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
-    if(!inpc_valid)
-        inpc=jumpc_reg;
-    if(inte)
-        begin
-        mode=INTE;
-        ecode=INT;
-        esubcode=0;
-        end 
-    else if(excp_arg1[15])
-        begin
-        mode=INTE;
-        inpc=pipeline_CSR_inpc1; 
-        ecode=excp_arg1[5:0];
-        esubcode=excp_arg1[14:6];
-        evaddr=pipeline_CSR_evaddr1;//TPB(L,S),PIL,PIS,PME
-        end
-    else if(ecode==ALE || (ecode==ADE && esubcode==ADEM))//ALE,ADEM
-        evaddr=pipeline_CSR_evaddr0;
-   
-    if((!stallin && !flushin && exe)||inte)
-        begin 
-        case(mode)
-            ERTN:
-                begin
-                nertn_flush=1;
-                flushout=1;
-                outpc=ERA;
-                end
-            CSRXCHG:
-                begin
-                flushout=1;                        
-                mask=pipeline_CSR_mask;
-                if(csr_num=='h44 && dwcsr[0])
-                    TI_cl=1;
-                end
-            INTE:
-               begin
-               inst_stop=1;
-               flushout=1; 
-               nclk_stall=0; 
-               if(ecode==TLBR)
-                    begin
-                    outpc={TLBRENTRY,6'b0};
-                    end
-               else
-                    begin
-                    nexcp_flush=1;
-                    outpc={EENTRY,6'b0};
-                    end
-               end 
-            CSRWR:
-                begin
-                flushout=1; 
-                 if(csr_num=='h44&&dwcsr[0])
-                    TI_cl=1; 
-                end 
-            CSRRD:
-                   flushout=0;
-            TLBWR:
-                begin
-                flushout=1; 
-                if(ecode==TLBR)
-                    TLBIDXout[31]=0;//NE=0,E=1
-                end
-            TLBFILL:
-                begin
-                tlbfill_en=1;
-                rand_en=1;
-                flushout=1; 
-                if(ecode==TLBR)
-                    TLBIDXout[31]=0;//NE=0,E=1
-                //TLBIDXout[TLB_n-1:0]=randnum[TLB_n-1:0];
-                TLBIDXout[TLB_n-1:0]=0;
-                end
-            IDLE:
-                nclk_stall=1;           
-        endcase
-        end
+    if(mode==CSRXCHG)
+        mask=pipeline_CSR_mask;
     else
-        begin
-        flushout=0;
-        end
-
+        mask=~0;
+    end
+    
+    always@(*)
+    begin
+    dout=0;
     case(csr_num)
         'h0:
             dout={23'b0,CRMD};
@@ -416,7 +445,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     end
     
     assign dwcsr=(dout&(~mask))|(din&mask);
-    always@(posedge(clk),negedge(rstn))
+    always@(posedge(clk))
     begin
     if(!rstn)
         begin
@@ -437,7 +466,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         TCFG_change<=0;
         excp_flush<=0;ertn_flush<=0;
-            if((!stallin && !flushin && exe_reg)||inte_reg)
+            if(run_reg)//?
                 begin
                 if(mode_reg==IDLE && !clk_stall)
                     begin
@@ -484,44 +513,14 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                             end
                         LOAD:
                             begin
-                            if(~excp_arg1[15])
+                            //if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=1;
                             end
                         STORE:
                             begin
-                            if(~excp_arg1[15])
+                            //if(~excp_arg1[15])
                                 LLBCTL_ROLLB<=0;
-                            end
-                        TLBSRCH:
-                            begin
-                            TLBIDX_NE<=TLBIDXin[31];
-                            if(!TLBIDXin[31])
-                                TLBIDX_Index<=TLBIDXin[TLB_n-1:0];
-                            end
-                        TLBRD:
-                            begin
-                                TLBIDX_NE<=TLBIDXin[31];
-                                if(!TLBIDXin[31])//NE=0
-                                    begin
-                                    ASID_ASID<=ASIDin;
-                                    TLBEHI<=TLBEHIin[31:13];
-                                    TLBELO0_VDPLVMATG<=TLBELO0in[6:0];
-                                    TLBELO0_PPN<=TLBELO0in[TLB_PALEN-5:8];
-                                    TLBELO1_VDPLVMATG<=TLBELO1in[6:0];
-                                    TLBELO1_PPN<=TLBELO1in[TLB_PALEN-5:8];
-                                    TLBIDX_PS<=TLBIDXin[29:24];
-                                    end
-                                else
-                                    begin
-                                    ASID_ASID<=0;
-                                    TLBEHI<=0;
-                                    TLBELO0_VDPLVMATG<=0;
-                                    TLBELO0_PPN<=0;
-                                    TLBELO1_VDPLVMATG<=0;
-                                    TLBELO1_PPN<=0;
-                                    TLBIDX_PS<=0;
-                                    end
-                            end
+                            end 
                         CSRWR,CSRXCHG:
                            case(csr_num_reg)
                                 'h0:
@@ -630,42 +629,3 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     
 endmodule
 
-
-
-module Random(
-    input en, clk, rstn,
-    input [31:0] seed,
-    output reg [31:0] randnum
-    );
-    always @(posedge clk) begin
-        if(!rstn)   randnum <= 32'b0;
-        else if(en) begin
-          if(|randnum)  randnum <= {randnum[30:0], ((((randnum[31] ^ randnum[6]) ^ randnum[4]) ^ randnum[2]) ^ randnum[1]) ^ randnum[0]};
-          else          randnum <= {seed[31:1],1'b1};
-        end
-    end
-  
-endmodule
-
-
-
-
-
-
-
-
-
-
-//module Control_State_Register(
-//    input clk,rstn,
-//    input we,
-//    input [31:0] mask,din,
-//    input [31:0] addr,
-//    output [31:0] dout,
-    
-
-//);
-    
-
-
-//endmodule

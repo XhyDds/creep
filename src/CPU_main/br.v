@@ -1,34 +1,28 @@
 module br (
-    input [31:0]ctr,pc,imm,rrj,
-    input zero,stall,
+    input [31:0]ctr,pc,imm,rrj,alu1,alu2,
     output reg ifbr,
-    output reg [31:0]brresult
+    output reg [31:0]pc_br
 );
     wire [3:0]type_ = ctr[3:0];
-    wire [4:0]subtype = ctr[11:7];
-    reg ifbr_;
+    wire [4:0]subtype = ctr[11:7];    
     always @(*) begin
-        ifbr_=0;
-        brresult=0;
+        ifbr=0;
+        pc_br=pc+imm;
         if(type_==1) begin
-            brresult=pc+imm;
             case (subtype)//可以合并
-                0: ifbr_=1;
-                1: ifbr_=zero;
-                2: ifbr_=!zero;
-                3: ifbr_=!zero;
-                4: ifbr_=zero;
-                5: ifbr_=!zero;
-                6: ifbr_=zero;
+                0: ifbr=1;
+                1: ifbr=~|(alu1^alu2);
+                2: ifbr=|(alu1^alu2);
+                3: ifbr=$signed(alu1)<$signed(alu2);
+                4: ifbr=~($signed(alu1)<$signed(alu2));
+                5: ifbr=alu1<alu2;
+                6: ifbr=~(alu1<alu2);
             endcase
         end
-        else if(type_==8) 
-            case (subtype)
-                0: begin brresult=rrj+imm;ifbr_=1; end
-                1: begin brresult=pc+imm;ifbr_=1; end
-            endcase
+        else if(type_==8) begin
+            ifbr=1;
+            if(~|subtype) pc_br=rrj+imm;
+        end
     end
-    always @(*) begin
-        ifbr=stall?1'b0:ifbr_;
-    end
+
 endmodule

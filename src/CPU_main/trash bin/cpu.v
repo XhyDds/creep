@@ -202,7 +202,7 @@ module core_top(
     //ICache
 
     // reg valid_rstn;
-    // always @(posedge clk or negedge rstn) begin
+    // always @(posedge clk )begin
     //     if(!rstn) begin
     //         valid_rstn <= 0;
     //     end
@@ -212,7 +212,7 @@ module core_top(
     // end
 
     // reg rstn_reg;
-    // always @(posedge clk or negedge rstn) begin
+    // always @(posedge clk )begin
     //     if(!rstn) begin
     //         rstn_reg <= 0;
     //     end
@@ -1251,12 +1251,12 @@ module core_top(
         `endif
     end
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) pc<=32'h1c000000;
         else if(!stall_pc|ifbr0|ifbr1|ifpriv) pc<=npc;
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             pc_if0_if1<=0;
             PLV_if0_if1<=0;
@@ -1278,7 +1278,7 @@ module core_top(
     //IF1-FIFO
     //flush套壳
     reg fflush_if0_if1;
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             fflush_if0_if1 <= 0;
         end
@@ -1286,7 +1286,7 @@ module core_top(
         else if(!(stall_icache|stall_to_icache)) fflush_if0_if1 <= 0;
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             pc_if1_fifo<=0;ir_if1_fifo<=0;icache_valid_if1_fifo<=0;flag_if1_fifo<=0;pre_if1_fifo<=0;
         end
@@ -1309,7 +1309,7 @@ module core_top(
     //即fetch_buffer
 
     //ID-REG
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             ctr_id_reg_0 <= 0;
             // excp_arg_id_reg_0<=0;
@@ -1349,7 +1349,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             ctr_id_reg_1 <= 0;
             excp_arg_id_reg_1<=0;
@@ -1390,7 +1390,7 @@ module core_top(
     end
 
     //REG-EXE0
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             ctr_reg_exe0_0 <= 0;
             imm_reg_exe0_0<=0;
@@ -1436,7 +1436,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             ctr_reg_exe0_1 <= 0;
             excp_arg_reg_exe0_1<=0;
@@ -1511,7 +1511,7 @@ module core_top(
             endcase
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
@@ -1542,7 +1542,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
@@ -1608,7 +1608,7 @@ module core_top(
         endcase
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             ctr_exe1_wb_0 <= 0;
             rd_exe1_wb_0<=0;
@@ -1639,7 +1639,7 @@ module core_top(
         end
     end
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             ctr_exe1_wb_1 <= 0;
             rd_exe1_wb_1<=0;
@@ -1839,7 +1839,7 @@ L1_L2cache #(
     assign ws_valid=ws_valid0|ws_valid1;
 
     reg [31:0]pccount;
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             pccount <= 0;
         end
@@ -1952,7 +1952,7 @@ L1_L2cache #(
     reg     [31:0]  csr_pgdl_diff_0_reg     ;
     reg     [31:0]  csr_pgdh_diff_0_reg     ;
 
-    always @(posedge clk or negedge rstn) begin
+    always @(posedge clk )begin
         if(!rstn) begin
             csr_crmd_diff_0_reg         <=  0;
             csr_prmd_diff_0_reg         <=  0;

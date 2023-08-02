@@ -33,6 +33,7 @@ module l2_axi_package #(
     //直接访存标志
     input      dma_sign,
     input      [3:0]l2cache_axi_wstrb,
+    input    [2:0] l2cache_mem_size,
 
     //AXI interface 
     //read reqest
@@ -116,11 +117,13 @@ module l2_axi_package #(
     wire mem_arbiter_addrOK;
 
     wire [3:0]l2_wstrb;
-    wire [7:0]l2_wlen;
     wire [7:0]l2_rlen;
+    wire [7:0]l2_wlen;
+    wire [2:0]l2_rsize;
+    wire [2:0]l2_wsize;
 
-    wire [3:0]crt_w;
-    wire [3:0]nxt_w;
+    wire [10:0]crt_w;
+    wire [10:0]nxt_w;
 
     wire [31:0] pointer;
 
@@ -139,6 +142,7 @@ module l2_axi_package #(
         .cache_mem_rdy      (cache_mem_rdy),
         // `endif
         .rlast              (l2_rlast)
+        // .dma_sign           (dma_sign)
     );
 
     WriteBuffer#(
@@ -185,9 +189,11 @@ module l2_axi_package #(
         .dout_l2cache_mem   (dout_l2cache_mem),
         .l2cache_mem_req_w  (l2cache_mem_req_w),
         .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),
+        .l2cache_mem_size(   l2cache_mem_size),
         //l2cache_out
         .l2_wstrb           (l2_wstrb),
         .l2_len             (l2_wlen),
+        .l2_wsize            (l2_wsize),
         .l2_waddr           (l2_waddr),
         .l2_wdata           (l2_wdata),
         .l2_wvalid          (l2_wvalid),
@@ -248,11 +254,13 @@ module l2_axi_package #(
         .l2cache_mem_rdy    (l2cache_mem_rdy),
         .mem_l2cache_dataOK (mem_l2cache_dataOK),
         .din_mem_l2cache    (din_mem_l2cache),
+        .l2cache_mem_size   (l2cache_mem_size),
 
         .query_data         (query_data),
         .query_ok           (query_ok),
 
         .l2_rlen            (l2_rlen),
+        .l2_rsize           (l2_rsize),
         .arbiter_mem_req    (arbiter_mem_req),
         .mem_arbiter_addrOK (mem_arbiter_addrOK),
         .mem_arbiter_dataOK (mem_arbiter_dataOK),
@@ -267,13 +275,14 @@ module l2_axi_package #(
         .rstn     		( rstn     		),
 
         //l2cache
-        .l2_rvalid 		( arbiter_mem_req ),//input       
+        .l2_rvalid 		( arbiter_mem_req ),//input
         .l2_raddrOK     ( mem_arbiter_addrOK),//output
-        .l2_rready 		( l2_rready 		),//output reg  
+        .l2_rready 		( l2_rready 		),//output reg
         .l2_raddr  		( addr_l2cache_mem_r  		),//input [31:0]
         .l2_rdata  		( l2_rdata  		),//output [31:0]
-        .l2_rlast  		( l2_rlast	),//output reg  
+        .l2_rlast  		( l2_rlast	),//output reg
         .l2_rlen        (l2_rlen),
+        .l2_rsize       (l2_rsize),
 
         .l2_wvalid 		( l2_wvalid         ),//input
         .l2_wwvalid     ( l2_wwvalid        ),//input
@@ -284,6 +293,7 @@ module l2_axi_package #(
         .l2_wstrb  		( l2_wstrb   	    ),//input [3:0] 字节选通位
         .l2_wlast  		( l2_wlast  		),//input
         .l2_wlen        ( l2_wlen           ),
+        .l2_wsize       ( l2_wsize          ),
 
         .l2_bvalid 		( l2_bvalid         ),//output reg
         .l2_bready 		( l2_bready 		),//input
@@ -295,6 +305,10 @@ module l2_axi_package #(
         .arlen    		( arlen    		),
         .arsize   		( arsize   		),
         .arburst  		( arburst  		),
+        .arid           ( arid          ),
+        .arlock         ( arlock        ),
+        .arcache        ( arcache       ),
+        .arprot         ( arprot        ),
         .rdata    		( rdata    		),
         .rresp    		( rresp    		),
         .rvalid   		( rvalid   		),
@@ -306,6 +320,10 @@ module l2_axi_package #(
         .awlen    		( awlen    		),
         .awsize   		( awsize   		),
         .awburst  		( awburst  		),
+        .awid           ( awid          ),
+        .awlock         ( awlock        ),
+        .awcache        ( awcache       ),
+        .awprot         ( awprot        ),
         .wdata    		( wdata    		),
         .wstrb    		( wstrb    		),
         .wvalid   		( wvalid   		),

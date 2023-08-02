@@ -1,5 +1,5 @@
 L1_offset_width=2
-L2_offset_width=3
-WriteBuffer_len=5
+L2_offset_width=4
+WriteBuffer_len=10
 ghr_len=16
 ras_len=16

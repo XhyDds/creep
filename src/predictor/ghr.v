@@ -4,19 +4,25 @@ module ghr#(
 )(
     input   clk,
     input   rstn,               
+    input   stall,                  //因为会根据预测知识进行更新
     output  reg [gh_width-1:0]gh,   
+    output  reg[gh_width-1:0] gh_ex,
     input   taken_pdc,              //预测得到的是否跳转
 
     input   mis_pdc,                //是否预测错误
     input   is_jump_pdc,            //当前指令是否是跳转指令（当前只考虑跳转指令）
     input   is_jump_ex,             //ex段的指令曾经判断是否是跳转指令
-    input   update_en               //是否更新gh
+    input   update_en               //ex段传回的是否更新的信号
     );
     //恢复队列
     reg     [gh_width-1:0]  chkpt_q[0:queue_len-1];//check_point queue
     reg     [3:0]pointer;
 
-    always @(posedge clk,negedge rstn) begin
+    wire    mis_pdc_=mis_pdc&update_en;
+    wire    is_jump_ex_=is_jump_ex&update_en;
+    wire    is_jump_pdc_=is_jump_pdc&(~stall);
+
+    always @(posedge clk)begin
         if(!rstn) begin
             chkpt_q[4'd0]<=0;
             chkpt_q[4'd1]<=0;
@@ -35,10 +41,9 @@ module ghr#(
             chkpt_q[4'd14]<=0;
             chkpt_q[4'd15]<=0;
         end
-        else if(~update_en) ;
-        else if(is_jump_pdc) begin
-            chkpt_q[4'd0]<={gh[gh_width-2:0],~taken_pdc};
-            chkpt_q[4'd1]<=chkpt_q[4'd0];
+        else if(is_jump_pdc_) begin
+            chkpt_q[4'd0]<=0;
+            chkpt_q[4'd1]<={gh[gh_width-2:0],~taken_pdc};
             chkpt_q[4'd2]<=chkpt_q[4'd1];
             chkpt_q[4'd3]<=chkpt_q[4'd2];
             chkpt_q[4'd4]<=chkpt_q[4'd3];
@@ -56,32 +61,35 @@ module ghr#(
         end
     end
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             pointer<=0;
         end
         else begin
-            if(~update_en) ;
-            else if(is_jump_ex) begin
-                if(is_jump_pdc) ;
+            if(is_jump_ex_) begin
+                if(mis_pdc_) pointer<=0;
+                else if(is_jump_pdc_) ;
                 else pointer<=pointer-1;
             end
-            else if(is_jump_pdc) begin
+            else if(is_jump_pdc_) begin
                 pointer<=pointer+1;
             end
         end
     end
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             gh<=0;
         end
-        else if(~update_en) ;
-        else if(mis_pdc) begin
-            gh<=chkpt_q[pointer];
+        if(mis_pdc_&&is_jump_ex_) begin
+            gh<=gh_ex;
         end
-        else if(is_jump_pdc) begin
+        else if(is_jump_pdc_) begin
             gh<={gh[gh_width-2:0],taken_pdc};
         end
+    end
+
+    always @(*) begin
+        gh_ex=chkpt_q[pointer];
     end
 endmodule

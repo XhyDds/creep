@@ -23,33 +23,33 @@ module fetch_buffer_v2 (
     reg [15:0]buffer_excp_arg[0:15];
     reg [31:0]buffer_npc[0:15];
     reg [3:0]pointer;//0~15
+    reg [3:0]npointer;
     wire [31:0]ir[0:1];
     assign ir[0]=irin[31:0];
     assign ir[1]=irin[63:32];
-    assign ir0=buffer[pointer==15?pointer:pointer+1];
+    assign ir0=buffer[&pointer?pointer:pointer+1];
     assign ir1=buffer[pointer];
-    assign pc0=bufferpc[pointer==15?pointer:pointer+1];
+    assign pc0=bufferpc[&pointer?pointer:pointer+1];
     assign pc1=bufferpc[pointer];
     assign stall_fetch_buffer=(pointer<=1);
-    assign valid0=pre_and_valid_and_plv[pointer==15?pointer:pointer+1][2];
+    assign valid0=pre_and_valid_and_plv[&pointer?pointer:pointer+1][2];
     assign valid1=pre_and_valid_and_plv[pointer][2];
-    assign plv0=pre_and_valid_and_plv[pointer==15?pointer:pointer+1][1:0];
+    assign plv0=pre_and_valid_and_plv[&pointer?pointer:pointer+1][1:0];
     assign plv1=pre_and_valid_and_plv[pointer][1:0];
-    assign pre0=pre_and_valid_and_plv[pointer==15?pointer:pointer+1][66:3];
+    assign pre0=pre_and_valid_and_plv[&pointer?pointer:pointer+1][66:3];
     assign pre1=pre_and_valid_and_plv[pointer][66:3];
-    assign excp_arg0=buffer_excp_arg[pointer==15?pointer:pointer+1];
+    assign excp_arg0=buffer_excp_arg[&pointer?pointer:pointer+1];
     assign excp_arg1=buffer_excp_arg[pointer];
-    assign npc0=buffer_npc[pointer==15?pointer:pointer+1];
+    assign npc0=buffer_npc[&pointer?pointer:pointer+1];
     assign npc1=buffer_npc[pointer];
-    wire [3:0]flag4p=icache_valid?(flag?4'b0010:4'b0001):4'b0000;
-    wire [3:0]flag4=icache_valid?(flag?4'b0001:4'b0000):4'b1111;
-    wire [3:0]flag4m=icache_valid?(flag?4'b0000:4'b1111):4'b1110;
+    wire [3:0]flag4p=(icache_valid&~stall_fetch_buffer)?(flag?4'b0010:4'b0001):4'b0000;
+    wire [3:0]flag4=(icache_valid&~stall_fetch_buffer)?(flag?4'b0001:4'b0000):4'b1111;
+    wire [3:0]flag4m=(icache_valid&~stall_fetch_buffer)?(flag?4'b0000:4'b1111):4'b1110;
     
-    always @(posedge clk,negedge rstn) begin:fetch_buffer
+    always @(posedge clk)begin:fetch_buffer
         integer i;
         if(!rstn|flush) 
             begin
-                pointer<=15;
                 for (i=0;i<16;i=i+1) begin
                         buffer[i]<=0;
                         bufferpc[i]<=0;
@@ -58,7 +58,7 @@ module fetch_buffer_v2 (
                         buffer_npc[i]<=0;
                 end
             end
-        else if(!stall)
+        else if(!(stall_fetch_buffer|stall))
             begin
                 if(icache_valid)
                     if (flag) 
@@ -130,12 +130,12 @@ module fetch_buffer_v2 (
                             buffer_npc[12]<=buffer_npc[14];
                             buffer[13]<=ir[0];
                             bufferpc[13]<=pc;
-                            pre_and_valid_and_plv[13]<={pre,1'b1,plv};
+                            pre_and_valid_and_plv[13]<={pre[63:54],1'b1,pre[52:39],1'b1,pre[37:0],1'b1,plv};
                             buffer_excp_arg[13]<=excp_arg;
                             buffer_npc[13]<=npc;
                             buffer[14]<=ir[1];
                             bufferpc[14]<=pc+4;
-                            pre_and_valid_and_plv[14]<={pre,1'b1,plv};
+                            pre_and_valid_and_plv[14]<={pre[63:54],1'b1,pre[52:0],1'b1,plv};
                             buffer_excp_arg[14]<=0;
                             buffer_npc[14]<=npc;
                         end
@@ -206,18 +206,27 @@ module fetch_buffer_v2 (
                             pre_and_valid_and_plv[12]<=pre_and_valid_and_plv[13];
                             buffer_excp_arg[12]<=buffer_excp_arg[13];
                             buffer_npc[12]<=buffer_npc[13];
+                            buffer[13]<=buffer[14];
+                            bufferpc[13]<=bufferpc[14];
+                            pre_and_valid_and_plv[13]<=pre_and_valid_and_plv[14];
+                            buffer_excp_arg[13]<=buffer_excp_arg[14];
+                            buffer_npc[13]<=buffer_npc[14];
                             buffer[14]<=ir[0];
                             bufferpc[14]<=pc;
-                            pre_and_valid_and_plv[14]<={pre,1'b1,plv};
+                            pre_and_valid_and_plv[14]<={pre[63:54],1'b0,pre[52:0],1'b1,plv};
                             buffer_excp_arg[14]<=excp_arg;
                             buffer_npc[14]<=npc;
                         end
-                if(if1)
-                    if(if0) pointer<=(pointer==14|pointer==15)?(15-flag4p):(pointer-flag4m);//取两个
-                    else pointer<=(pointer==15)?(15-flag4p):(pointer-flag4);//取一个
-                else
-                    pointer<=pointer-flag4p;
-                //有下面走，上面不走的情况吗？
             end
+    end
+    always @(posedge clk) begin
+        if(!rstn|flush) pointer<=15;
+        else if(!stall) pointer<=npointer;
+    end
+    always @(*) begin
+        if(if1&if0) npointer=(&pointer[3:1]|&pointer)?(15-flag4p):(pointer-flag4m);//取两个
+        else if(if1|if0) npointer=(&pointer)?(15-flag4p):(pointer-flag4);//取一个
+        else npointer=pointer-flag4p;
+        //有下面走，上面不走的情况吗？
     end
 endmodule

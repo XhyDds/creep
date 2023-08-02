@@ -34,7 +34,7 @@ module bram #(
     input we,                     // Write Enable
     output [DATA_WIDTH-1:0] dout
 ); 
-    reg [ADDR_WIDTH-1:0] addr_r;  // Address Register
+    reg [DATA_WIDTH-1:0] dout_r;
     reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
     integer i;
@@ -45,10 +45,10 @@ module bram #(
     end
 
     // assign dout = (addr_r==waddr&&we)?din:ram[addr_r];//write first
-    assign dout = ram[addr_r];
+    assign dout = dout_r;
 
     always @(posedge clk) begin
-        addr_r <= raddr;
+        dout_r <= (waddr == raddr && we) ? din : ram[raddr];
         if (we) ram[waddr] <= din;
     end
 

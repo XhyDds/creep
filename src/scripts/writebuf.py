@@ -42,70 +42,33 @@ module WriteBuffer #(
 
     //query
     input  [31:0] query_addr,
-    output reg [(1<<offset_width)*32-1:0] query_data,
+    output reg[(1<<offset_width)*32-1:0] query_data,
     output reg query_ok,                       //query是否成功
 
-    //互斥锁
-    input  dma_lock,
-    output reg wrt_lock
+    //状态机
+    input  [4:0] crt_pull,
+    input  [4:0] nxt_pull,
+    output reg [31:0] pointer,
+    input  dma_sign
 );
     parameter WORD = (1<<offset_width)*32;
-    reg [31:0] pointer;
     reg [31:0] buffer_addr[length-1:0];
     reg [WORD-1:0] buffer_data[0:length-1];
 
-    wire _in_valid=in_valid&&(pointer!=length-1);
+    wire _in_valid=in_valid&&(pointer!=length-1)&&!dma_sign;
     // wire _out_awready=out_awready&&(pointer!=0);
 
     reg [(1<<offset_width)*32-1:0] _out_data;
 
     //pull(->axi)
-
     //state machine
-    parameter IDLE_L = 4'd0,PULL=4'd1,
-            '''
+    parameter IDLE_L = 5'd0,
+            PULL=5'd4,'''
 offset=1<<offset
 for i in range(offset):
-    code+='''SEND_'''+str(i)+'''=4'd'''+str(i+2)+''','''
-code+='''_SEND=4'd'''+str(offset+2)+''';
-    reg [3:0] crt_pull,nxt_pull;
-    always @(posedge clk,negedge rstn) begin
-        if (!rstn) begin
-            crt_pull<=IDLE_L;
-        end
-        else begin
-            crt_pull<=nxt_pull;
-        end
-    end
-    always @(*) begin
-        case (crt_pull)
-            IDLE_L: begin
-                if(dma_lock==0 && pointer!=0)      nxt_pull=PULL;
-                else                nxt_pull=IDLE_L;
-            end 
-            PULL:       begin
-                if(out_awready)     nxt_pull=SEND_0;
-                else                nxt_pull=PULL;
-            end'''
-for i in range(offset-1):
-    code+='''
-            SEND_'''+str(i)+''': begin
-                if(out_wready)      nxt_pull=SEND_'''+str(i+1)+''';
-                else                nxt_pull=SEND_'''+str(i)+''';
-            end'''
-code+='''
-            SEND_'''+str(offset-1)+''': begin
-                if(out_wready)      nxt_pull=_SEND;
-                else                nxt_pull=SEND_'''+str(offset-1)+''';
-            end
-            _SEND: begin
-                if(out_bvalid)      nxt_pull=IDLE_L;
-                else                nxt_pull=_SEND;
-            end
-            default:                nxt_pull=IDLE_L;
-        endcase
-    end
-    //signal
+    code+='''SEND_'''+str(i)+'''=5'd'''+str(i+5)+''','''
+code+='''_SEND=5'd'''+str(offset+5)+''';
+    //外部输入
     //组合action
     reg pointer_minus;
     always @(*) begin
@@ -117,26 +80,21 @@ code+='''
         out_wvalid=0;
 
         pointer_minus=0;
-
-        wrt_lock=0;
         case (crt_pull)
             IDLE_L: begin
                 if(nxt_pull==PULL) begin
                     pointer_minus=1;
-                    wrt_lock=1;
-                end 
+                end
                 else ;
             end
             PULL: begin
                 out_valid=1;
-                wrt_lock=1;
                 out_addr=buffer_addr[pointer];
             end'''
 for i in range(offset-1):
     code+='''
             SEND_'''+str(i)+''': begin
                 out_valid=1;
-                wrt_lock=1;
                 out_data=_out_data['''+str(i*32+31)+''':'''+str(i*32)+'''];
                 out_wvalid=1;
             end'''
@@ -144,19 +102,17 @@ code+='''
             SEND_'''+str(offset-1)+''': begin
                 out_valid=1;
                 out_last=1;
-                wrt_lock=1;
                 out_data=_out_data['''+str(offset*32-1)+''':'''+str(offset*32-32)+'''];
                 out_wvalid=1;
             end
             _SEND: begin
                 out_bready=1;
-                wrt_lock=1;
             end
             default: ;
         endcase
     end
     //时序action
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             _out_data<=0;
         end
@@ -175,9 +131,9 @@ code+='''
     //push(cache->)
     
     //statemachine
-    parameter IDLE_H = 4'd0,PUSH=4'd1;
+    localparam IDLE_H = 4'd0,PUSH=4'd1;
     reg [3:0] crt_push,nxt_push;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if (!rstn) begin
             crt_push<=IDLE_H;
         end
@@ -191,7 +147,7 @@ code+='''
             IDLE_H: begin
                 if(_in_valid)           nxt_push=PUSH;
                 else                    nxt_push=IDLE_H;
-            end 
+            end
             PUSH:                       nxt_push=IDLE_H;
             default:                    nxt_push=IDLE_H;
         endcase
@@ -215,7 +171,7 @@ code+='''
         endcase
     end
     //时序action
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin'''
 for i in range(len):
     code+='''
@@ -243,7 +199,7 @@ code+='''
     end
 
     //pointer仲裁
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             pointer<=0;
         end

@@ -6,7 +6,6 @@ module forward (
     ctr_exe1_wb_0,ctr_exe1_wb_1,
     ctr_exe0_exe1_0,ctr_exe0_exe1_1,
     rrd_reg_exe0_0,rrd_reg_exe0_1,
-
     input[4:0]rd_exe0_exe1_0,rd_exe0_exe1_1,
     rd_exe1_wb_0,rd_exe1_wb_1,
     input [4:0]rj0,rj1,rk0,rk1,rd0,rd1,
@@ -25,7 +24,7 @@ module forward (
         rrd1=rrd_reg_exe0_1;
 
         if(|rj0) if(rd_exe0_exe1_0==rj0&ifw0_exe0_exe1) rrj0=result_exe0_exe1_0;
-        else if((rd_exe0_exe1_1==rj0)&ifw1_exe0_exe1) rrj0=result_exe0_exe1_1;
+        else if(rd_exe0_exe1_1==rj0&ifw1_exe0_exe1) rrj0=result_exe0_exe1_1;
         else if(rd_exe1_wb_0==rj0&ifw0_exe1_wb) rrj0=result_exe1_wb_0;
         else if(rd_exe1_wb_1==rj0&ifw1_exe1_wb) rrj0=result_exe1_wb_1;
 
