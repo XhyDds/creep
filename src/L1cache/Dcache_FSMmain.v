@@ -315,7 +315,6 @@ always @(*) begin
             dcache_mem_req=1;
             if(mem_dcache_dataOK)begin
                 FSM_Data_replace=1;
-                FSM_rbuf_we=1;
                 FSM_choose_return=1;
                 // dcache_pipeline_ready=1;
                 if(!FSM_rbuf_SUC)begin//强序读不需要写入cache
@@ -331,6 +330,7 @@ always @(*) begin
             end
         end
         Miss_r_waitdata1:begin
+            FSM_rbuf_we=1;
             dcache_pipeline_ready=1;
         end
         Miss_w:begin

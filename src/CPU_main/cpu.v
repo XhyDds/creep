@@ -1,5 +1,5 @@
 `define predictor
-//`define DMA
+// `define DMA
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -1140,7 +1140,14 @@ module core_top(
 `endif
 
     //PC
-    assign ifsuc=~MMU_pipeline_memtype0[0];
+    wire dma;
+    `ifdef DMA
+        assign dma = 1'b1;
+    `endif
+    `ifndef DMA
+        assign dma = 1'b0;
+    `endif
+    assign ifsuc= ~MMU_pipeline_memtype0[0] | dma;
     wire [31:0]npc_pdc_32={npc_pdc,2'b0};
     reg ifnpc_pdc;
     always @(*) begin
@@ -1687,14 +1694,6 @@ module core_top(
     end
 
 //L2Cache
-    wire dma;
-    `ifdef DMA
-        assign dma = 1'b1;
-    `endif
-    `ifndef DMA
-        assign dma = 1'b0;
-    `endif
-    
     wire [31:0]addr_l2cache_mem_r  ;
     wire [31:0]addr_l2cache_mem_w  ;
     wire [32*(1<<offset_width)-1:0]din_mem_l2cache     ;
