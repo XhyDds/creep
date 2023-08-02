@@ -88,19 +88,19 @@ module prefetching#(
 
     always @(posedge clk) begin
         if(!rstn) begin
-            addr_pref_l2cache<=addr_prefetching;
+            addr_pref_l2cache<={8'h1C,addr_prefetching[23:0]};
         end
         else begin
             case (crt)
                 IDLE: begin
                     if(nxt==REQ) 
-                        addr_pref_l2cache<=addr_prefetching;
+                        addr_pref_l2cache<={8'h1C,addr_prefetching[23:0]};
                     else
-                        addr_pref_l2cache<=0;
+                        addr_pref_l2cache<={32'h1234ABCD};
                 end
                 REQ:  begin
                     if(nxt==IDLE) 
-                        addr_pref_l2cache<=0;
+                        addr_pref_l2cache<={32'h1234ABCD};
                     else ;
                 end
                 default: ;
