@@ -249,32 +249,34 @@ module WriteBuffer #(
             buffer_data[32'd9]<=0;
         end
         else begin
-            if (crt_push==IDLE_H)begin
+            case (crt_push)
+                IDLE_H: begin
                     if(nxt_push==PUSH) begin
-                        buffer_addr['d0]<=in_addr;
-                        buffer_data['d0]<=in_data;
-                        buffer_addr['d1]<=buffer_addr['d0];
-                        buffer_data['d1]<=buffer_data['d0];
-                        buffer_addr['d2]<=buffer_addr['d1];
-                        buffer_data['d2]<=buffer_data['d1];
-                        buffer_addr['d3]<=buffer_addr['d2];
-                        buffer_data['d3]<=buffer_data['d2];
-                        buffer_addr['d4]<=buffer_addr['d3];
-                        buffer_data['d4]<=buffer_data['d3];
-                        buffer_addr['d5]<=buffer_addr['d4];
-                        buffer_data['d5]<=buffer_data['d4];
-                        buffer_addr['d6]<=buffer_addr['d5];
-                        buffer_data['d6]<=buffer_data['d5];
-                        buffer_addr['d7]<=buffer_addr['d6];
-                        buffer_data['d7]<=buffer_data['d6];
-                        buffer_addr['d8]<=buffer_addr['d7];
-                        buffer_data['d8]<=buffer_data['d7];
-                        buffer_addr['d9]<=buffer_addr['d8];
-                        buffer_data['d9]<=buffer_data['d8];
+                        buffer_addr[32'd0]<=in_addr;
+                        buffer_data[32'd0]<=in_data;
+                        buffer_addr[32'd1]<=buffer_addr[32'd0];
+                        buffer_data[32'd1]<=buffer_data[32'd0];
+                        buffer_addr[32'd2]<=buffer_addr[32'd1];
+                        buffer_data[32'd2]<=buffer_data[32'd1];
+                        buffer_addr[32'd3]<=buffer_addr[32'd2];
+                        buffer_data[32'd3]<=buffer_data[32'd2];
+                        buffer_addr[32'd4]<=buffer_addr[32'd3];
+                        buffer_data[32'd4]<=buffer_data[32'd3];
+                        buffer_addr[32'd5]<=buffer_addr[32'd4];
+                        buffer_data[32'd5]<=buffer_data[32'd4];
+                        buffer_addr[32'd6]<=buffer_addr[32'd5];
+                        buffer_data[32'd6]<=buffer_data[32'd5];
+                        buffer_addr[32'd7]<=buffer_addr[32'd6];
+                        buffer_data[32'd7]<=buffer_data[32'd6];
+                        buffer_addr[32'd8]<=buffer_addr[32'd7];
+                        buffer_data[32'd8]<=buffer_data[32'd7];
+                        buffer_addr[32'd9]<=buffer_addr[32'd8];
+                        buffer_data[32'd9]<=buffer_data[32'd8];
                     end
                     else ;
                 end
-            else ;
+                default: ;
+            endcase
         end
     end
 

@@ -1709,14 +1709,14 @@ module core_top(
     wire l2cache_mem_SUC     ;
 
     L1_L2cache #(
-        .I_index_width  		( 4 		),
-        .D_index_width  		( 4 		),
-        .L2_index_width  		( 6 		),
+        .I_index_width  		( 7 		),
+        .D_index_width  		( 7 		),
+        .L2_index_width  		( 8 		),
         .L1_offset_width 		( 3 		),
         .L2_offset_width 		( 4 		))
     u_L1_L2cache(
         //ports
-        .clk                    		( clk                    		),
+        .clk                    		( clk                   		),
         .rstn                   		( rstn                   		),
 
         //  Icache

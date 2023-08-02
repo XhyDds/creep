@@ -293,14 +293,16 @@ always @(*) begin
         endcase
     end
 end
-wire choose_word = inpref ? offset_pref[offset_width -1 : L1_offset_width] : rbuf_offset[offset_width -1 : L1_offset_width];
+wire [offset_width -1 : L1_offset_width]choose_word = inpref ? offset_pref[offset_width -1 : L1_offset_width] : rbuf_offset[offset_width -1 : L1_offset_width];
 always @(*) begin
     if(rbuf_SUC)dout_l2cache_l1cache = line[255:0];//TLB时还要注意
     else begin
         case (choose_word)
             'd0: dout_l2cache_l1cache = line[255:0];
             'd1: dout_l2cache_l1cache = line[511:256];
-            default: dout_l2cache_l1cache = line;
+            // 'd2: dout_l2cache_l1cache = line[383:256];
+            // 'd3: dout_l2cache_l1cache = line[511:384];
+            // default: dout_l2cache_l1cache = line;
         endcase
     end
 end
