@@ -338,41 +338,49 @@ always @(*) begin
                     else if(FSM_from_pref == 2'b11)begin
                         l2cache_dcache_addrOK = 1;
                         if(FSM_hit[0])begin
+                            FSM_use[0] = 1;
                             FSM_Data_we[0] = 1;
                             FSM_Dirtytable_way_select = 3'd0;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[1])begin
+                            FSM_use[1] = 1;
                             FSM_Data_we[1] = 1;
                             FSM_Dirtytable_way_select = 3'd1;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[2])begin
+                            FSM_use[2] = 1;
                             FSM_Data_we[2] = 1;
                             FSM_Dirtytable_way_select = 3'd2;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[3])begin
+                            FSM_use[3] = 1;
                             FSM_Data_we[3] = 1;
                             FSM_Dirtytable_way_select = 3'd3;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[4])begin
+                            FSM_use[4] = 1;
                             FSM_Data_we[4] = 1;
                             FSM_Dirtytable_way_select = 3'd4;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[5])begin
+                            FSM_use[5] = 1;
                             FSM_Data_we[5] = 1;
                             FSM_Dirtytable_way_select = 3'd5;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[6])begin
+                            FSM_use[6] = 1;
                             FSM_Data_we[6] = 1;
                             FSM_Dirtytable_way_select = 3'd6;
                             FSM_Dirtytable_set1 = 1;
                         end
                         else if(FSM_hit[7])begin
+                            FSM_use[7] = 1;
                             FSM_Data_we[7] = 1;
                             FSM_Dirtytable_way_select = 3'd7;
                             FSM_Dirtytable_set1 = 1;
