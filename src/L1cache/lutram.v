@@ -32,7 +32,9 @@ module lutram #(
     input [ADDR_WIDTH-1:0] waddr,
     input [DATA_WIDTH-1:0] din,   // Data Input
     input we,                     // Write Enable
-    output [DATA_WIDTH-1:0] dout
+    output [DATA_WIDTH-1:0] dout,
+    input  [DATA_WIDTH-1:0] din_comp,
+    output reg hit
 ); 
     reg [DATA_WIDTH-1:0] dout_r;
     reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
@@ -47,6 +49,7 @@ module lutram #(
     assign dout = dout_r;
 
     always @(posedge clk) begin
+        hit <= (ram[raddr] == din_comp);
         dout_r <= (waddr == raddr && we) ? din : ram[raddr];
         if (we) ram[waddr] <= din;
     end

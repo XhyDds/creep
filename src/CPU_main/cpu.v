@@ -1724,7 +1724,7 @@ module core_top(
     L1_L2cache #(
         .I_index_width  		( 7 		),
         .D_index_width  		( 7 		),
-        .L2_index_width  		( 7 		),
+        .L2_index_width  		( 8 		),
         .L1_offset_width 		( 3 		),
         .L2_offset_width 		( 3 		))
     u_L1_L2cache(

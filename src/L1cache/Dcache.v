@@ -187,7 +187,7 @@ Dcache_TagV(
     .clk(clk),
 
     .TagV_addr_read(index ^ index1),
-    .TagV_din_compare(rbuf_tag),
+    .TagV_din_compare(tag),
     // .TagV_din_compare(ptag),
     .hit(hit),
     
