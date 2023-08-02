@@ -137,7 +137,7 @@ always @(posedge clk) begin
     end
 end
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -152,7 +152,7 @@ way0(
     .dout(TagV_data[0])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -167,7 +167,7 @@ way1(
     .dout(TagV_data[1])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -182,7 +182,7 @@ way2(
     .dout(TagV_data[2])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -197,7 +197,7 @@ way3(
     .dout(TagV_data[3])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -212,7 +212,7 @@ way4(
     .dout(TagV_data[4])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -227,7 +227,7 @@ way5(
     .dout(TagV_data[5])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -242,7 +242,7 @@ way6(
     .dout(TagV_data[6])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )

@@ -88,7 +88,7 @@ always @(posedge clk) begin
 end
 
 wire [data_width-1:0]zero = 0;
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -103,7 +103,7 @@ way0(
     .dout(TagV_data[0])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
