@@ -1707,6 +1707,12 @@ module core_top(
     wire mem_l2cache_addrOK_w;
     wire mem_l2cache_dataOK  ;
     wire l2cache_mem_SUC     ;
+    wire req_pref_l2cache;
+    wire type_pref_l2cache;
+    wire [31:0]addr_pref_l2cache;
+    wire complete_l2cache_pref;
+    wire hit_l2cache_pref;
+    wire miss_l2cache_pref;
 
     L1_L2cache #(
         .I_index_width  		( 7 		),
@@ -1757,6 +1763,14 @@ module core_top(
         .pipeline_l2cache_opflag        ( pipeline_l2cache_opflag       ),
         .pipeline_l2cache_opcode        ( pipeline_cache_opcode        ),
 
+        // L2-prefetch
+        .req_pref_l2cache               ( req_pref_l2cache             ),
+        .type_pref_l2cache              ( type_pref_l2cache            ),
+        .addr_pref_l2cache              ( addr_pref_l2cache            ),
+        .complete_l2cache_pref          ( complete_l2cache_pref        ),
+        .hit_l2cache_pref               ( hit_l2cache_pref             ),
+        .miss_l2cache_pref              ( miss_l2cache_pref            ),
+
         //  L2cache to Mem
         .addr_l2cache_mem_r             ( addr_l2cache_mem_r   ),
         .addr_l2cache_mem_w             ( addr_l2cache_mem_w   ),
@@ -1773,6 +1787,17 @@ module core_top(
         .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
     );
 
+    prefetching#(
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .L2cache_width(3)
+    )(
+        .req_pref_l2cache(req_pref_l2cache),
+        .type_pref_l2cache(type_pref_l2cache),
+        .addr_pref_l2cache(addr_pref_l2cache),
+        .complete_l2cache_pref(complete_l2cache_pref),
+        .hit_l2cache_pref(hit_l2cache_pref),
+        .miss_l2cache_pref(miss_l2cache_pref)
+    );
 
 
     l2_axi_package#(

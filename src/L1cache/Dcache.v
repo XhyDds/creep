@@ -70,9 +70,11 @@ module Dcache#(
 
 wire [offset_width-1:0]offset;
 wire [index_width-1:0]index;
+wire [index_width-1:0]index1;
 wire [32-offset_width-index_width-2-1:0]tag;
 assign offset = addr_pipeline_dcache[offset_width+1:2];
 assign index = addr_pipeline_dcache[offset_width+index_width+1:offset_width+2];
+assign index1 = tag[index_width-1:0];
 assign tag = addr_pipeline_dcache[31:offset_width+index_width+2];
 
 wire [offset_width-1:0]poffset;
@@ -89,9 +91,11 @@ wire [1:0]rbuf_size;
 wire [3:0]rbuf_wstrb;
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
+wire [index_width-1:0]rbuf_index1;
 wire [32-offset_width-index_width-2-1:0]rbuf_tag;
 assign rbuf_offset = rbuf_addr[offset_width+1:2];
 assign rbuf_index = rbuf_addr[offset_width+index_width+1:offset_width+2];
+assign rbuf_index1 = rbuf_tag[index_width-1:0];
 assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 wire fStall_outside=pipeline_dcache_ctrl[0];//dcache好像不需要stall？？
 
@@ -141,7 +145,7 @@ Dcache_lru #(
 Dcache_lru(
     .clk(clk),
     .use0(use0),.use1(use1),
-    .addr(rbuf_index),
+    .addr(rbuf_index ^ rbuf_index1),
     .way_sel(way_sel_lru)
 );
 
@@ -158,13 +162,13 @@ Dcache_Data #(
 Dcache_Data(
     .clk(clk),
     
-    .Data_addr_read(index),
+    .Data_addr_read(index ^ index1),
     .Data_dout0(data0),
     .Data_dout1(data1),
 
     .Data_din_write(din_mem_dcache),//一整行
     .Data_din_write_32(rbuf_data),
-    .Data_addr_write(rbuf_index),
+    .Data_addr_write(rbuf_index ^ rbuf_index1),
     .Data_offset(rbuf_offset),
     .Data_choose_byte(rbuf_wstrb),
     .Data_we(Data_we),
@@ -182,7 +186,7 @@ Dcache_TagV #(
 Dcache_TagV(
     .clk(clk),
 
-    .TagV_addr_read(index),
+    .TagV_addr_read(index ^ index1),
     .TagV_din_compare(rbuf_tag),
     // .TagV_din_compare(ptag),
     .hit(hit),
@@ -190,7 +194,7 @@ Dcache_TagV(
     .TagV_init(TagV_init),
     .TagV_din_write(rbuf_tag),
     // .TagV_din_write(ptag),
-    .TagV_addr_write(rbuf_index),
+    .TagV_addr_write(rbuf_index ^ rbuf_index1),
     .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
 );
