@@ -122,8 +122,8 @@ module l2_axi_package #(
     wire [2:0]l2_rsize;
     wire [2:0]l2_wsize;
 
-    wire [3:0]crt_w;
-    wire [3:0]nxt_w;
+    wire [10:0]crt_w;
+    wire [10:0]nxt_w;
 
     wire [31:0] pointer;
 
