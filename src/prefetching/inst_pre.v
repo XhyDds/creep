@@ -1,5 +1,6 @@
 module inst_pre#(
-    parameter ADDR_WIDTH = 32
+    parameter ADDR_WIDTH = 32,
+              HASH_WIDTH = 14
 )(
     input         clk,
     input         rstn,
@@ -44,16 +45,16 @@ module inst_pre#(
     wire [1:0] taken_pdc;
     wire [1:0] taken_upt;
     sp_bram#(
-        .ADDR_WIDTH(ADDR_WIDTH),
+        .ADDR_WIDTH(HASH_WIDTH),
         .DATA_WIDTH(ADDR_WIDTH+1+2),
         .INIT_NUM(0)
     )u_inst(
         .clk(clk),
-        .raddr(addr),
+        .raddr(addr_hashed),
         .dout({naddr_pdc_inst,valid,taken_pdc}),
         .enb(1),
-        .waddr(paddr),
-        .din({addr,1'b1,taken_upt}),
+        .waddr(paddr_hashed),
+        .din({taken_upt[1]?addr:paddr,1'b1,taken_upt}),
         .we((paddr!=addr))
     );
     always @(posedge clk) begin
@@ -63,21 +64,21 @@ module inst_pre#(
     transformer_2bit u_taken(
         .crt(taken_pdc),
         .nxt(taken_upt),
-        .taken((addr==(paddr+1))&valid)
+        .taken((addr!=(paddr+1))&valid)
     );
 
     //以inst_pc为索引，存储 空闲(spare)
     wire [1:0] spare_pdc;
     sp_bram#(
-        .ADDR_WIDTH(ADDR_WIDTH),
+        .ADDR_WIDTH(HASH_WIDTH),
         .DATA_WIDTH(2),
         .INIT_NUM(2'b10)
     )u_cpt_spt(
         .clk(clk),
-        .raddr(ann_addr),
+        .raddr(ann_addr_hashed),
         .dout(spare_pdc),
         .enb(1),
-        .waddr(ann_addr_upt),
+        .waddr(ann_addr_upt_hashed),
         .din(spare_upt),
         .we(ann_update_en)
     );
@@ -135,4 +136,39 @@ module inst_pre#(
         end
         else ;
     end
+
+    wire [HASH_WIDTH-1:0] addr_hashed;
+    wire [HASH_WIDTH-1:0] paddr_hashed;
+    wire [HASH_WIDTH-1:0] ann_addr_hashed;
+    wire [HASH_WIDTH-1:0] ann_addr_upt_hashed;
+
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_addr_hash(
+        .data_raw(addr),
+        .data_hashed(addr_hashed)
+    );
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_paddr_hash(
+        .data_raw(paddr),
+        .data_hashed(paddr_hashed)
+    );
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_ann_addr_hash(
+        .data_raw(ann_addr),
+        .data_hashed(ann_addr_hashed)
+    );
+    single_hash#(
+        .DATA_width(ADDR_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_ann_addr_upt_hash(
+        .data_raw(ann_addr_upt),
+        .data_hashed(ann_addr_upt_hashed)
+    );
+
 endmodule
