@@ -146,7 +146,7 @@ module l2_axi_package #(
     );
 
     WriteBuffer#(
-        .length         (5),
+        .length         (10),
         .offset_width   (offset_width)
     )
     l2cache_writebuffer(
