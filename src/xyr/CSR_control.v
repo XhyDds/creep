@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�???????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�???????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???????????，ex1�???????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???????????，ex1�???????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -100,7 +100,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     localparam ADEF='H0,ADEM='H1,DEFAULT='H0;
     reg [4:0] mode;wire [31:0] din;reg [31:0]dout,mask;
     wire [8:0] ESTATin;reg flushout;wire stallin,flushin;
-    wire exe;wire [15:0] excp_arg1;reg clk_stall,nclk_stall;
+    wire exe,force_run;wire [15:0] excp_arg1;reg clk_stall,nclk_stall;
     reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;wire inpc_valid;reg [5:0]ecode;
     reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;
@@ -119,7 +119,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     //assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
     assign CSR_pipeline_flush=flushout_reg;
-    assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||excp_arg1[15]||pipeline_CSR_type==LLSCW;
+    assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW;
+    assign force_run=inte|excp_arg1[15];
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;//|nclk_stall
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
@@ -185,7 +186,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     
     always@(posedge(clk))
     begin
-    if(!rstn||(flushin&&!inte))
+    if(!rstn||(flushin&&!force_run))
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
         outpc_reg<=0;dout_reg<=0;
@@ -197,12 +198,12 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         
         //excp_flush<=0;ertn_flush<=0;
         end
-    else if(!stallin||inte)
+    else if(!stallin)//?||force_run
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
         outpc_reg<=outpc;dout_reg<=dout;
         //exe_reg<=exe;inte_reg<=inte;
-        run_reg<=(!stallin && !flushin && exe)||inte;
+        run_reg<=(!stallin && !flushin && exe)||force_run;
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
@@ -286,7 +287,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     nclk_stall=clk_stall;
     
     nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
-    if((!stallin && !flushin && exe)||inte)
+    if((!flushin && exe)||force_run)//?!stallin && 
         begin
         case(mode)
             ERTN:
