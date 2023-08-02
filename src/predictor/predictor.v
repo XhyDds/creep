@@ -241,6 +241,7 @@ module predictor #(
     )
     u_bht(
         .clk(clk),
+        .stall(stall),
         .hashed_pc(pc_hashed2),
         .bh_pdc(bh),
         .hashed_pc_update(pc_ex_hashed),

@@ -51,6 +51,7 @@ module inst_pre#(
         .clk(clk),
         .raddr(addr),
         .dout({naddr_pdc_inst,valid,taken_pdc}),
+        .enb(1),
         .waddr(paddr),
         .din({addr,1'b1,taken_upt}),
         .we((paddr!=addr))
@@ -75,6 +76,7 @@ module inst_pre#(
         .clk(clk),
         .raddr(ann_addr),
         .dout(spare_pdc),
+        .enb(1),
         .waddr(ann_addr_upt),
         .din(spare_upt),
         .we(ann_update_en)
@@ -101,7 +103,7 @@ module inst_pre#(
                     naddr_valid=1;
                     req=1;
                 end
-            else if(~valid)begin
+            else if(~valid)begin    //默认+1
                 naddr_pdc=addr+1;
                 naddr_valid=1;
                 req=1;

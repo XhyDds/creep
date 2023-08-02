@@ -112,6 +112,6 @@ module prefetching_test#(
         .en(req_prefetching),
         .clk(clk),
         .rstn(rstn),
-        .randnum(addr_pref_l2cache)
+        .randnum(addr_prefetching)
     );
 endmodule
