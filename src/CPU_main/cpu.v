@@ -1016,6 +1016,7 @@ module core_top(
     );
 
     //传给流水线，寄存
+    localparam bh_width = 16;
     wire [29:0]npc_pdc;
     wire [2:0]kind_pdc;
     wire taken_pdc;
@@ -1056,8 +1057,6 @@ module core_top(
 
     wire[7:0] out_pdch;
     wire [7:0] pdch;
-
-    localparam bh_width = 16;
     
     predictor #(
         .k_width       		( 14   		),
@@ -1096,7 +1095,7 @@ module core_top(
 
     ex_buffer #(
         .length(6),
-        .bh_width(bh_width),
+        .bh_width(bh_width)
     )u_ex_buffer(
         .clk(clk),
         .rstn(rstn),
