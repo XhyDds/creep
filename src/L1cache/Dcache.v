@@ -203,7 +203,7 @@ Dcache_TagV(
 //不需要stall所以不需要锁存？？
 wire choose_way,choose_return;
 wire [offset_width-1:0]choose_word = rbuf_addr[2+offset_width-1:2];
-reg [31:0]data_out,data_out_reg;
+reg [31:0]data_out,data_out_reg,data_return;
 reg choose_return_reg;
 reg [32*(1<<offset_width)-1:0]data_line;
 always @(*) begin
@@ -215,11 +215,28 @@ always @(*) begin
 end
 always @(posedge clk) begin
     choose_return_reg <= choose_return;
-    data_out_reg <= din_mem_dcache;
+    data_out_reg <= data_return;
 end
 always @(*) begin
-    if(rbuf_SUC)data_out = data_line[31:0];
+    if(rbuf_SUC)data_return = din_mem_dcache[31:0];
     else begin
+        case (choose_word)
+            'd0: data_return = din_mem_dcache[31:0];
+            'd1: data_return = din_mem_dcache[63:32];
+            'd2: data_return = din_mem_dcache[95:64];
+            'd3: data_return = din_mem_dcache[127:96];
+            'd4: data_return = din_mem_dcache[159:128];
+            'd5: data_return = din_mem_dcache[191:160];
+            'd6: data_return = din_mem_dcache[223:192];
+            'd7: data_return = din_mem_dcache[255:224];
+            'd8: data_return = din_mem_dcache[287:256];
+            default: data_return = 32'h1234ABCD;
+        endcase
+    end
+end
+always @(*) begin
+    // if(rbuf_SUC)data_out = data_line[31:0];
+    // else begin
         case (choose_word)
             'd0: data_out = data_line[31:0];
             'd1: data_out = data_line[63:32];
@@ -230,16 +247,9 @@ always @(*) begin
             'd6: data_out = data_line[223:192];
             'd7: data_out = data_line[255:224];
             'd8: data_out = data_line[287:256];
-            // 'd9: data_out = data_line[319:288];
-            // 'd10: data_out = data_line[351:320];
-            // 'd11: data_out = data_line[383:352];
-            // 'd12: data_out = data_line[415:384];
-            // 'd13: data_out = data_line[447:416];
-            // 'd14: data_out = data_line[479:448];
-            // 'd15: data_out = data_line[511:480];
             default: data_out = 32'h1234ABCD;
         endcase
-    end
+    // end
 end
 
 assign dout_dcache_pipeline = choose_return_reg ? data_out_reg : data_out;
