@@ -207,15 +207,15 @@ reg [31:0]data_out,data_out_reg;
 reg choose_return_reg;
 reg [32*(1<<offset_width)-1:0]data_line;
 always @(*) begin
-    if (choose_return) data_line = din_mem_dcache;
-    else begin
+    // if (choose_return) data_line = din_mem_dcache;
+    // else begin
         if (!choose_way) data_line = data0;
         else data_line = data1;
-    end
+    // end
 end
 always @(posedge clk) begin
     choose_return_reg <= choose_return;
-    data_out_reg <= data_out;
+    data_out_reg <= din_mem_dcache;
 end
 always @(*) begin
     if(rbuf_SUC)data_out = data_line[31:0];
@@ -230,13 +230,13 @@ always @(*) begin
             'd6: data_out = data_line[223:192];
             'd7: data_out = data_line[255:224];
             'd8: data_out = data_line[287:256];
-            'd9: data_out = data_line[319:288];
-            'd10: data_out = data_line[351:320];
-            'd11: data_out = data_line[383:352];
-            'd12: data_out = data_line[415:384];
-            'd13: data_out = data_line[447:416];
-            'd14: data_out = data_line[479:448];
-            'd15: data_out = data_line[511:480];
+            // 'd9: data_out = data_line[319:288];
+            // 'd10: data_out = data_line[351:320];
+            // 'd11: data_out = data_line[383:352];
+            // 'd12: data_out = data_line[415:384];
+            // 'd13: data_out = data_line[447:416];
+            // 'd14: data_out = data_line[479:448];
+            // 'd15: data_out = data_line[511:480];
             default: data_out = 32'h1234ABCD;
         endcase
     end
