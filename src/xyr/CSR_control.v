@@ -186,7 +186,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     
     always@(posedge(clk))
     begin
-    if(!rstn||(flushin&&!force_run))
+    if(!rstn||(flushin && !force_run))
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
         outpc_reg<=0;dout_reg<=0;

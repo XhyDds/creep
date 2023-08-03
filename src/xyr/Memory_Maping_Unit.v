@@ -189,7 +189,7 @@ module Memory_Maping_Unit#(
     
     always@(posedge(clk))
     begin
-    if(exe && ~stallw && (subtype==TLBWR || subtype==TLBFILL))
+    if(exe && ~stallw && ~flushw && (subtype==TLBWR || subtype==TLBFILL))
         begin
         PS[Index]<=TLBIDXin[29:24];
         VPPN[Index]<=TLBEHIin[31:13];
@@ -207,7 +207,7 @@ module Memory_Maping_Unit#(
         begin:gen_E
         always@(posedge(clk))
         begin
-        if(exe && ~stallw)
+        if(exe && ~stallw && ~flushw)
             if(Index==j && (subtype==TLBWR || subtype==TLBFILL))
                 begin
                 E[j]<=~TLBIDXin[31];
@@ -261,14 +261,14 @@ module Memory_Maping_Unit#(
         end
     endgenerate
     
-    //0路查找逻辑
+    //0路锟斤拷锟斤拷锟竭硷拷
     generate
     for(i=0;i<=TLB_nex;i=i+1)
         begin:gen_look0
         always@(*)
         begin
         look0[i]=1'b0;
-        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR0[31:1]>>PS[i]))//去低位比较，VPPN要补13位为正确地址
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR0[31:1]>>PS[i]))//去锟斤拷位锟饺较ｏ拷VPPN要锟斤拷13位为锟斤拷确锟斤拷址
             look0[i]=1'b1;
         else
             look0[i]=1'b0;
@@ -361,14 +361,14 @@ module Memory_Maping_Unit#(
        end 
     end
     
-    //1路查找逻辑
+    //1路锟斤拷锟斤拷锟竭硷拷
     generate
     for(i=0;i<=TLB_nex;i=i+1)
         begin:gen_look1
         always@(*)
         begin
         look1[i]=1'b0;
-        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR1[31:1]>>PS[i]))//去低位比较，VPPN要补13位为正确地址
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR1[31:1]>>PS[i]))//去锟斤拷位锟饺较ｏ拷VPPN要锟斤拷13位为锟斤拷确锟斤拷址
             look1[i]=1'b1;
         else
             look1[i]=1'b0;

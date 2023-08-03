@@ -927,10 +927,10 @@ module core_top(
         .pipeline_MMU_stall0            ( stall_if0_if1                 ),
         .pipeline_MMU_flush0            ( flush_if0_if1                 ),
         .pipeline_MMU_stall1            ( stall_exe0_exe1_1              ),
-        //.pipeline_MMU_flush1            ( flush_exe0_exe1_1              ),
-        .pipeline_MMU_flush1            ( excp_flush                    ),
-        .pipeline_MMU_stallw            ( 0                             ),
-        .pipeline_MMU_flushw            ( 0                             ),
+        .pipeline_MMU_flush1            ( flush_exe0_exe1_1              ),
+        // .pipeline_MMU_flush1            ( excp_flush                    ),
+        .pipeline_MMU_stallw            ( stall_exe0_exe1_1              ),
+        .pipeline_MMU_flushw            ( flush_exe0_exe1_1              ),
         .pipeline_MMU_type              ( ctr_reg_exe0_1_excp[3:0]       ),
         .pipeline_MMU_subtype           ( ctr_reg_exe0_1_excp[11:7]      ),
         .pipeline_MMU_excp_arg		    ( excp_arg_reg_exe0_1_excp      ),
@@ -1511,7 +1511,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn|flush_exe0_exe1_1) begin
+        if(!rstn||(flush_exe0_exe1_1 && ctr_exe0_exe1_1[3:0]!=4'd6)) begin// llw
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
             result_exe0_exe1_1<=0;
@@ -2129,7 +2129,7 @@ module core_top(
         .clock              (aclk           ),
         .coreid             (0              ),
         .index              (0              ),
-        .valid              (cmt_inst_st_en ),
+        // .valid              (cmt_inst_st_en )zz,
         .storePAddr         (cmt_st_paddr   ),
         .storeVAddr         (cmt_st_vaddr   ),
         .storeData          (cmt_st_data    )
@@ -2139,7 +2139,7 @@ module core_top(
         .clock              (aclk           ),
         .coreid             (0              ),
         .index              (0              ),
-        .valid              (cmt_inst_ld_en ),
+        // .valid              (cmt_inst_ld_en ),
         .paddr              (cmt_ld_paddr   ),
         .vaddr              (cmt_ld_vaddr   )
     );
