@@ -166,7 +166,7 @@ Dcache_Data(
     .Data_dout0(data0),
     .Data_dout1(data1),
 
-    .Data_din_write(din_mem_dcache),//一整行
+    .Data_din_write(din_reg),//一整行 
     .Data_din_write_32(rbuf_data),
     .Data_addr_write(rbuf_index ^ rbuf_index1),
     .Data_offset(rbuf_offset),
@@ -206,14 +206,13 @@ wire [offset_width-1:0]choose_word = rbuf_addr[2+offset_width-1:2];
 reg [31:0]data_out,data_out_reg,data_return;
 reg choose_return_reg;
 reg [32*(1<<offset_width)-1:0]data_line;
+reg [32*(1<<offset_width)-1:0]din_reg;
 always @(*) begin
-    // if (choose_return) data_line = din_mem_dcache;
-    // else begin
-        if (!choose_way) data_line = data0;
-        else data_line = data1;
-    // end
+    if (!choose_way) data_line = data0;
+    else data_line = data1;
 end
 always @(posedge clk) begin
+    din_reg <= din_mem_dcache;
     choose_return_reg <= choose_return;
     data_out_reg <= data_return;
 end
