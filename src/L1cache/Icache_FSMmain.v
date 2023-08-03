@@ -75,7 +75,8 @@ wire hit0,hit1;
 assign hit0=FSM_hit[0];
 assign hit1=FSM_hit[1];
 wire fStall_outside=pipeline_icache_ctrl[0];//注意编号
-wire flush_outside=pipeline_icache_ctrl[1];
+// wire flush_outside=pipeline_icache_ctrl[1];
+wire flush_outside=0;
 wire opflag;
 assign opflag=pipeline_icache_opflag;
 
