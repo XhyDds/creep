@@ -342,72 +342,72 @@ always @(*) begin
                 end
             end
             else begin//req for L1
-                // FSM_inpref = 1;
-                // if(Hit && ! FSM_SUC_pref)begin
-                //     if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
-                //         if(FSM_hit[0])FSM_choose_way = 3'd0;
-                //         else if(FSM_hit[1])FSM_choose_way = 3'd1;
-                //         else if(FSM_hit[2])FSM_choose_way = 3'd2;
-                //         else if(FSM_hit[3])FSM_choose_way = 3'd3;
-                //         else if(FSM_hit[4])FSM_choose_way = 3'd4;
-                //         else if(FSM_hit[5])FSM_choose_way = 3'd5;
-                //         else if(FSM_hit[6])FSM_choose_way = 3'd6;
-                //         else if(FSM_hit[7])FSM_choose_way = 3'd7;
-                //         if(FSM_from_pref[1])l2cache_dcache_dataOK =1;
-                //         else l2cache_icache_dataOK = 1;
-                //     end
-                //     else if(FSM_from_pref == 2'b11)begin
-                //         l2cache_dcache_addrOK = 1;
-                //         if(FSM_hit[0])begin
-                //             FSM_use[0] = 1;
-                //             FSM_Data_we[0] = 1;
-                //             FSM_Dirtytable_way_select = 3'd0;
-                //             FSM_Dirtytable_set1 = 1;
-                //         end
-                //         else if(FSM_hit[1])begin
-                //             FSM_use[1] = 1;
-                //             FSM_Data_we[1] = 1;
-                //             FSM_Dirtytable_way_select = 3'd1;
-                //             FSM_Dirtytable_set1 = 1;
-                //         end
-                //         else if(FSM_hit[2])begin
-                //             FSM_use[2] = 1;
-                //             FSM_Data_we[2] = 1;
-                //             FSM_Dirtytable_way_select = 3'd2;
-                //             FSM_Dirtytable_set1 = 1;
-                //         end
-                //         else if(FSM_hit[3])begin
-                //             FSM_use[3] = 1;
-                //             FSM_Data_we[3] = 1;
-                //             FSM_Dirtytable_way_select = 3'd3;
-                //             FSM_Dirtytable_set1 = 1;
-                //         end
-                //         else if(FSM_hit[4])begin
-                //             FSM_use[4] = 1;
-                //             FSM_Data_we[4] = 1;
-                //             FSM_Dirtytable_way_select = 3'd4;
-                //             FSM_Dirtytable_set1 = 1;
-                //         end
-                //         else if(FSM_hit[5])begin
-                //             FSM_use[5] = 1;
-                //             FSM_Data_we[5] = 1;
-                //             FSM_Dirtytable_way_select = 3'd5;
-                //             FSM_Dirtytable_set1 = 1;
-                //         end
-                //         else if(FSM_hit[6])begin
-                //             FSM_use[6] = 1;
-                //             FSM_Data_we[6] = 1;
-                //             FSM_Dirtytable_way_select = 3'd6;
-                //             FSM_Dirtytable_set1 = 1;
-                //         end
-                //         else if(FSM_hit[7])begin
-                //             FSM_use[7] = 1;
-                //             FSM_Data_we[7] = 1;
-                //             FSM_Dirtytable_way_select = 3'd7;
-                //             FSM_Dirtytable_set1 = 1;
-                //         end
-                //     end
-                // end
+                FSM_inpref = 1;
+                if(Hit && ! FSM_SUC_pref)begin
+                    if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
+                        if(FSM_hit[0])FSM_choose_way = 3'd0;
+                        else if(FSM_hit[1])FSM_choose_way = 3'd1;
+                        else if(FSM_hit[2])FSM_choose_way = 3'd2;
+                        else if(FSM_hit[3])FSM_choose_way = 3'd3;
+                        else if(FSM_hit[4])FSM_choose_way = 3'd4;
+                        else if(FSM_hit[5])FSM_choose_way = 3'd5;
+                        else if(FSM_hit[6])FSM_choose_way = 3'd6;
+                        else if(FSM_hit[7])FSM_choose_way = 3'd7;
+                        if(FSM_from_pref[1])l2cache_dcache_dataOK =1;
+                        else l2cache_icache_dataOK = 1;
+                    end
+                    else if(FSM_from_pref == 2'b11)begin
+                        l2cache_dcache_addrOK = 1;
+                        if(FSM_hit[0])begin
+                            FSM_use[0] = 1;
+                            FSM_Data_we[0] = 1;
+                            FSM_Dirtytable_way_select = 3'd0;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[1])begin
+                            FSM_use[1] = 1;
+                            FSM_Data_we[1] = 1;
+                            FSM_Dirtytable_way_select = 3'd1;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[2])begin
+                            FSM_use[2] = 1;
+                            FSM_Data_we[2] = 1;
+                            FSM_Dirtytable_way_select = 3'd2;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[3])begin
+                            FSM_use[3] = 1;
+                            FSM_Data_we[3] = 1;
+                            FSM_Dirtytable_way_select = 3'd3;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[4])begin
+                            FSM_use[4] = 1;
+                            FSM_Data_we[4] = 1;
+                            FSM_Dirtytable_way_select = 3'd4;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[5])begin
+                            FSM_use[5] = 1;
+                            FSM_Data_we[5] = 1;
+                            FSM_Dirtytable_way_select = 3'd5;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[6])begin
+                            FSM_use[6] = 1;
+                            FSM_Data_we[6] = 1;
+                            FSM_Dirtytable_way_select = 3'd6;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                        else if(FSM_hit[7])begin
+                            FSM_use[7] = 1;
+                            FSM_Data_we[7] = 1;
+                            FSM_Dirtytable_way_select = 3'd7;
+                            FSM_Dirtytable_set1 = 1;
+                        end
+                    end
+                end
             end
         end
         prefetch_wait_miss:begin

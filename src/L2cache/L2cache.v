@@ -171,13 +171,18 @@ wire [32-offset_width-index_width-2-1:0]tag_pref;
 assign offset_pref = addr_pref[offset_width+1:2];
 assign index_pref = addr_pref[offset_width+index_width+1:offset_width+2];
 assign tag_pref = addr_pref[31:offset_width+index_width+2];
+reg tt;
+always @(posedge clk) begin
+    if(!rstn)tt <= 0;
+    else tt <= ~tt;
+end
 L2cache_pref_reqbuf L2cache_pref_reqbuf(
     .clk(clk),
     .rstn(rstn),
 
     .data_l1(din_l1cache_l2cache),
     .addr_l1(dcache_l2cache_req ? addr_dcache_l2cache : (icache_l2cache_req ? addr_icache_l2cache : 0)),
-    .from(from),
+    .from({from[1]&tt,from[0]&tt}),
     .wstrb_l1(dcache_l2cache_wstrb),
     .SUC(l1cache_l2cache_SUC),
 
