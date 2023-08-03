@@ -22,7 +22,7 @@ module fetch_buffer_v2 (
     reg [66:0]pre_and_valid_and_plv[0:15];
     reg [15:0]buffer_excp_arg[0:15];
     reg [31:0]buffer_npc[0:15];
-    reg [3:0]pointer;//0~15
+    (* MAX_FANOUT = 3 *)reg [3:0]pointer;//0~15
     reg [3:0]npointer;
     wire [31:0]ir[0:1];
     assign ir[0]=irin[31:0];
