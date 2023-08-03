@@ -1,5 +1,5 @@
 module ghr#(
-    parameter   gh_width = 14,
+    parameter   gh_width = 16,
                 queue_len= 16       //取决于流水线中同时存在的最大指令数
 )(
     input   clk,
@@ -8,16 +8,19 @@ module ghr#(
     output  reg [gh_width-1:0]gh,   
     output  reg[gh_width-1:0] gh_ex,
     input   taken_pdc,              //预测得到的是否跳转
+    input   taken_ex,               //实际是否跳转
 
     input   mis_pdc,                //是否预测错误
     input   is_jump_pdc,            //当前指令是否是跳转指令（当前只考虑跳转指令）
     input   is_jump_ex,             //ex段的指令曾经判断是否是跳转指令
+    input   is_jump_pdc_ex,         //ex段的指令曾经预测是否是跳转指令
     input   update_en               //ex段传回的是否更新的信号
     );
     //恢复队列
     reg     [gh_width-1:0]  chkpt_q[0:queue_len-1];//check_point queue
     reg     [3:0]pointer;
 
+    wire    is_jump_pdc_ex_=is_jump_pdc_ex&update_en;
     wire    mis_pdc_=mis_pdc&update_en;
     wire    is_jump_ex_=is_jump_ex&update_en;
     wire    is_jump_pdc_=is_jump_pdc&(~stall);
@@ -44,6 +47,24 @@ module ghr#(
         else if(is_jump_pdc_) begin
             chkpt_q[4'd0]<=0;
             chkpt_q[4'd1]<={gh[gh_width-2:0],~taken_pdc};
+            chkpt_q[4'd2]<=chkpt_q[4'd1];
+            chkpt_q[4'd3]<=chkpt_q[4'd2];
+            chkpt_q[4'd4]<=chkpt_q[4'd3];
+            chkpt_q[4'd5]<=chkpt_q[4'd4];
+            chkpt_q[4'd6]<=chkpt_q[4'd5];
+            chkpt_q[4'd7]<=chkpt_q[4'd6];
+            chkpt_q[4'd8]<=chkpt_q[4'd7];
+            chkpt_q[4'd9]<=chkpt_q[4'd8];
+            chkpt_q[4'd10]<=chkpt_q[4'd9];
+            chkpt_q[4'd11]<=chkpt_q[4'd10];
+            chkpt_q[4'd12]<=chkpt_q[4'd11];
+            chkpt_q[4'd13]<=chkpt_q[4'd12];
+            chkpt_q[4'd14]<=chkpt_q[4'd13];
+            chkpt_q[4'd15]<=chkpt_q[4'd14];
+        end
+        else if(mis_pdc) begin
+            chkpt_q[4'd0]<=0;
+            chkpt_q[4'd1]<={gh[gh_width-2:0],taken_ex};
             chkpt_q[4'd2]<=chkpt_q[4'd1];
             chkpt_q[4'd3]<=chkpt_q[4'd2];
             chkpt_q[4'd4]<=chkpt_q[4'd3];
@@ -90,6 +111,13 @@ module ghr#(
     end
 
     always @(*) begin
-        gh_ex=chkpt_q[pointer];
+        gh_ex=0;
+        if(mis_pdc_&&is_jump_ex_) begin
+            if(is_jump_pdc_ex) begin
+                    gh_ex=chkpt_q[pointer+1];
+            end
+            else    gh_ex=chkpt_q[pointer];
+        end
+        else ;
     end
 endmodule

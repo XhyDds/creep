@@ -1,9 +1,9 @@
 `define TEST
 module predictor #(
-    parameter   k_width   = 14,
-                h_width   = 14,
-                bh_width  = 14,
-                gh_width  = 14,
+    parameter   k_width   = 12,
+                h_width   = 8,
+                bh_width  = 16,
+                gh_width  = 16,
                 stack_len = 16,
                 queue_len = 16,
                 ADDR_WIDTH= 30
@@ -23,6 +23,7 @@ module predictor #(
     input [1:0]choice_real,     //1:ras/btb  0:g/h
     input [1:0]choice_pdc_ex,
     input [7:0]out_pdch,
+    input [2:0]kind_pdc_ex,
 
     //预测
     output [ADDR_WIDTH-1:0]npc_pdc,
@@ -99,7 +100,7 @@ module predictor #(
         end
     end
 
-    single_hash#(
+    pc_hash#(
         .DATA_width(ADDR_WIDTH),
         .HASH_width(k_width)
     )
@@ -108,7 +109,7 @@ module predictor #(
         .data_hashed(pc_hashed)
     );
 
-    single_hash#(
+    pc_hash#(
         .DATA_width(ADDR_WIDTH),
         .HASH_width(k_width)
     )
@@ -117,7 +118,7 @@ module predictor #(
         .data_hashed(pc_hashed1)
     );
 
-    single_hash#(
+    pc_hash#(
         .DATA_width(ADDR_WIDTH),
         .HASH_width(k_width)
     )
@@ -126,7 +127,7 @@ module predictor #(
         .data_hashed(pc_hashed2)
     );
 
-    single_hash#(
+    pc_hash#(
         .DATA_width(ADDR_WIDTH),
         .HASH_width(k_width)
     )
@@ -135,7 +136,7 @@ module predictor #(
         .data_hashed(pc_ex_hashed)
     );
 
-    combine_hash#(
+    pc_gh_hash#(
         .DATA1_width(k_width),
         .DATA2_width(gh_width),
         .HASH_width(h_width)
@@ -145,7 +146,7 @@ module predictor #(
         .data2_raw(gh_reg),
         .data_hashed(pc_gh_hashed)
     );
-    combine_hash#(
+    pc_gh_hash#(
         .DATA1_width(k_width),
         .DATA2_width(gh_width),
         .HASH_width(h_width)
@@ -156,7 +157,7 @@ module predictor #(
         .data_hashed(pc_gh_hashed1)
     );
 
-    combine_hash#(
+    pc_bh_hash#(
         .DATA1_width(k_width),
         .DATA2_width(bh_width),
         .HASH_width(h_width)
@@ -167,7 +168,7 @@ module predictor #(
         .data_hashed(pc_bh_hashed)
     );
 
-    combine_hash#(
+    pc_bh_hash#(
         .DATA1_width(k_width),
         .DATA2_width(bh_width),
         .HASH_width(h_width)
@@ -178,18 +179,18 @@ module predictor #(
         .data_hashed(pc_bh_hashed1)
     );
 
-    combine_hash#(
+    pc_gh_hash#(
         .DATA1_width(k_width),
         .DATA2_width(gh_width),
         .HASH_width(h_width)
     )
-    combine_hash_pc_ex_gh(
+    pc_gh_hash_pc_ex_gh(
         .data1_raw(pc_ex_hashed),
         .data2_raw(gh_ex),
         .data_hashed(pc_ex_gh_hashed)
     );
 
-    combine_hash#(
+    pc_bh_hash#(
         .DATA1_width(k_width),
         .DATA2_width(bh_width),
         .HASH_width(h_width)
@@ -203,6 +204,7 @@ module predictor #(
     //方向预测
     aim_predictor#(
         .h_width(h_width),
+        .k_width(k_width),
         .ADDR_WIDTH(ADDR_WIDTH)
     )
     u_aim_predictor(
@@ -210,6 +212,7 @@ module predictor #(
         .pc_ex(pc_ex),
         .pc_ex_gh_hashed(pc_ex_gh_hashed),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
+        .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
         .choice_real(choice_real_b_g),
         .taken_real(taken_real),
@@ -225,7 +228,8 @@ module predictor #(
         .pc_gh_hashed1(pc_gh_hashed1),
         .pc_gh_hashed2(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
-        .pc(pc),
+        .pc_hashed(pc_hashed_reg),
+        .pc_reg(pc_reg),
         .update_en(update_en)
     );
 
@@ -274,9 +278,11 @@ module predictor #(
         .gh(gh),
         .gh_ex(gh_ex),
         .taken_pdc(taken_pdc),
+        .taken_ex(taken_real),
         .mis_pdc(taken_pdch_ex_g[1]!=taken_real),
         .is_jump_pdc(kind_pdc!=NOT_JUMP),
         .is_jump_ex(kind_ex!=NOT_JUMP),
+        .is_jump_pdc_ex(kind_pdc_ex!=NOT_JUMP),
         .update_en (update_en)
     );
 
@@ -296,6 +302,7 @@ module predictor #(
         .ret_pc_ex(ret_pc_ex),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
         .pc_ex_hashed(pc_ex_hashed),
+        .pc_ex(pc_ex),
         .kind_ex(kind_ex),
         .choice_real(choice_real_btb_ras),
         .choice_pdch_ex(choice_pdch_ex_btb_ras),//ras_btb
@@ -339,14 +346,15 @@ module predictor #(
             times_mis_ras    <=0;
         end
         else begin
-            if(mis_pdc_npc&&update_en)             times_mis_npc    <=times_mis_npc    +1;
-            if(mis_pdc_kind&&update_en)            times_mis_kind   <=times_mis_kind   +1;
-            if(mis_pdc_taken&&update_en)           times_mis_taken  <=times_mis_taken  +1;
-
-            if(~mis_pdc_taken&&kind_ex!=NOT_JUMP&&update_en)
+            if(mis_pdc_npc&&update_en)  times_mis_npc    <=times_mis_npc    +1;
+            if(mis_pdc_kind&&update_en) times_mis_kind   <=times_mis_kind   +1;
+            if((kind_ex==DIRECT_JUMP)&&mis_pdc_taken&&update_en)
+                                        times_mis_taken  <=times_mis_taken  +1;
+            if(~mis_pdc_taken&&(kind_ex!=NOT_JUMP)&&update_en)
                                         times_total_npc  <=times_total_npc  +1;
+
                                         times_total_kind <=times_total_kind +1;
-            if(kind_ex==DIRECT_JUMP&&update_en) 
+            if((kind_ex==DIRECT_JUMP)&&update_en)
                                         times_total_taken<=times_total_taken+1;
 
             if(mis_pdc_taken&&(kind_ex==DIRECT_JUMP)&&update_en) begin

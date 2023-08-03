@@ -1016,7 +1016,10 @@ module core_top(
     );
 
     //传给流水线，寄存
-    localparam bh_width = 16;
+    localparam  k_width = 12,
+                bh_width = 16,
+                gh_width = 16,
+                h_width = 8;
     wire [29:0]npc_pdc;
     wire [2:0]kind_pdc;
     wire taken_pdc;
@@ -1059,8 +1062,10 @@ module core_top(
     wire [7:0] pdch;
     
     predictor #(
-        .k_width       		( 14   		),
+        .k_width       		( k_width   ),
         .bh_width       	( bh_width  ),
+        .gh_width           ( gh_width  ),
+        .h_width            ( h_width   ),
         .stack_len     		( 14   		),
         .queue_len     		( 16   		),
         .ADDR_WIDTH    		( 30   		))
@@ -1081,6 +1086,7 @@ module core_top(
         .choice_real 		( choice_real 		),
         .choice_pdc_ex      ( out_choice_pdc    ),
         .out_pdch           ( out_pdch          ),
+        .kind_pdc_ex        ( out_kind_pdc      ),
 
         .npc_pdc     		( npc_pdc  	    	),
         .kind_pdc    		( kind_pdc       	),
@@ -1828,31 +1834,31 @@ module core_top(
     //     .miss_l2cache_pref(miss_l2cache_pref)
     // );
 
-    prefetching#(
-        .ADDR_WIDTH(32),
-        .L2cache_width(offset_width)
-    )u_prefetching(
-        .clk(clk),
-        .rstn(rstn),
-        //inst-port
-        .pdc_pref_addr(npc),
-        //data-port
-        .dcache_pref_addr(dcache_pref_addr),
-        .dcache_pref_pc(dcache_pref_pc),
-        .dcache_pref_valid(dcache_pref_valid),
-        //l2cache-port
-        .anneal_addr(anneal_addr),
-        .anneal_pc(anneal_pc),
-        .anneal_unhit(anneal_unhit),
-        .anneal_type(anneal_type),
+    // prefetching#(
+    //     .ADDR_WIDTH(32),
+    //     .L2cache_width(offset_width)
+    // )u_prefetching(
+    //     .clk(clk),
+    //     .rstn(rstn),
+    //     //inst-port
+    //     .pdc_pref_addr(npc),
+    //     //data-port
+    //     .dcache_pref_addr(dcache_pref_addr),
+    //     .dcache_pref_pc(dcache_pref_pc),
+    //     .dcache_pref_valid(dcache_pref_valid),
+    //     //l2cache-port
+    //     .anneal_addr(anneal_addr),
+    //     .anneal_pc(anneal_pc),
+    //     .anneal_unhit(anneal_unhit),
+    //     .anneal_type(anneal_type),
 
-        .req_pref_l2cache(req_pref_l2cache),
-        .type_pref_l2cache(type_pref_l2cache),
-        .addr_pref_l2cache(addr_pref_l2cache),
-        .complete_l2cache_pref(complete_l2cache_pref),
-        .hit_l2cache_pref(hit_l2cache_pref),
-        .miss_l2cache_pref(miss_l2cache_pref)
-    );
+    //     .req_pref_l2cache(req_pref_l2cache),
+    //     .type_pref_l2cache(type_pref_l2cache),
+    //     .addr_pref_l2cache(addr_pref_l2cache),
+    //     .complete_l2cache_pref(complete_l2cache_pref),
+    //     .hit_l2cache_pref(hit_l2cache_pref),
+    //     .miss_l2cache_pref(miss_l2cache_pref)
+    // );
 
 
     l2_axi_package#(

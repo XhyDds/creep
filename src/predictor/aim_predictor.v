@@ -1,5 +1,6 @@
 module aim_predictor#(
-    parameter   h_width   = 14,
+    parameter   h_width   = 8,
+                k_width   = 12,
                 ADDR_WIDTH = 30
 )(
     input  clk,
@@ -8,6 +9,7 @@ module aim_predictor#(
     input  [ADDR_WIDTH-1:0] pc_ex,
     input  [h_width-1:0] pc_ex_gh_hashed,
     input  [h_width-1:0] pc_ex_bh_hashed,
+    input  [k_width-1:0] pc_ex_hashed,
     input  [2:0]kind_ex,
     input  choice_real,
     input  [1:0]choice_pdch_ex,
@@ -25,7 +27,8 @@ module aim_predictor#(
     input  [h_width-1:0] pc_gh_hashed1,
     input  [h_width-1:0] pc_gh_hashed2,
     input  [h_width-1:0] pc_bh_hashed,
-    input  [ADDR_WIDTH-1:0] pc
+    input  [k_width-1:0] pc_hashed,
+    input  [ADDR_WIDTH-1:0] pc_reg
 );
     // parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
     
@@ -48,12 +51,14 @@ module aim_predictor#(
     bpht_b(
         .clk(clk),
         .hashed_pc(pc_bh_hashed),
+        .pc(pc_reg),
         .b_taken_pdc(taken_b),
         .taken_pdch_b(taken_pdch_b),
         .hashed_pc_update(pc_ex_bh_hashed),
         .b_taken_real(taken_real),
         .taken_pdch_ex_b(taken_pdch_ex_b),
-        .update_en(try_to_pdc&&update_en)
+        .update_en(try_to_pdc&&update_en),
+        .pc_update(pc_ex)
     );
 
     gpht#(              //pc+gh
@@ -62,9 +67,11 @@ module aim_predictor#(
     gpht_g(
         .clk(clk),
         .hashed_pc(pc_gh_hashed1),
+        .pc(pc_reg),
         .g_taken_pdc(taken_g),
         .taken_pdch_g(taken_pdch_g),
         .hashed_pc_update(pc_ex_gh_hashed),
+        .pc_update(pc_ex),
         .g_taken_real(taken_real),
         .taken_pdch_ex_g(taken_pdch_ex_g),
         .update_en(try_to_pdc&&update_en)
@@ -101,6 +108,12 @@ module aim_predictor#(
 //                     | (~kind_pdc[2] &  kind_pdc[0] & (choice_b_g&taken_g)|(~choice_b_g&taken_b) )
 //                     | (~kind_pdc[2] & ~kind_pdc[0] & 0);
 
+    // assign taken_pdc= kind_pdc[2]
+    //                 | ( kind_pdc[0] & (choice_b_g&taken_g)|(~choice_b_g&taken_b) );
+
     assign taken_pdc= kind_pdc[2]
-                    | ( kind_pdc[0] & (choice_b_g&taken_g)|(~choice_b_g&taken_b) );
+                    | ( kind_pdc[0] & taken_b );
+
+        // assign taken_pdc= kind_pdc[2]
+        //             | ( kind_pdc[0] & taken_g );
 endmodule
