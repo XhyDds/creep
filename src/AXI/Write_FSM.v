@@ -16,7 +16,7 @@ module Write_FSM(
     output reg [4:0] nxt
 );
     parameter IDLE = 5'd0,DMA_AW=5'd1 , DMA_W=5'd2 , DMA_R=5'd3,
-        PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,SEND_8=5'd13,SEND_9=5'd14,SEND_10=5'd15,SEND_11=5'd16,SEND_12=5'd17,SEND_13=5'd18,SEND_14=5'd19,SEND_15=5'd20,_SEND=5'd21;
+        PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,_SEND=5'd13;
 
     always @(posedge clk)begin
         if (!rstn) begin
@@ -83,40 +83,8 @@ module Write_FSM(
                 else                nxt=SEND_6;
             end
             SEND_7: begin
-                if(out_wready)      nxt=SEND_8;
-                else                nxt=SEND_7;
-            end
-            SEND_8: begin
-                if(out_wready)      nxt=SEND_9;
-                else                nxt=SEND_8;
-            end
-            SEND_9: begin
-                if(out_wready)      nxt=SEND_10;
-                else                nxt=SEND_9;
-            end
-            SEND_10: begin
-                if(out_wready)      nxt=SEND_11;
-                else                nxt=SEND_10;
-            end
-            SEND_11: begin
-                if(out_wready)      nxt=SEND_12;
-                else                nxt=SEND_11;
-            end
-            SEND_12: begin
-                if(out_wready)      nxt=SEND_13;
-                else                nxt=SEND_12;
-            end
-            SEND_13: begin
-                if(out_wready)      nxt=SEND_14;
-                else                nxt=SEND_13;
-            end
-            SEND_14: begin
-                if(out_wready)      nxt=SEND_15;
-                else                nxt=SEND_14;
-            end
-            SEND_15: begin
                 if(out_wready)      nxt=_SEND;
-                else                nxt=SEND_15;
+                else                nxt=SEND_7;
             end
             _SEND: begin
                 if(out_bvalid)      nxt=IDLE;

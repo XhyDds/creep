@@ -72,7 +72,7 @@ module core_top(
 );
     wire clk=aclk;
     wire rstn=aresetn;
-    parameter offset_width = 4;
+    parameter offset_width = 3;
 
     reg [31:0]pc,npc,
     ctr_id_reg_0,       ctr_id_reg_1,       

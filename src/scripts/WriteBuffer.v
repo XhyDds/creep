@@ -11,7 +11,7 @@
 
 module WriteBuffer #(
     parameter   length=10,
-                offset_width=4
+                offset_width=3
 ) (
     input  clk,
     input  rstn,
@@ -54,7 +54,7 @@ module WriteBuffer #(
     //pull(->axi)
     //state machine
     parameter IDLE_L = 5'd0,
-            PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,SEND_8=5'd13,SEND_9=5'd14,SEND_10=5'd15,SEND_11=5'd16,SEND_12=5'd17,SEND_13=5'd18,SEND_14=5'd19,SEND_15=5'd20,_SEND=5'd21;
+            PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,_SEND=5'd13;
     //外部输入
     //组合action
     reg pointer_minus;
@@ -115,48 +115,8 @@ module WriteBuffer #(
             end
             SEND_7: begin
                 out_valid=1;
-                out_data=_out_data[255:224];
-                out_wvalid=1;
-            end
-            SEND_8: begin
-                out_valid=1;
-                out_data=_out_data[287:256];
-                out_wvalid=1;
-            end
-            SEND_9: begin
-                out_valid=1;
-                out_data=_out_data[319:288];
-                out_wvalid=1;
-            end
-            SEND_10: begin
-                out_valid=1;
-                out_data=_out_data[351:320];
-                out_wvalid=1;
-            end
-            SEND_11: begin
-                out_valid=1;
-                out_data=_out_data[383:352];
-                out_wvalid=1;
-            end
-            SEND_12: begin
-                out_valid=1;
-                out_data=_out_data[415:384];
-                out_wvalid=1;
-            end
-            SEND_13: begin
-                out_valid=1;
-                out_data=_out_data[447:416];
-                out_wvalid=1;
-            end
-            SEND_14: begin
-                out_valid=1;
-                out_data=_out_data[479:448];
-                out_wvalid=1;
-            end
-            SEND_15: begin
-                out_valid=1;
                 out_last=1;
-                out_data=_out_data[511:480];
+                out_data=_out_data[255:224];
                 out_wvalid=1;
             end
             _SEND: begin
