@@ -1794,20 +1794,20 @@ module core_top(
         .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
     );
 
-    // prefetching_test#(
-    //     .ADDR_WIDTH(32),
-    //     .L2cache_width(3)
-    // )
-    // prefetching_test(
-    //     .clk(clk),
-    //     .rstn(rstn),
-    //     .req_pref_l2cache(req_pref_l2cache),
-    //     .type_pref_l2cache(type_pref_l2cache),
-    //     .addr_pref_l2cache(addr_pref_l2cache),
-    //     .complete_l2cache_pref(complete_l2cache_pref),
-    //     .hit_l2cache_pref(hit_l2cache_pref),
-    //     .miss_l2cache_pref(miss_l2cache_pref)
-    // );
+    prefetching_test#(
+        .ADDR_WIDTH(32),
+        .L2cache_width(3)
+    )
+    prefetching_test(
+        .clk(clk),
+        .rstn(rstn),
+        .req_pref_l2cache(req_pref_l2cache),
+        .type_pref_l2cache(type_pref_l2cache),
+        .addr_pref_l2cache(addr_pref_l2cache),
+        .complete_l2cache_pref(complete_l2cache_pref),
+        .hit_l2cache_pref(hit_l2cache_pref),
+        .miss_l2cache_pref(miss_l2cache_pref)
+    );
 
     // prefetching#(
     //     ADDR_WIDTH(32),

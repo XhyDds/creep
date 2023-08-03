@@ -60,9 +60,9 @@ module L2cache_FSMmain#(
     input       [31:0]FSM_rbuf_opaddr,
     input       FSM_rbuf_SUC,
     input       FSM_rbuf_opflag,
-    input       FSM_rbuf_prefetch,
     input       [1:0]FSM_from_pref,
     input       FSM_rbuf_pref_type,
+    input       FSM_SUC_pref,
 
     input       FSM_SUC,
     input       FSM_dSUC,
@@ -102,6 +102,12 @@ reg flush;
 always @(posedge clk) begin
     flush <= icache_l2cache_flush;//迟一个周期撤销
 end
+reg FSM_rbuf_prefetch;
+reg inpref,outpref;
+always @(posedge clk) begin
+    if(inpref)FSM_rbuf_prefetch <= 1;
+    else if(outpref)FSM_rbuf_prefetch <= 0;
+end
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
 localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9,checkDirty1=5'd10,SUC_w1=5'd11;
 localparam prefetch_check=5'd12,prefetch_wait=5'd13,prefetch_wait_miss=5'd14;
@@ -124,7 +130,7 @@ always @(*) begin
         end
         prefetch_wait:begin
             if(mem_l2cache_dataOK)next_state = Idle;
-            else if(~Hit)next_state = prefetch_wait_miss;
+            else if(~Hit || FSM_SUC_pref)next_state = prefetch_wait_miss;
             else next_state = prefetch_wait;
         end
         prefetch_wait_miss:begin
@@ -256,6 +262,8 @@ always @(*) begin
     FSM_inpref = 0;
     miss_l2cache_pref = 0;
     we_sel = 0;
+    inpref = 0;
+    outpref = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
@@ -295,6 +303,7 @@ always @(*) begin
             end
         end
         prefetch_check:begin
+            inpref = 1;
             if(Hit)begin
                 hit_l2cache_pref = 1;
                 complete_l2cache_pref = 1;
@@ -322,7 +331,7 @@ always @(*) begin
             end
             else begin//req for L1
                 FSM_inpref = 1;
-                if(Hit)begin
+                if(Hit && ! FSM_SUC_pref)begin
                     if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
                         if(FSM_hit[0])FSM_choose_way = 3'd0;
                         else if(FSM_hit[1])FSM_choose_way = 3'd1;
@@ -393,6 +402,7 @@ always @(*) begin
             l2cache_mem_req_r = 1;
             l2cache_mem_rdy = 1;
             if(mem_l2cache_dataOK)begin
+                outpref = 1;
                 complete_l2cache_pref = 1;
                 miss_l2cache_pref = 1;
                 FSM_Data_replace = 1;
@@ -417,7 +427,7 @@ always @(*) begin
             l2cache_dcache_addrOK = 1;//实际写入后发addrOK
         end
         Lookup:begin
-            if(!(FSM_rbuf_from == 2'b01 && flush))begin
+            if(!(FSM_rbuf_from == 2'b01 && flush) && !FSM_rbuf_SUC)begin
             if(Hit)begin
                 if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
                     if(FSM_hit[0])begin FSM_use[0] = 1; FSM_choose_way = 3'd0; end
@@ -545,7 +555,6 @@ always @(*) begin
                 if(!FSM_rbuf_SUC)begin
                     FSM_Data_replace = 1;//写一个块
                     if(FSM_rbuf_from == 2'b01)begin//i-r
-                        FSM_rbuf_we = 1;
                         l2cache_icache_dataOK = 1;
                         FSM_use[{1'b0,sel_i}] = 1;
                         FSM_Data_we[{1'b0,sel_i}] = 1;
@@ -553,7 +562,6 @@ always @(*) begin
                         FSM_Dirtytable_set0 = 1;
                     end
                     else if(FSM_rbuf_from == 2'b10)begin//d-r
-                        FSM_rbuf_we = 1;
                         l2cache_dcache_dataOK = 1;
                         FSM_use[sel_d] = 1;
                         FSM_Data_we[sel_d] = 1;
@@ -569,11 +577,9 @@ always @(*) begin
                 end
                 else begin
                     if(FSM_rbuf_from == 2'b01)begin
-                        FSM_rbuf_we = 1;
                         l2cache_icache_dataOK = 1;
                     end
                     else if(FSM_rbuf_from == 2'b10)begin
-                        FSM_rbuf_we = 1;
                         l2cache_dcache_dataOK = 1;
                     end
                 end
