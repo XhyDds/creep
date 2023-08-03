@@ -50,6 +50,7 @@ module L2cache_FSMmain#(
     output reg  hit_l2cache_pref,
     output reg  miss_l2cache_pref,
     output reg  complete_l2cache_pref,
+    output reg  missvalid,
 
     //模块间信号
 
@@ -273,6 +274,7 @@ always @(*) begin
     we_sel = 0;
     inpref = 0;
     outpref = 0;
+    missvalid = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
@@ -439,6 +441,7 @@ always @(*) begin
             l2cache_dcache_addrOK = 1;//实际写入后发addrOK
         end
         Lookup:begin
+            missvalid = ~Hit;
             if(!(FSM_rbuf_from == 2'b01 && flush) && !FSM_rbuf_SUC)begin
             if(Hit)begin
                 if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中

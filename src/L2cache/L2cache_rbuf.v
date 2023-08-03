@@ -25,8 +25,8 @@ module L2cache_rbuf#(
 )
 (
     input clk,rstn,rbuf_we,
-    input [31:0]addr,data,opcode,opaddr,
-    output reg [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_opaddr,
+    input [31:0]addr,data,opcode,opaddr,pc,
+    output reg [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_opaddr,rbuf_pc,
     input opflag,SUC,prefetch,pref_type,
     output reg rbuf_opflag,rbuf_SUC,rbuf_pref_type,
     input [3:0]wstrb,
@@ -49,6 +49,7 @@ always @(posedge clk)begin
         rbuf_opaddr <= 0;
         rbuf_size <= 0;
         rbuf_pref_type <= 0;
+        rbuf_pc <= 0;
     end
     else if(rbuf_we)begin
         rbuf_addr <= addr;
@@ -61,6 +62,7 @@ always @(posedge clk)begin
         rbuf_opaddr <= opaddr;
         rbuf_size <= size;
         rbuf_pref_type <= pref_type;
+        rbuf_pc <= pc;
     end
 end
 // always @(*) begin

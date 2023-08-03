@@ -56,6 +56,7 @@ module Dcache#(
 
     //mem prot
     output      [31:0]addr_dcache_mem,
+    output      [31:0]pc_dcache_mem,
     output      [31:0]dout_dcache_mem,
     input       [32*(1<<offset_width)-1:0]din_mem_dcache,
 
@@ -265,6 +266,7 @@ assign addr_dcache_mem = rbuf_SUC ? rbuf_addr :(dcache_mem_wr ? rbuf_addr:{rbuf_
 // `endif
 assign dcache_mem_size = rbuf_size;
 assign dcache_mem_wstrb = rbuf_wstrb;
+assign pc_dcache_mem = rbuf_pc;
 
 //FSM
 Dcache_FSMmain #(

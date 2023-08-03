@@ -1718,14 +1718,18 @@ module core_top(
     wire complete_l2cache_pref;
     wire hit_l2cache_pref;
     wire miss_l2cache_pref;
-    //待接线
+    wire missvalid_l2cacahe_pref;
+    wire [31:0]misspc_l2cache_pref;
+    wire [31:0]missaddr_l2cache_pref;
+    wire misstype_l2cache_pref_paddr;
+
     wire [31:0] dcache_pref_addr;
     wire [31:0] dcache_pref_pc;
     wire        dcache_pref_valid;
-    wire [31:0] anneal_addr;
-    wire [31:0] anneal_pc;
-    wire        anneal_unhit;//脉冲
-    wire        anneal_type;
+    wire [31:0] anneal_addr = missaddr_l2cache_pref;
+    wire [31:0] anneal_pc = misspc_l2cache_pref;
+    wire        anneal_unhit = missvalid_l2cacahe_pref;//脉冲
+    wire        anneal_type = misstype_l2cache_pref_paddr;
 
     L1_L2cache #(
         .I_index_width  		( 7 		),
@@ -1783,6 +1787,15 @@ module core_top(
         .complete_l2cache_pref          ( complete_l2cache_pref        ),
         .hit_l2cache_pref               ( hit_l2cache_pref             ),
         .miss_l2cache_pref              ( miss_l2cache_pref            ),
+        .missvalid_l2cacahe_pref(missvalid_l2cacahe_pref),
+        .misspc_l2cache_pref(misspc_l2cache_pref),
+        .missaddr_l2cache_pref(missaddr_l2cache_pref),
+        .misstype_l2cache_pref_paddr(misstype_l2cache_pref_paddr),
+        
+        // D-prefetch
+        .dcache_pref_addr(dcache_pref_addr),
+        .dcache_pref_pc(dcache_pref_pc),
+        .dcache_pref_valid(dcache_pref_valid),
 
         //  L2cache to Mem
         .addr_l2cache_mem_r             ( addr_l2cache_mem_r   ),
@@ -1815,31 +1828,31 @@ module core_top(
     //     .miss_l2cache_pref(miss_l2cache_pref)
     // );
 
-    // prefetching#(
-    //     ADDR_WIDTH(32),
-    //     L2cache_width(offset_width)
-    // )u_prefetching(
-    //     .clk(clk),
-    //     .rstn(rstn),
-    //     //inst-port
-    //     .pdc_pref_addr(npc),
-    //     //data-port
-    //     .dcache_pref_addr(dcache_pref_addr),
-    //     .dcache_pref_pc(dcache_pref_pc),
-    //     .dcache_pref_valid(dcache_pref_valid),
-    //     //l2cache-port
-    //     .anneal_addr(anneal_addr),
-    //     .anneal_pc(anneal_pc),
-    //     .anneal_unhit(anneal_unhit),
-    //     .anneal_type(anneal_type),
+    prefetching#(
+        .ADDR_WIDTH(32),
+        .L2cache_width(offset_width)
+    )u_prefetching(
+        .clk(clk),
+        .rstn(rstn),
+        //inst-port
+        .pdc_pref_addr(npc),
+        //data-port
+        .dcache_pref_addr(dcache_pref_addr),
+        .dcache_pref_pc(dcache_pref_pc),
+        .dcache_pref_valid(dcache_pref_valid),
+        //l2cache-port
+        .anneal_addr(anneal_addr),
+        .anneal_pc(anneal_pc),
+        .anneal_unhit(anneal_unhit),
+        .anneal_type(anneal_type),
 
-    //     .req_pref_l2cache(req_pref_l2cache),
-    //     .type_pref_l2cache(type_pref_l2cache),
-    //     .addr_pref_l2cache(addr_pref_l2cache),
-    //     .complete_l2cache_pref(complete_l2cache_pref),
-    //     .hit_l2cache_pref(hit_l2cache_pref),
-    //     .miss_l2cache_pref(miss_l2cache_pref)
-    // );
+        .req_pref_l2cache(req_pref_l2cache),
+        .type_pref_l2cache(type_pref_l2cache),
+        .addr_pref_l2cache(addr_pref_l2cache),
+        .complete_l2cache_pref(complete_l2cache_pref),
+        .hit_l2cache_pref(hit_l2cache_pref),
+        .miss_l2cache_pref(miss_l2cache_pref)
+    );
 
 
     l2_axi_package#(

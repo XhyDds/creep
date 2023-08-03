@@ -28,6 +28,7 @@ module L2cache#(
 
     //Dcache port
     input       [31:0]addr_dcache_l2cache,
+    input       [31:0]pc_dcache_l2cache,
     input       [31:0]din_dcache_l2cache,//L1写直达
     output      [32*(1<<L1_offset_width)-1:0]dout_l2cache_dcache,
     input       dcache_l2cache_req,
@@ -45,6 +46,10 @@ module L2cache#(
     output      hit_l2cache_pref,//ack时取走hit
     output      miss_l2cache_pref,//dataOK时取走miss
     output      complete_l2cache_pref,
+    output      missvalid_l2cacahe_pref,//valid
+    output      [31:0]misspc_l2cache_pref,
+    output      [31:0]missaddr_l2cache_pref,
+    output      misstype_l2cache_pref_paddr,//0-I 1-D
 
     //mem port(AXI bridge)
     output      [31:0]addr_l2cache_mem_r,
@@ -66,6 +71,7 @@ module L2cache#(
 reg [31:0]addr_l1cache_l2cache;
 wire addr_choose_pref;
 wire [31:0]din_l1cache_l2cache;
+reg [31:0]pc_l1cache_l2cache;
 reg [32*(1<<L1_offset_width)-1:0]dout_l2cache_l1cache;
 wire [3:0]l1cache_l2cache_wstrb;
 reg [1:0]l1cache_l2cache_size;
@@ -76,7 +82,9 @@ always @(*) begin
     l1cache_l2cache_size = 2'd0;
     from = 2'd0;
     addr_l1cache_l2cache = 0;
+    pc_l1cache_l2cache = 0;
     if(dcache_l2cache_req)begin
+        pc_l1cache_l2cache = pc_dcache_l2cache;
         if(!dcache_l2cache_wr)from = 2'd2;
         else from = 2'd3;
         l1cache_l2cache_SUC = dcache_l2cache_SUC;
@@ -84,6 +92,7 @@ always @(*) begin
         addr_l1cache_l2cache = addr_dcache_l2cache;
     end
     else if(icache_l2cache_req)begin
+        pc_l1cache_l2cache = addr_icache_l2cache;
         from = 2'd1;
         l1cache_l2cache_SUC = icache_l2cache_SUC;
         l1cache_l2cache_size = 2'd2;
@@ -108,7 +117,7 @@ assign index = addr_l1cache_l2cache[offset_width+index_width+1:offset_width+2];
 assign tag = addr_l1cache_l2cache[31:offset_width+index_width+2];
 
 //request buffer
-wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_opaddr;
+wire [31:0]rbuf_addr,rbuf_pc,rbuf_data,rbuf_opcode,rbuf_opaddr;
 wire [3:0]rbuf_wstrb;
 wire [1:0]rbuf_from,rbuf_from_pref;
 wire [1:0]rbuf_size;
@@ -156,7 +165,10 @@ L2cache_rbuf L2cache_rbuf(
     .prefetch(req_pref_l2cache),
 
     .pref_type(type_pref_l2cache),
-    .rbuf_pref_type(rbuf_pref_type)
+    .rbuf_pref_type(rbuf_pref_type),
+
+    .pc(pc_l1cache_l2cache),
+    .rbuf_pc(rbuf_pc)
 );
 
 //pref buffer
@@ -341,6 +353,11 @@ assign l2cache_mem_SUC = rbuf_SUC;
 assign l2cache_mem_wstrb = rbuf_wstrb;
 assign l2cache_mem_size = rbuf_size;
 
+//prefetch
+assign misspc_l2cache_pref = rbuf_pc;
+assign missaddr_l2cache_pref = rbuf_addr;
+assign misstype_l2cache_pref_paddr = ~(rbuf_from == 2'd1);
+
 //FSM
 L2cache_FSMmain #(
     .way(way),
@@ -373,6 +390,7 @@ L2cache_FSMmain(
     .hit_l2cache_pref(hit_l2cache_pref),
     .miss_l2cache_pref(miss_l2cache_pref),
     .complete_l2cache_pref(complete_l2cache_pref),
+    .missvalid(missvalid_l2cacahe_pref),
 
     //request buffer
     .FSM_rbuf_we(rbuf_we),
