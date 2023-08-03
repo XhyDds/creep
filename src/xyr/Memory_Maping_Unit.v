@@ -1,4 +1,4 @@
-module Memory_Maping_Unit#(
+module Memory_Maping_Unit#(//stall frist
     parameter TLB_n=5,TLB_PALEN=32,TLB_VALEN=32
 )(
     input clk,rstn,
@@ -114,7 +114,7 @@ module Memory_Maping_Unit#(
     
     always@(posedge(clk))
     begin
-    if(!rstn || flushw)
+    if(!rstn || (flushw && !stallw))
         begin
         TLBIDXout<=0;TLBEHIout<=0;
         TLBELO0out<=0;TLBELO1out<=0;
@@ -300,7 +300,7 @@ module Memory_Maping_Unit#(
     assign addrmask0=(~0)<<found_ps0;
     always@(posedge(clk))
     begin
-    if(!rstn || flush0)
+    if(!rstn || flush0)//flush first
         begin
         PADDR0<=0;excp_arg0<=0;
         memtype0<=0;
@@ -400,7 +400,7 @@ module Memory_Maping_Unit#(
     assign addrmask1=(~0)<<found_ps1;
     always@(posedge(clk))
     begin
-    if(!rstn || flush1)
+    if(!rstn || (flush1&&!stall1))
         begin
         PADDR1<=0;excp_arg1<=0;
         memtype1<=0;

@@ -35,7 +35,7 @@ module divider#(//din1/din2
     aliner alin2(.din(din2_reg),.n(n2));
     always@(posedge(clk))
     begin
-    if(!rstn||flush2)
+    if(!rstn||(flush2 && !stall2))
         begin
         cs<=Wait;
         mode_reg<=DIVW;

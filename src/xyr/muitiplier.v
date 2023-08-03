@@ -16,7 +16,7 @@ module muitiplier(
     assign din2=pipeline_muitiplier_din2,muitiplier_pipeline_dout=dout;
     always@(posedge(clk))
     begin
-    if(!rstn || flush)
+    if(!rstn || (flush&&!stall))
         begin
         ac<=0;ad<=0;bc<=0;bd<=0;a_b<=0;c_d<=0;mode_reg<=0;
         end

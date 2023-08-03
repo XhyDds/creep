@@ -198,7 +198,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         
         //excp_flush<=0;ertn_flush<=0;
         end
-    else if(!stallin||force_run)//?
+    else if(!stallin)//?||force_run
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
         outpc_reg<=outpc;dout_reg<=dout;
@@ -287,7 +287,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     nclk_stall=clk_stall;
     
     nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
-    if((!flushin && exe)||force_run)//?!stallin && 
+    if((!flushin && exe)||force_run)//?
         begin
         case(mode)
             ERTN:

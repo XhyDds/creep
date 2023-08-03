@@ -952,7 +952,7 @@ module core_top(
         .pipeline_MMU_TLBELO1   		( CSR_MMU_TLBELO1 ),
 
         .pipeline_MMU_optype0   		( 2'b0 	    ),//fetch
-        .pipeline_MMU_VADDR_valid0      ( 1'b1      ),
+        .pipeline_MMU_VADDR_valid0      ( |pc[1:0]?1'b0:1'b1      ),
         .pipeline_MMU_VADDR0    		( pc    ),
         .MMU_pipeline_PADDR0    		( MMU_pipeline_PADDR0	        ),
         .MMU_pipeline_excp_arg0 		( MMU_pipeline_excp_arg0        ),
@@ -1710,11 +1710,11 @@ module core_top(
         .rstn                   		( rstn                   		),
 
         //  Icache
-        .addr_pipeline_icache   		( |pc[1:0]?0:pc   		),
+        .addr_pipeline_icache   		( pc                       		),
         .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_valid  		( 1  		),
+        .pipeline_icache_valid  		( |pc[1:0]?0:1  		),
         .icache_pipeline_ready  		( icache_pipeline_ready  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
