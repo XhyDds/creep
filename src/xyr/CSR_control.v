@@ -198,7 +198,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         
         //excp_flush<=0;ertn_flush<=0;
         end
-    else if(!stallin)//?||force_run
+    else if(!stallin||force_run)//?
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
         outpc_reg<=outpc;dout_reg<=dout;
