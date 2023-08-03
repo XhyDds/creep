@@ -230,14 +230,24 @@ L2cache_Data(
     .Data_dout6(data6),
     .Data_dout7(data7),
 
-    .Data_din_write(din_mem_l2cache),//一整行
+    .Data_din_write(din_reg),//一整行
     .Data_din_write_32(inpref ? data_pref : rbuf_data),
     .Data_addr_write(inpref ? index_pref : rbuf_index),
     .Data_offset(inpref ? offset_pref : rbuf_offset),
     .Data_choose_byte(inpref ? wstrb_pref : rbuf_wstrb),
-    .Data_we(Data_we),
-    .Data_replace(Data_replace)
+    .Data_we(Data_replace_reg ? Data_we_reg : Data_we),
+    .Data_replace(Data_replace_reg)
+    // .Data_we(Data_we),
+    // .Data_replace(Data_replace)
 );
+reg Data_replace_reg;//延迟
+reg [way-1:0]Data_we_reg;
+reg [32*(1<<offset_width)-1:0]din_reg;
+always @(posedge clk) begin
+    din_reg <= din_mem_l2cache;
+    Data_replace_reg <= Data_replace;
+    Data_we_reg <= Data_we;
+end
 
 //Tag
 wire [way-1:0]TagV_we,hit,TagV_unvalid;

@@ -111,6 +111,7 @@ end
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
 localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9,checkDirty1=5'd10,SUC_w1=5'd11;
 localparam prefetch_check=5'd12,prefetch_wait=5'd13,prefetch_wait_miss=5'd14;
+localparam replace_write1=5'd15;
 always @(posedge clk)begin
     if(!rstn)state<=0;
     else state<=next_state;
@@ -130,7 +131,7 @@ always @(*) begin
         end
         prefetch_wait:begin
             if(mem_l2cache_dataOK)next_state = Idle;
-            else if(~Hit || FSM_SUC_pref)next_state = prefetch_wait_miss;
+            else if((~Hit&&FSM_from_pref) || FSM_SUC_pref)next_state = prefetch_wait_miss;
             else next_state = prefetch_wait;
         end
         prefetch_wait_miss:begin
@@ -161,13 +162,18 @@ always @(*) begin
             next_state = checkDirty1;
         end
         checkDirty1:begin
-            if(FSM_Dirty)begin
-                if(FSM_rbuf_prefetch)next_state = Idle;//拒绝预取
-                else next_state = writeback;
+            if(FSM_rbuf_prefetch)begin
+                if(FSM_Dirty)next_state = Idle;//拒绝
+                else next_state = prefetch_wait;
             end
-            else begin
-                if(!FSM_rbuf_opflag)next_state = replace1;
-                else next_state = Idle;
+            else begin//
+                if(FSM_Dirty)begin
+                    next_state = writeback;
+                end
+                else begin
+                    if(!FSM_rbuf_opflag)next_state = replace1;
+                    else next_state = Idle;
+                end
             end
         end
         writeback:begin
@@ -188,10 +194,13 @@ always @(*) begin
                     next_state = Idle;
                 end
                 else begin//非强序写
-                    next_state = replace_write;
+                    next_state = replace_write1;
                 end
             end
             else next_state = replace2;
+        end
+        replace_write1:begin
+            next_state = replace_write;
         end
         replace_write:begin
             next_state = Idle;
@@ -303,10 +312,12 @@ always @(*) begin
             end
         end
         prefetch_check:begin
-            inpref = 1;
             if(Hit)begin
                 hit_l2cache_pref = 1;
                 complete_l2cache_pref = 1;
+            end
+            else begin
+                inpref = 1;
             end
         end
         prefetch_wait:begin//wait and req for l1
@@ -314,6 +325,7 @@ always @(*) begin
             l2cache_mem_rdy = 1;
             if(mem_l2cache_dataOK)begin
                 complete_l2cache_pref = 1;
+                outpref = 1;
                 miss_l2cache_pref = 0;
                 FSM_Data_replace = 1;
                 if(~FSM_rbuf_pref_type)begin//inst
@@ -330,72 +342,72 @@ always @(*) begin
                 end
             end
             else begin//req for L1
-                FSM_inpref = 1;
-                if(Hit && ! FSM_SUC_pref)begin
-                    if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
-                        if(FSM_hit[0])FSM_choose_way = 3'd0;
-                        else if(FSM_hit[1])FSM_choose_way = 3'd1;
-                        else if(FSM_hit[2])FSM_choose_way = 3'd2;
-                        else if(FSM_hit[3])FSM_choose_way = 3'd3;
-                        else if(FSM_hit[4])FSM_choose_way = 3'd4;
-                        else if(FSM_hit[5])FSM_choose_way = 3'd5;
-                        else if(FSM_hit[6])FSM_choose_way = 3'd6;
-                        else if(FSM_hit[7])FSM_choose_way = 3'd7;
-                        if(FSM_from_pref[1])l2cache_dcache_dataOK =1;
-                        else l2cache_icache_dataOK = 1;
-                    end
-                    else if(FSM_from_pref == 2'b11)begin
-                        l2cache_dcache_addrOK = 1;
-                        if(FSM_hit[0])begin
-                            FSM_use[0] = 1;
-                            FSM_Data_we[0] = 1;
-                            FSM_Dirtytable_way_select = 3'd0;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[1])begin
-                            FSM_use[1] = 1;
-                            FSM_Data_we[1] = 1;
-                            FSM_Dirtytable_way_select = 3'd1;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[2])begin
-                            FSM_use[2] = 1;
-                            FSM_Data_we[2] = 1;
-                            FSM_Dirtytable_way_select = 3'd2;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[3])begin
-                            FSM_use[3] = 1;
-                            FSM_Data_we[3] = 1;
-                            FSM_Dirtytable_way_select = 3'd3;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[4])begin
-                            FSM_use[4] = 1;
-                            FSM_Data_we[4] = 1;
-                            FSM_Dirtytable_way_select = 3'd4;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[5])begin
-                            FSM_use[5] = 1;
-                            FSM_Data_we[5] = 1;
-                            FSM_Dirtytable_way_select = 3'd5;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[6])begin
-                            FSM_use[6] = 1;
-                            FSM_Data_we[6] = 1;
-                            FSM_Dirtytable_way_select = 3'd6;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[7])begin
-                            FSM_use[7] = 1;
-                            FSM_Data_we[7] = 1;
-                            FSM_Dirtytable_way_select = 3'd7;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                    end
-                end
+                // FSM_inpref = 1;
+                // if(Hit && ! FSM_SUC_pref)begin
+                //     if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
+                //         if(FSM_hit[0])FSM_choose_way = 3'd0;
+                //         else if(FSM_hit[1])FSM_choose_way = 3'd1;
+                //         else if(FSM_hit[2])FSM_choose_way = 3'd2;
+                //         else if(FSM_hit[3])FSM_choose_way = 3'd3;
+                //         else if(FSM_hit[4])FSM_choose_way = 3'd4;
+                //         else if(FSM_hit[5])FSM_choose_way = 3'd5;
+                //         else if(FSM_hit[6])FSM_choose_way = 3'd6;
+                //         else if(FSM_hit[7])FSM_choose_way = 3'd7;
+                //         if(FSM_from_pref[1])l2cache_dcache_dataOK =1;
+                //         else l2cache_icache_dataOK = 1;
+                //     end
+                //     else if(FSM_from_pref == 2'b11)begin
+                //         l2cache_dcache_addrOK = 1;
+                //         if(FSM_hit[0])begin
+                //             FSM_use[0] = 1;
+                //             FSM_Data_we[0] = 1;
+                //             FSM_Dirtytable_way_select = 3'd0;
+                //             FSM_Dirtytable_set1 = 1;
+                //         end
+                //         else if(FSM_hit[1])begin
+                //             FSM_use[1] = 1;
+                //             FSM_Data_we[1] = 1;
+                //             FSM_Dirtytable_way_select = 3'd1;
+                //             FSM_Dirtytable_set1 = 1;
+                //         end
+                //         else if(FSM_hit[2])begin
+                //             FSM_use[2] = 1;
+                //             FSM_Data_we[2] = 1;
+                //             FSM_Dirtytable_way_select = 3'd2;
+                //             FSM_Dirtytable_set1 = 1;
+                //         end
+                //         else if(FSM_hit[3])begin
+                //             FSM_use[3] = 1;
+                //             FSM_Data_we[3] = 1;
+                //             FSM_Dirtytable_way_select = 3'd3;
+                //             FSM_Dirtytable_set1 = 1;
+                //         end
+                //         else if(FSM_hit[4])begin
+                //             FSM_use[4] = 1;
+                //             FSM_Data_we[4] = 1;
+                //             FSM_Dirtytable_way_select = 3'd4;
+                //             FSM_Dirtytable_set1 = 1;
+                //         end
+                //         else if(FSM_hit[5])begin
+                //             FSM_use[5] = 1;
+                //             FSM_Data_we[5] = 1;
+                //             FSM_Dirtytable_way_select = 3'd5;
+                //             FSM_Dirtytable_set1 = 1;
+                //         end
+                //         else if(FSM_hit[6])begin
+                //             FSM_use[6] = 1;
+                //             FSM_Data_we[6] = 1;
+                //             FSM_Dirtytable_way_select = 3'd6;
+                //             FSM_Dirtytable_set1 = 1;
+                //         end
+                //         else if(FSM_hit[7])begin
+                //             FSM_use[7] = 1;
+                //             FSM_Data_we[7] = 1;
+                //             FSM_Dirtytable_way_select = 3'd7;
+                //             FSM_Dirtytable_set1 = 1;
+                //         end
+                //     end
+                // end
             end
         end
         prefetch_wait_miss:begin
@@ -517,6 +529,7 @@ always @(*) begin
                 if(FSM_rbuf_prefetch)begin
                     hit_l2cache_pref = 1;
                     complete_l2cache_pref = 1;
+                    outpref = 1;
                 end
             end
         end
@@ -584,6 +597,9 @@ always @(*) begin
                     end
                 end
             end
+        end
+        replace_write1:begin
+            
         end
         replace_write:begin//写一个字  用上一个周期的FSM_way_sel_d  上一次写会改变vaild
             FSM_Data_we[sel_d] = 1;
