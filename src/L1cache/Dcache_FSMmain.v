@@ -314,24 +314,23 @@ always @(*) begin
             dcache_mem_wr=0;
             dcache_mem_req=1;
             if(mem_dcache_dataOK)begin
-                FSM_Data_replace=1;
                 FSM_choose_return=1;
-                // dcache_pipeline_ready=1;
-                if(!FSM_rbuf_SUC)begin//强序读不需要写入cache
-                    if(FSM_wal_sel_lru==1'd0)begin
-                        FSM_Data_we[0]=1;
-                        FSM_use0=1;
-                    end
-                    else if(FSM_wal_sel_lru==1'd1)begin
-                        FSM_Data_we[1]=1;
-                        FSM_use1=1;
-                    end
-                end
             end
         end
         Miss_r_waitdata1:begin
             FSM_rbuf_we=1;
             dcache_pipeline_ready=1;
+            FSM_Data_replace=1;
+            if(!FSM_rbuf_SUC)begin//强序读不需要写入cache
+                if(FSM_wal_sel_lru==1'd0)begin
+                    FSM_Data_we[0]=1;
+                    FSM_use0=1;
+                end
+                else if(FSM_wal_sel_lru==1'd1)begin
+                    FSM_Data_we[1]=1;
+                    FSM_use1=1;
+                end
+            end
         end
         Miss_w:begin
             dcache_mem_wr=1;

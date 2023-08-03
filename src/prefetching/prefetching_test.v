@@ -27,7 +27,7 @@ module prefetching_test#(
         end
         else begin
             type_pref_l2cache<=~type_pref_l2cache;
-            if(seed==32'd10) begin
+            if(seed==32'd5) begin
                 seed<=1;
             end
             else begin

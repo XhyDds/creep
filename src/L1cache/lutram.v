@@ -49,7 +49,7 @@ module lutram #(
     assign dout = dout_r;
 
     always @(posedge clk) begin
-        hit <= (ram[raddr] == din_comp);
+        hit <=  din_comp == ((waddr == raddr && we) ? din : ram[raddr]);
         dout_r <= (waddr == raddr && we) ? din : ram[raddr];
         if (we) ram[waddr] <= din;
     end

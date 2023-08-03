@@ -145,7 +145,7 @@ Dcache_lru #(
 Dcache_lru(
     .clk(clk),
     .use0(use0),.use1(use1),
-    .addr(rbuf_index ^ rbuf_index1),
+    .addr(rbuf_index ),//^ rbuf_index1
     .way_sel(way_sel_lru)
 );
 
@@ -162,13 +162,13 @@ Dcache_Data #(
 Dcache_Data(
     .clk(clk),
     
-    .Data_addr_read(index ^ index1),
+    .Data_addr_read(index ),//^ index1,
     .Data_dout0(data0),
     .Data_dout1(data1),
 
-    .Data_din_write(din_mem_dcache),//一整行
+    .Data_din_write(din_reg),//一整行 
     .Data_din_write_32(rbuf_data),
-    .Data_addr_write(rbuf_index ^ rbuf_index1),
+    .Data_addr_write(rbuf_index ),//^ rbuf_index1
     .Data_offset(rbuf_offset),
     .Data_choose_byte(rbuf_wstrb),
     .Data_we(Data_we),
@@ -186,7 +186,7 @@ Dcache_TagV #(
 Dcache_TagV(
     .clk(clk),
 
-    .TagV_addr_read(index ^ index1),
+    .TagV_addr_read(index ),//^ index1
     .TagV_din_compare(tag),
     // .TagV_din_compare(ptag),
     .hit(hit),
@@ -194,7 +194,7 @@ Dcache_TagV(
     .TagV_init(TagV_init),
     .TagV_din_write(rbuf_tag),
     // .TagV_din_write(ptag),
-    .TagV_addr_write(rbuf_index ^ rbuf_index1),
+    .TagV_addr_write(rbuf_index ),//^ rbuf_index1
     .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
 );
@@ -206,14 +206,13 @@ wire [offset_width-1:0]choose_word = rbuf_addr[2+offset_width-1:2];
 reg [31:0]data_out,data_out_reg,data_return;
 reg choose_return_reg;
 reg [32*(1<<offset_width)-1:0]data_line;
+reg [32*(1<<offset_width)-1:0]din_reg;
 always @(*) begin
-    // if (choose_return) data_line = din_mem_dcache;
-    // else begin
-        if (!choose_way) data_line = data0;
-        else data_line = data1;
-    // end
+    if (!choose_way) data_line = data0;
+    else data_line = data1;
 end
 always @(posedge clk) begin
+    din_reg <= din_mem_dcache;
     choose_return_reg <= choose_return;
     data_out_reg <= data_return;
 end

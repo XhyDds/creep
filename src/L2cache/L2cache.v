@@ -112,7 +112,7 @@ wire [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_opaddr;
 wire [3:0]rbuf_wstrb;
 wire [1:0]rbuf_from,rbuf_from_pref;
 wire [1:0]rbuf_size;
-wire rbuf_opflag,rbuf_we,rbuf_SUC,rbuf_prefetch,rbuf_pref_type;
+wire rbuf_opflag,rbuf_we,rbuf_SUC,rbuf_pref_type;
 
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
@@ -147,14 +147,13 @@ L2cache_rbuf L2cache_rbuf(
     .size(l1cache_l2cache_size),
     .rbuf_size(rbuf_size),
 
-    .SUC(l1cache_l2cache_SUC),
+    .SUC(l1cache_l2cache_SUC && from),//
     .rbuf_SUC(rbuf_SUC),
 
     .opaddr(addr_pipeline_l2cache),
     .rbuf_opaddr(rbuf_opaddr),
 
     .prefetch(req_pref_l2cache),
-    .rbuf_prefetch(rbuf_prefetch),
 
     .pref_type(type_pref_l2cache),
     .rbuf_pref_type(rbuf_pref_type)
@@ -165,6 +164,7 @@ wire inpref;
 wire [31:0]data_pref,addr_pref;
 wire [3:0]wstrb_pref;
 wire [1:0]from_pref;
+wire SUC_pref;
 wire [offset_width-1:0]offset_pref;
 wire [index_width-1:0]index_pref;
 wire [32-offset_width-index_width-2-1:0]tag_pref;
@@ -179,11 +179,13 @@ L2cache_pref_reqbuf L2cache_pref_reqbuf(
     .addr_l1(dcache_l2cache_req ? addr_dcache_l2cache : (icache_l2cache_req ? addr_icache_l2cache : 0)),
     .from(from),
     .wstrb_l1(dcache_l2cache_wstrb),
+    .SUC(l1cache_l2cache_SUC),
 
     .data_l1_pref(data_pref),
     .addr_l1_pref(addr_pref),
     .from_pref(from_pref),
-    .wstrb_pref(wstrb_pref)
+    .wstrb_pref(wstrb_pref),
+    .SUC_pref(SUC_pref)
 );
 
 //PLRU
@@ -228,14 +230,24 @@ L2cache_Data(
     .Data_dout6(data6),
     .Data_dout7(data7),
 
-    .Data_din_write(din_mem_l2cache),//一整行
+    .Data_din_write(din_reg),//一整行
     .Data_din_write_32(inpref ? data_pref : rbuf_data),
     .Data_addr_write(inpref ? index_pref : rbuf_index),
     .Data_offset(inpref ? offset_pref : rbuf_offset),
     .Data_choose_byte(inpref ? wstrb_pref : rbuf_wstrb),
-    .Data_we(Data_we),
-    .Data_replace(Data_replace)
+    .Data_we(Data_replace_reg ? Data_we_reg : Data_we),
+    .Data_replace(Data_replace_reg)
+    // .Data_we(Data_we),
+    // .Data_replace(Data_replace)
 );
+reg Data_replace_reg;//延迟
+reg [way-1:0]Data_we_reg;
+reg [32*(1<<offset_width)-1:0]din_reg;
+always @(posedge clk) begin
+    din_reg <= din_mem_l2cache;
+    Data_replace_reg <= Data_replace;
+    Data_we_reg <= Data_we;
+end
 
 //Tag
 wire [way-1:0]TagV_we,hit,TagV_unvalid;
@@ -274,7 +286,8 @@ L2cache_Dirtytable #(
 L2cache_Dirtytable(
     .clk(clk),
     
-    .Dirtytable_addr(inpref ? index_pref : rbuf_index),
+    // .Dirtytable_addr(inpref ? index_pref : rbuf_index),
+    .Dirtytable_addr(rbuf_index),
     .Dirtytable_way_select(Dirtytable_way_select),
     .Dirtytable_set0(Dirtytable_set0),
     .Dirtytable_set1(Dirtytable_set1),
@@ -363,11 +376,11 @@ L2cache_FSMmain(
     .FSM_rbuf_SUC(rbuf_SUC),
     .FSM_rbuf_opaddr(rbuf_opaddr),
     .FSM_rbuf_opflag(rbuf_opflag),
-    .FSM_rbuf_prefetch(rbuf_prefetch),
     .FSM_rbuf_pref_type(rbuf_pref_type),
 
     //pref req buf
     .FSM_from_pref(from_pref),
+    .FSM_SUC_pref(SUC_pref),
 
     //req
     .FSM_SUC(l1cache_l2cache_SUC),
