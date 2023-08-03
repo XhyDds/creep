@@ -4,7 +4,7 @@ module fetch_buffer_v2 (
     input if0,if1,icache_valid,
     input [1:0]plv,
     input [63:0]irin,
-    input [63:0]pre,
+    input [73:0]pre,
     // input [63:0]
     input flag,
     input [15:0]excp_arg,
@@ -13,13 +13,13 @@ module fetch_buffer_v2 (
     output [31:0]ir0,ir1,pc0,pc1,
     output stall_fetch_buffer,valid0,valid1,
     output [1:0]plv0,plv1,
-    output [63:0]pre0,pre1,
+    output [73:0]pre0,pre1,
     output [15:0]excp_arg0,excp_arg1,
     output [31:0]npc0,npc1
 );
     reg [31:0]buffer[0:15];//15为0，14最新，0最旧，是否会溢出？
     reg [31:0]bufferpc[0:15];
-    reg [66:0]pre_and_valid_and_plv[0:15];
+    reg [76:0]pre_and_valid_and_plv[0:15];
     reg [15:0]buffer_excp_arg[0:15];
     reg [31:0]buffer_npc[0:15];
     reg [3:0]pointer;//0~15
@@ -36,8 +36,8 @@ module fetch_buffer_v2 (
     assign valid1=pre_and_valid_and_plv[pointer][2];
     assign plv0=pre_and_valid_and_plv[&pointer?pointer:pointer+1][1:0];
     assign plv1=pre_and_valid_and_plv[pointer][1:0];
-    assign pre0=pre_and_valid_and_plv[&pointer?pointer:pointer+1][66:3];
-    assign pre1=pre_and_valid_and_plv[pointer][66:3];
+    assign pre0=pre_and_valid_and_plv[&pointer?pointer:pointer+1][76:3];
+    assign pre1=pre_and_valid_and_plv[pointer][76:3];
     assign excp_arg0=buffer_excp_arg[&pointer?pointer:pointer+1];
     assign excp_arg1=buffer_excp_arg[pointer];
     assign npc0=buffer_npc[&pointer?pointer:pointer+1];
@@ -130,12 +130,12 @@ module fetch_buffer_v2 (
                             buffer_npc[12]<=buffer_npc[14];
                             buffer[13]<=ir[0];
                             bufferpc[13]<=pc;
-                            pre_and_valid_and_plv[13]<={pre[63:54],1'b1,pre[52:39],1'b1,pre[37:0],1'b1,plv};
+                            pre_and_valid_and_plv[13]<={pre[73:40],1'b1,1'b1,pre[37:0],1'b1,plv};
                             buffer_excp_arg[13]<=excp_arg;
                             buffer_npc[13]<=npc;
                             buffer[14]<=ir[1];
                             bufferpc[14]<=pc+4;
-                            pre_and_valid_and_plv[14]<={pre[63:54],1'b1,pre[52:0],1'b1,plv};
+                            pre_and_valid_and_plv[14]<={pre[73:40],1'b1,pre[38:0],1'b1,plv};
                             buffer_excp_arg[14]<=0;
                             buffer_npc[14]<=npc;
                         end
@@ -213,7 +213,7 @@ module fetch_buffer_v2 (
                             buffer_npc[13]<=buffer_npc[14];
                             buffer[14]<=ir[0];
                             bufferpc[14]<=pc;
-                            pre_and_valid_and_plv[14]<={pre[63:54],1'b0,pre[52:0],1'b1,plv};
+                            pre_and_valid_and_plv[14]<={pre[73:40],1'b0,pre[38:0],1'b1,plv};
                             buffer_excp_arg[14]<=excp_arg;
                             buffer_npc[14]<=npc;
                         end

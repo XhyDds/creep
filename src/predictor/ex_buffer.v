@@ -1,6 +1,7 @@
 //尚未完成
 module ex_buffer#(
-    parameter length = 6
+    parameter length = 6,
+            bh_width=14
             // ,DATA_WIDTH=99
 )(
     input clk,
@@ -12,7 +13,7 @@ module ex_buffer#(
     input [2:0]  in_kind_pdc_0 ,
     input [29:0] in_npc_pdc_0  ,
     input [1:0]  in_choice_pdc_0,
-    input [13:0] in_bh_pdc_0   ,
+    input [bh_width-1:0] in_bh_pdc_0   ,
     input        in_taken_ex_0 ,
     input [2:0]  in_kind_ex_0  ,
     input [29:0] in_npc_ex_0   ,
@@ -26,7 +27,7 @@ module ex_buffer#(
     input [2:0]  in_kind_pdc_1 ,
     input [29:0] in_npc_pdc_1  ,
     input [1:0]  in_choice_pdc_1,
-    input [13:0] in_bh_pdc_1,
+    input [bh_width-1:0] in_bh_pdc_1,
     input        in_taken_ex_1 ,
     input [2:0]  in_kind_ex_1  ,
     input [29:0] in_npc_ex_1   ,
@@ -39,7 +40,7 @@ module ex_buffer#(
     output reg          out_taken_pdc ,
     output reg   [2:0]  out_kind_pdc  ,
     output reg   [29:0] out_npc_pdc   ,
-    output reg   [13:0] out_bh_pdc    ,
+    output reg   [bh_width-1:0] out_bh_pdc    ,
     output reg          out_taken_ex  ,
     output reg   [2:0]  out_kind_ex   ,
     output reg   [29:0] out_npc_ex    ,
@@ -59,16 +60,16 @@ module ex_buffer#(
                 CALL = 3'd6,
                 JUMP=3'd7;
 
-    wire [123:0] in_data_0={in_pdch_0,in_flush_pre_0,in_bh_pdc_0,in_pack_size_0,in_choice_pdc_0,in_pc_ex_0,in_npc_ex_0,in_kind_ex_0,in_taken_ex_0,in_npc_pdc_0,in_kind_pdc_0,in_taken_pdc_0};
-    wire [123:0] in_data_1={in_pdch_1,in_flush_pre_1,in_bh_pdc_1,in_pack_size_1,in_choice_pdc_1,in_pc_ex_1,in_npc_ex_1,in_kind_ex_1,in_taken_ex_1,in_npc_pdc_1,in_kind_pdc_1,in_taken_pdc_1};
+    wire [109+bh_width:0] in_data_0={in_bh_pdc_0,in_pdch_0,in_flush_pre_0,in_pack_size_0,in_choice_pdc_0,in_pc_ex_0,in_npc_ex_0,in_kind_ex_0,in_taken_ex_0,in_npc_pdc_0,in_kind_pdc_0,in_taken_pdc_0};
+    wire [109+bh_width:0] in_data_1={in_bh_pdc_1,in_pdch_1,in_flush_pre_1,in_pack_size_1,in_choice_pdc_1,in_pc_ex_1,in_npc_ex_1,in_kind_ex_1,in_taken_ex_1,in_npc_pdc_1,in_kind_pdc_1,in_taken_pdc_1};
 
-    reg [123:0] out_data_0;     //优先
-    reg [123:0] out_data_1;
+    reg [109+bh_width:0] out_data_0;     //优先
+    reg [109+bh_width:0] out_data_1;
 
     wire        out_taken_pdc_0;
     wire [2:0]  out_kind_pdc_0 ;
     wire [29:0] out_npc_pdc_0  ;
-    wire [13:0] out_bh_pdc_0   ;
+    wire [bh_width-1:0] out_bh_pdc_0   ;
     wire        out_taken_ex_0 ;
     wire [2:0]  out_kind_ex_0  ;
     wire [29:0] out_npc_ex_0   ;
@@ -81,7 +82,7 @@ module ex_buffer#(
     wire        out_taken_pdc_1;
     wire [2:0]  out_kind_pdc_1 ;
     wire [29:0] out_npc_pdc_1  ;
-    wire [13:0] out_bh_pdc_1   ;
+    wire [bh_width-1:0] out_bh_pdc_1   ;
     wire        out_taken_ex_1 ;
     wire [2:0]  out_kind_ex_1  ;
     wire [29:0] out_npc_ex_1   ;
@@ -108,9 +109,9 @@ module ex_buffer#(
     assign out_pc_ex_0    =out_data_0[97:68];
     assign out_choice_pdc_0=out_data_0[99:98];
     assign out_pack_size_0=out_data_0[100]  ;
-    assign out_bh_pdc_0   =out_data_0[114:101];
-    assign out_flush_pre_0=out_data_0[115]  ;
-    assign out_pdch_0     =out_data_0[123:116];
+    assign out_flush_pre_0=out_data_0[101]  ;
+    assign out_pdch_0     =out_data_0[109:102];
+    assign out_bh_pdc_0   =out_data_0[109+bh_width:110];
 
 
     assign out_taken_pdc_1=out_data_1[0]    ;
@@ -122,12 +123,12 @@ module ex_buffer#(
     assign out_pc_ex_1    =out_data_1[97:68];
     assign out_choice_pdc_1=out_data_1[99:98];
     assign out_pack_size_1=out_data_1[100]  ;
-    assign out_bh_pdc_1   =out_data_1[114:101];
-    assign out_flush_pre_1=out_data_1[115]  ;
-    assign out_pdch_1     =out_data_1[123:116];
+    assign out_flush_pre_1=out_data_1[101]  ;
+    assign out_pdch_1     =out_data_1[109:102];
+    assign out_bh_pdc_1   =out_data_1[109+bh_width:110];
 
 
-    reg [123:0] buffer_data[0:length-1];
+    reg [109+bh_width:0] buffer_data[0:length-1];
 
     reg [31:0] pointer;
 
@@ -135,7 +136,7 @@ module ex_buffer#(
     reg        out_taken_pdc_ ;
     reg [2:0]  out_kind_pdc_  ;
     reg [29:0] out_npc_pdc_   ;
-    reg [13:0] out_bh_pdc_    ;
+    reg [bh_width-1:0] out_bh_pdc_;
     reg        out_taken_ex_  ;
     reg [2:0]  out_kind_ex_   ;
     reg [29:0] out_npc_ex_    ;
