@@ -10,7 +10,7 @@
 // push时
 
 module WriteBuffer #(
-    parameter   length=10,
+    parameter   length=5,
                 offset_width=3
 ) (
     input  clk,
@@ -197,16 +197,6 @@ module WriteBuffer #(
             buffer_data[32'd3]<=0;
             buffer_addr[32'd4]<=0;
             buffer_data[32'd4]<=0;
-            buffer_addr[32'd5]<=0;
-            buffer_data[32'd5]<=0;
-            buffer_addr[32'd6]<=0;
-            buffer_data[32'd6]<=0;
-            buffer_addr[32'd7]<=0;
-            buffer_data[32'd7]<=0;
-            buffer_addr[32'd8]<=0;
-            buffer_data[32'd8]<=0;
-            buffer_addr[32'd9]<=0;
-            buffer_data[32'd9]<=0;
         end
         else begin
             case (crt_push)
@@ -222,16 +212,6 @@ module WriteBuffer #(
                         buffer_data[32'd3]<=buffer_data[32'd2];
                         buffer_addr[32'd4]<=buffer_addr[32'd3];
                         buffer_data[32'd4]<=buffer_data[32'd3];
-                        buffer_addr[32'd5]<=buffer_addr[32'd4];
-                        buffer_data[32'd5]<=buffer_data[32'd4];
-                        buffer_addr[32'd6]<=buffer_addr[32'd5];
-                        buffer_data[32'd6]<=buffer_data[32'd5];
-                        buffer_addr[32'd7]<=buffer_addr[32'd6];
-                        buffer_data[32'd7]<=buffer_data[32'd6];
-                        buffer_addr[32'd8]<=buffer_addr[32'd7];
-                        buffer_data[32'd8]<=buffer_data[32'd7];
-                        buffer_addr[32'd9]<=buffer_addr[32'd8];
-                        buffer_data[32'd9]<=buffer_data[32'd8];
                     end
                     else ;
                 end
@@ -261,11 +241,6 @@ module WriteBuffer #(
         res[32'd2]=(query_addr==buffer_addr[32'd2]);
         res[32'd3]=(query_addr==buffer_addr[32'd3]);
         res[32'd4]=(query_addr==buffer_addr[32'd4]);
-        res[32'd5]=(query_addr==buffer_addr[32'd5]);
-        res[32'd6]=(query_addr==buffer_addr[32'd6]);
-        res[32'd7]=(query_addr==buffer_addr[32'd7]);
-        res[32'd8]=(query_addr==buffer_addr[32'd8]);
-        res[32'd9]=(query_addr==buffer_addr[32'd9]);
     end
 
     always @(*) begin
@@ -274,11 +249,6 @@ module WriteBuffer #(
         else if(res[3'd2]==1'b1) begin query_ok=1;query_data=buffer_data[32'd2]; end
         else if(res[3'd3]==1'b1) begin query_ok=1;query_data=buffer_data[32'd3]; end
         else if(res[3'd4]==1'b1) begin query_ok=1;query_data=buffer_data[32'd4]; end
-        else if(res[3'd5]==1'b1) begin query_ok=1;query_data=buffer_data[32'd5]; end
-        else if(res[3'd6]==1'b1) begin query_ok=1;query_data=buffer_data[32'd6]; end
-        else if(res[3'd7]==1'b1) begin query_ok=1;query_data=buffer_data[32'd7]; end
-        else if(res[3'd8]==1'b1) begin query_ok=1;query_data=buffer_data[32'd8]; end
-        else if(res[3'd9]==1'b1) begin query_ok=1;query_data=buffer_data[32'd9]; end
         else                     begin query_ok=0;query_data=0                 ; end
     end
 
