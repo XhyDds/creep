@@ -25,7 +25,7 @@ module bht#(
         .clk(clk),
         .raddr(hashed_pc),
         .dout(bh_pdc),
-        .enb(stall),
+        .enb(~stall),
         .waddr(hashed_pc_update),
         .din(_bh_new),
         .we(update_en)

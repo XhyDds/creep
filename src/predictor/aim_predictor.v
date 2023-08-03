@@ -1,14 +1,13 @@
 module aim_predictor#(
-    parameter   gh_width   = 14,
-                bh_width   = 14,
+    parameter   h_width   = 14,
                 ADDR_WIDTH = 30
 )(
     input  clk,
     input  update_en,
     //ex
     input  [ADDR_WIDTH-1:0] pc_ex,
-    input  [gh_width-1:0] pc_ex_gh_hashed,
-    input  [bh_width-1:0] pc_ex_bh_hashed,
+    input  [h_width-1:0] pc_ex_gh_hashed,
+    input  [h_width-1:0] pc_ex_bh_hashed,
     input  [2:0]kind_ex,
     input  choice_real,
     input  [1:0]choice_pdch_ex,
@@ -23,9 +22,9 @@ module aim_predictor#(
     output [1:0]taken_pdch_b,
     output [1:0]taken_pdch_g,
     //当前
-    input  [gh_width-1:0] pc_gh_hashed1,
-    input  [gh_width-1:0] pc_gh_hashed2,
-    input  [bh_width-1:0] pc_bh_hashed,
+    input  [h_width-1:0] pc_gh_hashed1,
+    input  [h_width-1:0] pc_gh_hashed2,
+    input  [h_width-1:0] pc_bh_hashed,
     input  [ADDR_WIDTH-1:0] pc
 );
     // parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
@@ -44,7 +43,7 @@ module aim_predictor#(
     wire try_to_pdc=(kind_ex==DIRECT_JUMP);
 
     bpht#(              //pc+bh
-        .bh_width(bh_width)
+        .bh_width(h_width)
     )
     bpht_b(
         .clk(clk),
@@ -58,7 +57,7 @@ module aim_predictor#(
     );
 
     gpht#(              //pc+gh
-        .gh_width(gh_width)
+        .gh_width(h_width)
     )
     gpht_g(
         .clk(clk),
@@ -72,7 +71,7 @@ module aim_predictor#(
     );
 
     cpht#(              //pc
-        .ch_width(gh_width)
+        .ch_width(h_width)
     )
     cpht_b_g(
         .clk(clk),

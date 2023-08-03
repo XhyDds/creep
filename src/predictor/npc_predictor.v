@@ -1,5 +1,6 @@
 module npc_predictor#(
-    parameter   gh_width   = 14,
+    parameter   h_width   = 14,
+                k_width   = 14,
                 stack_len  = 16,
                 ADDR_WIDTH = 30
 )(
@@ -7,10 +8,11 @@ module npc_predictor#(
     input rstn,
     input stall,
     input update_en,
+    input taken_ex,
     //ex
     input [ADDR_WIDTH-1:0] npc_ex,
-    input [gh_width-1:0] pc_ex_bh_hashed,
-    input [gh_width-1:0] pc_ex_hashed,
+    input [h_width-1:0] pc_ex_bh_hashed,
+    input [k_width-1:0] pc_ex_hashed,
     input [2:0]kind_ex,
     input choice_real,
     input [29:0]ret_pc_ex,
@@ -24,8 +26,8 @@ module npc_predictor#(
     output [1:0]choice_pdch,
     output reg[ADDR_WIDTH-1:0] npc_test,
     //当前
-    input [gh_width-1:0] pc_bh_hashed,
-    input [gh_width-1:0] pc_hashed_reg,
+    input [h_width-1:0] pc_bh_hashed,
+    input [k_width-1:0] pc_hashed_reg,
     input [ADDR_WIDTH-1:0] pc_reg
 );
     parameter   NOT_JUMP = 3'd0,
@@ -56,7 +58,7 @@ module npc_predictor#(
     wire [ADDR_WIDTH-1:0]npc_ras;
 
     btb#(                   //pc_reg+bh
-        .gh_width(gh_width),
+        .h_width(h_width),
         .ADDR_WIDTH(ADDR_WIDTH)
     )
     btb_table(
@@ -65,7 +67,7 @@ module npc_predictor#(
         .npc_pdc(npc_btb),
         .hashed_pc_update(pc_ex_bh_hashed),
         .npc_real(npc_ex),
-        .update_en((kind_ex!=3'd0)&&update_en)
+        .update_en((kind_ex!=3'd0)&&update_en&&taken_ex)
     );
 
     ras#(
@@ -85,7 +87,7 @@ module npc_predictor#(
     );
 
     cpht#(              //pc_reg
-        .ch_width(gh_width)
+        .ch_width(k_width)
     )
     cpht_btb_ras(
         .clk(clk),
