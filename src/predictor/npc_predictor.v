@@ -8,6 +8,7 @@ module npc_predictor#(
     input rstn,
     input stall,
     input update_en,
+    input taken_ex,
     //ex
     input [ADDR_WIDTH-1:0] npc_ex,
     input [h_width-1:0] pc_ex_bh_hashed,
@@ -66,7 +67,7 @@ module npc_predictor#(
         .npc_pdc(npc_btb),
         .hashed_pc_update(pc_ex_bh_hashed),
         .npc_real(npc_ex),
-        .update_en((kind_ex!=3'd0)&&update_en)
+        .update_en((kind_ex!=3'd0)&&update_en&&taken_ex)
     );
 
     ras#(

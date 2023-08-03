@@ -671,6 +671,7 @@ module core_top(
     );
 
     wire [31:0]	pc_br0;
+    wire [31:0]	pc_br_pdc_0;
 
     br_pre u_br_pre0(
         //ports
@@ -681,7 +682,8 @@ module core_top(
         .pre      		( pre_exe0_exe1_0      		),
         .ifbr_    		( ifbr__exe0_exe1_0    		),
         .ifbr     		( ifbr0_     	    ),
-        .pc_br    		( pc_br0    		)
+        .pc_br    		( pc_br0    		),
+        .pc_br_pdc      ( pc_br_pdc_0       )
     );
 
     wire 	ifbr__1;
@@ -702,6 +704,7 @@ module core_top(
     );
 
     wire [31:0]	pc_br1;
+    wire [31:0]	pc_br_pdc_1;
 
     br_pre u_br_pre1(
         //ports
@@ -712,7 +715,8 @@ module core_top(
         .pre      		( pre_exe0_exe1_1      		),
         .ifbr_    		( ifbr__exe0_exe1_1    		),
         .ifbr     		( ifbr1     	),
-        .pc_br    		( pc_br1    		)
+        .pc_br    		( pc_br1    		),
+        .pc_br_pdc      ( pc_br_pdc_1    		)
     );
 `endif
 `ifndef predictor
@@ -1053,12 +1057,12 @@ module core_top(
     wire[7:0] out_pdch;
     wire [7:0] pdch;
 
-    localparam bh_width = 14;
+    localparam bh_width = 16;
     
     predictor #(
         .k_width       		( 14   		),
         .bh_width       	( bh_width  ),
-        .stack_len     		( 16   		),
+        .stack_len     		( 14   		),
         .queue_len     		( 16   		),
         .ADDR_WIDTH    		( 30   		))
     u_predictor(
@@ -1105,7 +1109,7 @@ module core_top(
         .in_choice_pdc_0(pre_exe0_exe1_0[36:35]),
         .in_taken_ex_0(ifbr__exe0_exe1_0),
         .in_kind_ex_0(ctr_exe0_exe1_0[26:24]),
-        .in_npc_ex_0(pc_br0[31:2]),
+        .in_npc_ex_0(pc_br_pdc_0[31:2]),
         .in_pc_ex_0(pc_exe0_exe1_0[31:2]),
         .in_flush_pre_0(flush_pre_exe0_exe1_0 | ifbr0),
         .in_bh_pdc_0(pre_exe0_exe1_0[47+bh_width:48]),
@@ -1118,7 +1122,7 @@ module core_top(
         .in_choice_pdc_1(pre_exe0_exe1_1[36:35]),
         .in_taken_ex_1(ifbr__exe0_exe1_1),
         .in_kind_ex_1(ctr_exe0_exe1_1[26:24]),
-        .in_npc_ex_1(pc_br1[31:2]),
+        .in_npc_ex_1(pc_br_pdc_1[31:2]),
         .in_pc_ex_1(pc_exe0_exe1_1[31:2]),
         .in_flush_pre_1(flush_pre_exe0_exe1_1 | ifbr1),
         .in_bh_pdc_1(pre_exe0_exe1_1[47+bh_width:48]),

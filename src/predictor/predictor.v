@@ -291,6 +291,7 @@ module predictor #(
         .rstn(rstn),
         .stall(stall),
         .update_en(update_en),
+        .taken_ex(taken_real),
         .npc_ex(npc_ex),
         .ret_pc_ex(ret_pc_ex),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
