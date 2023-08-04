@@ -240,9 +240,11 @@ module predictor #(
     u_kt(
         .clk(clk),
         .hashed_pc(pc_hashed1),
+        .pc(pc),
         .kind_pdc(kind_pdc),
-        .stall(stall)
-,        .hashed_pc_update(pc_ex_hashed),
+        .stall(stall),
+        .hashed_pc_update(pc_ex_hashed),
+        .pc_ex(pc_ex),
         .kind_real(kind_ex),
         .update_en(update_en)
     );
