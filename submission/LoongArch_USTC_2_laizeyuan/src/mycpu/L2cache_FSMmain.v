@@ -49,6 +49,7 @@ module L2cache_FSMmain#(
     input       req_pref_l2cache,
     output reg  hit_l2cache_pref,
     output reg  miss_l2cache_pref,
+    output reg  addrOK_l2cache_pref,
     output reg  complete_l2cache_pref,
     output reg  missvalid,
 
@@ -276,6 +277,7 @@ always @(*) begin
     ack_op = 0;
     hit_l2cache_pref = 0;
     complete_l2cache_pref = 0;
+    addrOK_l2cache_pref = 0;
     FSM_inpref = 0;
     miss_l2cache_pref = 0;
     we_sel = 0;
@@ -322,6 +324,7 @@ always @(*) begin
             end
         end
         prefetch_check:begin
+            addrOK_l2cache_pref = 1;
             if(Hit)begin
                 hit_l2cache_pref = 1;
                 complete_l2cache_pref = 1;

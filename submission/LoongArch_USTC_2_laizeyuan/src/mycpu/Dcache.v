@@ -154,6 +154,7 @@ Dcache_lru(
 wire [way-1:0]Data_we;
 wire [(1<<offset_width)*32-1:0]data0,data1;
 wire Data_replace;
+reg [32*(1<<offset_width)-1:0]din_reg;
 Dcache_Data #(
     .addr_width(index_width),
     .data_width((1<<offset_width)*32),
@@ -207,7 +208,6 @@ wire [offset_width-1:0]choose_word = rbuf_addr[2+offset_width-1:2];
 reg [31:0]data_out,data_out_reg,data_return;
 reg choose_return_reg;
 reg [32*(1<<offset_width)-1:0]data_line;
-reg [32*(1<<offset_width)-1:0]din_reg;
 always @(*) begin
     if (!choose_way) data_line = data0;
     else data_line = data1;
@@ -225,11 +225,10 @@ always @(*) begin
             'd1: data_return = din_mem_dcache[63:32];
             'd2: data_return = din_mem_dcache[95:64];
             'd3: data_return = din_mem_dcache[127:96];
-            'd4: data_return = din_mem_dcache[159:128];
-            'd5: data_return = din_mem_dcache[191:160];
-            'd6: data_return = din_mem_dcache[223:192];
-            'd7: data_return = din_mem_dcache[255:224];
-            'd8: data_return = din_mem_dcache[287:256];
+            // 'd4: data_return = din_mem_dcache[159:128];
+            // 'd5: data_return = din_mem_dcache[191:160];
+            // 'd6: data_return = din_mem_dcache[223:192];
+            // 'd7: data_return = din_mem_dcache[255:224]
             default: data_return = 32'h1234ABCD;
         endcase
     end
@@ -242,11 +241,10 @@ always @(*) begin
             'd1: data_out = data_line[63:32];
             'd2: data_out = data_line[95:64];
             'd3: data_out = data_line[127:96];
-            'd4: data_out = data_line[159:128];
-            'd5: data_out = data_line[191:160];
-            'd6: data_out = data_line[223:192];
-            'd7: data_out = data_line[255:224];
-            'd8: data_out = data_line[287:256];
+            // 'd4: data_out = data_line[159:128];
+            // 'd5: data_out = data_line[191:160];
+            // 'd6: data_out = data_line[223:192];
+            // 'd7: data_out = data_line[255:224];
             default: data_out = 32'h1234ABCD;
         endcase
     // end

@@ -1,7 +1,7 @@
 `define predictor
 // `define DMA
-module mycpu_top(
-//module core_top(
+// module mycpu_top(
+module core_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -1028,10 +1028,6 @@ module mycpu_top(
 
 `ifdef predictor
     //已经处理过的信号
-    wire [2:0]mis_pdc;
-    wire [1:0]choice_real;
-    wire choice_real_btb_ras;
-    wire choice_real_g_h;
     parameter   NOT_JUMP = 3'd0,
                 DIRECT_JUMP = 3'd1,
                 //
@@ -1039,12 +1035,12 @@ module mycpu_top(
                 INDIRECT_JUMP = 3'd5,
                 CALL = 3'd6,
                 JUMP=3'd7;
-    assign mis_pdc={(out_npc_ex!=out_npc_pdc),(out_kind_ex!=out_kind_pdc),(out_taken_ex!=out_taken_pdc)};
-    assign choice_real={choice_real_btb_ras,choice_real_g_h};
-    assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
-    assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
 
-    wire [29:0] npc_test;//给ccr用的测试线，�???要左移两位使用，0,4交替
+    wire [2:0]mis_pdc;
+    wire [1:0]choice_real;
+    wire choice_real_btb_ras;
+    wire choice_real_g_h;
+    wire [29:0] npc_test;//给ccr用的测试线，�??要左移两位使用，0,4交替
 
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
@@ -1060,13 +1056,18 @@ module mycpu_top(
 
     wire[7:0] out_pdch;
     wire [7:0] pdch;
+
+    assign mis_pdc={(out_npc_ex!=out_npc_pdc),(out_kind_ex!=out_kind_pdc),(out_taken_ex!=out_taken_pdc)};
+    assign choice_real={choice_real_btb_ras,choice_real_g_h};
+    assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
+    assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
     
     predictor #(
         .k_width       		( k_width   ),
         .bh_width       	( bh_width  ),
         .gh_width           ( gh_width  ),
         .h_width            ( h_width   ),
-        .stack_len     		( 14   		),
+        .stack_len     		( 16   		),
         .queue_len     		( 16   		),
         .ADDR_WIDTH    		( 30   		))
     u_predictor(
@@ -1451,13 +1452,13 @@ module mycpu_top(
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�????测访存地�????是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�????
+    always @(*) begin//�???测访存地�???是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�???
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
         if(ctr_reg_exe0_1[22]&(|PLV)) begin 
             ctr_reg_exe0_1_excp=liwai;
             excp_arg_reg_exe0_1_excp=excp_argIPE; 
-        end//用户态访问越�????
+        end//用户态访问越�???
         else if(ctr_reg_exe0_1[3:0]==5&ctr_reg_exe0_1[11:7]!=8)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1721,6 +1722,7 @@ module mycpu_top(
     wire req_pref_l2cache;
     wire type_pref_l2cache;
     wire [31:0]addr_pref_l2cache;
+    wire addrOK_l2cache_pref;
     wire complete_l2cache_pref;
     wire hit_l2cache_pref;
     wire miss_l2cache_pref;
@@ -1790,13 +1792,14 @@ module mycpu_top(
         .req_pref_l2cache               ( req_pref_l2cache             ),
         .type_pref_l2cache              ( type_pref_l2cache            ),
         .addr_pref_l2cache              ( addr_pref_l2cache            ),
+        .addrOK_l2cache_pref            ( addrOK_l2cache_pref          ),
         .complete_l2cache_pref          ( complete_l2cache_pref        ),
         .hit_l2cache_pref               ( hit_l2cache_pref             ),
         .miss_l2cache_pref              ( miss_l2cache_pref            ),
-        .missvalid_l2cacahe_pref(missvalid_l2cacahe_pref),
-        .misspc_l2cache_pref(misspc_l2cache_pref),
-        .missaddr_l2cache_pref(missaddr_l2cache_pref),
-        .misstype_l2cache_pref_paddr(misstype_l2cache_pref_paddr),
+        .missvalid_l2cacahe_pref        (missvalid_l2cacahe_pref       ),
+        .misspc_l2cache_pref            (misspc_l2cache_pref           ),
+        .missaddr_l2cache_pref          (missaddr_l2cache_pref         ),
+        .misstype_l2cache_pref_paddr    (misstype_l2cache_pref_paddr   ),
         
         // D-prefetch
         .dcache_pref_addr(dcache_pref_addr),
@@ -1855,6 +1858,7 @@ module mycpu_top(
     //     .req_pref_l2cache(req_pref_l2cache),
     //     .type_pref_l2cache(type_pref_l2cache),
     //     .addr_pref_l2cache(addr_pref_l2cache),
+    //     .addrOK_l2cache_pref(addrOK_l2cache_pref),
     //     .complete_l2cache_pref(complete_l2cache_pref),
     //     .hit_l2cache_pref(hit_l2cache_pref),
     //     .miss_l2cache_pref(miss_l2cache_pref)
