@@ -139,8 +139,6 @@ module prefetching#(
     wire valid_data;
     wire req_inst;
     wire req_data;
-    wire addr_inst;
-    wire addr_data;
 
     inst_pre#(
         .addr_width(addr_width),
