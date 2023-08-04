@@ -71,7 +71,7 @@ module L2cache_FSMmain#(
     input       FSM_dcache_wr,
     input       FSM_icache_req,
 
-    output      we_wbaddr,
+    output reg  we_wbaddr,
     
     //PLRU
     output reg  [way-1:0]FSM_use,
