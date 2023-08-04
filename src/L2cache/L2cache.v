@@ -45,6 +45,7 @@ module L2cache#(
     input       [31:0]addr_pref_l2cache,
     output      hit_l2cache_pref,//ack时取走hit
     output      miss_l2cache_pref,//dataOK时取走miss
+    output      addrOK_l2cache_pref,
     output      complete_l2cache_pref,
     output      missvalid_l2cacahe_pref,//valid
     output      [31:0]misspc_l2cache_pref,
@@ -406,6 +407,7 @@ L2cache_FSMmain(
     .req_pref_l2cache(req_pref_l2cache),
     .hit_l2cache_pref(hit_l2cache_pref),
     .miss_l2cache_pref(miss_l2cache_pref),
+    .addrOK_l2cache_pref(addrOK_l2cache_pref),
     .complete_l2cache_pref(complete_l2cache_pref),
     .missvalid(missvalid_l2cacahe_pref),
 

@@ -12,7 +12,6 @@ module inst_pre#(
     output [1:0]            pdch,
     //更新
     input  [addr_width-1:0] addr_upt,
-    input  [addr_width-1:0] naddr_upt,
     input                   spare,
     input  [1:0]            pdch_upt, //spare
     input                   update_en,

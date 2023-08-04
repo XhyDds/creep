@@ -143,9 +143,12 @@ CPU 采用顺序双发射八级流水结构，流水线分为 IF0、IF1、FIFO�
 
 执行单元采用双发射形式：
 
-- 一路为全能单元，可以执行全部指令，在指令到达时将其根据指令类别放入ALU0, BR, DIV, PRIV, MUL, Dcache 六个执行路径之一。
+- 一路为全能单元，可以执行全部指令，在指令到达时将其放入 ALU, BR, DIV, PRIV, MUL, DCache, RDCNT 执行路径之一或之二。
+- 另一路仅可执行 ALU, BR, MUL, RDCNT 指令。
 
-- 另一路仅可执行 ALU, BR, MUL 指令。
+### Dispatcher
+
+处理数据相关与 Load and Use 等相关，与前递模块一同保证发送出的指令不会使用错误数据，同时返回发送信息使FIFO队列移位。
 
 
 ### ALU

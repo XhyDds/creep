@@ -53,6 +53,7 @@ module L1_L2cache#(
     input       req_pref_l2cache,    
     input       type_pref_l2cache,//指令或数据 0-指令 1-数据
     input       [31:0]addr_pref_l2cache,    
+    output      addrOK_l2cache_pref,
     output      complete_l2cache_pref,
     output      hit_l2cache_pref,//预取请求的Hit
     output      miss_l2cache_pref,//预取过程中来自L1访问的Miss 
@@ -292,6 +293,7 @@ L2cache(
     .addr_pref_l2cache(addr_pref_l2cache),
     .hit_l2cache_pref(hit_l2cache_pref),
     .miss_l2cache_pref(miss_l2cache_pref),
+    .addrOK_l2cache_pref(addrOK_l2cache_pref),
     .complete_l2cache_pref(complete_l2cache_pref),
     .missvalid_l2cacahe_pref(missvalid_l2cacahe_pref),
     .misspc_l2cache_pref(misspc_l2cache_pref),
