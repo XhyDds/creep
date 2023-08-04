@@ -5,7 +5,7 @@ module kt#(
     input clk,
     //query
     input [k_width-1:0]hashed_pc,//hash(pc)（暂定：有考虑延迟因素）
-    input [ADDR_WIDTH-1:0]pc,
+    input [ADDR_WIDTH-1:0]pc_reg,
     output[2:0]kind_pdc,
     //update
     input [k_width-1:0]hashed_pc_update,//ex段
@@ -24,7 +24,7 @@ module kt#(
     wire [2:0] _kind_pdc;
     wire [12:0] _pc;
 
-    assign kind_pdc=(_pc==pc[24:12])?_kind_pdc:3'b000;
+    assign kind_pdc=(_pc==pc_reg[24:12])?_kind_pdc:3'b000;
     
     sp_bram#(
         .ADDR_WIDTH(k_width),
