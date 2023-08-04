@@ -70,6 +70,8 @@ module L2cache_FSMmain#(
     input       FSM_dcache_req,
     input       FSM_dcache_wr,
     input       FSM_icache_req,
+
+    output      we_wbaddr,
     
     //PLRU
     output reg  [way-1:0]FSM_use,
@@ -187,8 +189,8 @@ always @(*) begin
             end
         end
         replace1:begin
-            if(FSM_rbuf_prefetch)next_state = prefetch_wait;
-            else if(mem_l2cache_addrOK_r)next_state = replace2;
+            // if(FSM_rbuf_prefetch)next_state = prefetch_wait;
+            if(mem_l2cache_addrOK_r)next_state = replace2;
             else next_state = replace1;
         end
         replace2:begin
@@ -280,6 +282,7 @@ always @(*) begin
     inpref = 0;
     outpref = 0;
     missvalid = 0;
+    we_wbaddr = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
@@ -424,6 +427,15 @@ always @(*) begin
             l2cache_mem_req_w = 1;
             FSM_choose_way = sel;
             FSM_TagV_way_select = sel;
+            we_wbaddr = 1;
+            // if(sel == 3'd0)FSM_TagV_unvalid = 8'b00000001;
+            // else if(sel == 3'd1)FSM_TagV_unvalid = 8'b00000010;
+            // else if(sel == 3'd2)FSM_TagV_unvalid = 8'b00000100;
+            // else if(sel == 3'd3)FSM_TagV_unvalid = 8'b00001000;
+            // else if(sel == 3'd4)FSM_TagV_unvalid = 8'b00010000;
+            // else if(sel == 3'd5)FSM_TagV_unvalid = 8'b00100000;
+            // else if(sel == 3'd6)FSM_TagV_unvalid = 8'b01000000;
+            // else if(sel == 3'd7)FSM_TagV_unvalid = 8'b10000000;
         end
         replace1:begin
             l2cache_mem_req_r = 1;
