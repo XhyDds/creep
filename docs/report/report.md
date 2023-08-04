@@ -8,7 +8,7 @@
 
 ## 设计简介
 
-我们设计的 CPU 采用顺序双发射八级流水，实现了 64 条指令、26 种 CSR 寄存器、16 种例外。采用 AXI-4 总线。使用 2 路组相联 16KB icache 和；2 路组相联 16KB dcache，采用写直达，非写分配策略；8 路组相联L2cache，采用写回、写分配策略。使用分支预测器以减少分支失败带来的性能损失。
+我们设计的 CPU 采用顺序双发射八级流水，实现了 63 条指令、26 种 CSR 寄存器、16 种例外。采用 AXI-4 总线。使用 2 路组相联 16KB icache 和；2 路组相联 16KB dcache，采用写直达，非写分配策略；8 路组相联L2cache，采用写回、写分配策略。使用分支预测器以减少分支失败带来的性能损失。
 
 ### 指令列表
 
@@ -35,8 +35,8 @@
 |   MOD.W   | 算术运算类指令 |      DIV       |
 |  DIV.WU   | 算术运算类指令 |      DIV       |
 |  MOD.WU   | 算术运算类指令 |      DIV       |
-|   BREAK   |  其他杂项指令  |       —        |
-|  SYSCALL  |  其他杂项指令  |       —        |
+|   BREAK   |  其他杂项指令  |      PRIV      |
+|  SYSCALL  |  其他杂项指令  |      PRIV      |
 |  SLLI.W   | 移位运算类指令 |      ALU       |
 |  SRLI.W   | 移位运算类指令 |      ALU       |
 |  SRAI.W   | 移位运算类指令 |      ALU       |
@@ -46,13 +46,12 @@
 |   ANDI    | 算术运算类指令 |      ALU       |
 |    ORI    | 算术运算类指令 |      ALU       |
 |   XORI    | 算术运算类指令 |      ALU       |
-|   CSRRD   |  CSR 访问指令  |      CSR       |
-|   CSRWR   |  CSR 访问指令  |      CSR       |
-|  CSRXCHG  |  CSR 访问指令  |      CSR       |
+|   CSRRD   |  CSR 访问指令  |      PRIV      |
+|   CSRWR   |  CSR 访问指令  |      PRIV      |
+|  CSRXCHG  |  CSR 访问指令  |      PRIV      |
 |   CACOP   | Cache 维护指令 |     CACHE      |
-|   ERTN    |  其他杂项指令  |      ERET      |
-|   IDLE    |  其他杂项指令  |      IDLE      |
-|  INVTLB   |  TLB 维护指令  |      TLB       |
+|   ERTN    |  其他杂项指令  |      PRIV      |
+|   IDLE    |  其他杂项指令  |      PRIV      |
 |  LU12I.W  | 算术运算类指令 |      ALU       |
 | PCADDU12I | 算术运算类指令 |      ALU       |
 |   LL.W    |  原子访存指令  |      MEM       |
@@ -66,8 +65,8 @@
 |   LD.BU   |  普通访存指令  |      MEM       |
 |   LD.HU   |  普通访存指令  |      MEM       |
 |   PRELD   |  普通访存指令  |      MEM       |
-|   DBAR    |    栅障指令    |      BAR       |
-|   IBAR    |    栅障指令    |      BAR       |
+|   DBAR    |    栅障指令    |     CACHE      |
+|   IBAR    |    栅障指令    |     CACHE      |
 |   JIRL    |    转移指令    |       BR       |
 |     B     |    转移指令    |       BR       |
 |    BL     |    转移指令    |       BR       |
