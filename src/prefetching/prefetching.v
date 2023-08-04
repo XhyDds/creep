@@ -33,11 +33,11 @@ module prefetching#(
     
     reg req_pref;
     reg [addr_width-1:0] addr_pref;
-    wire [ADDR_WIDTH-1:0] pdc_pref_addr_reg;
+    reg [ADDR_WIDTH-1:0] pdc_pref_addr_reg;
 
-    always@(posedge clk){
+    always@(posedge clk) begin
         pdc_pref_addr_reg<=pdc_pref_addr;
-    }
+    end
 
     //statemachine
     reg [1:0] crt;
