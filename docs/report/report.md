@@ -50,10 +50,6 @@
 |   CSRWR   |  CSR 访问指令  |      CSR       |
 |  CSRXCHG  |  CSR 访问指令  |      CSR       |
 |   CACOP   | Cache 维护指令 |     CACHE      |
-|  TLBSRCH  |  TLB 维护指令  |      TLB       |
-|   TLBRD   |  TLB 维护指令  |      TLB       |
-|   TLBWR   |  TLB 维护指令  |      TLB       |
-|  TLBFILL  |  TLB 维护指令  |      TLB       |
 |   ERTN    |  其他杂项指令  |      ERET      |
 |   IDLE    |  其他杂项指令  |      IDLE      |
 |  INVTLB   |  TLB 维护指令  |      TLB       |
@@ -138,24 +134,30 @@
 
 CPU 采用顺序双发射八级流水结构，流水线分为 IF0、IF1、FIFO、ID、REG、EXE0、EXE1、WB 八级。
 
+
 ![数据通路](./flow.svg)
 
 图中，除了 AXI interconnect 使用了以 MIT license 分发的 verilog-axi 外，所有模块都由我们独立实现。
+
 
 ## 执行单元设计
 
 执行单元采用双发射形式：
 
 - 一路为全能单元，可以执行全部指令，在指令到达时将其根据指令类别放入ALU0, BR, DIV, PRIV, MUL, Dcache 六个执行路径之一。
+
 - 另一路仅可执行 ALU, BR, MUL 指令。
+
 
 ### ALU
 
 ALU 单元可以执行 ADD.W、SUB.W、SLT、SLTU、AND、OR、NOR、XOR、SLL.W、SRL.W、SRA.W、SLLI.W、SRLI.W、SRAI.W、SLTI、SLTUI、ADDI.W、ANDI、ORI、XORI、LU12I.W、PCADDU12I 共 22 种运算。在得到运算结果后，向后空流水一级，以便与两级流水的运算单元补齐。
 
+
 ### BR
 
 BR 单元可以执行 JIRL、B、BL、BEQ、BNE、BLT、BGE、BLTU、BGEU 共 9 种分支指令，并对分支预测结果进行检验。下一条指令方向的 PC 与跳转方向不一致时，选择刷新单条指令或刷新整条流水线。第一阶段仅进行 ALU 运算，第二周期发出反馈，以缩短关键路径。
+
 
 ### DIV
 
