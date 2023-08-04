@@ -31,7 +31,7 @@ module npc_predictor#(
     input [k_width-1:0] pc_hashed_reg,
     input [ADDR_WIDTH-1:0] pc_reg
 );
-    parameter   NOT_JUMP = 3'd0,
+    localparam   NOT_JUMP = 3'd0,
                 DIRECT_JUMP = 3'd1,
                 //
                 RET = 3'd4,

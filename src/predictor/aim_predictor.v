@@ -30,9 +30,9 @@ module aim_predictor#(
     input  [k_width-1:0] pc_hashed,
     input  [ADDR_WIDTH-1:0] pc_reg
 );
-    // parameter NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
+    // localparam NOT_JUMP = 3'd0,DIRECT_JUMP = 3'd1,JUMP=3'd2,CALL = 3'd3,RET = 3'd4,INDIRECT_JUMP = 3'd5,OTHER_JUMP = 3'd6;
     
-    parameter   NOT_JUMP = 3'd0,
+    localparam  NOT_JUMP = 3'd0,
                 DIRECT_JUMP = 3'd1,
                 //
                 RET = 3'd4,

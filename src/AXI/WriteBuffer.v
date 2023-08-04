@@ -42,7 +42,7 @@ module WriteBuffer #(
     output reg [31:0] pointer,
     input  dma_sign
 );
-    parameter WORD = (1<<offset_width)*32;
+    localparam WORD = (1<<offset_width)*32;
     reg [31:0] buffer_addr[length-1:0];
     reg [WORD-1:0] buffer_data[0:length-1];
 
@@ -53,7 +53,7 @@ module WriteBuffer #(
 
     //pull(->axi)
     //state machine
-    parameter IDLE_L = 5'd0,
+    localparam IDLE_L = 5'd0,
             PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,_SEND=5'd13;
     //外部输入
     //组合action

@@ -36,7 +36,7 @@ module predictor #(
     input [ADDR_WIDTH-1:0]pc,
     output[ADDR_WIDTH-1:0]npc_test
 );
-    parameter   NOT_JUMP = 3'd0,
+    localparam   NOT_JUMP = 3'd0,
                 DIRECT_JUMP = 3'd1,
                 //
                 RET = 3'd4,
