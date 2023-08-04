@@ -163,24 +163,26 @@ always @(*) begin
             next_state = checkDirty1;
         end
         checkDirty1:begin
-            if(FSM_rbuf_prefetch)begin
-                if(FSM_Dirty)next_state = Idle;//拒绝
-                else next_state = prefetch_wait;
-            end
-            else begin//
+            // if(FSM_rbuf_prefetch)begin
+            //     if(FSM_Dirty)next_state = Idle;//拒绝
+            //     else next_state = prefetch_wait;
+            // end
+            // else begin//
                 if(FSM_Dirty)begin
                     next_state = writeback;
                 end
                 else begin
-                    if(!FSM_rbuf_opflag)next_state = replace1;
+                    if(FSM_rbuf_prefetch)next_state = prefetch_wait;
+                    else if(!FSM_rbuf_opflag)next_state = replace1;
                     else next_state = Idle;
                 end
-            end
+            // end
         end
         writeback:begin
             if(!mem_l2cache_addrOK_w)next_state = writeback;
             else begin
-                if(!FSM_rbuf_opflag)next_state = replace1;
+                if(FSM_rbuf_prefetch)next_state = prefetch_wait;
+                else if(!FSM_rbuf_opflag)next_state = replace1;
                 else next_state = Idle;//只需要完成脏块写回
             end
         end
@@ -221,27 +223,30 @@ always @(*) begin
         default:next_state = Idle;
     endcase
 end
-reg [2:0]sel_d;
-reg [1:0]sel_i;
+reg [2:0]sel;
 reg we_sel;
 always @(posedge clk) begin
     if(we_sel)begin
-        sel_d <= FSM_way_sel_d;
-        sel_i <= FSM_way_sel_i;
+        sel <= FSM_Dirtytable_way_select;
     end
 end
 reg hit_record_we;
 reg [2:0]hit_record;
+reg [2:0]hit_pos;
+always @(*) begin
+    if(FSM_hit[0])hit_pos = 3'd0;
+    else if(FSM_hit[1])hit_pos = 3'd1;
+    else if(FSM_hit[2])hit_pos = 3'd2;
+    else if(FSM_hit[3])hit_pos = 3'd3;
+    else if(FSM_hit[4])hit_pos = 3'd4;
+    else if(FSM_hit[5])hit_pos = 3'd5;
+    else if(FSM_hit[6])hit_pos = 3'd6;
+    else if(FSM_hit[7])hit_pos = 3'd7;
+    else hit_pos = 3'd0;
+end
 always @(posedge clk) begin
     if(hit_record_we)begin
-        if(FSM_hit[0])hit_record <= 3'd0;
-        else if(FSM_hit[1])hit_record <= 3'd1;
-        else if(FSM_hit[2])hit_record <= 3'd2;
-        else if(FSM_hit[3])hit_record <= 3'd3;
-        else if(FSM_hit[4])hit_record <= 3'd4;
-        else if(FSM_hit[5])hit_record <= 3'd5;
-        else if(FSM_hit[6])hit_record <= 3'd6;
-        else if(FSM_hit[7])hit_record <= 3'd7;
+        hit_record <= hit_pos;
     end
 end
 always @(*) begin
@@ -330,84 +335,25 @@ always @(*) begin
                 outpref = 1;
                 miss_l2cache_pref = 0;
                 FSM_Data_replace = 1;
-                if(~FSM_rbuf_pref_type)begin//inst
-                    FSM_use[{1'b0,sel_i}] = 1;
-                    FSM_Data_we[{1'b0,sel_i}] = 1;
-                    FSM_Dirtytable_way_select = {1'b0,sel_i};
-                    FSM_Dirtytable_set0 = 1;
-                end
-                else begin
-                    FSM_use[sel_d] = 1;
-                    FSM_Data_we[sel_d] = 1;
-                    FSM_Dirtytable_way_select = sel_d;
-                    FSM_Dirtytable_set0 = 1;
-                end
+                FSM_use[sel] = 1;
+                FSM_Data_we[sel] = 1;
+                FSM_Dirtytable_way_select = sel;
+                FSM_Dirtytable_set0 = 1;
             end
             else begin//req for L1
                 FSM_inpref = 1;
                 if(Hit && ! FSM_SUC_pref)begin
                     if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
-                        if(FSM_hit[0])FSM_choose_way = 3'd0;
-                        else if(FSM_hit[1])FSM_choose_way = 3'd1;
-                        else if(FSM_hit[2])FSM_choose_way = 3'd2;
-                        else if(FSM_hit[3])FSM_choose_way = 3'd3;
-                        else if(FSM_hit[4])FSM_choose_way = 3'd4;
-                        else if(FSM_hit[5])FSM_choose_way = 3'd5;
-                        else if(FSM_hit[6])FSM_choose_way = 3'd6;
-                        else if(FSM_hit[7])FSM_choose_way = 3'd7;
+                        FSM_choose_way = hit_pos;
                         if(FSM_from_pref[1])l2cache_dcache_dataOK =1;
                         else l2cache_icache_dataOK = 1;
                     end
                     else if(FSM_from_pref == 2'b11)begin
                         l2cache_dcache_addrOK = 1;
-                        if(FSM_hit[0])begin
-                            FSM_use[0] = 1;
-                            FSM_Data_we[0] = 1;
-                            FSM_Dirtytable_way_select = 3'd0;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[1])begin
-                            FSM_use[1] = 1;
-                            FSM_Data_we[1] = 1;
-                            FSM_Dirtytable_way_select = 3'd1;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[2])begin
-                            FSM_use[2] = 1;
-                            FSM_Data_we[2] = 1;
-                            FSM_Dirtytable_way_select = 3'd2;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[3])begin
-                            FSM_use[3] = 1;
-                            FSM_Data_we[3] = 1;
-                            FSM_Dirtytable_way_select = 3'd3;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[4])begin
-                            FSM_use[4] = 1;
-                            FSM_Data_we[4] = 1;
-                            FSM_Dirtytable_way_select = 3'd4;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[5])begin
-                            FSM_use[5] = 1;
-                            FSM_Data_we[5] = 1;
-                            FSM_Dirtytable_way_select = 3'd5;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[6])begin
-                            FSM_use[6] = 1;
-                            FSM_Data_we[6] = 1;
-                            FSM_Dirtytable_way_select = 3'd6;
-                            FSM_Dirtytable_set1 = 1;
-                        end
-                        else if(FSM_hit[7])begin
-                            FSM_use[7] = 1;
-                            FSM_Data_we[7] = 1;
-                            FSM_Dirtytable_way_select = 3'd7;
-                            FSM_Dirtytable_set1 = 1;
-                        end
+                        FSM_Dirtytable_set1 = 1;
+                        FSM_use[hit_pos] = 1;
+                        FSM_Data_we[hit_pos] = 1;
+                        FSM_Dirtytable_way_select = hit_pos;
                     end
                 end
             end
@@ -420,18 +366,10 @@ always @(*) begin
                 complete_l2cache_pref = 1;
                 miss_l2cache_pref = 1;
                 FSM_Data_replace = 1;
-                if(~FSM_rbuf_pref_type)begin//inst
-                    FSM_use[{1'b0,sel_i}] = 1;
-                    FSM_Data_we[{1'b0,sel_i}] = 1;
-                    FSM_Dirtytable_way_select = {1'b0,sel_i};
-                    FSM_Dirtytable_set0 = 1;
-                end
-                else begin
-                    FSM_use[sel_d] = 1;
-                    FSM_Data_we[sel_d] = 1;
-                    FSM_Dirtytable_way_select = sel_d;
-                    FSM_Dirtytable_set0 = 1;
-                end
+                FSM_use[sel] = 1;
+                FSM_Data_we[sel] = 1;
+                FSM_Dirtytable_way_select = sel;
+                FSM_Dirtytable_set0 = 1;
             end
         end
         SUC_w:begin
@@ -445,66 +383,16 @@ always @(*) begin
             if(!(FSM_rbuf_from == 2'b01 && flush) && !FSM_rbuf_SUC)begin
             if(Hit)begin
                 if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
-                    if(FSM_hit[0])begin FSM_use[0] = 1; FSM_choose_way = 3'd0; end
-                    else if(FSM_hit[1])begin FSM_use[1] = 1; FSM_choose_way = 3'd1; end
-                    else if(FSM_hit[2])begin FSM_use[2] = 1; FSM_choose_way = 3'd2; end
-                    else if(FSM_hit[3])begin FSM_use[3] = 1; FSM_choose_way = 3'd3; end
-                    else if(FSM_hit[4])begin FSM_use[4] = 1; FSM_choose_way = 3'd4; end
-                    else if(FSM_hit[5])begin FSM_use[5] = 1; FSM_choose_way = 3'd5; end
-                    else if(FSM_hit[6])begin FSM_use[6] = 1; FSM_choose_way = 3'd6; end
-                    else if(FSM_hit[7])begin FSM_use[7] = 1; FSM_choose_way = 3'd7; end
+                    FSM_use[hit_pos] = 1;
+                    FSM_choose_way = hit_pos;
                     if(FSM_rbuf_from[1])l2cache_dcache_dataOK =1;
                     else l2cache_icache_dataOK = 1;
                 end
                 else begin//写命中
-                    if(FSM_hit[0])begin
-                        FSM_use[0] = 1;
-                        FSM_Data_we[0] = 1;
-                        FSM_Dirtytable_way_select = 3'd0;
-                        FSM_Dirtytable_set1 = 1;
-                    end
-                    else if(FSM_hit[1])begin
-                        FSM_use[1] = 1;
-                        FSM_Data_we[1] = 1;
-                        FSM_Dirtytable_way_select = 3'd1;
-                        FSM_Dirtytable_set1 = 1;
-                    end
-                    else if(FSM_hit[2])begin
-                        FSM_use[2] = 1;
-                        FSM_Data_we[2] = 1;
-                        FSM_Dirtytable_way_select = 3'd2;
-                        FSM_Dirtytable_set1 = 1;
-                    end
-                    else if(FSM_hit[3])begin
-                        FSM_use[3] = 1;
-                        FSM_Data_we[3] = 1;
-                        FSM_Dirtytable_way_select = 3'd3;
-                        FSM_Dirtytable_set1 = 1;
-                    end
-                    else if(FSM_hit[4])begin
-                        FSM_use[4] = 1;
-                        FSM_Data_we[4] = 1;
-                        FSM_Dirtytable_way_select = 3'd4;
-                        FSM_Dirtytable_set1 = 1;
-                    end
-                    else if(FSM_hit[5])begin
-                        FSM_use[5] = 1;
-                        FSM_Data_we[5] = 1;
-                        FSM_Dirtytable_way_select = 3'd5;
-                        FSM_Dirtytable_set1 = 1;
-                    end
-                    else if(FSM_hit[6])begin
-                        FSM_use[6] = 1;
-                        FSM_Data_we[6] = 1;
-                        FSM_Dirtytable_way_select = 3'd6;
-                        FSM_Dirtytable_set1 = 1;
-                    end
-                    else if(FSM_hit[7])begin
-                        FSM_use[7] = 1;
-                        FSM_Data_we[7] = 1;
-                        FSM_Dirtytable_way_select = 3'd7;
-                        FSM_Dirtytable_set1 = 1;
-                    end
+                    FSM_Dirtytable_set1 = 1;
+                    FSM_use[hit_pos] = 1;
+                    FSM_Data_we[hit_pos] = 1;
+                    FSM_Dirtytable_way_select = hit_pos;
                 end
             end
             end
@@ -529,37 +417,13 @@ always @(*) begin
         checkDirty1:begin
             if(FSM_Dirty)begin
                 FSM_Data_writeback = 1;
-                if(FSM_rbuf_prefetch)begin
-                    hit_l2cache_pref = 1;
-                    complete_l2cache_pref = 1;
-                    outpref = 1;
-                end
             end
         end
         writeback:begin
             if(next_state == writeback)FSM_Data_writeback = 1;//用rbuf_index读tag
-            else FSM_Data_writeback = 0;
             l2cache_mem_req_w = 1;
-            if(!FSM_rbuf_opflag)begin
-                if(FSM_rbuf_from == 2'b01)begin
-                    FSM_choose_way = {1'b0,sel_i};//选择写数据
-                    FSM_TagV_way_select = {1'b0,sel_i};//选择写地址
-                end
-                else begin
-                    FSM_choose_way = sel_d;
-                    FSM_TagV_way_select = sel_d;
-                end
-            end
-            else begin
-                if(FSM_rbuf_opcode[4:3] == 2'd1)begin
-                    FSM_choose_way = FSM_rbuf_opaddr[2:0];
-                    FSM_TagV_way_select = FSM_rbuf_opaddr[2:0];
-                end
-                else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
-                    FSM_choose_way = hit_record;
-                    FSM_TagV_way_select = hit_record;
-                end
-            end
+            FSM_choose_way = sel;
+            FSM_TagV_way_select = sel;
         end
         replace1:begin
             l2cache_mem_req_r = 1;
@@ -570,43 +434,33 @@ always @(*) begin
                 FSM_choose_return = 1;
                 if(!FSM_rbuf_SUC)begin
                     FSM_Data_replace = 1;//写一个块
+                    FSM_use[sel] = 1;
+                    FSM_Data_we[sel] = 1;
+                    FSM_Dirtytable_way_select = sel;
                     if(FSM_rbuf_from == 2'b01)begin//i-r
                         l2cache_icache_dataOK = 1;
-                        FSM_use[{1'b0,sel_i}] = 1;
-                        FSM_Data_we[{1'b0,sel_i}] = 1;
-                        FSM_Dirtytable_way_select = {1'b0,sel_i};
                         FSM_Dirtytable_set0 = 1;
                     end
                     else if(FSM_rbuf_from == 2'b10)begin//d-r
                         l2cache_dcache_dataOK = 1;
-                        FSM_use[sel_d] = 1;
-                        FSM_Data_we[sel_d] = 1;
-                        FSM_Dirtytable_way_select = sel_d;
                         FSM_Dirtytable_set0 = 1;
                     end
                     else begin//d-w
-                        // FSM_use[FSM_way_sel_d] = 1;//还不能发use给lru单元
-                        FSM_Data_we[sel_d] = 1;
-                        FSM_Dirtytable_way_select = sel_d;
                         FSM_Dirtytable_set1 = 1;
                     end 
                 end
                 else begin
-                    if(FSM_rbuf_from == 2'b01)begin
-                        l2cache_icache_dataOK = 1;
-                    end
-                    else if(FSM_rbuf_from == 2'b10)begin
-                        l2cache_dcache_dataOK = 1;
-                    end
+                    if(FSM_rbuf_from == 2'b01)l2cache_icache_dataOK = 1;
+                    else if(FSM_rbuf_from == 2'b10)l2cache_dcache_dataOK = 1;
                 end
             end
         end
         replace_write1:begin
             
         end
-        replace_write:begin//写一个字  用上一个周期的FSM_way_sel_d  上一次写会改变vaild
-            FSM_Data_we[sel_d] = 1;
-            FSM_use[sel_d] = 1;
+        replace_write:begin
+            FSM_Data_we[sel] = 1;
+            FSM_use[sel] = 1;
         end
         default:;
     endcase
