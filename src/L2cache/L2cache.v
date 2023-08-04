@@ -244,6 +244,9 @@ wire [way-1:0]Data_we;
 wire [(1<<offset_width)*32-1:0]data0,data1,data2,data3,data4,data5,data6,data7;
 wire Data_replace;
 wire Data_writeback;
+reg Data_replace_reg;//延迟
+reg [way-1:0]Data_we_reg;
+reg [32*(1<<offset_width)-1:0]din_reg;
 L2cache_Data #(
     .way(way),
     .addr_width(index_width),
@@ -273,9 +276,6 @@ L2cache_Data(
     // .Data_we(Data_we),
     // .Data_replace(Data_replace)
 );
-reg Data_replace_reg;//延迟
-reg [way-1:0]Data_we_reg;
-reg [32*(1<<offset_width)-1:0]din_reg;
 always @(posedge clk) begin
     din_reg <= din_mem_l2cache;
     Data_replace_reg <= Data_replace;

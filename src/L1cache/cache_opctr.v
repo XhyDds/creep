@@ -61,6 +61,7 @@ cache_myreg #(
 )
 addr_dm(
     .clk(clk),
+    .rstn(rstn),
     .we(opin_d),
     .clear(ack_d),
     .in(addrin_d),
