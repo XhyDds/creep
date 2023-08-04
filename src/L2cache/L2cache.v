@@ -162,8 +162,6 @@ L2cache_rbuf L2cache_rbuf(
     .opaddr(addr_pipeline_l2cache),
     .rbuf_opaddr(rbuf_opaddr),
 
-    .prefetch(req_pref_l2cache),
-
     .pref_type(type_pref_l2cache),
     .rbuf_pref_type(rbuf_pref_type),
 
@@ -184,9 +182,26 @@ assign offset_pref = addr_pref[offset_width+1:2];
 assign index_pref = addr_pref[offset_width+index_width+1:offset_width+2];
 assign tag_pref = addr_pref[31:offset_width+index_width+2];
 reg tt;
-always @(posedge clk) begin
+always @(posedge clk) begin//间隔访问
     if(!rstn)tt <= 0;
     else tt <= ~tt;
+end
+wire we_wbaddr;
+reg [32:0]wbaddr;//写回地址
+always @(posedge clk) begin
+    if(we_wbaddr)wbaddr <= {1'b0,addr_l2cache_mem_w};
+end
+reg [1:0]from_tt;
+always @(*) begin
+    if(dcache_l2cache_req)begin
+        if(!dcache_l2cache_wr)from_tt = 2'd2;
+        else if(wbaddr<={1'b0,addr_dcache_l2cache} && wbaddr+33'd32>{1'b0,addr_dcache_l2cache})from_tt = 2'd0;//拒绝写
+        else from_tt = 2'd3;
+    end
+    else if(icache_l2cache_req)begin
+        from_tt = 2'd1;
+    end
+    else from_tt = 2'd0;
 end
 L2cache_pref_reqbuf L2cache_pref_reqbuf(
     .clk(clk),
@@ -194,7 +209,7 @@ L2cache_pref_reqbuf L2cache_pref_reqbuf(
 
     .data_l1(din_l1cache_l2cache),
     .addr_l1(dcache_l2cache_req ? addr_dcache_l2cache : (icache_l2cache_req ? addr_icache_l2cache : 0)),
-    .from({from[1]&tt,from[0]&tt}),
+    .from({from_tt[1]&tt,from_tt[0]&tt}),
     .wstrb_l1(dcache_l2cache_wstrb),
     .SUC(l1cache_l2cache_SUC),
 
@@ -293,6 +308,7 @@ L2cache_TagV(
     .TagV_addr_write(inpref ? index_pref : rbuf_index),
     .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
+
 );
 
 //Dirtytable
@@ -304,8 +320,8 @@ L2cache_Dirtytable #(
 L2cache_Dirtytable(
     .clk(clk),
     
-    .Dirtytable_addr(inpref ? index_pref : rbuf_index),
-    // .Dirtytable_addr(rbuf_index),
+    .Dirtytable_addr(rbuf_index),
+    .Dirtytable_addrw(inpref ? index_pref : rbuf_index),
     .Dirtytable_way_select(Dirtytable_way_select),
     .Dirtytable_set0(Dirtytable_set0),
     .Dirtytable_set1(Dirtytable_set1),
@@ -392,6 +408,8 @@ L2cache_FSMmain(
     .miss_l2cache_pref(miss_l2cache_pref),
     .complete_l2cache_pref(complete_l2cache_pref),
     .missvalid(missvalid_l2cacahe_pref),
+
+    .we_wbaddr(we_wbaddr),
 
     //request buffer
     .FSM_rbuf_we(rbuf_we),

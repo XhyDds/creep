@@ -27,7 +27,7 @@ module L2cache_rbuf#(
     input clk,rstn,rbuf_we,
     input [31:0]addr,data,opcode,opaddr,pc,
     output reg [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_opaddr,rbuf_pc,
-    input opflag,SUC,prefetch,pref_type,
+    input opflag,SUC,pref_type,
     output reg rbuf_opflag,rbuf_SUC,rbuf_pref_type,
     input [3:0]wstrb,
     output reg [3:0]rbuf_wstrb,
