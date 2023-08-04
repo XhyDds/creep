@@ -41,6 +41,7 @@ module data_pre#(
     reg                 ann_choice      ;
     reg [1:0]           ann_spare_pdch  ;
     reg                 ann_spare       ;
+    reg [1:0]           ann_spare_upt   ;
     reg [1:0]           ann_hit_pdch    ;
     reg                 ann_hit         ;
     reg                 ann_update_en   ;
@@ -112,7 +113,7 @@ module data_pre#(
         .dout({choice_pdc,spare_pdc}),
         .enb(1),
         .waddr(ann_inst_pc_upt_hashed),
-        .din({choice_upt,spare_upt}),
+        .din({choice_upt,ann_spare_upt}),
         .we(ann_update_en)
     );
 
@@ -158,14 +159,14 @@ module data_pre#(
         req=0;
         if(anneal_unhit_reg) ;
         else if(~hit_pdc[1]&spare_pdc[1]) 
-            if(choice_pdc[1]&ptr_valid&allow_ptr) begin
-            // if(choice_pdc[1]&ptr_valid&(addr==ptr_addr_)&allow_ptr) begin
+            // if(choice_pdc[1]&ptr_valid&allow_ptr) begin
+            if(choice_pdc[1]&ptr_valid&(addr==ptr_addr_)&allow_ptr) begin
                 naddr_pdc=naddr_pdc_ptr;
                 naddr_valid=1;
                 req=1;
             end
-            else if(~choice_pdc[1]&offset_valid&allow_off) begin
-            // else if(~choice_pdc[1]&offset_valid&(inst_pc==inst_pc_)&allow_off) begin
+            // else if(~choice_pdc[1]&offset_valid&allow_off) begin
+            else if(~choice_pdc[1]&offset_valid&(inst_pc==inst_pc_)&allow_off) begin
                 naddr_pdc=naddr_pdc_off;
                 naddr_valid=1;
                 req=1;
@@ -188,6 +189,7 @@ module data_pre#(
         ann_choice      =choice;
         ann_spare_pdch  =spare_pdch;
         ann_spare       =spare;
+        ann_spare_upt   =hit?spare_pdch:spare_upt;
         ann_hit_pdch    =hit_pdch;
         ann_hit         =hit;
         ann_update_en   =update_en;
@@ -204,6 +206,7 @@ module data_pre#(
             ann_choice      =0;
             ann_spare_pdch  =spare_pdc;
             ann_spare       =1;
+            ann_spare_upt   =spare_upt;
             ann_hit_pdch    =hit_pdc;
             ann_hit         =0;
             ann_update_en   =1;
