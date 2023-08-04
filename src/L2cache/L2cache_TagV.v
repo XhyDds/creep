@@ -137,6 +137,7 @@ always @(posedge clk) begin
     end
 end
 
+wire [way-1:0]hit_t;
 lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
@@ -149,7 +150,9 @@ way0(
     .we(TagV_we[0] || (TagV_init == {1'b1,3'd0})),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[0])
+    .dout(TagV_data[0]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[0])
 );
 
 lutram #(
@@ -164,7 +167,9 @@ way1(
     .we(TagV_we[1] || (TagV_init == {1'b1,3'd1})),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[1])
+    .dout(TagV_data[1]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[1])
 );
 
 lutram #(
@@ -179,7 +184,9 @@ way2(
     .we(TagV_we[2] || (TagV_init == {1'b1,3'd2})),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[2])
+    .dout(TagV_data[2]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[2])
 );
 
 lutram #(
@@ -194,7 +201,9 @@ way3(
     .we(TagV_we[3] || (TagV_init == {1'b1,3'd3})),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[3])
+    .dout(TagV_data[3]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[3])
 );
 
 lutram #(
@@ -209,7 +218,9 @@ way4(
     .we(TagV_we[4] || (TagV_init == {1'b1,3'd4})),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[4])
+    .dout(TagV_data[4]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[4])
 );
 
 lutram #(
@@ -224,7 +235,9 @@ way5(
     .we(TagV_we[5] || (TagV_init == {1'b1,3'd5})),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[5])
+    .dout(TagV_data[5]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[5])
 );
 
 lutram #(
@@ -239,7 +252,9 @@ way6(
     .we(TagV_we[6] || (TagV_init == {1'b1,3'd6})),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[6])
+    .dout(TagV_data[6]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[6])
 );
 
 lutram #(
@@ -254,15 +269,17 @@ way7(
     .we(TagV_we[7] || (TagV_init == {1'b1,3'd7})),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[7])
+    .dout(TagV_data[7]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[7])
 );
 
-assign hit[0]=(TagV_data[0]==TagV_din_compare)&&(v0);
-assign hit[1]=(TagV_data[1]==TagV_din_compare)&&(v1);
-assign hit[2]=(TagV_data[2]==TagV_din_compare)&&(v2);
-assign hit[3]=(TagV_data[3]==TagV_din_compare)&&(v3);
-assign hit[4]=(TagV_data[4]==TagV_din_compare)&&(v4);
-assign hit[5]=(TagV_data[5]==TagV_din_compare)&&(v5);
-assign hit[6]=(TagV_data[6]==TagV_din_compare)&&(v6);
-assign hit[7]=(TagV_data[7]==TagV_din_compare)&&(v7);
+assign hit[0]=(hit_t[0])&&(v0);
+assign hit[1]=(hit_t[1])&&(v1);
+assign hit[2]=(hit_t[2])&&(v2);
+assign hit[3]=(hit_t[3])&&(v3);
+assign hit[4]=(hit_t[4])&&(v4);
+assign hit[5]=(hit_t[5])&&(v5);
+assign hit[6]=(hit_t[6])&&(v6);
+assign hit[7]=(hit_t[7])&&(v7);
 endmodule

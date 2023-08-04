@@ -281,7 +281,8 @@ L2cache_TagV(
     .clk(clk),
 
     .TagV_addr_read(Data_writeback ? rbuf_index : index),
-    .TagV_din_compare(inpref ? tag_pref : rbuf_tag),
+    // .TagV_din_compare(inpref ? tag_pref : rbuf_tag),
+    .TagV_din_compare(tag),
     .hit(hit),
     .valid(valid),
     .TagV_way_select(TagV_way_select),
