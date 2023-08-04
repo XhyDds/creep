@@ -3,6 +3,7 @@ module bht#(
               bh_width = 14
 )(
     input clk,
+    input stall,
     //query
     input [k_width-1:0]hashed_pc,//hash(pc)
     output [bh_width-1:0]bh_pdc,
@@ -24,6 +25,7 @@ module bht#(
         .clk(clk),
         .raddr(hashed_pc),
         .dout(bh_pdc),
+        .enb(~stall),
         .waddr(hashed_pc_update),
         .din(_bh_new),
         .we(update_en)
