@@ -1,9 +1,11 @@
 ///prefetching顶层模块
 ///负责与具体地预取模块交互，以及与L2cache交互
 ///预测上：接受预取模块的req与addr脉冲
+`define TEST
 module prefetching#(
     parameter ADDR_WIDTH    = 32,
-              L2cache_width = 3
+              L2cache_width = 3,
+              HASH_WIDTH    = 10
 )(
     input        clk,
     input        rstn,
@@ -26,8 +28,11 @@ module prefetching#(
     input        hit_l2cache_pref,//预取请求的Hit
     input        miss_l2cache_pref//预取过程中来自L1访问的Miss 
 );
+
+    localparam addr_width = ADDR_WIDTH-2-L2cache_width;
+    
     reg req_pref;
-    reg [ADDR_WIDTH-1:0] addr_pref;
+    reg [addr_width-1:0] addr_pref;
 
     //statemachine
     reg [1:0] crt;
@@ -74,20 +79,20 @@ module prefetching#(
 
     wire [1:0] pdch_i;
     wire [5:0] pdch_d;
-    wire [ADDR_WIDTH-1:0] inst_d;
-    wire [ADDR_WIDTH-1:0] naddr_i_h;
-    wire [ADDR_WIDTH-1:0] naddr_d_h;
+    wire [addr_width-1:0] inst_d;
+    wire [addr_width-1:0] naddr_i_h;
+    wire [addr_width-1:0] naddr_d_h;
 
-    reg  [3*ADDR_WIDTH+7:0] hinfo_reg;
-    wire [3*ADDR_WIDTH+7:0] hinfo;
+    reg  [3*addr_width+7:0] hinfo_reg;
+    wire [3*addr_width+7:0] hinfo;
 
     assign hinfo={pdch_i,pdch_d,inst_d,naddr_i_h,naddr_d_h};
 
-    wire [1:0] pdch_i_reg=hinfo_reg[3*ADDR_WIDTH+7:3*ADDR_WIDTH+6];
-    wire [5:0] pdch_d_reg=hinfo_reg[3*ADDR_WIDTH+5:3*ADDR_WIDTH];
-    wire [ADDR_WIDTH-1:0] inst_d_reg=hinfo_reg[3*ADDR_WIDTH-1:2*ADDR_WIDTH];
-    wire [ADDR_WIDTH-1:0] naddr_i_h_reg=hinfo_reg[2*ADDR_WIDTH-1:ADDR_WIDTH];
-    wire [ADDR_WIDTH-1:0] naddr_d_h_reg=hinfo_reg[ADDR_WIDTH-1:0];
+    wire [1:0] pdch_i_reg=hinfo_reg[3*addr_width+7:3*addr_width+6];
+    wire [5:0] pdch_d_reg=hinfo_reg[3*addr_width+5:3*addr_width];
+    wire [addr_width-1:0] inst_d_reg=hinfo_reg[3*addr_width-1:2*addr_width];
+    wire [addr_width-1:0] naddr_i_h_reg=hinfo_reg[2*addr_width-1:addr_width];
+    wire [addr_width-1:0] naddr_d_h_reg=hinfo_reg[addr_width-1:0];
 
     always @(posedge clk) begin
         if(!rstn) begin
@@ -99,7 +104,7 @@ module prefetching#(
             case (crt)
                 IDLE: begin
                     if(nxt==REQ) begin
-                        addr_pref_l2cache<=addr_pref;
+                        addr_pref_l2cache<={addr_pref,{(2+L2cache_width){1'b0}}};
                         type_pref_l2cache<=type_pref_l2cache_;
                         hinfo_reg<=hinfo;
                     end
@@ -116,8 +121,8 @@ module prefetching#(
     end
 
     //预测单元
-    wire [ADDR_WIDTH-1:0] naddr_inst;
-    wire [ADDR_WIDTH-1:0] naddr_data;
+    wire [addr_width-1:0] naddr_inst;
+    wire [addr_width-1:0] naddr_data;
     wire valid_inst;
     wire valid_data;
     wire req_inst;
@@ -126,46 +131,49 @@ module prefetching#(
     wire addr_data;
 
     inst_pre#(
-        .ADDR_WIDTH(ADDR_WIDTH)
+        .addr_width(addr_width),
+        .HASH_WIDTH(HASH_WIDTH)
     )u_inst_pre(
         .clk(clk),
         .rstn(rstn),
 
-        .addr(pdc_pref_addr),
+        .addr(pdc_pref_addr[ADDR_WIDTH-1:2+L2cache_width]),
         .naddr_pdc(naddr_inst),
         .naddr_valid(valid_inst),
         .req(req_inst),
         .pdch(pdch_i),
 
-        .addr_upt(addr_pref_l2cache),
+        .addr_upt(addr_pref_l2cache[ADDR_WIDTH-1:2+L2cache_width]),
         .naddr_upt(naddr_i_h_reg),
         .spare(~miss_l2cache_pref),
         .pdch_upt(pdch_i_reg),
 
         .update_en(complete_l2cache_pref&~complete_l2cache_pref),
 
-        .anneal_addr(anneal_addr),
-        .anneal_pc(anneal_pc),
+        .anneal_addr(anneal_addr[ADDR_WIDTH-1:2+L2cache_width]),
+        .anneal_pc(anneal_pc[ADDR_WIDTH-1:2+L2cache_width]),
         .anneal_unhit(anneal_unhit),
         .anneal_type(anneal_type)
     );
 
     data_pre#(
-        .ADDR_WIDTH(ADDR_WIDTH)
+        .addr_width(addr_width),
+        .INST_WIDTH(addr_width),
+        .HASH_WIDTH(HASH_WIDTH)
     )u_data_pre(
         .clk(clk),
         .rstn(rstn),
         
-        .inst_pc(dcache_pref_pc),
+        .inst_pc(dcache_pref_pc[ADDR_WIDTH-1:2+L2cache_width]),
         .inst_valid(dcache_pref_valid),
-        .addr(dcache_pref_addr),
+        .addr(dcache_pref_addr[ADDR_WIDTH-1:2+L2cache_width]),
         .naddr_pdc(naddr_data),
         .naddr_valid(valid_data),
-        .req(req_inst),
+        .req(req_data),
         .pdch(pdch_d),
 
         .inst_pc_upt(inst_d_reg),
-        .addr_upt(addr_pref_l2cache),
+        .addr_upt(addr_pref_l2cache[ADDR_WIDTH-1:2+L2cache_width]),
         .naddr_upt(naddr_d_h_reg),
         .hit(hit_l2cache_pref),
         .spare(~miss_l2cache_pref),
@@ -174,8 +182,8 @@ module prefetching#(
 
         .update_en(complete_l2cache_pref&type_pref_l2cache),
 
-        .anneal_addr(anneal_addr),
-        .anneal_pc(anneal_pc),
+        .anneal_addr(anneal_addr[ADDR_WIDTH-1:2+L2cache_width]),
+        .anneal_pc(anneal_pc[ADDR_WIDTH-1:2+L2cache_width]),
         .anneal_unhit(anneal_unhit),
         .anneal_type(anneal_type)
     );
@@ -196,4 +204,34 @@ module prefetching#(
         end
         else ;
     end
+
+    `ifdef TEST
+    reg [31:0]  times_miss;
+    reg [31:0]  times_hit;
+    reg [31:0]  times_total;
+    reg [31:0]  times_anneal;
+
+    always @(posedge clk) begin
+        if(!rstn) begin
+            times_miss  <=0;
+            times_hit   <=0;
+            times_total <=0;
+            times_anneal<=0;
+        end
+        else begin
+            if(complete_l2cache_pref) begin
+                times_total<=times_total+1;
+                if(hit_l2cache_pref) begin
+                    times_hit<=times_hit+1;
+                end
+                else begin
+                    times_miss<=times_miss+1;
+                end
+            end
+            if(anneal_unhit) begin
+                times_anneal<=times_anneal+1;
+            end
+        end
+    end
+    `endif
 endmodule

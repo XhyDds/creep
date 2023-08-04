@@ -1834,31 +1834,31 @@ module core_top(
     //     .miss_l2cache_pref(miss_l2cache_pref)
     // );
 
-    // prefetching#(
-    //     .ADDR_WIDTH(32),
-    //     .L2cache_width(offset_width)
-    // )u_prefetching(
-    //     .clk(clk),
-    //     .rstn(rstn),
-    //     //inst-port
-    //     .pdc_pref_addr(npc),
-    //     //data-port
-    //     .dcache_pref_addr(dcache_pref_addr),
-    //     .dcache_pref_pc(dcache_pref_pc),
-    //     .dcache_pref_valid(dcache_pref_valid),
-    //     //l2cache-port
-    //     .anneal_addr(anneal_addr),
-    //     .anneal_pc(anneal_pc),
-    //     .anneal_unhit(anneal_unhit),
-    //     .anneal_type(anneal_type),
+    prefetching#(
+        .ADDR_WIDTH(32),
+        .L2cache_width(offset_width)
+    )u_prefetching(
+        .clk(clk),
+        .rstn(rstn),
+        //inst-port
+        .pdc_pref_addr(npc),
+        //data-port
+        .dcache_pref_addr(dcache_pref_addr),
+        .dcache_pref_pc(dcache_pref_pc),
+        .dcache_pref_valid(dcache_pref_valid),
+        //l2cache-port
+        .anneal_addr(anneal_addr),
+        .anneal_pc(anneal_pc),
+        .anneal_unhit(anneal_unhit),
+        .anneal_type(anneal_type),
 
-    //     .req_pref_l2cache(req_pref_l2cache),
-    //     .type_pref_l2cache(type_pref_l2cache),
-    //     .addr_pref_l2cache(addr_pref_l2cache),
-    //     .complete_l2cache_pref(complete_l2cache_pref),
-    //     .hit_l2cache_pref(hit_l2cache_pref),
-    //     .miss_l2cache_pref(miss_l2cache_pref)
-    // );
+        .req_pref_l2cache(req_pref_l2cache),
+        .type_pref_l2cache(type_pref_l2cache),
+        .addr_pref_l2cache(addr_pref_l2cache),
+        .complete_l2cache_pref(complete_l2cache_pref),
+        .hit_l2cache_pref(hit_l2cache_pref),
+        .miss_l2cache_pref(miss_l2cache_pref)
+    );
 
 
     l2_axi_package#(

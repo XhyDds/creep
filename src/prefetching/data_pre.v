@@ -1,41 +1,41 @@
 module data_pre#(
-    parameter ADDR_WIDTH = 32,
-              INST_WIDTH = 32,
-              HASH_WIDTH = 14
+    parameter addr_width = 27,
+              INST_WIDTH = 27,
+              HASH_WIDTH = 12
 )(
     input         clk,
     input         rstn,
     //预测
     input [INST_WIDTH-1:0]  inst_pc,
     input                   inst_valid,
-    input [ADDR_WIDTH-1:0]  addr,
-    output reg[ADDR_WIDTH-1:0]naddr_pdc,
+    input [addr_width-1:0]  addr,
+    output reg[addr_width-1:0]naddr_pdc,
     output reg              naddr_valid,
     output reg              req,
     output [5:0]            pdch,
     //更新
     input  [INST_WIDTH-1:0] inst_pc_upt,
-    input  [ADDR_WIDTH-1:0] addr_upt,
-    input  [ADDR_WIDTH-1:0] naddr_upt,
+    input  [addr_width-1:0] addr_upt,
+    input  [addr_width-1:0] naddr_upt,
     input                   hit,        //i/d 共用
     input                   spare,
     input                   choice,
     input  [5:0]            pdch_upt, //{hit,spare,choice}
     input                   update_en,
     //l2cache-(annealing)-port
-    input        [ADDR_WIDTH-1:0]anneal_addr,
-    input        [ADDR_WIDTH-1:0]anneal_pc,
+    input        [addr_width-1:0]anneal_addr,
+    input        [addr_width-1:0]anneal_pc,
     input        anneal_unhit,
     input        anneal_type
 );
     reg  anneal_unhit_reg;
-    reg  [ADDR_WIDTH-1:0]anneal_addr_reg;
-    reg  [ADDR_WIDTH-1:0]anneal_pc_reg;
+    reg  [addr_width-1:0]anneal_addr_reg;
+    reg  [addr_width-1:0]anneal_pc_reg;
 
     reg [INST_WIDTH-1:0]ann_inst_pc     ;
     reg [INST_WIDTH-1:0]ann_inst_pc_upt ;
-    reg [ADDR_WIDTH-1:0]ann_addr        ;
-    reg [ADDR_WIDTH-1:0]ann_addr_upt    ;
+    reg [addr_width-1:0]ann_addr        ;
+    reg [addr_width-1:0]ann_addr_upt    ;
     wire[1:0]           ann_choice_upt  ;
     reg [1:0]           ann_choice_pdch ;
     reg                 ann_choice      ;
@@ -55,20 +55,21 @@ module data_pre#(
     reg [1:0] choice_upt;
     //数组型
     //以inst_pc为索引，存储 上一次访存的地址+valid
-    wire [ADDR_WIDTH-1:0] paddr_pdc_off;
-    wire [ADDR_WIDTH-1:0] naddr_pdc_off;
+    wire [addr_width-1:0] paddr_pdc_off;
+    wire [addr_width-1:0] naddr_pdc_off;
+    wire [addr_width-1:0] inst_pc_;
     wire offset_valid;
     sp_bram#(
         .ADDR_WIDTH(HASH_WIDTH),
-        .DATA_WIDTH(ADDR_WIDTH+1),
+        .DATA_WIDTH(addr_width+1+addr_width),
         .INIT_NUM(0)
     )u_offset(
         .clk(clk),
         .raddr(inst_pc_hashed),
-        .dout({paddr_pdc_off,offset_valid}),
+        .dout({paddr_pdc_off,offset_valid,inst_pc_}),
         .enb(1),
         .waddr(inst_pc_hashed),
-        .din({addr,1'b1}),
+        .din({addr,1'b1,inst_pc}),
         .we(inst_valid)
     );
 
@@ -76,20 +77,21 @@ module data_pre#(
 
     //指针型
     //以addr为索引，存储 访存的地址
-    wire [ADDR_WIDTH-1:0] naddr_pdc_ptr;
-    reg  [ADDR_WIDTH-1:0] paddr_pdc_ptr;
+    wire [addr_width-1:0] naddr_pdc_ptr;
+    reg  [addr_width-1:0] paddr_pdc_ptr;
     wire ptr_valid;
+    wire [addr_width-1:0] ptr_addr_;
     sp_bram#(
         .ADDR_WIDTH(HASH_WIDTH),
-        .DATA_WIDTH(ADDR_WIDTH+1),
+        .DATA_WIDTH(addr_width+1+addr_width),
         .INIT_NUM(0)
     )u_pointer(
         .clk(clk),
         .raddr(addr_hashed),
-        .dout({naddr_pdc_ptr,ptr_valid}),
+        .dout({naddr_pdc_ptr,ptr_valid,ptr_addr_}),
         .enb(1),
         .waddr(paddr_pdc_ptr_hashed),
-        .din({addr,1'b1}),
+        .din({addr,1'b1,paddr_pdc_ptr}),
         .we((paddr_pdc_ptr!=addr))
     );
     always @(posedge clk) begin
@@ -147,18 +149,23 @@ module data_pre#(
         .taken(ann_hit)
     );
 
+    wire allow_ptr;
+    wire allow_off;
+
     always @(*) begin
         naddr_pdc=0;
         naddr_valid=0;
         req=0;
         if(anneal_unhit_reg) ;
         else if(~hit_pdc[1]&spare_pdc[1]) 
-            if(choice_pdc[1]&ptr_valid) begin
+            if(choice_pdc[1]&ptr_valid&allow_ptr) begin
+            // if(choice_pdc[1]&ptr_valid&(addr==ptr_addr_)) begin
                 naddr_pdc=naddr_pdc_ptr;
                 naddr_valid=1;
                 req=1;
             end
-            else if(~choice_pdc[1]&offset_valid) begin
+            else if(~choice_pdc[1]&offset_valid&allow_off) begin
+            // else if(~choice_pdc[1]&offset_valid&(inst_pc==inst_pc_)) begin
                 naddr_pdc=naddr_pdc_off;
                 naddr_valid=1;
                 req=1;
@@ -222,7 +229,7 @@ module data_pre#(
     );
 
     single_hash#(
-        .DATA_width(ADDR_WIDTH),
+        .DATA_width(addr_width),
         .HASH_width(HASH_WIDTH)
     )u_addr_hashed(
         .data_raw(addr),
@@ -230,7 +237,7 @@ module data_pre#(
     );
 
     single_hash#(
-        .DATA_width(ADDR_WIDTH),
+        .DATA_width(addr_width),
         .HASH_width(HASH_WIDTH)
     )u_paddr_pdc_ptr_hashed(
         .data_raw(paddr_pdc_ptr),
@@ -254,7 +261,7 @@ module data_pre#(
     );
 
     single_hash#(
-        .DATA_width(ADDR_WIDTH),
+        .DATA_width(addr_width),
         .HASH_width(HASH_WIDTH)
     )u_ann_addr_hashed(
         .data_raw(ann_addr),
@@ -262,11 +269,22 @@ module data_pre#(
     );
 
     single_hash#(
-        .DATA_width(ADDR_WIDTH),
+        .DATA_width(addr_width),
         .HASH_width(HASH_WIDTH)
     )u_ann_addr_upt_hashed(
         .data_raw(ann_addr_upt),
         .data_hashed(ann_addr_upt_hashed)
     );
 
+    //地址空洞
+    IO_mask u_io_mask_ptr(
+        .addr({naddr_pdc_ptr,5'b0}),
+        .widthin(10'd32),
+        .allow(allow_ptr)
+    );   
+    IO_mask u_io_mask_off(
+        .addr({naddr_pdc_off,5'b0}),
+        .widthin(10'd32),
+        .allow(allow_off)
+    );
 endmodule
