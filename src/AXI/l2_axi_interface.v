@@ -203,7 +203,7 @@ module l2_axi_interface#(
 
         case(w_crt)
         D_AW: begin
-
+            awvalid     = 1;
         end
         D_W: begin
             wvalid      = l2_wwvalid;

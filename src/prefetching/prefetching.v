@@ -33,6 +33,11 @@ module prefetching#(
     
     reg req_pref;
     reg [addr_width-1:0] addr_pref;
+    wire [ADDR_WIDTH-1:0] pdc_pref_addr_reg;
+
+    always@(posedge clk){
+        pdc_pref_addr_reg<=pdc_pref_addr;
+    }
 
     //statemachine
     reg [1:0] crt;
@@ -137,7 +142,7 @@ module prefetching#(
         .clk(clk),
         .rstn(rstn),
 
-        .addr(pdc_pref_addr[ADDR_WIDTH-1:2+L2cache_width]),
+        .addr(pdc_pref_addr_reg[ADDR_WIDTH-1:2+L2cache_width]),
         .naddr_pdc(naddr_inst),
         .naddr_valid(valid_inst),
         .req(req_inst),
