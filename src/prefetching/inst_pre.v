@@ -1,6 +1,6 @@
 module inst_pre#(
-    parameter addr_width = 32,
-              HASH_WIDTH = 14
+    parameter addr_width = 27,
+              HASH_WIDTH = 10
 )(
     input         clk,
     input         rstn,
@@ -42,20 +42,22 @@ module inst_pre#(
     reg  [addr_width-1:0] paddr;
     wire [addr_width-1:0] naddr_pdc_inst;
     wire valid;
-    wire [1:0] taken_pdc;
+    wire [1:0] taken_pdc;//迟一周期
     wire [1:0] taken_upt;
+    wire [addr_width-1:0] addr_inst_;//迟一周期
+    wire [1:0] taken_pdc_;
     sp_bram#(
         .ADDR_WIDTH(HASH_WIDTH),
-        .DATA_WIDTH(addr_width+1+2),
+        .DATA_WIDTH(addr_width+1+2+addr_width),
         .INIT_NUM(0)
     )u_inst(
         .clk(clk),
         .raddr(addr_hashed),
-        .dout({naddr_pdc_inst,valid,taken_pdc}),
+        .dout({naddr_pdc_inst,valid,taken_pdc_,addr_inst_}),
         .enb(1),
         .waddr(paddr_hashed),
-        .din({taken_upt[1]?addr:paddr,1'b1,taken_upt}),
-        .we((paddr!=addr))
+        .din({taken_upt[1]?addr:paddr,1'b1,taken_upt,paddr}),
+        .we(paddr!=addr)
     );
     always @(posedge clk) begin
         paddr<=addr;
@@ -88,13 +90,16 @@ module inst_pre#(
         .taken(ann_spare)
     );
 
+    wire allow_inst;
+
     always @(*) begin
         naddr_pdc=0;
         naddr_valid=0;
         req=0;
         if((addr!=paddr)) begin
             if(valid&spare_pdc[1]) 
-                if(taken_pdc[1]) begin
+                // if((addr_inst_==addr)&taken_pdc[1]) begin
+                if(taken_pdc[1]&allow_inst) begin
                     naddr_pdc=naddr_pdc_inst;
                     naddr_valid=1;
                     req=1;
@@ -104,11 +109,11 @@ module inst_pre#(
                     naddr_valid=1;
                     req=1;
                 end
-            else if(~valid)begin    //默认+1
-                naddr_pdc=addr+1;
-                naddr_valid=1;
-                req=1;
-            end
+            // else if(~valid)begin    //默认+1
+            //     naddr_pdc=addr+1;
+            //     naddr_valid=1;
+            //     req=1;
+            // end
         end
     end
 
@@ -171,4 +176,11 @@ module inst_pre#(
         .data_hashed(ann_addr_upt_hashed)
     );
 
+
+    //地址空洞
+    IO_mask u_io_mask_inst(
+        .addr({naddr_pdc_inst,5'b0}),
+        .widthin(10'd32),
+        .allow(allow_inst)
+    );   
 endmodule

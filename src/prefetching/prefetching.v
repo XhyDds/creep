@@ -5,7 +5,7 @@
 module prefetching#(
     parameter ADDR_WIDTH    = 32,
               L2cache_width = 3,
-              HASH_WIDTH    = 14
+              HASH_WIDTH    = 10
 )(
     input        clk,
     input        rstn,

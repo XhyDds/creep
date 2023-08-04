@@ -1,6 +1,6 @@
 module data_pre#(
-    parameter addr_width = 32,
-              INST_WIDTH = 32,
+    parameter addr_width = 27,
+              INST_WIDTH = 27,
               HASH_WIDTH = 12
 )(
     input         clk,
@@ -57,18 +57,19 @@ module data_pre#(
     //以inst_pc为索引，存储 上一次访存的地址+valid
     wire [addr_width-1:0] paddr_pdc_off;
     wire [addr_width-1:0] naddr_pdc_off;
+    wire [addr_width-1:0] inst_pc_;
     wire offset_valid;
     sp_bram#(
         .ADDR_WIDTH(HASH_WIDTH),
-        .DATA_WIDTH(addr_width+1),
+        .DATA_WIDTH(addr_width+1+addr_width),
         .INIT_NUM(0)
     )u_offset(
         .clk(clk),
         .raddr(inst_pc_hashed),
-        .dout({paddr_pdc_off,offset_valid}),
+        .dout({paddr_pdc_off,offset_valid,inst_pc_}),
         .enb(1),
         .waddr(inst_pc_hashed),
-        .din({addr,1'b1}),
+        .din({addr,1'b1,inst_pc}),
         .we(inst_valid)
     );
 
@@ -79,17 +80,18 @@ module data_pre#(
     wire [addr_width-1:0] naddr_pdc_ptr;
     reg  [addr_width-1:0] paddr_pdc_ptr;
     wire ptr_valid;
+    wire [addr_width-1:0] ptr_addr_;
     sp_bram#(
         .ADDR_WIDTH(HASH_WIDTH),
-        .DATA_WIDTH(addr_width+1),
+        .DATA_WIDTH(addr_width+1+addr_width),
         .INIT_NUM(0)
     )u_pointer(
         .clk(clk),
         .raddr(addr_hashed),
-        .dout({naddr_pdc_ptr,ptr_valid}),
+        .dout({naddr_pdc_ptr,ptr_valid,ptr_addr_}),
         .enb(1),
         .waddr(paddr_pdc_ptr_hashed),
-        .din({addr,1'b1}),
+        .din({addr,1'b1,paddr_pdc_ptr}),
         .we((paddr_pdc_ptr!=addr))
     );
     always @(posedge clk) begin
@@ -147,18 +149,23 @@ module data_pre#(
         .taken(ann_hit)
     );
 
+    wire allow_ptr;
+    wire allow_off;
+
     always @(*) begin
         naddr_pdc=0;
         naddr_valid=0;
         req=0;
         if(anneal_unhit_reg) ;
         else if(~hit_pdc[1]&spare_pdc[1]) 
-            if(choice_pdc[1]&ptr_valid) begin
+            if(choice_pdc[1]&ptr_valid&allow_ptr) begin
+            // if(choice_pdc[1]&ptr_valid&(addr==ptr_addr_)) begin
                 naddr_pdc=naddr_pdc_ptr;
                 naddr_valid=1;
                 req=1;
             end
-            else if(~choice_pdc[1]&offset_valid) begin
+            else if(~choice_pdc[1]&offset_valid&allow_off) begin
+            // else if(~choice_pdc[1]&offset_valid&(inst_pc==inst_pc_)) begin
                 naddr_pdc=naddr_pdc_off;
                 naddr_valid=1;
                 req=1;
@@ -269,4 +276,15 @@ module data_pre#(
         .data_hashed(ann_addr_upt_hashed)
     );
 
+    //地址空洞
+    IO_mask u_io_mask_ptr(
+        .addr({naddr_pdc_ptr,5'b0}),
+        .widthin(10'd32),
+        .allow(allow_ptr)
+    );   
+    IO_mask u_io_mask_off(
+        .addr({naddr_pdc_off,5'b0}),
+        .widthin(10'd32),
+        .allow(allow_off)
+    );
 endmodule

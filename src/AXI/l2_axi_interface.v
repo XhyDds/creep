@@ -218,10 +218,4 @@ module l2_axi_interface#(
         default:;
         endcase
     end
-    wire test0 = w_crt[0];
-    wire test1 = ~w_crt[1];
-    wire test2 = ~w_crt[2];
-    wire test3 = test0 & test1 & test2;
-    assign awvalid = test3;
-    wire test4 = (awvalid == test3);
 endmodule
