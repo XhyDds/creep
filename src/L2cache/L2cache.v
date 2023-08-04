@@ -303,8 +303,8 @@ L2cache_Dirtytable #(
 L2cache_Dirtytable(
     .clk(clk),
     
-    // .Dirtytable_addr(inpref ? index_pref : rbuf_index),
-    .Dirtytable_addr(rbuf_index),
+    .Dirtytable_addr(inpref ? index_pref : rbuf_index),
+    // .Dirtytable_addr(rbuf_index),
     .Dirtytable_way_select(Dirtytable_way_select),
     .Dirtytable_set0(Dirtytable_set0),
     .Dirtytable_set1(Dirtytable_set1),
