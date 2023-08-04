@@ -217,6 +217,15 @@ $$
   - 替换算法： LRU
 - 控制逻辑
 
+    ```mermaid
+    graph LR
+    A(IDLE)-->B(LOOKUP)-->C(Miss)-->B
+    B-->B
+    A-->D(Operation)-->B
+    B-->D
+    ```
+
+    - IDLE：初始状态，收到流水线请求后进入对应状态。本架构中，Icache输入一直是有效的，不会回到Idle状态。
 
 
 
