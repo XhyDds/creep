@@ -162,8 +162,6 @@ L2cache_rbuf L2cache_rbuf(
     .opaddr(addr_pipeline_l2cache),
     .rbuf_opaddr(rbuf_opaddr),
 
-    .prefetch(req_pref_l2cache),
-
     .pref_type(type_pref_l2cache),
     .rbuf_pref_type(rbuf_pref_type),
 
