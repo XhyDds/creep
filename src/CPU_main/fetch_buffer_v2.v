@@ -22,26 +22,40 @@ module fetch_buffer_v2 (
     reg [76:0]pre_and_valid_and_plv[0:15];
     reg [15:0]buffer_excp_arg[0:15];
     reg [31:0]buffer_npc[0:15];
-    (* MAX_FANOUT = 3 *)reg [3:0]pointer;//0~15
-    (* MAX_FANOUT = 3 *)reg [3:0]npointer;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] pointer0;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] pointer1;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] pointer2;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] pointer3;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] pointer4;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] pointer5;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] pointer6;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] pointer7;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] npointer0;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] npointer1;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] npointer2;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] npointer3;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] npointer4;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] npointer5;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] npointer6;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) reg [3:0] npointer7;
     wire [31:0]ir[0:1];
     assign ir[0]=irin[31:0];
     assign ir[1]=irin[63:32];
-    assign ir0=buffer[&pointer?15:pointer+1];
-    assign ir1=buffer[pointer];
-    assign pc0=bufferpc[&pointer?15:pointer+1];
-    assign pc1=bufferpc[pointer];
-    assign stall_fetch_buffer=(pointer<=1);
-    assign valid0=pre_and_valid_and_plv[&pointer?15:pointer+1][2];
-    assign valid1=pre_and_valid_and_plv[pointer][2];
-    assign plv0=pre_and_valid_and_plv[&pointer?15:pointer+1][1:0];
-    assign plv1=pre_and_valid_and_plv[pointer][1:0];
-    assign pre0=pre_and_valid_and_plv[&pointer?15:pointer+1][76:3];
-    assign pre1=pre_and_valid_and_plv[pointer][76:3];
-    assign excp_arg0=buffer_excp_arg[&pointer?15:pointer+1];
-    assign excp_arg1=buffer_excp_arg[pointer];
-    assign npc0=buffer_npc[&pointer?15:pointer+1];
-    assign npc1=buffer_npc[pointer];
+    assign ir0=buffer[&pointer1?15:pointer1+1];
+    assign ir1=buffer[pointer1];
+    assign pc0=bufferpc[&pointer2?15:pointer2+1];
+    assign pc1=bufferpc[pointer2];
+    assign stall_fetch_buffer=(pointer0<=1);
+    assign valid0=pre_and_valid_and_plv[&pointer3?15:pointer3+1][2];
+    assign valid1=pre_and_valid_and_plv[pointer3][2];
+    assign plv0=pre_and_valid_and_plv[&pointer4?15:pointer4+1][1:0];
+    assign plv1=pre_and_valid_and_plv[pointer4][1:0];
+    assign pre0=pre_and_valid_and_plv[&pointer5?15:pointer5+1][76:3];
+    assign pre1=pre_and_valid_and_plv[pointer5][76:3];
+    assign excp_arg0=buffer_excp_arg[&pointer6?15:pointer6+1];
+    assign excp_arg1=buffer_excp_arg[pointer6];
+    assign npc0=buffer_npc[&pointer7?15:pointer7+1];
+    assign npc1=buffer_npc[pointer7];
     wire [3:0]flag4p=(icache_valid&~stall_fetch_buffer)?(flag?4'b0010:4'b0001):4'b0000;
     wire [3:0]flag4=(icache_valid&~stall_fetch_buffer)?(flag?4'b0001:4'b0000):4'b1111;
     wire [3:0]flag4m=(icache_valid&~stall_fetch_buffer)?(flag?4'b0000:4'b1111):4'b1110;
@@ -220,13 +234,58 @@ module fetch_buffer_v2 (
             end
     end
     always @(posedge clk) begin
-        if(!rstn|flush) pointer<=15;
-        else if(!stall) pointer<=npointer;
+        if(!rstn|flush) begin 
+            pointer0<=15;
+            pointer1<=15;
+            pointer2<=15;
+            pointer3<=15;
+            pointer4<=15;
+            pointer5<=15;
+            pointer6<=15;
+            pointer7<=15;
+        end
+        else if(!stall) begin 
+            pointer0<=npointer0;
+            pointer1<=npointer1;
+            pointer2<=npointer2;
+            pointer3<=npointer3;
+            pointer4<=npointer4;
+            pointer5<=npointer5;
+            pointer6<=npointer6;
+            pointer7<=npointer7;
+        end
     end
     always @(*) begin
-        if(if1&if0) npointer=(&pointer[3:1]|&pointer)?(15-flag4p):(pointer-flag4m);//取两个
-        else if(if1|if0) npointer=(&pointer)?(15-flag4p):(pointer-flag4);//取一个
-        else npointer=pointer-flag4p;
+        if(if1&if0) begin
+            npointer0=(&pointer0[3:1])?(15-flag4p):(pointer0-flag4m);//取两个
+            npointer1=(&pointer1[3:1])?(15-flag4p):(pointer1-flag4m);//取两个
+            npointer2=(&pointer2[3:1])?(15-flag4p):(pointer2-flag4m);//取两个
+            npointer3=(&pointer3[3:1])?(15-flag4p):(pointer3-flag4m);//取两个
+            npointer4=(&pointer4[3:1])?(15-flag4p):(pointer4-flag4m);//取两个
+            npointer5=(&pointer5[3:1])?(15-flag4p):(pointer5-flag4m);//取两个
+            npointer6=(&pointer6[3:1])?(15-flag4p):(pointer6-flag4m);//取两个
+            npointer7=(&pointer7[3:1])?(15-flag4p):(pointer7-flag4m);//取两个
+        end
+        else if(if1|if0) begin
+            npointer0=(&pointer0)?(15-flag4p):(pointer0-flag4);//取一个
+            npointer1=(&pointer1)?(15-flag4p):(pointer1-flag4);//取一个
+            npointer2=(&pointer2)?(15-flag4p):(pointer2-flag4);//取一个
+            npointer3=(&pointer3)?(15-flag4p):(pointer3-flag4);//取一个
+            npointer4=(&pointer4)?(15-flag4p):(pointer4-flag4);//取一个
+            npointer5=(&pointer5)?(15-flag4p):(pointer5-flag4);//取一个
+            npointer6=(&pointer6)?(15-flag4p):(pointer6-flag4);//取一个
+            npointer7=(&pointer7)?(15-flag4p):(pointer7-flag4);//取一个
+        end
+        else begin
+            npointer0=pointer0-flag4p;
+            npointer1=pointer1-flag4p;
+            npointer2=pointer2-flag4p;
+            npointer3=pointer3-flag4p;
+            npointer4=pointer4-flag4p;
+            npointer5=pointer5-flag4p;
+            npointer6=pointer6-flag4p;
+            npointer7=pointer7-flag4p;
+        end
         //有下面走，上面不走的情况吗？
     end
 endmodule
