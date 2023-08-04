@@ -53,7 +53,7 @@ module l2_axi_interface#(
 
     // AW
     output [31:0]       awaddr,
-    output              awvalid,    //aw: arbiter->axi
+    output reg          awvalid,    //aw: arbiter->axi
     input               awready,    //aw: axi->arbiter
     output [7:0]        awlen,
     output [2:0]        awsize,
