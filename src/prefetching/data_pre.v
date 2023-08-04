@@ -1,7 +1,7 @@
 module data_pre#(
     parameter addr_width = 27,
               INST_WIDTH = 27,
-              HASH_WIDTH = 12
+              HASH_WIDTH = 10
 )(
     input         clk,
     input         rstn,
@@ -159,13 +159,13 @@ module data_pre#(
         if(anneal_unhit_reg) ;
         else if(~hit_pdc[1]&spare_pdc[1]) 
             if(choice_pdc[1]&ptr_valid&allow_ptr) begin
-            // if(choice_pdc[1]&ptr_valid&(addr==ptr_addr_)) begin
+            // if(choice_pdc[1]&ptr_valid&(addr==ptr_addr_)&allow_ptr) begin
                 naddr_pdc=naddr_pdc_ptr;
                 naddr_valid=1;
                 req=1;
             end
             else if(~choice_pdc[1]&offset_valid&allow_off) begin
-            // else if(~choice_pdc[1]&offset_valid&(inst_pc==inst_pc_)) begin
+            // else if(~choice_pdc[1]&offset_valid&(inst_pc==inst_pc_)&allow_off) begin
                 naddr_pdc=naddr_pdc_off;
                 naddr_valid=1;
                 req=1;

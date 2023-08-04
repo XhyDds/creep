@@ -45,7 +45,6 @@ module inst_pre#(
     wire [1:0] taken_pdc;//迟一周期
     wire [1:0] taken_upt;
     wire [addr_width-1:0] addr_inst_;//迟一周期
-    wire [1:0] taken_pdc_;
     sp_bram#(
         .ADDR_WIDTH(HASH_WIDTH),
         .DATA_WIDTH(addr_width+1+2+addr_width),
@@ -53,7 +52,7 @@ module inst_pre#(
     )u_inst(
         .clk(clk),
         .raddr(addr_hashed),
-        .dout({naddr_pdc_inst,valid,taken_pdc_,addr_inst_}),
+        .dout({naddr_pdc_inst,valid,taken_pdc,addr_inst_}),
         .enb(1),
         .waddr(paddr_hashed),
         .din({taken_upt[1]?addr:paddr,1'b1,taken_upt,paddr}),
@@ -98,7 +97,7 @@ module inst_pre#(
         req=0;
         if((addr!=paddr)) begin
             if(valid&spare_pdc[1]) 
-                // if((addr_inst_==addr)&taken_pdc[1]) begin
+                // if((addr_inst_==addr)&taken_pdc[1]&allow_inst) begin
                 if(taken_pdc[1]&allow_inst) begin
                     naddr_pdc=naddr_pdc_inst;
                     naddr_valid=1;

@@ -197,6 +197,7 @@ module l2_axi_interface#(
         l2_wready   = 0;
         l2_bvalid   = 0;
         bready      = 0;
+        awvalid     = 0;
         wvalid      = 0;
         wlast       = 0;
         l2_waddrOK  = 0;
