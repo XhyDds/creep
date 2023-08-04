@@ -3,7 +3,7 @@ module predictor #(
     parameter   k_width   = 12,
                 h_width   = 8,
                 bh_width  = 16,
-                gh_width  = 16,
+                gh_width  = 32,
                 stack_len = 16,
                 queue_len = 16,
                 ADDR_WIDTH= 30
@@ -24,6 +24,7 @@ module predictor #(
     input [1:0]choice_pdc_ex,
     input [7:0]out_pdch,
     input [2:0]kind_pdc_ex,
+    input [11:0]tage_pdch_ex,
 
     //预测
     output [ADDR_WIDTH-1:0]npc_pdc,
@@ -32,6 +33,7 @@ module predictor #(
     output [bh_width-1:0] bh_pdc,
     output [1:0]choice_pdc,     //1:ras/btb  0:g/h
     output [7:0]pdch,
+    output [11:0]tage_pdch,
     //当前
     input [ADDR_WIDTH-1:0]pc,
     output[ADDR_WIDTH-1:0]npc_test
@@ -205,6 +207,7 @@ module predictor #(
     aim_predictor#(
         .h_width(h_width),
         .k_width(k_width),
+        .bh_width(bh_width),
         .ADDR_WIDTH(ADDR_WIDTH)
     )
     u_aim_predictor(
@@ -213,6 +216,7 @@ module predictor #(
         .pc_ex_gh_hashed(pc_ex_gh_hashed),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
         .pc_ex_hashed(pc_ex_hashed),
+        .gh_ex(gh_ex),
         .kind_ex(kind_ex),
         .choice_real(choice_real_b_g),
         .taken_real(taken_real),
@@ -229,8 +233,13 @@ module predictor #(
         .pc_gh_hashed2(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
         .pc_hashed(pc_hashed_reg),
+        .gh(gh),
         .pc_reg(pc_reg),
-        .update_en(update_en)
+        .update_en(update_en),
+
+        .tage_pdch(tage_pdch),
+        .tage_pdch_ex(tage_pdch_ex),
+        .taken_pdc_ex(mis_pdc[0]?~taken_real:taken_real)
     );
 
     //类别预测

@@ -21,6 +21,7 @@ module ex_buffer#(
     input        in_pack_size_0,    //0:1条 1:2条
     input        in_flush_pre_0,
     input [7:0]  in_pdch_0     ,
+    input [11:0] in_tage_pdch_0,
 
     // input  [DATA_WIDTH-1:0] in_data_1,
     input        in_taken_pdc_1,    //下路
@@ -35,6 +36,7 @@ module ex_buffer#(
     input        in_pack_size_1,
     input        in_flush_pre_1,
     input [7:0]  in_pdch_1,
+    input [11:0] in_tage_pdch_1,
 
     // output [DATA_WIDTH-1:0] out_data,
     output reg          out_taken_pdc ,
@@ -47,6 +49,7 @@ module ex_buffer#(
     output reg   [29:0] out_pc_ex     ,
     output reg   [1:0]  out_choice_pdc,
     output reg   [7:0]  out_pdch      ,
+    output reg   [11:0] out_tage_pdch ,
 
     output reg   [29:0] ret_pc_ex,
 

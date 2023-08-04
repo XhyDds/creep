@@ -124,7 +124,11 @@ module core_top(
 
     reg [63:0]ir_if1_fifo;
 
+<<<<<<< HEAD
     reg [63:0]pre_mmu_if0,pre_if0_if1,pre_if1_fifo,pre_id_reg_0,pre_id_reg_1,pre_reg_exe0_0,pre_reg_exe0_1,pre_exe0_exe1_0,pre_exe0_exe1_1;
+=======
+    reg [75:0]pre_mmu_if0,pre_if0_if1,pre_if1_fifo,pre_id_reg_0,pre_id_reg_1,pre_reg_exe0_0,pre_reg_exe0_1,pre_exe0_exe1_0,pre_exe0_exe1_1;
+>>>>>>> 8b9b04c (tage)
 
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
     rk_reg_exe0_0,rk_reg_exe0_1,
@@ -221,8 +225,13 @@ module core_top(
     wire    ir_valid1;
     wire    [1:0]   PLV0;
     wire    [1:0]   PLV1;
+<<<<<<< HEAD
     wire    [63:0]  pre0;
     wire    [63:0]  pre1;
+=======
+    wire    [75:0]  pre0;
+    wire    [75:0]  pre1;
+>>>>>>> 8b9b04c (tage)
     wire    [15:0]  excp_arg0_mmu;
     wire    [15:0]  excp_arg1_mmu;
     wire    [31:0]  npc0;
@@ -323,8 +332,13 @@ module core_top(
     wire [31:0] ir11;
     wire ir_valid00;
     wire ir_valid11;
+<<<<<<< HEAD
     wire [63:0]pre00;
     wire [63:0]pre11;
+=======
+    wire [75:0]pre00;
+    wire [75:0]pre11;
+>>>>>>> 8b9b04c (tage)
     wire [31:0]npc00;
     wire [31:0]npc11;
 
@@ -1016,6 +1030,13 @@ module core_top(
     );
 
     //传给流水线，寄存
+<<<<<<< HEAD
+=======
+    localparam  k_width = 12,
+                bh_width = 16,
+                gh_width = 32,
+                h_width = 8;
+>>>>>>> 8b9b04c (tage)
     wire [29:0]npc_pdc;
     wire [2:0]kind_pdc;
     wire taken_pdc;
@@ -1056,7 +1077,14 @@ module core_top(
 
     wire[7:0] out_pdch;
     wire [7:0] pdch;
+<<<<<<< HEAD
 
+=======
+    
+    wire [11:0]tage_pdch;
+    wire [11:0]tage_pdch_ex;
+    
+>>>>>>> 8b9b04c (tage)
     predictor #(
         .k_width       		( 14   		),
         .h_width       		( 14   		),
@@ -1080,6 +1108,11 @@ module core_top(
         .choice_real 		( choice_real 		),
         .choice_pdc_ex      ( out_choice_pdc    ),
         .out_pdch           ( out_pdch          ),
+<<<<<<< HEAD
+=======
+        .kind_pdc_ex        ( out_kind_pdc      ),
+        .tage_pdch_ex       ( tage_pdch_ex      ),
+>>>>>>> 8b9b04c (tage)
 
         .npc_pdc     		( npc_pdc  	    	),
         .kind_pdc    		( kind_pdc       	),
@@ -1087,6 +1120,7 @@ module core_top(
         .bh_pdc             ( bh_pdc            ),
         .choice_pdc  		( choice_pdc    	),
         .pdch               ( pdch              ),
+        .tage_pdch          ( tage_pdch         ),
 
         .pc          		( npc[31:2]          ),
         .npc_test           ( npc_test          )
@@ -1109,9 +1143,16 @@ module core_top(
         .in_npc_ex_0(pc_br0[31:2]),
         .in_pc_ex_0(pc_exe0_exe1_0[31:2]),
         .in_flush_pre_0(flush_pre_exe0_exe1_0 | ifbr0),
+<<<<<<< HEAD
         .in_bh_pdc_0(pre_exe0_exe1_0[52:39]),
         .in_pack_size_0(pre_exe0_exe1_0[53]),
         .in_pdch_0(pre_exe0_exe1_0[61:54]),
+=======
+        .in_bh_pdc_0(pre_exe0_exe1_0[59+bh_width:60]),
+        .in_pack_size_0(pre_exe0_exe1_0[39]),
+        .in_pdch_0(pre_exe0_exe1_0[47:40]),
+        .in_tage_pdch_0(pre_exe0_exe1_0[59:48]),
+>>>>>>> 8b9b04c (tage)
 
         .in_taken_pdc_1(pre_exe0_exe1_1[33]),
         .in_kind_pdc_1(pre_exe0_exe1_1[32:30]),
@@ -1122,9 +1163,16 @@ module core_top(
         .in_npc_ex_1(pc_br1[31:2]),
         .in_pc_ex_1(pc_exe0_exe1_1[31:2]),
         .in_flush_pre_1(flush_pre_exe0_exe1_1 | ifbr1),
+<<<<<<< HEAD
         .in_bh_pdc_1(pre_exe0_exe1_1[52:39]),
         .in_pack_size_1(pre_exe0_exe1_1[53]),
         .in_pdch_1(pre_exe0_exe1_1[61:54]),
+=======
+        .in_bh_pdc_1(pre_exe0_exe1_1[59+bh_width:60]),
+        .in_pack_size_1(pre_exe0_exe1_1[39]),
+        .in_pdch_1(pre_exe0_exe1_1[47:40]),
+        .in_tage_pdch_1(pre_exe0_exe1_1[59:48]),
+>>>>>>> 8b9b04c (tage)
 
         .out_taken_pdc (out_taken_pdc ),
         .out_kind_pdc  (out_kind_pdc  ),
@@ -1136,6 +1184,7 @@ module core_top(
         .out_pc_ex     (out_pc_ex     ),
         .out_choice_pdc(out_choice_pdc),
         .out_pdch      (out_pdch),
+        .out_tage_pdch  (tage_pdch_ex),
 
         .ret_pc_ex(ret_pc_ex),
 
@@ -1191,8 +1240,13 @@ module core_top(
             PLV_if0_if1<=PLV;
             // MMU_pipeline_excp_arg0_if0_if1<=MMU_pipeline_excp_arg0;
             //pre
+<<<<<<< HEAD
             pre_if0_if1<={2'b0,pdch,1'b0,bh_pdc,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
             //61:54 53 52:39 38 37 36:35 34 33 32:30 29:0
+=======
+            pre_if0_if1<={{(16-bh_width){1'b0}},bh_pdc,tage_pdch,pdch,1'b0,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            //?:60 59:48 47:40 39 38 37 36:35 34 33 32:30 29:0
+>>>>>>> 8b9b04c (tage)
         end
     end
 

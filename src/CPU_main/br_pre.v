@@ -1,6 +1,10 @@
 module br_pre (
     input [31:0]ctr,pc,brresult,npc,
+<<<<<<< HEAD
     input [63:0]pre,
+=======
+    input [75:0]pre,
+>>>>>>> 8b9b04c (tage)
     input ifbr_,
     output reg ifbr,
     output reg [31:0]pc_br,pc_br_pdc
