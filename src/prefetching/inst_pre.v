@@ -1,34 +1,34 @@
 module inst_pre#(
-    parameter ADDR_WIDTH = 32,
+    parameter addr_width = 32,
               HASH_WIDTH = 14
 )(
     input         clk,
     input         rstn,
     //预测
-    input [ADDR_WIDTH-1:0]  addr,
-    output reg[ADDR_WIDTH-1:0]naddr_pdc,
+    input [addr_width-1:0]  addr,
+    output reg[addr_width-1:0]naddr_pdc,
     output reg              naddr_valid,
     output reg              req,
     output [1:0]            pdch,
     //更新
-    input  [ADDR_WIDTH-1:0] addr_upt,
-    input  [ADDR_WIDTH-1:0] naddr_upt,
+    input  [addr_width-1:0] addr_upt,
+    input  [addr_width-1:0] naddr_upt,
     input                   spare,
     input  [1:0]            pdch_upt, //spare
     input                   update_en,
     //l2cache-(annealing)-port
-    input        [ADDR_WIDTH-1:0]anneal_addr,
-    input        [ADDR_WIDTH-1:0]anneal_pc,
+    input        [addr_width-1:0]anneal_addr,
+    input        [addr_width-1:0]anneal_pc,
     input        anneal_unhit,
     input        anneal_type
 );
 
     reg  anneal_unhit_reg;
-    reg  [ADDR_WIDTH-1:0]anneal_addr_reg;
-    reg  [ADDR_WIDTH-1:0]anneal_pc_reg;
+    reg  [addr_width-1:0]anneal_addr_reg;
+    reg  [addr_width-1:0]anneal_pc_reg;
 
-    reg [ADDR_WIDTH-1:0]ann_addr        ;
-    reg [ADDR_WIDTH-1:0]ann_addr_upt    ;
+    reg [addr_width-1:0]ann_addr        ;
+    reg [addr_width-1:0]ann_addr_upt    ;
     reg [1:0]           ann_spare_pdch  ;
     reg                 ann_spare       ;
     reg                 ann_update_en   ;
@@ -39,14 +39,14 @@ module inst_pre#(
     wire [1:0] spare_upt;
 
     //预测下一条指令
-    reg  [ADDR_WIDTH-1:0] paddr;
-    wire [ADDR_WIDTH-1:0] naddr_pdc_inst;
+    reg  [addr_width-1:0] paddr;
+    wire [addr_width-1:0] naddr_pdc_inst;
     wire valid;
     wire [1:0] taken_pdc;
     wire [1:0] taken_upt;
     sp_bram#(
         .ADDR_WIDTH(HASH_WIDTH),
-        .DATA_WIDTH(ADDR_WIDTH+1+2),
+        .DATA_WIDTH(addr_width+1+2),
         .INIT_NUM(0)
     )u_inst(
         .clk(clk),
@@ -143,28 +143,28 @@ module inst_pre#(
     wire [HASH_WIDTH-1:0] ann_addr_upt_hashed;
 
     single_hash#(
-        .DATA_width(ADDR_WIDTH),
+        .DATA_width(addr_width),
         .HASH_width(HASH_WIDTH)
     )u_addr_hash(
         .data_raw(addr),
         .data_hashed(addr_hashed)
     );
     single_hash#(
-        .DATA_width(ADDR_WIDTH),
+        .DATA_width(addr_width),
         .HASH_width(HASH_WIDTH)
     )u_paddr_hash(
         .data_raw(paddr),
         .data_hashed(paddr_hashed)
     );
     single_hash#(
-        .DATA_width(ADDR_WIDTH),
+        .DATA_width(addr_width),
         .HASH_width(HASH_WIDTH)
     )u_ann_addr_hash(
         .data_raw(ann_addr),
         .data_hashed(ann_addr_hashed)
     );
     single_hash#(
-        .DATA_width(ADDR_WIDTH),
+        .DATA_width(addr_width),
         .HASH_width(HASH_WIDTH)
     )u_ann_addr_upt_hash(
         .data_raw(ann_addr_upt),
