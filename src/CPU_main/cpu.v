@@ -154,7 +154,17 @@ module core_top(
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_;
-
+    // `ifdef DMA
+    // assign ifbr0=(ifbr0_&~flushup_exe0_exe1_0&~stall_exe0_exe1_0)&~stall_icache;
+    // assign ifbr1=(ifbr1_&~stall_exe0_exe1_1)&~stall_icache;
+    // assign flushup =            (flush_pre_1&ctr_reg_exe0_0[31])&~stall_icache;
+    // assign flushdown =          (flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0&ctr_id_reg_1[31])&~stall_icache;
+    // assign flushdownpre =       (flush_pre_0&~ctr_id_reg_1[31])&~stall_icache;
+    // assign flush_if0_if1 =      (ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg)&~stall_icache;
+    // assign flush_if1_fifo =     (ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg)&~stall_icache;
+    // assign flush_fifo_id =      (ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg)&~stall_icache;
+    // `endif
+    // `ifndef DMA
     assign ifbr0=ifbr0_&~flushup_exe0_exe1_0&~stall_exe0_exe1_0;
     assign ifbr1=ifbr1_&~stall_exe0_exe1_1;
     assign flushup =            flush_pre_1&ctr_reg_exe0_0[31];
@@ -163,6 +173,8 @@ module core_top(
     assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
     assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
     assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
+    // `endif
+
     assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdownpre;
     assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -174,6 +186,22 @@ module core_top(
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
+
+    // `ifdef DMA
+    // assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;//
+    // assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
+    // assign stall_fifo_id =      break_point|stall_div1|stall_dcache|stall_icache;
+    // assign stall_id_reg0 =      break_point|stall_div1|stall_dcache|stall_icache;
+    // assign stall_id_reg1 =      break_point|stall_div1|stall_dcache|stall_icache;
+    // assign stall_reg_exe0_0 =   break_point|stall_div1|stall_dcache|stall_icache;
+    // assign stall_reg_exe0_1 =   break_point|stall_div1|stall_dcache|stall_icache;
+    // assign stall_exe0_exe1_0 =  break_point|stall_div1|stall_dcache|stall_icache;
+    // assign stall_exe0_exe1_1 =  break_point|stall_div1|stall_dcache|stall_icache;
+    // assign stall_to_dcache =    break_point|stall_div1;
+    // assign stall_exe1_wb_0 =    break_point|stall_div1|stall_dcache|stall_icache;
+    // assign stall_exe1_wb_1 =    break_point|stall_div1|stall_dcache|stall_icache;//
+    // `endif
+    // `ifndef DMA
     assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache;
     assign stall_fifo_id =      break_point|stall_div1|stall_dcache;
@@ -186,7 +214,7 @@ module core_top(
     assign stall_to_dcache =    break_point|stall_div1;
     assign stall_exe1_wb_0 =    break_point|stall_div1|stall_dcache;
     assign stall_exe1_wb_1 =    break_point|stall_div1|stall_dcache;
-
+    // `endif
     //ICache Return Buffer
     wire        mem_icache_addrOK;
     wire        mem_icache_dataOK;
