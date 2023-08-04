@@ -70,33 +70,33 @@ module predictor #(
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed;
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed1;
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed2;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed1;
+    // (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed;
+    // (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed1;
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed;
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed1;
 
     wire [k_width-1:0] pc_ex_hashed;
-    wire [h_width-1:0] pc_ex_gh_hashed;
+    // wire [h_width-1:0] pc_ex_gh_hashed;
     wire [h_width-1:0] pc_ex_bh_hashed;
 
-    wire [gh_width-1:0] gh;
+    // wire [gh_width-1:0] gh;
     wire [bh_width-1:0] bh;
-    wire [gh_width-1:0] gh_ex;
+    // wire [gh_width-1:0] gh_ex;
 
     (* MAX_FANOUT = 3 *)reg [k_width-1:0] pc_hashed_reg;
     reg [ADDR_WIDTH-1:0] pc_reg;
-    reg [gh_width-1:0] gh_reg;
+    // reg [gh_width-1:0] gh_reg;
 
     always @(posedge clk) begin
         if(!rstn) begin
             pc_hashed_reg<=0;
             pc_reg<=30'h0700_0000;
-            gh_reg<=0;
+            // gh_reg<=0;
         end
         else if(~stall) begin
             pc_hashed_reg<=pc_hashed;
             pc_reg<=pc;
-            gh_reg<=gh;
+            // gh_reg<=gh;
         end
     end
 
@@ -136,26 +136,26 @@ module predictor #(
         .data_hashed(pc_ex_hashed)
     );
 
-    pc_gh_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(gh_width),
-        .HASH_width(h_width)
-    )
-    combine_hash_pc_gh(
-        .data1_raw(pc_hashed_reg),
-        .data2_raw(gh_reg),
-        .data_hashed(pc_gh_hashed)
-    );
-    pc_gh_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(gh_width),
-        .HASH_width(h_width)
-    )
-    combine_hash_pc_gh1(
-        .data1_raw(pc_hashed_reg),
-        .data2_raw(gh_reg),
-        .data_hashed(pc_gh_hashed1)
-    );
+    // pc_gh_hash#(
+    //     .DATA1_width(k_width),
+    //     .DATA2_width(gh_width),
+    //     .HASH_width(h_width)
+    // )
+    // combine_hash_pc_gh(
+    //     .data1_raw(pc_hashed_reg),
+    //     .data2_raw(gh_reg),
+    //     .data_hashed(pc_gh_hashed)
+    // );
+    // pc_gh_hash#(
+    //     .DATA1_width(k_width),
+    //     .DATA2_width(gh_width),
+    //     .HASH_width(h_width)
+    // )
+    // combine_hash_pc_gh1(
+    //     .data1_raw(pc_hashed_reg),
+    //     .data2_raw(gh_reg),
+    //     .data_hashed(pc_gh_hashed1)
+    // );
 
     pc_bh_hash#(
         .DATA1_width(k_width),
@@ -179,16 +179,16 @@ module predictor #(
         .data_hashed(pc_bh_hashed1)
     );
 
-    pc_gh_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(gh_width),
-        .HASH_width(h_width)
-    )
-    pc_gh_hash_pc_ex_gh(
-        .data1_raw(pc_ex_hashed),
-        .data2_raw(gh_ex),
-        .data_hashed(pc_ex_gh_hashed)
-    );
+    // pc_gh_hash#(
+    //     .DATA1_width(k_width),
+    //     .DATA2_width(gh_width),
+    //     .HASH_width(h_width)
+    // )
+    // pc_gh_hash_pc_ex_gh(
+    //     .data1_raw(pc_ex_hashed),
+    //     .data2_raw(gh_ex),
+    //     .data_hashed(pc_ex_gh_hashed)
+    // );
 
     pc_bh_hash#(
         .DATA1_width(k_width),
@@ -210,7 +210,7 @@ module predictor #(
     u_aim_predictor(
         .clk(clk),
         .pc_ex(pc_ex),
-        .pc_ex_gh_hashed(pc_ex_gh_hashed),
+        // .pc_ex_gh_hashed(pc_ex_gh_hashed),
         .pc_ex_bh_hashed(pc_ex_bh_hashed),
         .pc_ex_hashed(pc_ex_hashed),
         .kind_ex(kind_ex),
@@ -225,8 +225,8 @@ module predictor #(
         .choice_pdch(choice_pdch_b_g),
         .taken_pdch_b(taken_pdch_b),
         .taken_pdch_g(taken_pdch_g),
-        .pc_gh_hashed1(pc_gh_hashed1),
-        .pc_gh_hashed2(pc_gh_hashed),
+        // .pc_gh_hashed1(pc_gh_hashed1),
+        // .pc_gh_hashed2(pc_gh_hashed),
         .pc_bh_hashed(pc_bh_hashed),
         .pc_hashed(pc_hashed_reg),
         .pc_reg(pc_reg),
@@ -267,24 +267,24 @@ module predictor #(
         .update_en(try_to_pdc&&update_en)
     );
 
-    ghr#(
-        .gh_width(gh_width),
-        .queue_len(queue_len)
-    )
-    u_ghr(
-        .clk(clk),
-        .rstn(rstn),
-        .stall(stall),
-        .gh(gh),
-        .gh_ex(gh_ex),
-        .taken_pdc(taken_pdc),
-        .taken_ex(taken_real),
-        .mis_pdc(taken_pdch_ex_g[1]!=taken_real),
-        .is_jump_pdc(kind_pdc!=NOT_JUMP),
-        .is_jump_ex(kind_ex!=NOT_JUMP),
-        .is_jump_pdc_ex(kind_pdc_ex!=NOT_JUMP),
-        .update_en (update_en)
-    );
+    // ghr#(
+    //     .gh_width(gh_width),
+    //     .queue_len(queue_len)
+    // )
+    // u_ghr(
+    //     .clk(clk),
+    //     .rstn(rstn),
+    //     .stall(stall),
+    //     .gh(gh),
+    //     .gh_ex(gh_ex),
+    //     .taken_pdc(taken_pdc),
+    //     .taken_ex(taken_real),
+    //     .mis_pdc(taken_pdch_ex_g[1]!=taken_real),
+    //     .is_jump_pdc(kind_pdc!=NOT_JUMP),
+    //     .is_jump_ex(kind_ex!=NOT_JUMP),
+    //     .is_jump_pdc_ex(kind_pdc_ex!=NOT_JUMP),
+    //     .update_en (update_en)
+    // );
 
     //地址预测
     npc_predictor#(

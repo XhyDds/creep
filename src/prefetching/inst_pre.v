@@ -97,8 +97,8 @@ module inst_pre#(
         req=0;
         if((addr!=paddr)) begin
             if(valid&spare_pdc[1]) 
-                // if((addr_inst_==addr)&taken_pdc[1]&allow_inst) begin
-                if(taken_pdc[1]&allow_inst) begin
+                if((addr_inst_==addr)&taken_pdc[1]&allow_inst) begin
+                // if(taken_pdc[1]&allow_inst) begin
                     naddr_pdc=naddr_pdc_inst;
                     naddr_valid=1;
                     req=1;

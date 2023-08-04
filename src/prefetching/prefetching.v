@@ -24,6 +24,7 @@ module prefetching#(
     output reg   req_pref_l2cache,
     output reg   type_pref_l2cache,//指令或数据 0-指令 1-数据
     output reg   [ADDR_WIDTH-1:0]addr_pref_l2cache,
+    input        addrOK_l2cache_pref,
     input        complete_l2cache_pref,
     input        hit_l2cache_pref,//预取请求的Hit
     input        miss_l2cache_pref//预取过程中来自L1访问的Miss 
@@ -33,16 +34,11 @@ module prefetching#(
     
     reg req_pref;
     reg [addr_width-1:0] addr_pref;
-    reg [ADDR_WIDTH-1:0] pdc_pref_addr_reg;
-
-    always@(posedge clk) begin
-        pdc_pref_addr_reg<=pdc_pref_addr;
-    end
 
     //statemachine
     reg [1:0] crt;
     reg [1:0] nxt;
-    localparam IDLE = 2'd0, REQ=2'd1;
+    localparam IDLE = 2'd0, REQ=2'd1, WAIT=2'd2;
     always @(posedge clk)begin
         if (!rstn) begin
             crt<=IDLE;
@@ -57,11 +53,16 @@ module prefetching#(
                 if(req_pref)
                      nxt=REQ;
                 else nxt=IDLE;
-            end 
+            end
             REQ: begin
+                if(addrOK_l2cache_pref)
+                     nxt=WAIT;
+                else nxt=IDLE;
+            end
+            WAIT: begin
                 if(complete_l2cache_pref)
                      nxt=IDLE;
-                else nxt=REQ;
+                else nxt=WAIT;
             end
             default: nxt=IDLE;
         endcase
@@ -74,6 +75,9 @@ module prefetching#(
                 req_pref_l2cache=0;
             end
             REQ:  begin
+                req_pref_l2cache=1;
+            end
+            WAIT: begin
                 req_pref_l2cache=1;
             end
             default: ;
@@ -120,6 +124,7 @@ module prefetching#(
                     end
                 end
                 REQ:  ;
+                WAIT: ;
                 default: ;
             endcase
         end
@@ -142,7 +147,7 @@ module prefetching#(
         .clk(clk),
         .rstn(rstn),
 
-        .addr(pdc_pref_addr_reg[ADDR_WIDTH-1:2+L2cache_width]),
+        .addr(pdc_pref_addr[ADDR_WIDTH-1:2+L2cache_width]),
         .naddr_pdc(naddr_inst),
         .naddr_valid(valid_inst),
         .req(req_inst),
@@ -150,7 +155,7 @@ module prefetching#(
 
         .addr_upt(addr_pref_l2cache[ADDR_WIDTH-1:2+L2cache_width]),
         .naddr_upt(naddr_i_h_reg),
-        .spare(~miss_l2cache_pref),
+        .spare(~miss_l2cache_pref&~hit_l2cache_pref),
         .pdch_upt(pdch_i_reg),
 
         .update_en(complete_l2cache_pref&~complete_l2cache_pref),

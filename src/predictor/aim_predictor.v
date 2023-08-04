@@ -7,7 +7,7 @@ module aim_predictor#(
     input  update_en,
     //ex
     input  [ADDR_WIDTH-1:0] pc_ex,
-    input  [h_width-1:0] pc_ex_gh_hashed,
+    // input  [h_width-1:0] pc_ex_gh_hashed,
     input  [h_width-1:0] pc_ex_bh_hashed,
     input  [k_width-1:0] pc_ex_hashed,
     input  [2:0]kind_ex,
@@ -24,8 +24,8 @@ module aim_predictor#(
     output [1:0]taken_pdch_b,
     output [1:0]taken_pdch_g,
     //当前
-    input  [h_width-1:0] pc_gh_hashed1,
-    input  [h_width-1:0] pc_gh_hashed2,
+    // input  [h_width-1:0] pc_gh_hashed1,
+    // input  [h_width-1:0] pc_gh_hashed2,
     input  [h_width-1:0] pc_bh_hashed,
     input  [k_width-1:0] pc_hashed,
     input  [ADDR_WIDTH-1:0] pc_reg
@@ -61,35 +61,35 @@ module aim_predictor#(
         .pc_update(pc_ex)
     );
 
-    gpht#(              //pc+gh
-        .gh_width(h_width)
-    )
-    gpht_g(
-        .clk(clk),
-        .hashed_pc(pc_gh_hashed1),
-        .pc(pc_reg),
-        .g_taken_pdc(taken_g),
-        .taken_pdch_g(taken_pdch_g),
-        .hashed_pc_update(pc_ex_gh_hashed),
-        .pc_update(pc_ex),
-        .g_taken_real(taken_real),
-        .taken_pdch_ex_g(taken_pdch_ex_g),
-        .update_en(try_to_pdc&&update_en)
-    );
+    // gpht#(              //pc+gh
+    //     .gh_width(h_width)
+    // )
+    // gpht_g(
+    //     .clk(clk),
+    //     .hashed_pc(pc_gh_hashed1),
+    //     .pc(pc_reg),
+    //     .g_taken_pdc(taken_g),
+    //     .taken_pdch_g(taken_pdch_g),
+    //     .hashed_pc_update(pc_ex_gh_hashed),
+    //     .pc_update(pc_ex),
+    //     .g_taken_real(taken_real),
+    //     .taken_pdch_ex_g(taken_pdch_ex_g),
+    //     .update_en(try_to_pdc&&update_en)
+    // );
 
-    cpht#(              //pc
-        .ch_width(h_width)
-    )
-    cpht_b_g(
-        .clk(clk),
-        .hashed_pc(pc_gh_hashed2),
-        .choice_pdc(choice_b_g),
-        .choice_pdch(choice_pdch),
-        .hashed_pc_update(pc_ex_gh_hashed),
-        .choice_real(choice_real),
-        .choice_pdch_ex(choice_pdch_ex),
-        .update_en(try_to_pdc&&update_en)
-    );
+    // cpht#(              //pc
+    //     .ch_width(h_width)
+    // )
+    // cpht_b_g(
+    //     .clk(clk),
+    //     .hashed_pc(pc_gh_hashed2),
+    //     .choice_pdc(choice_b_g),
+    //     .choice_pdch(choice_pdch),
+    //     .hashed_pc_update(pc_ex_gh_hashed),
+    //     .choice_real(choice_real),
+    //     .choice_pdch_ex(choice_pdch_ex),
+    //     .update_en(try_to_pdc&&update_en)
+    // );
 
     // always @(*) begin
     //     case (kind_pdc)
