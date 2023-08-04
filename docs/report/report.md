@@ -136,32 +136,11 @@
 
 ## 流水线功能设计
 
-CPU 采用顺序双发射八级流水结构，流水线分为 IF0、IF1、FIFO、ID、REG、EXE0、EXE1、WB 八级。
 
-![数据通路](./flow.svg)
-
-图中，除了 AXI interconnect 使用了以 MIT license 分发的 verilog-axi 外，所有模块都由我们独立实现。
 
 ## 执行单元设计
 
-执行单元采用双发射形式：
 
-- 一路为全能单元，可以执行全部指令，在指令到达时将其根据指令类别放入ALU0, BR, DIV, PRIV, MUL, Dcache 六个执行路径之一。
-- 另一路仅可执行 ALU, BR, MUL 指令。
-
-### ALU
-
-ALU 单元可以执行 ADD.W、SUB.W、SLT、SLTU、AND、OR、NOR、XOR、SLL.W、SRL.W、SRA.W、SLLI.W、SRLI.W、SRAI.W、SLTI、SLTUI、ADDI.W、ANDI、ORI、XORI、LU12I.W、PCADDU12I 共 22 种运算。在得到运算结果后，向后空流水一级，以便与两级流水的运算单元补齐。
-
-### BR
-
-BR 单元可以执行 JIRL、B、BL、BEQ、BNE、BLT、BGE、BLTU、BGEU 共 9 种分支指令，并对分支预测结果进行检验。下一条指令方向的 PC 与跳转方向不一致时，选择刷新单条指令或刷新整条流水线。第一阶段仅进行 ALU 运算，第二周期发出反馈，以缩短关键路径。
-
-### DIV
-
-### PRIV
-
-### MUL
 
 ## 分支预测器设计
 
@@ -209,18 +188,5 @@ BR 单元可以执行 JIRL、B、BL、BEQ、BNE、BLT、BGE、BLTU、BGEU 共 9 
   - 替换算法：tree-PLRU
 - 控制逻辑
 
-## 性能测试
 
-| 序号              | 测试程序        | myCPU           | openla500 | T~openla500~/T~mycpu~ |
-| ----------------- | --------------- | --------------- | --------- | --------------------- |
-| cpu_clk : sys_clk | 70MHz  : 100MHz | 50MHz  : 100MHz |           |                       |
-| 1                 | bitcount        | 6c350           | AAC96     | 1.57833201            |
-| 2                 | bubble_sort     | 244e22          | 30357A    | 1.327878223           |
-| 3                 | coremark        | 573f6b          | 8873DC    | 1.563967123           |
-| 4                 | crc32           | 43d603          | 66390E    | 1.506912186           |
-| 5                 | dhrystone       | 193b2b          | 128D5E    | 0.735290863           |
-| 6                 | quick_sort      | 262ee2          | 33F846    | 1.361067308           |
-| 7                 | select_sort     | 1f7f52          | 1FB806    | 1.00703223            |
-| 8                 | sha             | 24cc6c          | 39F4A6    | 1.574945224           |
-| 9                 | stream_copy     | 1ebcc           | 37340     | 1.795965052           |
-| 10                | stringsearch    | 34d9e7          | 29ABEE    | 0.788470561           |
+
