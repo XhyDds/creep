@@ -51,20 +51,22 @@ module prefetching#(
         case (crt)
             IDLE: begin
                 if(req_pref)
-                     nxt=REQ;
-                else nxt=IDLE;
+                            nxt =   REQ;
+                else        nxt =   IDLE;
             end
             REQ: begin
                 if(addrOK_l2cache_pref)
-                     nxt=WAIT;
-                else nxt=IDLE;
+                    if(complete_l2cache_pref)
+                            nxt =   IDLE;
+                    else    nxt =   WAIT;
+                else        nxt =   REQ;
             end
             WAIT: begin
                 if(complete_l2cache_pref)
-                     nxt=IDLE;
-                else nxt=WAIT;
+                            nxt =   IDLE;
+                else        nxt =   WAIT;
             end
-            default: nxt=IDLE;
+            default:        nxt =   IDLE;
         endcase
     end
 
@@ -137,8 +139,6 @@ module prefetching#(
     wire valid_data;
     wire req_inst;
     wire req_data;
-    wire addr_inst;
-    wire addr_data;
 
     inst_pre#(
         .addr_width(addr_width),
@@ -154,7 +154,6 @@ module prefetching#(
         .pdch(pdch_i),
 
         .addr_upt(addr_pref_l2cache[ADDR_WIDTH-1:2+L2cache_width]),
-        .naddr_upt(naddr_i_h_reg),
         .spare(~miss_l2cache_pref&~hit_l2cache_pref),
         .pdch_upt(pdch_i_reg),
 
@@ -186,7 +185,7 @@ module prefetching#(
         .addr_upt(addr_pref_l2cache[ADDR_WIDTH-1:2+L2cache_width]),
         .naddr_upt(naddr_d_h_reg),
         .hit(hit_l2cache_pref),
-        .spare(~miss_l2cache_pref),
+        .spare(~miss_l2cache_pref&~hit_l2cache_pref),
         .choice(hit_l2cache_pref?(~pdch_d_reg[1]):pdch_d_reg[1]),
         .pdch_upt(pdch_d_reg),
 

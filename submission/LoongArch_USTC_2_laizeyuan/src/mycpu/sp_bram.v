@@ -10,12 +10,12 @@ module sp_bram #(
 
     input [ADDR_WIDTH-1:0] raddr,  // Read Address
     output reg[DATA_WIDTH-1:0] dout,
-    input enb,                      // Read Enable
+    input enb,
 
     input [ADDR_WIDTH-1:0] waddr,
     input [DATA_WIDTH-1:0] din,   // Data Input
     input we                      // Write Enable
-); 
+);
     reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
     integer i;

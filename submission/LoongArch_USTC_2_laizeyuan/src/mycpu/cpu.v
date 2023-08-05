@@ -1,7 +1,7 @@
 `define predictor
 // `define DMA
-// module mycpu_top(
-module core_top(
+module mycpu_top(
+//module core_top(
     input           aclk,
     input           aresetn,
     input    [ 7:0] intrpt, 
@@ -1040,7 +1040,7 @@ module core_top(
     wire [1:0]choice_real;
     wire choice_real_btb_ras;
     wire choice_real_g_h;
-    wire [29:0] npc_test;//给ccr用的测试线，�??要左移两位使用，0,4交替
+    wire [29:0] npc_test;//给ccr用的测试线，�???要左移两位使用，0,4交替
 
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
@@ -1452,13 +1452,13 @@ module core_top(
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�???测访存地�???是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�???
+    always @(*) begin//�????测访存地�????是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�????
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
         if(ctr_reg_exe0_1[22]&(|PLV)) begin 
             ctr_reg_exe0_1_excp=liwai;
             excp_arg_reg_exe0_1_excp=excp_argIPE; 
-        end//用户态访问越�???
+        end//用户态访问越�????
         else if(ctr_reg_exe0_1[3:0]==5&ctr_reg_exe0_1[11:7]!=8)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
