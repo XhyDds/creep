@@ -47,4 +47,8 @@ always @(posedge clk) begin
         rbuf_SUC1 <= SUC; 
     end
 end
+always @(*) begin
+    rbuf_paddr = we_reg ? paddr : rbuf_paddr1;
+    rbuf_SUC = we_reg ? SUC : rbuf_SUC1;
+end
 endmodule
