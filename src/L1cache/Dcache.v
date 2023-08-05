@@ -225,10 +225,10 @@ always @(*) begin
             'd1: data_return = din_mem_dcache[63:32];
             'd2: data_return = din_mem_dcache[95:64];
             'd3: data_return = din_mem_dcache[127:96];
-            // 'd4: data_return = din_mem_dcache[159:128];
-            // 'd5: data_return = din_mem_dcache[191:160];
-            // 'd6: data_return = din_mem_dcache[223:192];
-            // 'd7: data_return = din_mem_dcache[255:224]
+            'd4: data_return = din_mem_dcache[159:128];
+            'd5: data_return = din_mem_dcache[191:160];
+            'd6: data_return = din_mem_dcache[223:192];
+            'd7: data_return = din_mem_dcache[255:224];
             default: data_return = 32'h1234ABCD;
         endcase
     end
@@ -241,10 +241,10 @@ always @(*) begin
             'd1: data_out = data_line[63:32];
             'd2: data_out = data_line[95:64];
             'd3: data_out = data_line[127:96];
-            // 'd4: data_out = data_line[159:128];
-            // 'd5: data_out = data_line[191:160];
-            // 'd6: data_out = data_line[223:192];
-            // 'd7: data_out = data_line[255:224];
+            'd4: data_out = data_line[159:128];
+            'd5: data_out = data_line[191:160];
+            'd6: data_out = data_line[223:192];
+            'd7: data_out = data_line[255:224];
             default: data_out = 32'h1234ABCD;
         endcase
     // end
