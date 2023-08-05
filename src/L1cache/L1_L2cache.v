@@ -225,7 +225,6 @@ wire icache_l2cache_SUC;
 assign addr_icache_l2cache = addr_icache_mem;
 assign din_mem_icache = dout_l2cache_icache;
 assign icache_l2cache_req = icache_mem_req;
-assign mem_icache_addrOK = l2cache_icache_addrOK;
 assign mem_icache_dataOK = l2cache_icache_dataOK;
 assign icache_l2cache_SUC = icache_mem_SUC;
 

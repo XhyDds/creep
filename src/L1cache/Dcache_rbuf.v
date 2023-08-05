@@ -24,11 +24,9 @@ module Dcache_rbuf
 (
     input clk,rbuf_we,
     input [31:0]addr,data,opcode,pc,paddr,
-    output reg [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc,
-    output [31:0]rbuf_paddr,
+    output reg [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc,rbuf_paddr,
     input opflag,type1,SUC,
-    output reg rbuf_opflag,rbuf_type,
-    output rbuf_SUC,
+    output reg rbuf_opflag,rbuf_type,rbuf_SUC,
     input [3:0]wstrb,
     output reg [3:0]rbuf_wstrb,
     input [1:0]size,
