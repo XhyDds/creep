@@ -133,7 +133,15 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign ASIDin=pipeline_CSR_ASID;
     assign inpc_valid=pipeline_CSR_inpc_valid,jumpc_valid=pipeline_CSR_jumpc_valid;
     assign jumpc=pipeline_CSR_jumpc;
-    Random rand_(.en(rand_en),.clk(clk),.rstn(rstn),.seed(TVAL),.randnum(randnum));
+    wire [TIMER_n-1:0]test;
+    assign test = TVAL;
+    Random rand_1(
+        .en(rand_en),
+        .clk(clk),
+        .rstn(rstn),
+        .seed1(test),
+        .randnum(randnum)
+        );
     
     
     always@(*)
@@ -186,7 +194,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     
     always@(posedge(clk))
     begin
-    if(!rstn||(flushin && !stallin && !force_run))
+    if(!rstn||(flushin && !force_run))
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
         outpc_reg<=0;dout_reg<=0;
@@ -692,19 +700,3 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     
 endmodule
 
-
-
-module Random(
-    input en, clk, rstn,
-    input [31:0] seed,
-    output reg [31:0] randnum
-    );
-    always @(posedge clk) begin
-        if(!rstn)   randnum <= 32'b0;
-        else if(en) begin
-          if(|randnum)  randnum <= {randnum[30:0], ((((randnum[31] ^ randnum[6]) ^ randnum[4]) ^ randnum[2]) ^ randnum[1]) ^ randnum[0]};
-          else          randnum <= {seed[31:1],1'b1};
-        end
-    end
-  
-endmodule

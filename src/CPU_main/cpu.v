@@ -101,7 +101,7 @@ module core_top(
     vaddr_exe0_exe1,    paddr_exe0_exe1,
     pc_br_exe0_exe1_0,  pc_br_exe0_exe1_1,
     brresult_exe0_exe1_0,                   brresult_exe0_exe1_1,
-    npc_reg,            MMU_pipeline_PADDR1_reg;
+    npc_reg;
 
     (* MAX_FANOUT = 3 *)reg [31:0]
     result_exe0_exe1_0, result_exe0_exe1_1,
@@ -1185,7 +1185,7 @@ module core_top(
         else if(ifbr0) npc=pc_br0;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
         else if(flush_if0_if1_reg) npc=npc_reg;
-        // else if(ifsuc) npc=pc+4;
+        else if(ifsuc) npc=pc+4;
         `ifdef predictor
         else begin npc=npc_pdc_32;ifnpc_pdc=1; end
         // else begin npc={npc_test,2'b0};ifnpc_pdc=1; end
@@ -1263,7 +1263,7 @@ module core_top(
 
     //ID-REG
     always @(posedge clk) begin
-        if(!rstn) begin
+        if(!rstn|flush_id_reg0) begin
             ctr_id_reg_0 <= 0;
             imm_id_reg_0<=0;
             rk_id_reg_0<=0;
@@ -1276,18 +1276,18 @@ module core_top(
             npc_id_reg_0<=0;
         end
         else if(stall_id_reg0);
-        else if(flush_id_reg0) begin
-            ctr_id_reg_0 <= 0;
-            imm_id_reg_0<=0;
-            rk_id_reg_0<=0;
-            rj_id_reg_0<=0;
-            rd_id_reg_0<=0;
-            pc_id_reg_0<=0;
-            ir_id_reg_0<=0;
-            ir_valid_id_reg_0<=0;
-            pre_id_reg_0<=0;
-            npc_id_reg_0<=0;
-        end
+        // else if(flush_id_reg0) begin
+        //     ctr_id_reg_0 <= 0;
+        //     imm_id_reg_0<=0;
+        //     rk_id_reg_0<=0;
+        //     rj_id_reg_0<=0;
+        //     rd_id_reg_0<=0;
+        //     pc_id_reg_0<=0;
+        //     ir_id_reg_0<=0;
+        //     ir_valid_id_reg_0<=0;
+        //     pre_id_reg_0<=0;
+        //     npc_id_reg_0<=0;
+        // end
         else begin
             ctr_id_reg_0 <= control00;
             imm_id_reg_0<=imm00;
@@ -1303,7 +1303,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn) begin
+        if(!rstn|flush_id_reg1) begin
             ctr_id_reg_1 <= 0;
             excp_arg_id_reg_1<=0;
             imm_id_reg_1<=0;
@@ -1347,7 +1347,7 @@ module core_top(
 
     //REG-EXE0
     always @(posedge clk) begin
-        if(!rstn) begin
+        if(!rstn|flush_reg_exe0_0) begin
             ctr_reg_exe0_0          <= 0;
             imm_reg_exe0_0          <=0;
             rk_reg_exe0_0           <=0;
@@ -1363,21 +1363,21 @@ module core_top(
             npc_reg_exe0_0          <=0;
         end
         else if(stall_reg_exe0_0);
-        else if(flush_reg_exe0_0) begin
-            ctr_reg_exe0_0          <= 0;
-            imm_reg_exe0_0          <=0;
-            rk_reg_exe0_0           <=0;
-            rj_reg_exe0_0           <=0;
-            rd_reg_exe0_0           <=0;
-            rrk_reg_exe0_0          <=0;
-            rrj_reg_exe0_0          <=0;
-            rrd_reg_exe0_0          <=0;
-            pc_reg_exe0_0           <=0;
-            ir_reg_exe0_0           <=0;
-            ir_valid_reg_exe0_0     <=0;
-            pre_reg_exe0_0          <=0;
-            npc_reg_exe0_0          <=0;
-        end
+        // else if(flush_reg_exe0_0) begin
+        //     ctr_reg_exe0_0          <= 0;
+        //     imm_reg_exe0_0          <=0;
+        //     rk_reg_exe0_0           <=0;
+        //     rj_reg_exe0_0           <=0;
+        //     rd_reg_exe0_0           <=0;
+        //     rrk_reg_exe0_0          <=0;
+        //     rrj_reg_exe0_0          <=0;
+        //     rrd_reg_exe0_0          <=0;
+        //     pc_reg_exe0_0           <=0;
+        //     ir_reg_exe0_0           <=0;
+        //     ir_valid_reg_exe0_0     <=0;
+        //     pre_reg_exe0_0          <=0;
+        //     npc_reg_exe0_0          <=0;
+        // end
         else begin
             ctr_reg_exe0_0         <= ctr_id_reg_0;
             imm_reg_exe0_0         <=imm_id_reg_0;
@@ -1396,7 +1396,7 @@ module core_top(
     end
     
     always @(posedge clk) begin
-        if(!rstn) begin
+        if(!rstn|flush_reg_exe0_1) begin
             ctr_reg_exe0_1<= 0;
             excp_arg_reg_exe0_1<=0;
             imm_reg_exe0_1<=0;
@@ -1413,22 +1413,22 @@ module core_top(
             npc_reg_exe0_1<=0;
         end
         else if(stall_reg_exe0_1);
-        else if(flush_reg_exe0_1) begin
-            ctr_reg_exe0_1<= 0;
-            excp_arg_reg_exe0_1<=0;
-            imm_reg_exe0_1<=0;
-            rk_reg_exe0_1<=0;
-            rj_reg_exe0_1<=0;
-            rd_reg_exe0_1<=0;
-            rrk_reg_exe0_1<=0;
-            rrj_reg_exe0_1<=0;
-            rrd_reg_exe0_1<=0;
-            pc_reg_exe0_1<=0;
-            ir_reg_exe0_1<=0;
-            ir_valid_reg_exe0_1<=0;
-            pre_reg_exe0_1<=0;
-            npc_reg_exe0_1<=0;
-        end
+        // else if(flush_reg_exe0_1) begin
+        //     ctr_reg_exe0_1<= 0;
+        //     excp_arg_reg_exe0_1<=0;
+        //     imm_reg_exe0_1<=0;
+        //     rk_reg_exe0_1<=0;
+        //     rj_reg_exe0_1<=0;
+        //     rd_reg_exe0_1<=0;
+        //     rrk_reg_exe0_1<=0;
+        //     rrj_reg_exe0_1<=0;
+        //     rrd_reg_exe0_1<=0;
+        //     pc_reg_exe0_1<=0;
+        //     ir_reg_exe0_1<=0;
+        //     ir_valid_reg_exe0_1<=0;
+        //     pre_reg_exe0_1<=0;
+        //     npc_reg_exe0_1<=0;
+        // end
         else begin
             ctr_reg_exe0_1<= ctr_id_reg_1;
             excp_arg_reg_exe0_1<=excp_arg_id_reg_1;
@@ -1484,7 +1484,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn) begin
+        if(!rstn|flush_exe0_exe1_0) begin
             ctr_exe0_exe1_0 <= 0;
             rd_exe0_exe1_0 <= 0;
             result_exe0_exe1_0 <= 0;
@@ -1502,23 +1502,23 @@ module core_top(
             brresult_exe0_exe1_0<=0;
         end
         else if(stall_exe0_exe1_0);
-        else if(flush_exe0_exe1_0) begin
-            ctr_exe0_exe1_0 <= 0;
-            rd_exe0_exe1_0 <= 0;
-            result_exe0_exe1_0 <= 0;
-            pc_exe0_exe1_0<=0;
-            ir_exe0_exe1_0<=0;
-            ir_valid_exe0_exe1_0<=0;
-            countresult_exe0_exe1_0<=0;
-            pc_br_exe0_exe1_0<=0;
-            // ifbr_exe0_exe1_0<=0;
-            flush_pre_exe0_exe1_0<=0;
-            pre_exe0_exe1_0<=0;
-            ifbr__exe0_exe1_0<=0;
-            npc_exe0_exe1_0<=0;
-            flushup_exe0_exe1_0<=0;
-            brresult_exe0_exe1_0<=0;
-        end
+        // else if(flush_exe0_exe1_0) begin
+        //     ctr_exe0_exe1_0 <= 0;
+        //     rd_exe0_exe1_0 <= 0;
+        //     result_exe0_exe1_0 <= 0;
+        //     pc_exe0_exe1_0<=0;
+        //     ir_exe0_exe1_0<=0;
+        //     ir_valid_exe0_exe1_0<=0;
+        //     countresult_exe0_exe1_0<=0;
+        //     pc_br_exe0_exe1_0<=0;
+        //     // ifbr_exe0_exe1_0<=0;
+        //     flush_pre_exe0_exe1_0<=0;
+        //     pre_exe0_exe1_0<=0;
+        //     ifbr__exe0_exe1_0<=0;
+        //     npc_exe0_exe1_0<=0;
+        //     flushup_exe0_exe1_0<=0;
+        //     brresult_exe0_exe1_0<=0;
+        // end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
             rd_exe0_exe1_0 <= rd_reg_exe0_0;
@@ -1539,7 +1539,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn) begin
+        if(!rstn||(flush_exe0_exe1_1 && ctr_exe0_exe1_1[3:0]!=4'd6)) begin// llw
             ctr_exe0_exe1_1 <= 0;
             rd_exe0_exe1_1<=0;
             result_exe0_exe1_1<=0;
@@ -1560,26 +1560,26 @@ module core_top(
             brresult_exe0_exe1_1<=0;
         end
         else if(stall_exe0_exe1_1);
-        else if(flush_exe0_exe1_1) begin
-            ctr_exe0_exe1_1 <= 0;
-            rd_exe0_exe1_1<=0;
-            result_exe0_exe1_1<=0;
-            pc_exe0_exe1_1<=0;
-            ir_exe0_exe1_1<=0;
-            addr_pipeline_dcache_exe0_exe1<=0;
-            // paddr_exe0_exe1<=0;
-            din_pipeline_dcache_exe0_exe1<=0;
-            ir_valid_exe0_exe1_1<=0;
-            countresult_exe0_exe1_1<=0;
-            rand_index_exe0_exe1<=0;
-            pc_br_exe0_exe1_1<=0;
-            // ifbr_exe0_exe1_1<=0;
-            flush_pre_exe0_exe1_1<=0;
-            pre_exe0_exe1_1<=0;
-            ifbr__exe0_exe1_1<=0;
-            npc_exe0_exe1_1<=0;
-            brresult_exe0_exe1_1<=0;
-        end
+        // else if(flush_exe0_exe1_1) begin
+        //     ctr_exe0_exe1_1 <= 0;
+        //     rd_exe0_exe1_1<=0;
+        //     result_exe0_exe1_1<=0;
+        //     pc_exe0_exe1_1<=0;
+        //     ir_exe0_exe1_1<=0;
+        //     addr_pipeline_dcache_exe0_exe1<=0;
+        //     // paddr_exe0_exe1<=0;
+        //     din_pipeline_dcache_exe0_exe1<=0;
+        //     ir_valid_exe0_exe1_1<=0;
+        //     countresult_exe0_exe1_1<=0;
+        //     rand_index_exe0_exe1<=0;
+        //     pc_br_exe0_exe1_1<=0;
+        //     // ifbr_exe0_exe1_1<=0;
+        //     flush_pre_exe0_exe1_1<=0;
+        //     pre_exe0_exe1_1<=0;
+        //     ifbr__exe0_exe1_1<=0;
+        //     npc_exe0_exe1_1<=0;
+        //     brresult_exe0_exe1_1<=0;
+        // end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
@@ -1603,7 +1603,6 @@ module core_top(
     end
 
     //EXE1-WB
-    reg     stall_exe1_wb_1_reg;
     reg [31:0]result0,result1;
     always @(*) begin//0:alu, 1:br, 2:div, 3:priv, 4:mul, 5:dcache, 6:priv+dcache, 7:RDCNT, 8:alu+br
         result0=0;
@@ -1630,7 +1629,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn) begin
+        if(!rstn|flush_exe1_wb_0) begin
             ctr_exe1_wb_0 <= 0;
             rd_exe1_wb_0<=0;
             result_exe1_wb_0<=0;
@@ -1640,15 +1639,15 @@ module core_top(
             countresult_exe1_wb_0<=0;
         end
         else if(stall_exe1_wb_0);
-        else if(flush_exe1_wb_0) begin
-            ctr_exe1_wb_0 <= 0;
-            rd_exe1_wb_0<=0;
-            result_exe1_wb_0<=0;
-            pc_exe1_wb_0<=0;
-            ir_exe1_wb_0<=0;
-            ir_valid_exe1_wb_0<=0;
-            countresult_exe1_wb_0<=0;
-        end
+        // else if(flush_exe1_wb_0) begin
+        //     ctr_exe1_wb_0 <= 0;
+        //     rd_exe1_wb_0<=0;
+        //     result_exe1_wb_0<=0;
+        //     pc_exe1_wb_0<=0;
+        //     ir_exe1_wb_0<=0;
+        //     ir_valid_exe1_wb_0<=0;
+        //     countresult_exe1_wb_0<=0;
+        // end
         else begin
             ctr_exe1_wb_0 <= ctr_exe0_exe1_0;
             rd_exe1_wb_0<=rd_exe0_exe1_0;
@@ -1661,7 +1660,7 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn) begin
+        if(!rstn|flush_exe1_wb_1) begin
             ctr_exe1_wb_1 <= 0;
             rd_exe1_wb_1<=0;
             result_exe1_wb_1<=0;
@@ -1676,20 +1675,20 @@ module core_top(
             din_pipeline_dcache_exe1_wb<=0;
         end
         else if(stall_exe1_wb_1);
-        else if(flush_exe1_wb_1) begin
-            ctr_exe1_wb_1 <= 0;
-            rd_exe1_wb_1<=0;
-            result_exe1_wb_1<=0;
-            pc_exe1_wb_1<=0;
-            ir_exe1_wb_1<=0;
-            vaddr_exe1_wb<=0;
-            paddr_exe1_wb<=0;
-            ir_valid_exe1_wb_1<=0;
-            countresult_exe1_wb_1<=0;
-            rand_index_exe1_wb<=0;
-            LLbit_exe0_exe1<=0;
-            din_pipeline_dcache_exe1_wb<=0;
-        end
+        // else if(flush_exe1_wb_1) begin
+        //     ctr_exe1_wb_1 <= 0;
+        //     rd_exe1_wb_1<=0;
+        //     result_exe1_wb_1<=0;
+        //     pc_exe1_wb_1<=0;
+        //     ir_exe1_wb_1<=0;
+        //     vaddr_exe1_wb<=0;
+        //     paddr_exe1_wb<=0;
+        //     ir_valid_exe1_wb_1<=0;
+        //     countresult_exe1_wb_1<=0;
+        //     rand_index_exe1_wb<=0;
+        //     LLbit_exe0_exe1<=0;
+        //     din_pipeline_dcache_exe1_wb<=0;
+        // end
         else begin
             ctr_exe1_wb_1 <= ctr_exe0_exe1_1;
             rd_exe1_wb_1<=rd_exe0_exe1_1;
@@ -1697,18 +1696,13 @@ module core_top(
             pc_exe1_wb_1<=pc_exe0_exe1_1;
             ir_exe1_wb_1<=ir_exe0_exe1_1;
             vaddr_exe1_wb<=addr_pipeline_dcache_exe0_exe1;
-            paddr_exe1_wb<=stall_exe1_wb_1_reg?MMU_pipeline_PADDR1_reg:MMU_pipeline_PADDR1;
+            paddr_exe1_wb<=MMU_pipeline_PADDR1;
             ir_valid_exe1_wb_1<=ir_valid_exe0_exe1_1;
             countresult_exe1_wb_1<=countresult_exe0_exe1_1;
             rand_index_exe1_wb<=rand_index_exe0_exe1;
             LLbit_exe0_exe1<=LLbit;
             din_pipeline_dcache_exe1_wb<=din_pipeline_dcache_exe0_exe1;
         end
-    end
-
-    always @(posedge clk) begin
-        if(~rstn) MMU_pipeline_PADDR1_reg<=0;
-        else if(!stall_exe1_wb_1_reg)MMU_pipeline_PADDR1_reg<=MMU_pipeline_PADDR1;
     end
 
 //L2Cache
@@ -1730,7 +1724,7 @@ module core_top(
         .I_index_width  		( 4 		),
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
-        .L1_offset_width 		( 2 		),
+        .L1_offset_width 		( 3 		),
         .L2_offset_width 		( 3 		))
     u_L1_L2cache(
         //ports
@@ -1760,7 +1754,7 @@ module core_top(
         .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp&~flush_exe0_exe1_1&~stall_exe0_exe1_1     ),
         .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
-        // .pipeline_dcache_size           ( pipeline_dcache_size          ),
+        .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
         .pipeline_dcache_ctrl   		( {30'b0,ifmmu_excp,stall_to_dcache}),
@@ -1783,7 +1777,7 @@ module core_top(
         .l2cache_mem_rdy                ( l2cache_mem_rdy      ),
         .l2cache_mem_SUC                ( l2cache_mem_SUC      ),
         .l2cache_mem_wstrb              ( l2cache_mem_wstrb    ),
-        // .l2cache_mem_size               ( l2cache_mem_size     ),
+        .l2cache_mem_size               ( l2cache_mem_size     ),
         .mem_l2cache_addrOK_r           ( mem_l2cache_addrOK_r ),
         .mem_l2cache_addrOK_w           ( mem_l2cache_addrOK_w ),
         .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
@@ -1982,6 +1976,8 @@ module core_top(
     reg     [31:0]  csr_pgdl_diff_0_reg     ;
     reg     [31:0]  csr_pgdh_diff_0_reg     ;
 
+    reg     stall_exe1_wb_1_reg;
+
     always @(posedge clk) begin
         if(!rstn) begin
             csr_crmd_diff_0_reg         <=  0;
@@ -2161,7 +2157,7 @@ module core_top(
         .clock              (aclk           ),
         .coreid             (0              ),
         .index              (0              ),
-        .valid              (cmt_inst_st_en ),
+        // .valid              (cmt_inst_st_en )zz,
         .storePAddr         (cmt_st_paddr   ),
         .storeVAddr         (cmt_st_vaddr   ),
         .storeData          (cmt_st_data    )
@@ -2171,7 +2167,7 @@ module core_top(
         .clock              (aclk           ),
         .coreid             (0              ),
         .index              (0              ),
-        .valid              (cmt_inst_ld_en ),
+        // .valid              (cmt_inst_ld_en ),
         .paddr              (cmt_ld_paddr   ),
         .vaddr              (cmt_ld_vaddr   )
     );

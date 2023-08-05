@@ -8,6 +8,7 @@ module kt#(
     //update
     input [k_width-1:0]hashed_pc_update,//ex段
     input [2:0]kind_real,
+    input stall,
     input update_en
 );
     parameter   NOT_JUMP = 3'd0,
@@ -26,6 +27,7 @@ module kt#(
         .clk(clk),
         .raddr(hashed_pc),
         .dout(kind_pdc),
+        .enb(~stall),
         .waddr(hashed_pc_update),
         .din(kind_real),
         .we(update_en)
