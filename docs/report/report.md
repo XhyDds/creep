@@ -342,29 +342,36 @@ L1cache均采用流水式访存，可以做到当cache连续命中时不阻塞�
 
 ## 性能测试
 
-若使用 Vivado 2023 进行综合与布线，时钟频率可达 87MHz。
+- 若使用 Vivado 2023 进行综合与布线，时钟频率可达 87MHz。
 
-若使用 Vivado 2021.1 综合与布线，时钟频率可达 80MHz，性能分为 1.400 ，详细成绩如下：
 
-| 序号              | 测试程序       | myCPU          | openla500 | T~openla500~/T~mycpu~ |
-| ----------------- | -------------- | -------------- | --------- | --------------------- |
-| cpu_clk : sys_clk | 80MHz : 100MHz | 50MHz : 100MHz |           |                       |
-| 1                 | bitcount       | 613F5          | AAC96     | 1.756209126           |
-| 2                 | bubble_sort    | 22709E         | 30357A    | 1.399797258           |
-| 3                 | coremark       | 4EB1F1         | 8873DC    | 1.733940285           |
-| 4                 | crc32          | 3D84F9         | 66390E    | 1.661635667           |
-| 5                 | dhrystone      | 169E7F         | 128D5E    | 0.820200396           |
-| 6                 | quick_sort     | 1D847F         | 33F846    | 1.76064055            |
-| 7                 | select_sort    | 23C3C8         | 1FB806    | 0.886873901           |
-| 8                 | sha            | 207F45         | 39F4A6    | 1.783407591           |
-| 9                 | stream_copy    | 1B108          | 37340     | 2.039691131           |
-| 10                | stringsearch   | 2F8942         | 29ABEE    | 0.876629442           |
+- 若使用 Vivado 2021.1 综合与布线，时钟频率可达 80MHz，性能分为 1.400 ，详细成绩如下：
 
-若使用 Vivado 2019.2 综合与布线，时钟频率为 70MHz，性能分为，详细成绩如下：
+  | 序号              | 测试程序       | myCPU          | openla500 | T~openla500~/T~mycpu~ |
+  | ----------------- | -------------- | -------------- | --------- | --------------------- |
+  | cpu_clk : sys_clk | 80MHz : 100MHz | 50MHz : 100MHz |           |                       |
+  | 1                 | bitcount       | 613F5          | AAC96     | 1.756209126           |
+  | 2                 | bubble_sort    | 22709E         | 30357A    | 1.399797258           |
+  | 3                 | coremark       | 4EB1F1         | 8873DC    | 1.733940285           |
+  | 4                 | crc32          | 3D84F9         | 66390E    | 1.661635667           |
+  | 5                 | dhrystone      | 169E7F         | 128D5E    | 0.820200396           |
+  | 6                 | quick_sort     | 1D847F         | 33F846    | 1.76064055            |
+  | 7                 | select_sort    | 23C3C8         | 1FB806    | 0.886873901           |
+  | 8                 | sha            | 207F45         | 39F4A6    | 1.783407591           |
+  | 9                 | stream_copy    | 1B108          | 37340     | 2.039691131           |
+  | 10                | stringsearch   | 2F8942         | 29ABEE    | 0.876629442           |
+
+  截图证明 Implementation 后 WNS非负：
+
+- 若使用 Vivado 2019.2 综合与布线，时钟频率为 70MHz，性能分为，详细成绩如下：
+
+  截图证明 Implementation 后 WNS 非负：
+
 
 ## 参考
 
 [^0]: 龙芯中科技术股份有限公司 芯片研发部. *龙芯架构 32 位精简版参考手册*[S/OL]. 北京: 龙芯中科技术股份有限公司. 2022, v1.02. https://web.archive.org/web/20220526105711/https://www.loongson.cn/FileShow
 [^1]: Alex Forencich. *verilog-axi*[CP/OL]. GitHub. 2021 (20211228) [2022-07-12]. https://github.com/alexforencich/verilog-axi
 [^2]: 龙芯架构参考手册 - 卷一：基础架构. https://github.com/loongson/LoongArch-Documentation/releases/latest/download/LoongArch-Vol1-v1.02-CN.pdf
-
+[^3]: 姚永斌. *超标量处理器设计*[M]. 北京: 清华大学出版社. 2014.
+[^4]: 汪文祥 and 刑金璋. *CPU 设计实战*[M]. 北京: 机械工业出版社. 2021.
