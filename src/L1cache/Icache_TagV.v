@@ -88,7 +88,8 @@ always @(posedge clk) begin
 end
 
 wire [data_width-1:0]zero = 0;
-bram #(
+wire [way-1:0]hit_t;
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -100,10 +101,12 @@ way0(
     .we(TagV_we[0] || (TagV_init == 2'b10)),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[0])
+    .dout(TagV_data[0]),
+    .din_comp(0),
+    .hit(hit_t[0])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width)
 )
@@ -115,7 +118,9 @@ way1(
     .we(TagV_we[1] || (TagV_init == 2'b11)),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[1])
+    .dout(TagV_data[1]),
+    .din_comp(0),
+    .hit(hit_t[1])
 );
 
 assign hit[0]=(TagV_data[0]==TagV_din_compare)&&(v0);//这个地址就是rbuf的地址

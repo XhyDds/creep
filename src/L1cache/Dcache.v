@@ -56,6 +56,7 @@ module Dcache#(
 
     //mem prot
     output      [31:0]addr_dcache_mem,
+    output      [31:0]pc_dcache_mem,
     output      [31:0]dout_dcache_mem,
     input       [32*(1<<offset_width)-1:0]din_mem_dcache,
 
@@ -70,9 +71,11 @@ module Dcache#(
 
 wire [offset_width-1:0]offset;
 wire [index_width-1:0]index;
+wire [index_width-1:0]index1;
 wire [32-offset_width-index_width-2-1:0]tag;
 assign offset = addr_pipeline_dcache[offset_width+1:2];
 assign index = addr_pipeline_dcache[offset_width+index_width+1:offset_width+2];
+assign index1 = tag[index_width-1:0];
 assign tag = addr_pipeline_dcache[31:offset_width+index_width+2];
 
 wire [offset_width-1:0]poffset;
@@ -89,9 +92,11 @@ wire [1:0]rbuf_size;
 wire [3:0]rbuf_wstrb;
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
+wire [index_width-1:0]rbuf_index1;
 wire [32-offset_width-index_width-2-1:0]rbuf_tag;
 assign rbuf_offset = rbuf_addr[offset_width+1:2];
 assign rbuf_index = rbuf_addr[offset_width+index_width+1:offset_width+2];
+assign rbuf_index1 = rbuf_tag[index_width-1:0];
 assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 wire fStall_outside=pipeline_dcache_ctrl[0];//dcache好像不需要stall？？
 
@@ -141,7 +146,7 @@ Dcache_lru #(
 Dcache_lru(
     .clk(clk),
     .use0(use0),.use1(use1),
-    .addr(rbuf_index),
+    .addr(rbuf_index ^ rbuf_index1),//^ rbuf_index1
     .way_sel(way_sel_lru)
 );
 
@@ -149,6 +154,7 @@ Dcache_lru(
 wire [way-1:0]Data_we;
 wire [(1<<offset_width)*32-1:0]data0,data1;
 wire Data_replace;
+reg [32*(1<<offset_width)-1:0]din_reg;
 Dcache_Data #(
     .addr_width(index_width),
     .data_width((1<<offset_width)*32),
@@ -158,13 +164,13 @@ Dcache_Data #(
 Dcache_Data(
     .clk(clk),
     
-    .Data_addr_read(index),
+    .Data_addr_read(index ^ index1),//^ index1
     .Data_dout0(data0),
     .Data_dout1(data1),
 
-    .Data_din_write(din_mem_dcache),//一整行
+    .Data_din_write(din_reg),//一整行 
     .Data_din_write_32(rbuf_data),
-    .Data_addr_write(rbuf_index),
+    .Data_addr_write(rbuf_index ^ rbuf_index1),//^ rbuf_index1
     .Data_offset(rbuf_offset),
     .Data_choose_byte(rbuf_wstrb),
     .Data_we(Data_we),
@@ -182,15 +188,15 @@ Dcache_TagV #(
 Dcache_TagV(
     .clk(clk),
 
-    .TagV_addr_read(index),
-    .TagV_din_compare(rbuf_tag),
+    .TagV_addr_read(index ^ index1),//^ index1
+    .TagV_din_compare(tag),
     // .TagV_din_compare(ptag),
     .hit(hit),
     
     .TagV_init(TagV_init),
     .TagV_din_write(rbuf_tag),
     // .TagV_din_write(ptag),
-    .TagV_addr_write(rbuf_index),
+    .TagV_addr_write(rbuf_index ^ rbuf_index1),//^ rbuf_index1
     .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
 );
@@ -199,35 +205,49 @@ Dcache_TagV(
 //不需要stall所以不需要锁存？？
 wire choose_way,choose_return;
 wire [offset_width-1:0]choose_word = rbuf_addr[2+offset_width-1:2];
-reg [31:0]data_out,data_out_reg;
+reg [31:0]data_out,data_out_reg,data_return;
 reg choose_return_reg;
 reg [32*(1<<offset_width)-1:0]data_line;
 always @(*) begin
-    if (choose_return) data_line = din_mem_dcache;
-    else begin
-        if (!choose_way) data_line = data0;
-        else data_line = data1;
-    end
+    if (!choose_way) data_line = data0;
+    else data_line = data1;
 end
 always @(posedge clk) begin
+    din_reg <= din_mem_dcache;
     choose_return_reg <= choose_return;
-    data_out_reg <= data_out;
+    data_out_reg <= data_return;
 end
 always @(*) begin
-    if(rbuf_SUC)data_out = data_line[31:0];
+    if(rbuf_SUC)data_return = din_mem_dcache[31:0];
     else begin
+        case (choose_word)
+            'd0: data_return = din_mem_dcache[31:0];
+            'd1: data_return = din_mem_dcache[63:32];
+            'd2: data_return = din_mem_dcache[95:64];
+            'd3: data_return = din_mem_dcache[127:96];
+            // 'd4: data_return = din_mem_dcache[159:128];
+            // 'd5: data_return = din_mem_dcache[191:160];
+            // 'd6: data_return = din_mem_dcache[223:192];
+            // 'd7: data_return = din_mem_dcache[255:224]
+            default: data_return = 32'h1234ABCD;
+        endcase
+    end
+end
+always @(*) begin
+    // if(rbuf_SUC)data_out = data_line[31:0];
+    // else begin
         case (choose_word)
             'd0: data_out = data_line[31:0];
             'd1: data_out = data_line[63:32];
             'd2: data_out = data_line[95:64];
             'd3: data_out = data_line[127:96];
-            'd4: data_out = data_line[159:128];
-            'd5: data_out = data_line[191:160];
-            'd6: data_out = data_line[223:192];
-            'd7: data_out = data_line[255:224];
+            // 'd4: data_out = data_line[159:128];
+            // 'd5: data_out = data_line[191:160];
+            // 'd6: data_out = data_line[223:192];
+            // 'd7: data_out = data_line[255:224];
             default: data_out = 32'h1234ABCD;
         endcase
-    end
+    // end
 end
 
 assign dout_dcache_pipeline = choose_return_reg ? data_out_reg : data_out;
@@ -244,6 +264,7 @@ assign addr_dcache_mem = rbuf_SUC ? rbuf_addr :(dcache_mem_wr ? rbuf_addr:{rbuf_
 // `endif
 assign dcache_mem_size = rbuf_size;
 assign dcache_mem_wstrb = rbuf_wstrb;
+assign pc_dcache_mem = rbuf_pc;
 
 //FSM
 Dcache_FSMmain #(
