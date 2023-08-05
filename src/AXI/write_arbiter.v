@@ -44,7 +44,7 @@ module write_arbiter#(
     input    [4:0]crt,
     input    [4:0]nxt
 );
-    parameter IDLE = 5'd0,DMA_AW=5'd1 , DMA_W=5'd2 , DMA_R=5'd3;
+    localparam IDLE = 5'd0,DMA_AW=5'd1 , DMA_W=5'd2 , DMA_R=5'd3;
 
     always @(*) begin
         mem_l2cache_addrOK_w=0;
