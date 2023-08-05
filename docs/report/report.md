@@ -8,7 +8,7 @@
 
 ## 设计简介
 
-我们设计的 CPU 采用顺序双发射八级流水，实现了 63 条指令、26 种 CSR 寄存器、16 种例外[^0]。采用 AXI-4 总线。使用 2 路组相联 16KB icache 和；2 路组相联 16KB dcache，采用写直达，非写分配策略；8 路组相联L2cache，采用写回、写分配策略。使用分支预测器以减少分支失败带来的性能损失。
+我们设计的 CPU 采用顺序双发射八级流水，实现了 63 条指令、26 种 CSR 寄存器、16 种例外[^0]。采用 AXI-4 总线。使用 2 路组相联 16KB Icache 和 2 路组相联 16KB Dcache，采用写直达，非写分配策略；8 路组相联L2cache，采用写回、写分配策略。使用分支预测器以减少分支失败带来的性能损失。
 
 ### 指令列表
 
@@ -119,7 +119,7 @@
 |  0x4  |    0     |   PME    |
 |  0x7  |    0     |   PPI    |
 |  0x8  |    0     |   ADEF   |
-|  0x8  |    1     |   ADEM   |
+|  0x8  |    1     | ADEM[^1] |
 |  0x9  |    0     |   ALE    |
 |  0xB  |    0     |   SYS    |
 |  0xC  |    0     |   BRK    |
@@ -136,7 +136,7 @@ CPU 采用顺序双发射八级流水结构，流水线分为 IF0、IF1、FIFO�
 
 ![数据通路](./flow.svg)
 
-图中， 除了 AXI interconnect 借鉴了以 MIT license 分发的 verilog-axi [^1]并修改、所有BRAM生成代码均使用 Xilinx 标准生成代码以增加灵活性，其余所有模块都由我们独立实现。
+图中， 除了 AXI interconnect 借鉴了以 MIT license 分发的 verilog-axi [^2]并修改、所有BRAM生成代码均使用 Xilinx 标准生成代码以增加灵活性，其余所有模块都由我们独立实现。
 
 
 ## 执行单元设计
@@ -207,6 +207,9 @@ $$
 由于本架构为双发射架构，因此每个周期取指单元均可取出两条指令。这对分支预测的设计产生了巨大挑战。
 
 此外，考虑到不同类型的跳转指令的行为不同，适宜采取的预测策略也不同。因此，我们根据 pc 记录了指令类型，并对不同类型的指令采用了不同的预测模式。
+
+这里参考了《超标量处理器设计》[^3]。
+
 ### 基本原理与结构
 ![pred](./pred.svg)
 
@@ -303,8 +306,6 @@ L1cache均采用流水式访存，可以做到当cache连续命中时不阻塞�
     - L2cache
         - 通过req信号，req信号置高期间，向下访存地址有效且不变。直至L2cache发出完成信号并且发出数据，Icache接收。L2cache向Icache发送的数据长度在一致可缓存时为Icache的cache line长度，强序非缓存时为低32位有效的数据。
 
-
-
 ### 一级数据缓存
 
 - 基本参数
@@ -387,7 +388,7 @@ L1cache均采用流水式访存，可以做到当cache连续命中时不阻塞�
   - L1cache
     - 通过addrOK响应写，dataOK响应读，并且由于L1cache的请求会被L2cache阻塞，L2响应时只需要发出一拍脉冲信号，必然可以被L1接收。
   - AXI
-    - 经过写缓冲区和读缓冲区缓冲与转译后，通过 SRAM 握手协议向 AXI 转接桥发起访存。
+    - 经过写缓冲区和读缓冲区缓冲与转译后，通过 SRAM 握手协议向 AXI 转接桥发起访存[^4]。
 
 
 ### FIFO 写缓冲区
@@ -406,19 +407,19 @@ L1cache均采用流水式访存，可以做到当cache连续命中时不阻塞�
 
 - 若使用 Vivado 2021.1 综合与布线，时钟频率可达 80MHz，拨上最左开关后，性能分为 1.400 ，详细成绩如下：
 
-  | 序号              | 测试程序       | myCPU          | openla500 | T~openla500~/T~mycpu~ |
-  | ----------------- | -------------- | -------------- | --------- | --------------------- |
-  | cpu_clk : sys_clk | 80MHz : 100MHz | 50MHz : 100MHz |           |                       |
-  | 1                 | bitcount       | 613F5          | AAC96     | 1.756209126           |
-  | 2                 | bubble_sort    | 22709E         | 30357A    | 1.399797258           |
-  | 3                 | coremark       | 4EB1F1         | 8873DC    | 1.733940285           |
-  | 4                 | crc32          | 3D84F9         | 66390E    | 1.661635667           |
-  | 5                 | dhrystone      | 169E7F         | 128D5E    | 0.820200396           |
-  | 6                 | quick_sort     | 1D847F         | 33F846    | 1.76064055            |
-  | 7                 | select_sort    | 23C3C8         | 1FB806    | 0.886873901           |
-  | 8                 | sha            | 207F45         | 39F4A6    | 1.783407591           |
-  | 9                 | stream_copy    | 1B108          | 37340     | 2.039691131           |
-  | 10                | stringsearch   | 2F8942         | 29ABEE    | 0.876629442           |
+  | 序号              | 测试程序     | myCPU          | openla500      | T~openla500~/T~mycpu~ |
+  | ----------------- | ------------ | -------------- | -------------- | --------------------- |
+  | cpu_clk : sys_clk |              | 80MHz : 100MHz | 50MHz : 100MHz |                       |
+  | 1                 | bitcount     | 613F5          | AAC96          | 1.756209126           |
+  | 2                 | bubble_sort  | 22709E         | 30357A         | 1.399797258           |
+  | 3                 | coremark     | 4EB1F1         | 8873DC         | 1.733940285           |
+  | 4                 | crc32        | 3D84F9         | 66390E         | 1.661635667           |
+  | 5                 | dhrystone    | 169E7F         | 128D5E         | 0.820200396           |
+  | 6                 | quick_sort   | 1D847F         | 33F846         | 1.76064055            |
+  | 7                 | select_sort  | 23C3C8         | 1FB806         | 0.886873901           |
+  | 8                 | sha          | 207F45         | 39F4A6         | 1.783407591           |
+  | 9                 | stream_copy  | 1B108          | 37340          | 2.039691131           |
+  | 10                | stringsearch | 2F8942         | 29ABEE         | 0.876629442           |
 
   截图证明 Implementation 后 WNS非负：
 
@@ -426,27 +427,28 @@ L1cache均采用流水式访存，可以做到当cache连续命中时不阻塞�
 
 - 若使用 Vivado 2019.2 综合与布线，时钟频率为 70MHz，拨上最左开关后，性能分为1.232，详细成绩如下：
 
-  | 序号              | 测试程序        | myCPU           | openla500 | T~openla500~/T~mycpu~ |
-  | ----------------- | --------------- | --------------- | --------- | --------------------- |
-  | cpu_clk : sys_clk | 70MHz  : 100MHz | 50MHz  : 100MHz | -         |                       |
-  | 1                 | bitcount        | 6EE6E           | AAC96     | 1.539979835           |
-  | 2                 | bubble_sort     | 2759AB          | 30357A    | 1.225122428           |
-  | 3                 | coremark        | 59B136          | 8873DC    | 1.521342209           |
-  | 4                 | crc32           | 4611AD          | 66390E    | 1.458887707           |
-  | 5                 | dhrystone       | 197329          | 128D5E    | 0.728971671           |
-  | 6                 | quick_sort      | 21B329          | 33F846    | 1.542138224           |
-  | 7                 | select_sort     | 28DDCA          | 1FB806    | 0.776160118           |
-  | 8                 | sha             | 250F76          | 39F4A6    | 1.563816551           |
-  | 9                 | stream_copy     | 1E8E0           | 37340     | 1.806699054           |
-  | 10                | stringsearch    | 359CAC          | 29ABEE    | 0.777281219           |
+  | 序号              | 测试程序     | myCPU           | openla500       | T~openla500~/T~mycpu~ |
+  | ----------------- | ------------ | --------------- | --------------- | --------------------- |
+  | cpu_clk : sys_clk |              | 70MHz  : 100MHz | 50MHz  : 100MHz |                       |
+  | 1                 | bitcount     | 6EE6E           | AAC96           | 1.539979835           |
+  | 2                 | bubble_sort  | 2759AB          | 30357A          | 1.225122428           |
+  | 3                 | coremark     | 59B136          | 8873DC          | 1.521342209           |
+  | 4                 | crc32        | 4611AD          | 66390E          | 1.458887707           |
+  | 5                 | dhrystone    | 197329          | 128D5E          | 0.728971671           |
+  | 6                 | quick_sort   | 21B329          | 33F846          | 1.542138224           |
+  | 7                 | select_sort  | 28DDCA          | 1FB806          | 0.776160118           |
+  | 8                 | sha          | 250F76          | 39F4A6          | 1.563816551           |
+  | 9                 | stream_copy  | 1E8E0           | 37340           | 1.806699054           |
+  | 10                | stringsearch | 359CAC          | 29ABEE          | 0.777281219           |
   
   截图证明 Implementation 后 WNS 非负：
-
+  
+  ![Vivado 2019.2](D:\Loongarch\creep\docs\report\Vivado 2019.2.png)
 
 ## 参考
 
 [^0]: 龙芯中科技术股份有限公司 芯片研发部. *龙芯架构 32 位精简版参考手册*[S/OL]. 北京: 龙芯中科技术股份有限公司. 2022, v1.02. https://web.archive.org/web/20220526105711/https://www.loongson.cn/FileShow
-[^1]: Alex Forencich. *verilog-axi*[CP/OL]. GitHub. 2021 (20211228) [2022-07-12]. https://github.com/alexforencich/verilog-axi
-[^2]: 龙芯架构参考手册 - 卷一：基础架构. https://github.com/loongson/LoongArch-Documentation/releases/latest/download/LoongArch-Vol1-v1.02-CN.pdf
+[^1]: 龙芯架构参考手册 - 卷一：基础架构. https://github.com/loongson/LoongArch-Documentation/releases/latest/download/LoongArch-Vol1-v1.02-CN.pdf
+[^2]: Alex Forencich. *verilog-axi*[CP/OL]. GitHub. 2021 (20211228) [2022-07-12]. https://github.com/alexforencich/verilog-axi
 [^3]: 姚永斌. *超标量处理器设计*[M]. 北京: 清华大学出版社. 2014.
 [^4]: 汪文祥 and 刑金璋. *CPU 设计实战*[M]. 北京: 机械工业出版社. 2021.
