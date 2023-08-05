@@ -369,9 +369,13 @@ L1cache均采用流水式访存，可以做到当cache连续命中时不阻塞�
 
   截图证明 Implementation 后 WNS非负：
 
+  
+
 - 若使用 Vivado 2019.2 综合与布线，时钟频率为 70MHz，性能分为，详细成绩如下：
 
   截图证明 Implementation 后 WNS 非负：
+  
+  ![Vivado 2019.2](D:\Loongarch\creep\docs\report\Vivado 2019.2.png)
 
 
 ## 参考
