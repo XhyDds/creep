@@ -82,7 +82,7 @@ wire fStall_outside=0;
 wire opflag;
 assign opflag=pipeline_dcache_opflag;
 wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
-// wire flush_outside = pipeline_dcache_ctrl[1];
+wire flush_outside = pipeline_dcache_ctrl[1];
 reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6,Miss_r_waitdata1=5'd7;
