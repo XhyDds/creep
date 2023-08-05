@@ -63,11 +63,11 @@ module ex_buffer#(
                 CALL = 3'd6,
                 JUMP=3'd7;
 
-    wire [109+bh_width:0] in_data_0={in_bh_pdc_0,in_pdch_0,in_flush_pre_0,in_pack_size_0,in_choice_pdc_0,in_pc_ex_0,in_npc_ex_0,in_kind_ex_0,in_taken_ex_0,in_npc_pdc_0,in_kind_pdc_0,in_taken_pdc_0};
-    wire [109+bh_width:0] in_data_1={in_bh_pdc_1,in_pdch_1,in_flush_pre_1,in_pack_size_1,in_choice_pdc_1,in_pc_ex_1,in_npc_ex_1,in_kind_ex_1,in_taken_ex_1,in_npc_pdc_1,in_kind_pdc_1,in_taken_pdc_1};
+    wire [121+bh_width:0] in_data_0={in_bh_pdc_0,in_tage_pdch_0,in_pdch_0,in_flush_pre_0,in_pack_size_0,in_choice_pdc_0,in_pc_ex_0,in_npc_ex_0,in_kind_ex_0,in_taken_ex_0,in_npc_pdc_0,in_kind_pdc_0,in_taken_pdc_0};
+    wire [121+bh_width:0] in_data_1={in_bh_pdc_1,in_tage_pdch_1,in_pdch_1,in_flush_pre_1,in_pack_size_1,in_choice_pdc_1,in_pc_ex_1,in_npc_ex_1,in_kind_ex_1,in_taken_ex_1,in_npc_pdc_1,in_kind_pdc_1,in_taken_pdc_1};
 
-    reg [109+bh_width:0] out_data_0;     //优先
-    reg [109+bh_width:0] out_data_1;
+    reg [121+bh_width:0] out_data_0;     //优先
+    reg [121+bh_width:0] out_data_1;
 
     wire        out_taken_pdc_0;
     wire [2:0]  out_kind_pdc_0 ;
@@ -81,6 +81,7 @@ module ex_buffer#(
     wire        out_pack_size_0;
     wire        out_flush_pre_0;
     wire [7:0]  out_pdch_0;
+    wire [11:0] out_tage_pdch_0;
 
     wire        out_taken_pdc_1;
     wire [2:0]  out_kind_pdc_1 ;
@@ -94,6 +95,7 @@ module ex_buffer#(
     wire        out_pack_size_1;
     wire        out_flush_pre_1;
     wire [7:0]  out_pdch_1;
+    wire [11:0] out_tage_pdch_1;
 
     wire pack_size=(~out_pack_size_0)|out_flush_pre_0; //后一条指令被刷掉:0:两条 1:一条
 
@@ -114,7 +116,8 @@ module ex_buffer#(
     assign out_pack_size_0=out_data_0[100]  ;
     assign out_flush_pre_0=out_data_0[101]  ;
     assign out_pdch_0     =out_data_0[109:102];
-    assign out_bh_pdc_0   =out_data_0[109+bh_width:110];
+    assign out_tage_pdch_0=out_data_0[121:110];
+    assign out_bh_pdc_0   =out_data_0[121+bh_width:122];
 
 
     assign out_taken_pdc_1=out_data_1[0]    ;
@@ -128,10 +131,11 @@ module ex_buffer#(
     assign out_pack_size_1=out_data_1[100]  ;
     assign out_flush_pre_1=out_data_1[101]  ;
     assign out_pdch_1     =out_data_1[109:102];
-    assign out_bh_pdc_1   =out_data_1[109+bh_width:110];
+    assign out_tage_pdch_1=out_data_1[121:110];
+    assign out_bh_pdc_1   =out_data_1[121+bh_width:122];
 
 
-    reg [109+bh_width:0] buffer_data[0:length-1];
+    reg [121+bh_width:0] buffer_data[0:length-1];
 
     reg [31:0] pointer;
 
@@ -146,6 +150,7 @@ module ex_buffer#(
     reg [29:0] out_pc_ex_     ;
     reg [1:0]  out_choice_pdc_;
     reg [7:0]  out_pdch_;
+    reg [11:0] out_tage_pdch_;
 
     reg [1:0] pointer_minus;
     reg [1:0] pointer_plus;
@@ -253,6 +258,7 @@ module ex_buffer#(
         out_npc_ex_    =0;
         out_pc_ex_     =0;
         out_pdch_      =0;
+        out_tage_pdch_ =out_tage_pdch_0;
 
         if(pack_size) begin
             out_taken_pdc_ =out_taken_pdc_0;
@@ -312,6 +318,7 @@ module ex_buffer#(
             out_choice_pdc<=0;
             ret_pc_ex     <=0;
             out_pdch      <=0;
+            out_tage_pdch <=0;
         end
         else begin
             update_en     <=update_en_     ;
@@ -326,6 +333,7 @@ module ex_buffer#(
             out_choice_pdc<=out_choice_pdc_;
             ret_pc_ex     <=ret_pc_ex_     ;
             out_pdch      <=out_pdch_      ;
+            out_tage_pdch <=out_tage_pdch_ ;
         end
     end
     

@@ -88,5 +88,7 @@ module aim_predictor#(
     );
 
     assign taken_pdc= kind_pdc[2]
-                    | ( kind_pdc[0] & taken_tage );
+                    | ( kind_pdc[0] & taken_tage );    
+    // assign taken_pdc= kind_pdc[2]
+    //                 | ( kind_pdc[0] & taken_b );
 endmodule
