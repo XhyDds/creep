@@ -1157,7 +1157,7 @@ module core_top(
         else if(ifbr0) npc=pc_br0;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
         else if(flush_if0_if1_reg) npc=npc_reg;
-        // else if(ifsuc) npc=pc+4;
+        else if(ifsuc) npc=pc+4;
         `ifdef predictor
         else begin npc=npc_pdc_32;ifnpc_pdc=1; end
         // else begin npc={npc_test,2'b0};ifnpc_pdc=1; end
@@ -1696,7 +1696,7 @@ module core_top(
         .I_index_width  		( 4 		),
         .D_index_width  		( 4 		),
         .L2_index_width  		( 6 		),
-        .L1_offset_width 		( 2 		),
+        .L1_offset_width 		( 3 		),
         .L2_offset_width 		( 3 		))
     u_L1_L2cache(
         //ports
@@ -1726,7 +1726,7 @@ module core_top(
         .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp&~flush_exe0_exe1_1&~stall_exe0_exe1_1     ),
         .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
-        // .pipeline_dcache_size           ( pipeline_dcache_size          ),
+        .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
         .pipeline_dcache_ctrl   		( {30'b0,ifmmu_excp,stall_to_dcache}),
@@ -1749,7 +1749,7 @@ module core_top(
         .l2cache_mem_rdy                ( l2cache_mem_rdy      ),
         .l2cache_mem_SUC                ( l2cache_mem_SUC      ),
         .l2cache_mem_wstrb              ( l2cache_mem_wstrb    ),
-        // .l2cache_mem_size               ( l2cache_mem_size     ),
+        .l2cache_mem_size               ( l2cache_mem_size     ),
         .mem_l2cache_addrOK_r           ( mem_l2cache_addrOK_r ),
         .mem_l2cache_addrOK_w           ( mem_l2cache_addrOK_w ),
         .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
