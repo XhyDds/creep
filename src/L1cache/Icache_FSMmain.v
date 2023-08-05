@@ -75,8 +75,7 @@ wire hit0,hit1;
 assign hit0=FSM_hit[0];
 assign hit1=FSM_hit[1];
 wire fStall_outside=pipeline_icache_ctrl[0];//注意编号
-// wire flush_outside=pipeline_icache_ctrl[1];
-wire flush_outside=0;
+wire flush_outside=pipeline_icache_ctrl[1];
 wire opflag;
 assign opflag=pipeline_icache_opflag;
 
@@ -94,48 +93,48 @@ always @(posedge clk)begin
     else state<=next_state;
 end
 always @(*) begin
-    next_state = 0;
+    next_state = Idle;
     case (state)
         Idle:begin
-            if(fStall_outside)next_state = Idle;
-            else if(opflag)next_state = Operation;
-            else next_state = Lookup;
-        end
-        Lookup:begin
-            if(Miss)begin//Miss优先级应该比Stall高
-                if(flush_outside)next_state = Flush;
-                else begin
-                    next_state = Miss_r_waitdata;
-                end
-            end
-            else begin//Hit
-                if(flush_outside)next_state = Flush;
-                else if(fStall_outside)next_state = Lookup;
+            if(pipeline_icache_valid)begin
+                if(fStall_outside)next_state = Idle;
                 else if(opflag)next_state = Operation;
                 else next_state = Lookup;
             end
         end
-        Flush:begin
-            if(flush_outside)begin
-                next_state = Flush;
+        Lookup:begin
+            if(Miss)begin//Miss优先级应该比Stall高
+                if(flush_outside)next_state = Flush;
+                else next_state = Miss_r_waitdata;
             end
+            else begin//Hit
+                if(flush_outside)next_state = Flush;
+                else if(fStall_outside)next_state = Lookup;
+                else if(pipeline_icache_valid)begin
+                    if(opflag)next_state = Operation;
+                    else next_state = Lookup;
+                end
+            end
+        end
+        Flush:begin
+            if(flush_outside)next_state = Flush;
             else begin
-                if(opflag)next_state = Operation;
-                else next_state = Lookup;
+                if(pipeline_icache_valid)begin
+                    if(opflag)next_state = Operation;
+                    else next_state = Lookup;
+                end
             end
         end
         Operation:begin
-            if(flush_outside)begin
-                next_state = Flush;
-            end
-            else begin
+            if(flush_outside)next_state = Flush;
+            else if(pipeline_icache_valid)begin
                 if(opflag)next_state = Operation;
                 else next_state = Lookup;
             end
         end
         Miss_r_waitdata:begin
             if(!mem_icache_dataOK)next_state = Miss_r_waitdata;
-            else begin
+            else if(pipeline_icache_valid)begin
                 if(opflag)next_state = Operation;
                 else next_state = Lookup;
             end
@@ -162,7 +161,7 @@ always @(*) begin
             FSM_rbuf_we=1;
         end
         Lookup:begin
-            if(Miss)icache_mem_req = 1;
+            if(Miss)icache_mem_req = 1;//flush去l2撤销
             else begin
                 icache_pipeline_ready = 1;
                 FSM_rbuf_we = 1;
