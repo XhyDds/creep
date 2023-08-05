@@ -26,9 +26,11 @@ module Icache_rbuf#(
 (
     input clk,rbuf_we,rbuf_stall,
     input [31:0]addr,paddr,opcode,
-    output reg [31:0]rbuf_addr,rbuf_paddr,rbuf_opcode,
+    output reg [31:0]rbuf_addr,rbuf_opcode,
+    output [31:0]rbuf_paddr,
     input opflag,SUC,
-    output reg rbuf_opflag,rbuf_SUC
+    output reg rbuf_opflag,
+    output rbuf_SUC
     );
 wire we = rbuf_we & ~rbuf_stall;
 reg we_reg;
