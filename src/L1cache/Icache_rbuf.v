@@ -31,13 +31,20 @@ module Icache_rbuf#(
     output reg rbuf_opflag,rbuf_SUC
     );
 wire we = rbuf_we & ~rbuf_stall;
+reg we_reg;
+reg [31:0]rbuf_paddr1;
+reg rbuf_SUC1;
 always @(posedge clk) begin
+    we_reg <= we;
     if(we)begin
         rbuf_addr <= addr;
         rbuf_opcode <= opcode;
         rbuf_opflag <= opflag;
-        rbuf_paddr <= addr;
         rbuf_SUC <= SUC;
+    end
+    if(we_reg)begin
+        rbuf_paddr1 <= paddr;
+        rbuf_SUC1 <= SUC; 
     end
 end
 endmodule

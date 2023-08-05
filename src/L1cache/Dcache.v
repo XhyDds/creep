@@ -146,7 +146,7 @@ Dcache_lru #(
 Dcache_lru(
     .clk(clk),
     .use0(use0),.use1(use1),
-    .addr(rbuf_index ^ rbuf_index1),//^ rbuf_index1
+    .addr(rbuf_index ),//^ rbuf_index1
     .way_sel(way_sel_lru)
 );
 
@@ -164,13 +164,13 @@ Dcache_Data #(
 Dcache_Data(
     .clk(clk),
     
-    .Data_addr_read(index ^ index1),//^ index1
+    .Data_addr_read(index ),//^ index1
     .Data_dout0(data0),
     .Data_dout1(data1),
 
     .Data_din_write(din_reg),//一整行 
     .Data_din_write_32(rbuf_data),
-    .Data_addr_write(rbuf_index ^ rbuf_index1),//^ rbuf_index1
+    .Data_addr_write(rbuf_index ),//^ rbuf_index1
     .Data_offset(rbuf_offset),
     .Data_choose_byte(rbuf_wstrb),
     .Data_we(Data_we),
@@ -188,15 +188,15 @@ Dcache_TagV #(
 Dcache_TagV(
     .clk(clk),
 
-    .TagV_addr_read(index ^ index1),//^ index1
-    .TagV_din_compare(tag),
-    // .TagV_din_compare(ptag),
+    .TagV_addr_read(index ),//^ index1
+    // .TagV_din_compare(tag),
+    .TagV_din_compare(ptag),
     .hit(hit),
     
     .TagV_init(TagV_init),
-    .TagV_din_write(rbuf_tag),
-    // .TagV_din_write(ptag),
-    .TagV_addr_write(rbuf_index ^ rbuf_index1),//^ rbuf_index1
+    // .TagV_din_write(rbuf_tag),
+    .TagV_din_write(ptag),
+    .TagV_addr_write(rbuf_index ),//^ rbuf_index1
     .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
 );
@@ -225,29 +225,18 @@ always @(*) begin
             'd1: data_return = din_mem_dcache[63:32];
             'd2: data_return = din_mem_dcache[95:64];
             'd3: data_return = din_mem_dcache[127:96];
-            // 'd4: data_return = din_mem_dcache[159:128];
-            // 'd5: data_return = din_mem_dcache[191:160];
-            // 'd6: data_return = din_mem_dcache[223:192];
-            // 'd7: data_return = din_mem_dcache[255:224]
             default: data_return = 32'h1234ABCD;
         endcase
     end
 end
 always @(*) begin
-    // if(rbuf_SUC)data_out = data_line[31:0];
-    // else begin
-        case (choose_word)
-            'd0: data_out = data_line[31:0];
-            'd1: data_out = data_line[63:32];
-            'd2: data_out = data_line[95:64];
-            'd3: data_out = data_line[127:96];
-            // 'd4: data_out = data_line[159:128];
-            // 'd5: data_out = data_line[191:160];
-            // 'd6: data_out = data_line[223:192];
-            // 'd7: data_out = data_line[255:224];
-            default: data_out = 32'h1234ABCD;
-        endcase
-    // end
+    case (choose_word)
+        'd0: data_out = data_line[31:0];
+        'd1: data_out = data_line[63:32];
+        'd2: data_out = data_line[95:64];
+        'd3: data_out = data_line[127:96];
+        default: data_out = 32'h1234ABCD;
+    endcase
 end
 
 assign dout_dcache_pipeline = choose_return_reg ? data_out_reg : data_out;
@@ -257,11 +246,11 @@ wire [1+offset_width:0]temp;
 assign temp=0;
 assign dout_dcache_mem = rbuf_data;
 assign dcache_mem_SUC = rbuf_SUC;
-// `ifdef MMU
-// assign addr_dcache_mem = dcache_mem_wr ? rbuf_paddr:{rbuf_paddr[31:2+offset_width],temp};
-// `else 
+`ifdef MMU
+assign addr_dcache_mem = dcache_mem_wr ? rbuf_paddr:{rbuf_paddr[31:2+offset_width],temp};
+`else 
 assign addr_dcache_mem = rbuf_SUC ? rbuf_addr :(dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp});
-// `endif
+`endif
 assign dcache_mem_size = rbuf_size;
 assign dcache_mem_wstrb = rbuf_wstrb;
 assign pc_dcache_mem = rbuf_pc;

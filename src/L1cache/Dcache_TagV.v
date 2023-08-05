@@ -113,7 +113,7 @@ way1(
     .hit(hit_t[1])
 );
 
-assign hit[0]=(hit_t[0])&&(v0);//这个地址就是rbuf的地址
-assign hit[1]=(hit_t[1])&&(v1);
+assign hit[0]=(TagV_data[0] == TagV_din_compare)&&(v0);//这个地址就是rbuf的地址
+assign hit[1]=(TagV_data[1] == TagV_din_compare)&&(v1);
 
 endmodule

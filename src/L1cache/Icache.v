@@ -155,14 +155,14 @@ Icache_TagV(
     .clk(clk),.rstn(rstn),
 
     .TagV_addr_read(index),
-    .TagV_din_compare(rbuf_tag),
-    // .TagV_din_compare(ptag),
+    // .TagV_din_compare(rbuf_tag),
+    .TagV_din_compare(ptag),
     .hit(hit),
 
     .TagV_ibar(TagV_ibar),
     .TagV_init(TagV_init),
-    .TagV_din_write(rbuf_tag),
-    // .TagV_din_write(ptag),
+    // .TagV_din_write(rbuf_tag),
+    .TagV_din_write(ptag),
     .TagV_addr_write(rbuf_index),
     .TagV_unvalid(TagV_unvalid),
     .TagV_we(TagV_we)
@@ -222,38 +222,6 @@ always @(*) begin
                 data_out = {32'd0,data_line[255:224]};
                 data_flag=0;
             end
-            // 'd8:begin
-            //     data_out = data_line[319:256];
-            //     data_flag=1;
-            // end
-            // 'd9:begin
-            //     data_out = {32'd0,data_line[319:288]};
-            //     data_flag=0;
-            // end
-            // 'd10:begin
-            //     data_out = data_line[383:320];
-            //     data_flag=1;
-            // end
-            // 'd11:begin
-            //     data_out = {32'd0,data_line[383:352]};
-            //     data_flag=0;
-            // end
-            // 'd12:begin
-            //     data_out = data_line[447:384];
-            //     data_flag=1;
-            // end
-            // 'd13:begin
-            //     data_out = {32'd0,data_line[447:416]};
-            //     data_flag=0;
-            // end
-            // 'd14:begin
-            //     data_out = data_line[511:448];
-            //     data_flag=1;
-            // end
-            // 'd15:begin
-            //     data_out = {32'd0,data_line[511:480]};
-            //     data_flag=0;
-            // end
             default: data_out = 0;
         endcase
     end
@@ -274,11 +242,11 @@ assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : data_flag;
 wire [1+offset_width:0]temp;
 assign temp=0;
 assign icache_mem_SUC = rbuf_SUC;
-// `ifdef MMU
-// assign addr_icache_mem = {rbuf_paddr[31:2+offset_width],temp};
-// `else 
+`ifdef MMU
+assign addr_icache_mem = {rbuf_paddr[31:2+offset_width],temp};
+`else 
 assign addr_icache_mem = rbuf_SUC ? rbuf_addr : {rbuf_addr[31:2+offset_width],{(offset_width+2){1'b0}}};
-// `endif
+`endif
 assign icache_mem_size = 2'd2;
 
 //FSM
