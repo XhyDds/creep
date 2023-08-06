@@ -1,0 +1,2976 @@
+a3(r 7) different at pc = 0x0000001c, right= 0x00000087, wrong = 0x000000cd
+//load (byte) 0ccc191c to r7
+
+Start load random res
+././result_type.res
+././page.res
+././pfn.res
+././cca.res
+././page_size.res
+././tlb_attr.res
+././pc.res
+././address.res
+././value1.res
+././instruction.res
+././init.reg.res
+././illegal_pc.res
+././illegal_next_pc.res
+././comment.res
+././parameter.res
+This is Rand32 test
+The image is ././ram.dat
+Using simulated 4096MB RAM
+Data vlog is ././data.vlog
+Dump Start at 1 ns
+--diff is not given, try to use $(CHIPLAB_HOME)/toolchains/nemu/la32r-nemu-interpreter-so by default
+Using /mnt/disk-1/chiplab/toolchains/nemu/la32r-nemu-interpreter-so for difftest
+TLB INIT
+Max entry = 2222
+READ TLB ENTRY FINISHED
+illegal PC init:
+Start load data vlog
+Finish load data vlog
+Start
+The first instruction of core 0 has commited. Difftest enabled.
+Read 32 same
+speical read addr = 0000000000000000
+offset = 0
+value     = 0000000000000000
+ram rdata = 0000000000000000
+Read 32 same
+speical read addr = 0000000000000000
+offset = 0
+value     = 0000000000000000
+ram rdata = 0000000000000000
+Read 32 same
+speical read addr = 0000000000000000
+offset = 0
+value     = 0000000000000000
+ram rdata = 0000000000000000
+Read 32 same
+speical read addr = 0000000000000010
+offset = 1
+value     = 00000000654000e2
+ram rdata = 00000000654000e2
+Read 32 same
+speical read addr = 0000000000000010
+offset = 1
+value     = 00000000654000e2
+ram rdata = 00000000654000e2
+Read 32 same
+speical read addr = 0000000000000010
+offset = 1
+value     = 00000000654000e2
+ram rdata = 00000000654000e2
+Read 32 same
+speical read addr = 0000000000000020
+offset = 2
+value     = 0000000004a18b38
+ram rdata = 0000000004a18b38
+Read 32 same
+speical read addr = 0000000000000020
+offset = 2
+value     = 0000000004a18b38
+ram rdata = 0000000004a18b38
+Read 32 same
+speical read addr = 0000000000000020
+offset = 2
+value     = 0000000004a18b38
+ram rdata = 0000000004a18b38
+Read 32 same
+speical read addr = 0000000000000030
+offset = 3
+value     = 0000000006a75604
+ram rdata = 0000000006a75604
+Read 32 same
+speical read addr = 0000000000000030
+offset = 3
+value     = 0000000006a75604
+ram rdata = 0000000006a75604
+Read 32 same
+speical read addr = 0000000000000030
+offset = 3
+value     = 0000000006a75604
+ram rdata = 0000000006a75604
+Read 32 same
+speical read addr = 0000000000000040
+offset = 4
+value     = 0000000007f89a3c
+ram rdata = 0000000007f89a3c
+Read 32 same
+speical read addr = 0000000000000040
+offset = 4
+value     = 0000000007f89a3c
+ram rdata = 0000000007f89a3c
+Read 32 same
+speical read addr = 0000000000000040
+offset = 4
+value     = 0000000007f89a3c
+ram rdata = 0000000007f89a3c
+Read 32 same
+speical read addr = 0000000000000050
+offset = 5
+value     = 0000000007385298
+ram rdata = 0000000007385298
+Read 32 same
+speical read addr = 0000000000000050
+offset = 5
+value     = 0000000007385298
+ram rdata = 0000000007385298
+Read 32 same
+speical read addr = 0000000000000050
+offset = 5
+value     = 0000000007385298
+ram rdata = 0000000007385298
+Read 32 same
+speical read addr = 0000000000000060
+offset = 6
+value     = 0000000001709234
+ram rdata = 0000000001709234
+Read 32 same
+speical read addr = 0000000000000060
+offset = 6
+value     = 0000000001709234
+ram rdata = 0000000001709234
+Read 32 same
+speical read addr = 0000000000000060
+offset = 6
+value     = 0000000001709234
+ram rdata = 0000000001709234
+Read 32 same
+speical read addr = 0000000000000070
+offset = 7
+value     = 0000000003e9be84
+ram rdata = 0000000003e9be84
+Read 32 same
+speical read addr = 0000000000000070
+offset = 7
+value     = 0000000003e9be84
+ram rdata = 0000000003e9be84
+Read 32 same
+speical read addr = 0000000000000070
+offset = 7
+value     = 0000000003e9be84
+ram rdata = 0000000003e9be84
+Read 32 same
+speical read addr = 0000000000000080
+offset = 8
+value     = 0000000004b41d58
+ram rdata = 0000000004b41d58
+Read 32 same
+speical read addr = 0000000000000080
+offset = 8
+value     = 0000000004b41d58
+ram rdata = 0000000004b41d58
+Read 32 same
+speical read addr = 0000000000000080
+offset = 8
+value     = 0000000004b41d58
+ram rdata = 0000000004b41d58
+Read 32 same
+speical read addr = 0000000000000090
+offset = 9
+value     = 0000000001b466ec
+ram rdata = 0000000001b466ec
+Read 32 same
+speical read addr = 0000000000000090
+offset = 9
+value     = 0000000001b466ec
+ram rdata = 0000000001b466ec
+Read 32 same
+speical read addr = 0000000000000090
+offset = 9
+value     = 0000000001b466ec
+ram rdata = 0000000001b466ec
+Read 32 same
+speical read addr = 00000000000000a0
+offset = 10
+value     = 00000000069aeafc
+ram rdata = 00000000069aeafc
+Read 32 same
+speical read addr = 00000000000000a0
+offset = 10
+value     = 00000000069aeafc
+ram rdata = 00000000069aeafc
+Read 32 same
+speical read addr = 00000000000000a0
+offset = 10
+value     = 00000000069aeafc
+ram rdata = 00000000069aeafc
+Read 32 same
+speical read addr = 00000000000000b0
+offset = 11
+value     = 000000000366139c
+ram rdata = 000000000366139c
+Read 32 same
+speical read addr = 00000000000000b0
+offset = 11
+value     = 000000000366139c
+ram rdata = 000000000366139c
+Read 32 same
+speical read addr = 00000000000000b0
+offset = 11
+value     = 000000000366139c
+ram rdata = 000000000366139c
+Read 32 same
+speical read addr = 00000000000000c0
+offset = 12
+value     = 000000000161a468
+ram rdata = 000000000161a468
+Read 32 same
+speical read addr = 00000000000000c0
+offset = 12
+value     = 000000000161a468
+ram rdata = 000000000161a468
+Read 32 same
+speical read addr = 00000000000000c0
+offset = 12
+value     = 000000000161a468
+ram rdata = 000000000161a468
+Read 32 same
+speical read addr = 00000000000000d0
+offset = 13
+value     = 0000000005acbc80
+ram rdata = 0000000005acbc80
+Read 32 same
+speical read addr = 00000000000000d0
+offset = 13
+value     = 0000000005acbc80
+ram rdata = 0000000005acbc80
+Read 32 same
+speical read addr = 00000000000000d0
+offset = 13
+value     = 0000000005acbc80
+ram rdata = 0000000005acbc80
+Read 32 same
+speical read addr = 00000000000000e0
+offset = 14
+value     = 0000000002886104
+ram rdata = 0000000002886104
+Read 32 same
+speical read addr = 00000000000000e0
+offset = 14
+value     = 0000000002886104
+ram rdata = 0000000002886104
+Read 32 same
+speical read addr = 00000000000000e0
+offset = 14
+value     = 0000000002886104
+ram rdata = 0000000002886104
+Read 32 same
+speical read addr = 00000000000000f0
+offset = 15
+value     = 0000000007095c34
+ram rdata = 0000000007095c34
+Read 32 same
+speical read addr = 00000000000000f0
+offset = 15
+value     = 0000000007095c34
+ram rdata = 0000000007095c34
+Read 32 same
+speical read addr = 00000000000000f0
+offset = 15
+value     = 0000000007095c34
+ram rdata = 0000000007095c34
+Read 32 same
+speical read addr = 0000000000000100
+offset = 16
+value     = 0000000003a9ab7c
+ram rdata = 0000000003a9ab7c
+Read 32 same
+speical read addr = 0000000000000100
+offset = 16
+value     = 0000000003a9ab7c
+ram rdata = 0000000003a9ab7c
+Read 32 same
+speical read addr = 0000000000000100
+offset = 16
+value     = 0000000003a9ab7c
+ram rdata = 0000000003a9ab7c
+Read 32 same
+speical read addr = 0000000000000110
+offset = 17
+value     = 00000000045e916c
+ram rdata = 00000000045e916c
+Read 32 same
+speical read addr = 0000000000000110
+offset = 17
+value     = 00000000045e916c
+ram rdata = 00000000045e916c
+Read 32 same
+speical read addr = 0000000000000110
+offset = 17
+value     = 00000000045e916c
+ram rdata = 00000000045e916c
+Read 32 same
+speical read addr = 0000000000000120
+offset = 18
+value     = 0000000006da61e8
+ram rdata = 0000000006da61e8
+Read 32 same
+speical read addr = 0000000000000120
+offset = 18
+value     = 0000000006da61e8
+ram rdata = 0000000006da61e8
+Read 32 same
+speical read addr = 0000000000000120
+offset = 18
+value     = 0000000006da61e8
+ram rdata = 0000000006da61e8
+Read 32 same
+speical read addr = 0000000000000130
+offset = 19
+value     = 00000000065c8084
+ram rdata = 00000000065c8084
+Read 32 same
+speical read addr = 0000000000000130
+offset = 19
+value     = 00000000065c8084
+ram rdata = 00000000065c8084
+Read 32 same
+speical read addr = 0000000000000130
+offset = 19
+value     = 00000000065c8084
+ram rdata = 00000000065c8084
+Read 32 same
+speical read addr = 0000000000000140
+offset = 20
+value     = 00000000062d8e84
+ram rdata = 00000000062d8e84
+Read 32 same
+speical read addr = 0000000000000140
+offset = 20
+value     = 00000000062d8e84
+ram rdata = 00000000062d8e84
+Read 32 same
+speical read addr =[NEMU] ####### INIT HERE ########
+[NEMU] TLB_ENTRY = 32
+[NEMU] PALEN = 32
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+ 0000000000000140
+offset = 20
+value     = 00000000062d8e84
+ram rdata = 00000000062d8e84
+Read 32 same
+speical read addr = 0000000000000150
+offset = 21
+value     = 0000000007b1a130
+ram rdata = 0000000007b1a130
+Read 32 same
+speical read addr = 0000000000000150
+offset = 21
+value     = 0000000007b1a130
+ram rdata = 0000000007b1a130
+Read 32 same
+speical read addr = 0000000000000150
+offset = 21
+value     = 0000000007b1a130
+ram rdata = 0000000007b1a130
+Read 32 same
+speical read addr = 0000000000000160
+offset = 22
+value     = 000000000686b878
+ram rdata = 000000000686b878
+Read 32 same
+speical read addr = 0000000000000160
+offset = 22
+value     = 000000000686b878
+ram rdata = 000000000686b878
+Read 32 same
+speical read addr = 0000000000000160
+offset = 22
+value     = 000000000686b878
+ram rdata = 000000000686b878
+Read 32 same
+speical read addr = 0000000000000170
+offset = 23
+value     = 0000000003c6c140
+ram rdata = 0000000003c6c140
+Read 32 same
+speical read addr = 0000000000000170
+offset = 23
+value     = 0000000003c6c140
+ram rdata = 0000000003c6c140
+Read 32 same
+speical read addr = 0000000000000170
+offset = 23
+value     = 0000000003c6c140
+ram rdata = 0000000003c6c140
+Read 32 same
+speical read addr = 0000000000000180
+offset = 24
+value     = 00000000027d272c
+ram rdata = 00000000027d272c
+Read 32 same
+speical read addr = 0000000000000180
+offset = 24
+value     = 00000000027d272c
+ram rdata = 00000000027d272c
+Read 32 same
+speical read addr = 0000000000000180
+offset = 24
+value     = 00000000027d272c
+ram rdata = 00000000027d272c
+Read 32 same
+speical read addr = 0000000000000190
+offset = 25
+value     = 0000000003a52d80
+ram rdata = 0000000003a52d80
+Read 32 same
+speical read addr = 0000000000000190
+offset = 25
+value     = 0000000003a52d80
+ram rdata = 0000000003a52d80
+Read 32 same
+speical read addr = 0000000000000190
+offset = 25
+value     = 0000000003a52d80
+ram rdata = 0000000003a52d80
+Read 32 same
+speical read addr = 00000000000001a0
+offset = 26
+value     = 0000000001001ca4
+ram rdata = 0000000001001ca4
+Read 32 same
+speical read addr = 00000000000001a0
+offset = 26
+value     = 0000000001001ca4
+ram rdata = 0000000001001ca4
+Read 32 same
+speical read addr = 00000000000001a0
+offset = 26
+value     = 0000000001001ca4
+ram rdata = 0000000001001ca4
+Read 32 same
+speical read addr = 00000000000001b0
+offset = 27
+value     = 0000000005a7b7cc
+ram rdata = 0000000005a7b7cc
+Read 32 same
+speical read addr = 00000000000001b0
+offset = 27
+value     = 0000000005a7b7cc
+ram rdata = 0000000005a7b7cc
+Read 32 same
+speical read addr = 00000000000001b0
+offset = 27
+value     = 0000000005a7b7cc
+ram rdata = 0000000005a7b7cc
+Read 32 same
+speical read addr = 00000000000001c0
+offset = 28
+value     = 0000000001f58168
+ram rdata = 0000000001f58168
+Read 32 same
+speical read addr = 00000000000001c0
+offset = 28
+value     = 0000000001f58168
+ram rdata = 0000000001f58168
+Read 32 same
+speical read addr = 00000000000001c0
+offset = 28
+value     = 0000000001f58168
+ram rdata = 0000000001f58168
+Read 32 same
+speical read addr = 00000000000001d0
+offset = 29
+value     = 00000000002d8bc4
+ram rdata = 00000000002d8bc4
+Read 32 same
+speical read addr = 00000000000001d0
+offset = 29
+value     = 00000000002d8bc4
+ram rdata = 00000000002d8bc4
+Read 32 same
+speical read addr = 00000000000001d0
+offset = 29
+value     = 00000000002d8bc4
+ram rdata = 00000000002d8bc4
+Read 32 same
+speical read addr = 00000000000001e0
+offset = 30
+value     = 0000000006557c24
+ram rdata = 0000000006557c24
+Read 32 same
+speical read addr = 00000000000001e0
+offset = 30
+value     = 0000000006557c24
+ram rdata = 0000000006557c24
+Read 32 same
+speical read addr = 00000000000001e0
+offset = 30
+value     = 0000000006557c24
+ram rdata = 0000000006557c24
+Read 32 same
+speical read addr = 00000000000001f0
+offset = 31
+value     = 000000000ccc1cc0
+ram rdata = 000000000ccc1cc0
+Read 32 same
+speical read addr = 00000000000001f0
+offset = 31
+value     = 000000000ccc1cc0
+ram rdata = 000000000ccc1cc0
+Read 32 same
+speical read addr = 00000000000001f0
+offset = 31
+value     = 000000000ccc1cc0
+ram rdata = 000000000ccc1cc0
+tlb index = 0000000000000004
+tlb_hi    = 0000000[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is C000000000
+tlb_lo0   = 0000000000000000
+tlb_lo1   = 0000000000000000
+tlb index = 0000000000000004
+tlb_hi    = 0000000000000000
+tlb_lo0   = 0000000000000000
+tlb_lo1   = 0000000000000000
+tlb index = 0000000000000004
+tlb_hi    = 0000000000000000
+tlb_lo0   = 0000000000000000
+tlb_lo1   = 0000000000000000
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+warning: invalid illegal pc read by core!
+warning: invalid illegal pc read by core!
+warning: invalid illegal pc read by core!
+Read 32 same
+speical read addr = 0000000000000001
+offset = 0
+value     = 0000000000000000
+ram rdata = 0000000000000000
+Read 32 same
+speical read addr = 0000000000000001
+offset = 0
+value     = 0000000000000000
+ram rdata = 0000000000000000
+Read 32 same
+speical read addr = 0000000000000001
+offset = 0
+value     = 0000000000000000
+ram rdata = 0000000000000000
+Read 32 same
+speical read addr = 0000000000000011
+offset = 1
+value     = 00000000654000e2
+ram rdata = 00000000654000e2
+Read 32 same
+speical read addr = 0000000000000011
+offset = 1
+value     = 00000000654000e2
+ram rdata = 00000000654000e2
+Read 32 same
+speical read addr = 0000000000000011
+offset = 1
+value     = 00000000654000e2
+ram rdata = 00000000654000e2
+Read 32 same
+speical read addr = 0000000000000021
+offset = 2
+value     = 0000000004a18b38
+ram rdata = 0000000004a18b38
+Read 32 same
+speical read addr = 0000000000000021
+offset = 2
+value     = 0000000004a18b38
+ram rdata = 0000000004a18b38
+Read 32 same
+speical read addr = 0000000000000021
+offset = 2
+value     = 0000000004a18b38
+ram rdata = 0000000004a18b38
+Read 32 same
+speical read addr = 0000000000000031
+offset = 3
+value     = 0000000006a75604
+ram rdata = 0000000006a75604
+Read 32 same
+speical read addr = 0000000000000031
+offset = 3
+value     = 0000000006a75604
+ram rdata = 0000000006a75604
+Read 32 same
+speical read addr = 0000000000000031
+offset = 3
+value     = 0000000006a75604
+ram rdata = 0000000006a75604
+Read 32 same
+speical read addr = 0000000000000041
+offset = 4
+value     = 0000000007f89a3c
+ram rdata = 0000000007f89a3c
+Read 32 same
+speical read addr = 0000000000000041
+offset = 4
+value     = 0000000007f89a3c
+ram rdata = 0000000007f89a3c
+Read 32 same
+speical read addr = 0000000000000041
+offset = 4
+value     = 0000000007f89a3c
+ram rdata = 0000000007f89a3c
+Read 32 same
+speical read addr = 0000000000000051
+offset = 5
+value     = 0000000007385298
+ram rdata = 0000000007385298
+Read 32 same
+speical read addr = 0000000000000051
+offset = 5
+value     = 0000000007385298
+ram rdata = 0000000007385298
+Read 32 same
+speical read addr = 0000000000000051
+offset = 5
+value     = 0000000007385298
+ram rdata = 0000000007385298
+Read 32 same
+speical read addr = 0000000000000061
+offset = 6
+value     = 0000000001709234
+ram rdata = 0000000001709234
+Read 32 same
+speical read addr = 0000000000000061
+offset = 6
+value     = 0000000001709234
+ram rdata = 0000000001709234
+Read 32 same
+speical read addr = 0000000000000061
+offset = 6
+value     = 0000000001709234
+ram rdata = 0000000001709234
+Read 32 same
+speical read addr = 0000000000000071
+offset = 7
+value     = 0000000003e9be84
+ram rdata = 0000000003e9be84
+Read 32 same
+speical read addr = 0000000000000071
+offset = 7
+value     = 0000000003e9be84
+ram rdata = 0000000003e9be84
+Read 32 same
+speical read addr = 0000000000000071
+offset = 7
+value     = 0000000003e9be84
+ram rdata = 0000000003e9be84
+Read 32 same
+speical read addr = 0000000000000081
+offset = 8
+value     = 0000000004b41d58
+ram rdata = 0000000004b41d58
+Read 32 same
+speical read addr = 0000000000000081
+offset = 8
+value     = 0000000004b41d58
+ram rdata = 0000000004b41d58
+Read 32 same
+speical read addr = 0000000000000081
+offset = 8
+value     = 0000000004b41d58
+ram rdata = 0000000004b41d58
+Read 32 same
+speical read addr = 0000000000000091
+offset = 9
+value     = 0000000001b466ec
+ram rdata = 0000000001b466ec
+Read 32 same
+speical read addr = 0000000000000091
+offset = 9
+value     = 0000000001b466ec
+ram rdata = 0000000001b466ec
+Read 32 same
+speical read addr = 0000000000000091
+offset = 9
+value     = 0000000001b466ec
+ram rdata = 0000000001b466ec
+Read 32 same
+speical read addr = 00000000000000a1
+offset = 10
+value     = 00000000069aeafc
+ram rdata = 00000000069aeafc
+Read 32 same
+speical read addr = 00000000000000a1
+offset = 10
+value     = 00000000069aeafc
+ram rdata = 00000000069aeafc
+Read 32 same
+speical read addr = 00000000000000a1
+offset = 10
+value     = 00000000069aeafc
+ram rdata = 00000000069aeafc
+Read 32 same
+speical read addr = 00000000000000b1
+offset = 11
+value     = 000000000366139c
+ram rdata = 000000000366139c
+Read 32 same
+speical read addr = 00000000000000b1
+offset = 11
+value     = 000000000366139c
+ram rdata = 000000000366139c
+Read 32 same
+speical read addr = 00000000000000b1
+offset = 11
+value     = 000000000366139c
+ram rdata = 000000000366139c
+Read 32 same
+speical read addr = 00000000000000c1
+offset = 12
+value     = 000000000161a468
+ram rdata = 000000000161a468
+Read 32 same
+speical read addr = 00000000000000c1
+offset = 12
+value     = 000000000161a468
+ram rdata = 000000000161a468
+Read 32 same
+speical read addr = 00000000000000c1
+offset = 12
+value     = 000000000161a468
+ram rdata = 000000000161a468
+Read 32 same
+speical read addr = 00000000000000d1
+offset = 13
+value     = 0000000005acbc80
+ram rdata = 0000000005acbc80
+Read 32 same
+speical read addr = 00000000000000d1
+offset = 13
+value     = 0000000005acbc80
+ram rdata = 0000000005acbc80
+Read 32 same
+speical read addr = 00000000000000d1
+offset = 13
+value     = 0000000005acbc80
+ram rdata = 0000000005acbc80
+Read 32 same
+speical read addr = 00000000000000e1
+offset = 14
+value     = 0000000002886104
+ram rdata = 0000000002886104
+Read 32 same
+speical read addr = 00000000000000e1
+offset = 14
+value     = 0000000002886104
+ram rdata = 0000000002886104
+Read 32 same
+speical read addr = 00000000000000e1
+offset = 14
+value     = 0000000002886104
+ram rdata = 0000000002886104
+Read 32 same
+speical read addr = 00000000000000f1
+offset = 15
+value     = 0000000007095c34
+ram rdata = 0000000007095c34
+Read 32 same
+speical read addr = 00000000000000f1
+offset = 15
+value     = 0000000007095c34
+ram rdata = 0000000007095c34
+Read 32 same
+speical read addr = 00000000000000f1
+offset = 15
+value     = 0000000007095c34
+ram rdata = 0000000007095c34
+Read 32 same
+speical read addr = 0000000000000101
+offset = 16
+value     = 0000000003a9ab7c
+ram rdata = 0000000003a9ab7c
+Read 32 same
+speical read addr = 0000000000000101
+offset = 16
+value     = 0000000003a9ab7c
+ram rdata = 0000000003a9ab7c
+Read 32 same
+speical read addr = 0000000000000101
+offset = 16
+value     = 0000000003a9ab7c
+ram rdata = 0000000003a9ab7c
+Read 32 same
+speical read addr = 0000000000000111
+offset = 17
+value     = 00000000045e916c
+ram rdata = 00000000045e916c
+Read 32 same
+speical read addr = 0000000000000111
+offset = 17
+value     = 00000000045e916c
+ram rdata = 00000000045e916c
+Read 32 same
+speical read addr = 0000000000000111
+offset = 17
+value     = 00000000045e916c
+ram rdata = 00000000045e916c
+Read 32 same
+speical read addr = 0000000000000121
+offset = 18
+value     = 0000000006da61e8
+ram rdata = 0000000006da61e8
+Read 32 same
+speical read addr = 0000000000000121
+offset = 18
+value     = 0000000006da61e8
+ram rdata = 0000000006da61e8
+Read 32 same
+speical read addr = 0000000000000121
+offset = 18
+value     = 0000000006da61e8
+ram rdata = 0000000006da61e8
+Read 32 same
+speical read addr = 0000000000000131
+offset = 19
+value     = 00000000065c8084
+ram rdata = 00000000065c8084
+Read 32 same
+speical read addr = 0000000000000131
+offset = 19
+value     = 00000000065c8084
+ram rdata = 00000000065c8084
+Read 32 same
+speical read addr = 0000000000000131
+offset = 19
+value     = 00000000065c8084
+ram rdata = 00000000065c8084
+Read 32 same
+speical read addr = 0000000000000141
+offset = 20
+value     = 00000000062d8e84
+ram rdata = 00000000062d8e84
+Read 32 same
+speical read addr = 0000000000000141
+offset = 20
+value     = 00000000062d8e84
+ram rdata = 00000000062d8e84
+Read 32 same
+speical read addr = 0000000000000141
+offset = 20
+value     = 00000000062d8e84
+ram rdata = 00000000062d8e84
+Read 32 same
+speical read addr = 0000000000000151
+offset = 21
+value     = 0000000007b1a130
+ram rdata = 0000000007b1a130
+Read 32 same
+speical read addr = 0000000000000151
+offset = 21
+value     = 0000000007b1a130
+ram rdata = 0000000007b1a130
+Read 32 same
+speical read addr = 0000000000000151
+offset = 21
+value     = 0000000007b1a130
+ram rdata = 0000000007b1a130
+Read 32 same
+speical read addr = 0000000000000161
+offset = 22
+value     = 000000000686b878
+ram rdata = 000000000686b878
+Read 32 same
+speical read addr = 0000000000000161
+offset = 22
+value     = 000000000686b878
+ram rdata = 000000000686b878
+Read 32 same
+speical read addr = 0000000000000161
+offset = 22
+value     = 000000000686b878
+ram rdata = 000000000686b878
+ACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP insRead 32 same
+speical read addr = 0000000000000171
+offset = 23
+value     = 0000000003c6c140
+ram rdata = 0000000003c6c140
+Read 32 same
+speical read addr = 0000000000000171
+offset = 23
+value     = 0000000003c6c140
+ram rdata = 0000000003c6c140
+Read 32 same
+speical read addr = 0000000000000171
+offset = 23
+value     = 0000000003c6c140
+ram rdata = 0000000003c6c140
+Read 32 same
+speical read addr = 0000000000000181
+offset = 24
+value     = 00000000027d272c
+ram rdata = 00000000027d272c
+Read 32 same
+speical read addr = 0000000000000181
+offset = 24
+value     = 00000000027d272c
+ram rdata = 00000000027d272c
+Read 32 same
+speical read addr = 0000000000000181
+offset = 24
+value     = 00000000027d272c
+ram rdata = 00000000027d272c
+Read 32 same
+speical read addr = 0000000000000191
+offset = 25
+value     = 0000000003a52d80
+ram rdata = 0000000003a52d80
+Read 32 same
+speical read addr = 0000000000000191
+offset = 25
+value     = 0000000003a52d80
+ram rdata = 0000000003a52d80
+Read 32 same
+speical read addr = 0000000000000191
+offset = 25
+value     = 0000000003a52d80
+ram rdata = 0000000003a52d80
+Read 32 same
+speical read addr = 00000000000001a1
+offset = 26
+value     = 0000000001001ca4
+ram rdata = 0000000001001ca4
+Read 32 same
+speical read addr = 00000000000001a1
+offset = 26
+value     = 0000000001001ca4
+ram rdata = 0000000001001ca4
+Read 32 same
+speical read addr = 00000000000001a1
+offset = 26
+value     = 0000000001001ca4
+ram rdata = 0000000001001ca4
+Read 32 same
+speical read addr = 00000000000001b1
+offset = 27
+value     = 0000000005a7b7cc
+ram rdata = 0000000005a7b7cc
+Read 32 same
+speical read addr = 00000000000001b1
+offset = 27
+value     = 0000000005a7b7cc
+ram rdata = 0000000005a7b7cc
+Read 32 same
+speical read addr = 00000000000001b1
+offset = 27
+value     = 0000000005a7b7cc
+ram rdata = 0000000005a7b7cc
+Read 32 same
+speical read addr = 00000000000001c1
+offset = 28
+value     = 0000000001f58168
+ram rdata = 0000000001f58168
+Read 32 same
+speical read addr = 00000000000001c1
+offset = 28
+value     = 0000000001f58168
+ram rdata = 0000000001f58168
+Read 32 same
+speical read addr = 00000000000001c1
+offset = 28
+value     = 0000000001f58168
+ram rdata = 0000000001f58168
+Read 32 same
+speical read addr = 00000000000001d1
+offset = 29
+value     = 00000000002d8bc4
+ram rdata = 00000000002d8bc4
+Read 32 same
+speical read addr = 00000000000001d1
+offset = 29
+value     = 00000000002d8bc4
+ram rdata = 00000000002d8bc4
+Read 32 same
+speical read addr = 00000000000001d1
+offset = 29
+value     = 00000000002d8bc4
+ram rdata = 00000000002d8bc4
+Read 32 same
+speical read addr = 00000000000001e1
+offset = 30
+value     = 0000000006557c24
+ram rdata = 0000000006557c24
+Read 32 same
+speical read addr = 00000000000001e1
+offset = 30
+value     = 0000000006557c24
+ram rdata = 0000000006557c24
+Read 32 same
+speical read addr = 00000000000001e1
+offset = 30
+value     = 0000000006557c24
+ram rdata = 0000000006557c24
+Read 32 same
+speical read addr = 00000000000001f1
+offset = 31
+value     = 000000000ccc1cc0
+ram rdata = 000000000ccc1cc0
+Read 32 same
+speical read addr = 00000000000001f1
+offset = 31
+value     = 000000000ccc1cc0
+ram rdata = 000000000ccc1cc0
+Read 32 same
+speical read addr = 00000000000001f1
+offset = 31
+value     = 000000000ccc1cc0
+ram rdata = 000000000ccc1cc0
+tlb index = 0000000000000004
+tlb_hi    = 0000000000000000
+tlb_lo0   = 0000000000000000
+tlb_lo1   = 0000000000000000
+tlb index = 0000000000000004
+tlb_hi    = 0000000000000000
+tlb_lo0   = 0000000000000000
+tlb_lo1   = 0000000000000000
+tlb index = 0000000000000004
+tlb_hi    = 0000000000000000
+tlb_lo0   = 0000000000000000
+tlb_lo1   = 0000000000000000
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL truction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+SHOULD NOT USE THIS ADDR AS NORMAL READ!!!
+=========================================================
+rand64 c++ version tlb refill start
+Looking for this address: 8000400
+tlb 4k find:VPPN=04000, lo0=00000001, lo1=00000000
+=========================================================
+tlb index = 000000000c000000
+tlb_hi    = 0000000008000000
+tlb_lo0   = 0000000000000003
+tlb_lo1   = 0000000000000000
+Read 32 same
+speical read addr = 0000000000000010
+offset = 1
+value     = 00000000654000e2
+ram rdata = 00000000654000e2
+Read 32 same
+speical read addr = 0000000000000020
+offset = 2
+value     = 0000000004a18b38
+ram rdata = 0000000004a18b38
+Read 32 same
+speical read addr = 0000000000000030
+offset = 3
+value     = 0000000006a75604
+ram rdata = 0000000006a75604
+Read 32 same
+speical read addr = 0000000000000040
+offset = 4
+value     = 0000000007f89a3c
+ram rdata = 0000000007f89a3c
+Read 32 same
+speical read addr = 0000000000000050
+offset = 5
+value     = 0000000007385298
+ram rdata = 0000000007385298
+Read 32 same
+speical read addr = 0000000000000060
+offset = 6
+value     = 0000000001709234
+ram rdata = 0000000001709234
+Read 32 same
+speical read addr = 0000000000000070
+offset = 7
+value     = 0000000003e9be84
+ram rdata = 0000000003e9be84
+Read 32 same
+speical read addr = 0000000000000080
+offset = 8
+value     = 0000000004b41d58
+ram rdata = 0000000004b41d58
+Read 32 same
+speical read addr = 0000000000000090
+offset = 9
+value     = 0000000001b466ec
+ram rdata = 0000000001b466ec
+Read 32 same
+speical read addr = 00000000000000a0
+offset = 10
+value     = 00000000069aeafc
+ram rdata = 00000000069aeafc
+Read 32 same
+speical read addr = 00000000000000b0
+offset = 11
+value     = 000000000366139c
+ram rdata = 000000000366139c
+Read 32 same
+speical read addr = 00000000000000c0
+offset = 12
+value     = 000000000161a468
+ram rdata = 000000000161a468
+Read 32 same
+speical read addr = 00000000000000d0
+offset = 13
+value     = 0000000005acbc80
+ram rdata = 0000000005acbc80
+Read 32 same
+speical read addr = 00000000000000e0
+offset = 14
+value     = 0000000002886104
+ram rdata = 0000000002886104
+Read 32 same
+speical read addr = 00000000000000f0
+offset = 15
+value     = 0000000007095c34
+ram rdata = 0000000007095c34
+Read 32 same
+speical read addr = 0000000000000100
+offset = 16
+value     = 0000000003a9ab7c
+ram rdata = 0000000003a9ab7c
+Read 32 same
+speical read addr = 0000000000000110
+offset = 17
+value     = 00000000045e916c
+ram rdata = 00000000045e916c
+Read 32 same
+speical read addr = 0000000000000120
+offset = 18
+value     = 0000000006da61e8
+ram rdata = 0000000006da61e8
+Read 32 same
+speical read addr = 0000000000000130
+offset = 19
+value     = 00000000065c8084
+ram rdata = 00000000065c8084
+Read 32 same
+speical read addr = 0000000000000140
+offset = 20
+value     = 00000000062d8e84
+ram rdata = 00000000062d8e84
+Read 32 same
+speical read addr = 0000000000000140
+offset = 20
+value     = 00000000062d8e84
+ram rdata = 00000000062d8e84
+Read 32 same
+speical read addr = 0000000000000150
+offset = 21
+value     = 0000000007b1a130
+ram rdata = 0000000007b1a130
+Read 32 same
+speical read addr = 0000000000000160
+offset = 22
+value     = 000000000686b878
+ram rdata = 000000000686b878
+Read 32 same
+speical read addr = 0000000000000170
+offset = 23
+value     = 0000000003c6c140
+ram rdata = 0000000003c6c140
+Read 32 same
+speical read addr = 0000000000000180
+offset = 24
+value     = 00000000027d272c
+ram rdata = 00000000027d272c
+Read 32 same
+speical read addr = 0000000000000190
+offset = 25
+value     = 0000000003a52d80
+ram rdata = 0000000003a52d80
+Read 32 same
+speical read addr = 00000000000001a0
+offset = 26
+value     = 0000000001001ca4
+ram rdata = 0000000001001ca4
+Read 32 same
+speical read addr = 00000000000001b0
+offset = 27
+value     = 0000000005a7b7cc
+ram rdata = 0000000005a7b7cc
+Read 32 same
+speical read addr = 00000000000001c0
+offset = 28
+value     = 0000000001f58168
+ram rdata = 0000000001f58168
+Read 32 same
+speical read addr = 00000000000001d0
+offset = 29
+value     = 00000000002d8bc4
+ram rdata = 00000000002d8bc4
+Read 32 same
+speical read addr = 00000000000001e0
+offset = 30
+value     = 0000000006557c24
+ram rdata = 0000000006557c24
+Read 32 same
+speical read addr = 00000000000001f0
+offset = 31
+value     = 000000000ccc1cc0
+ram rdata = 000000000ccc1cc0
+Read 32 same
+speical read addr = 0000000000000000
+offset = 0
+value     = 0000000000000000
+ram rdata = 0000000000000000
+Read 32 same
+speical read addr = 0000000000000004
+offset = 0
+value     = 0000000000000000
+ram rdata = 0000000000000000
+=========================================================
+rand64 c++ version tlb refill start
+Looking for this address: 0
+tlb 4k find:VPPN=00000, lo0=00000501, lo1=00084311
+=========================================================
+tlb index = 000000000c00000c
+tlb_hi    = 0000000000000000
+tlb_lo0   = 0000000000000501
+tlb_lo1   = 0000000000084311
+=========================================================
+rand64 c++ version tlb refill start
+Looking for this address: ccc0544
+tlb 4k find:VPPN=06660, lo0=00000613, lo1=00000613
+=========================================================
+tlb index = 000000000c000004
+tlb_hi    = 000000000ccc0000
+tlb_lo0   = 0000000000000613
+tlb_lo1   = 0000000000000613
+a3(r 7) different at pc = 0x0000001c, right= 0x00000087, wrong = 0x000000cd
+//load 0ccc191c to r7
+total clock is 106020
+
+==============  DUT Regs  ==============
+r0(r 0): 0x00000000 ra(r 1): 0x654000e2 tp(r 2): 0x04a18b38 sp(r 3): 0x00000000 
+a0(r 4): 0x07f89a3c a1(r 5): 0x07385298 a2(r 6): 0x01709234 a3(r 7): 0x000000cd 
+a4(r 8): 0x04b41d58 a5(r 9): 0x01b466ec a6(r10): 0x3113f8ee a7(r11): 0x0366139c 
+t0(r12): 0x0161a468 t1(r13): 0x05acbc80 t2(r14): 0x02886104 t3(r15): 0x07095c34 
+t4(r16): 0x0288651e t5(r17): 0x045e916c t6(r18): 0x06da61e8 t7(r19): 0x00000000 
+t8(r20): 0x062d8e84  x(r21): 0x11e8bcc0 fp(r22): 0x0686b878 s0(r23): 0x03c6c140 
+s1(r24): 0x027d272c s2(r25): 0x03a52d80 s3(r26): 0x01001ca4 s4(r27): 0x05a7b7cc 
+s5(r28): 0x00000001 s6(r29): 0x002d8bc4 s7(r30): 0x06557c24 s8(r31): 0x0ccc1cc0 
+pc: 0x0000001c
+CRMD: 0x00000010,    PRMD: 0x00000000,   EUEN: 0x00000000
+ECFG: 0x00000000,   ESTAT: 0x003f0000,    ERA: 0x00000004
+BADV: 0x0ccc0544,  EENTRY: 0x08000400, LLBCTL: 0x00000001
+cpu.ll_bit: 1
+INDEX: 0x0c000004, TLBEHI: 0x0ccc0000, TLBELO0: 0x00000613, TLBELO1: 0x00000613
+ASID: 0x000a000f, TLBRENTRY: 0x00000200, DMW0: 0x00000000, DMW1: 0x00000000
+*******************************************************************************
+
+==============  REF Regs  ==============
+this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+[NEMU] this is CACOP instruction
+r0(r 0): 0x00000000 ra(r 1): 0x654000e2 tp(r 2): 0x04a18b38 sp(r 3): 0x00000000 
+a0(r 4): 0x07f89a3c a1(r 5): 0x07385298 a2(r 6): 0x01709234 a3(r 7): 0x00000087 
+a4(r 8): 0x04b41d58 a5(r 9): 0x01b466ec a6(r10): 0x3113f8ee a7(r11): 0x0366139c 
+t0(r12): 0x0161a468 t1(r13): 0x05acbc80 t2(r14): 0x02886104 t3(r15): 0x07095c34 
+t4(r16): 0x0288651e t5(r17): 0x045e916c t6(r18): 0x06da61e8 t7(r19): 0x00000000 
+t8(r20): 0x062d8e84  x(r21): 0x11e8bcc0 fp(r22): 0x0686b878 s0(r23): 0x03c6c140 
+s1(r24): 0x027d272c s2(r25): 0x03a52d80 s3(r26): 0x01001ca4 s4(r27): 0x05a7b7cc 
+s5(r28): 0x00000001 s6(r29): 0x002d8bc4 s7(r30): 0x06557c24 s8(r31): 0x0ccc1cc0 
+pc: 0x00000020
+Current MMU state is: MMU_TRANSLATE
+CRMD: 0x00000010,    PRMD: 0x00000000,   EUEN: 0x00000000
+ECFG: 0x00000000,   ESTAT: 0x003f0000,    ERA: 0x00000004
+BADV: 0x0ccc0544,  EENTRY: 0x08000400, LLBCTL: 0x00000000
+cpu.ll_bit: 1
+INDEX: 0x0c000004, TLBEHI: 0x0ccc0000, TLBELO0: 0x00000613, TLBELO1: 0x00000613
+ASID: 0x000a000f, TLBRENTRY: 0x00000200, DMW0: 0x00000000, DMW1: 0x00000000
+*******************************************************************************
+
+==============================================================
+total clock 		is 106020
+total instruction 	is 5187
+instruction per cycle	is 0.048925
+simulation time 	is 5.314545 s
+difftest time 		is 2.906564 s
+nemu_step time 		is 0.002166 s
+verilator eval time 	is 0.725939 s
+==============================================================
+total time is 5497076 us
