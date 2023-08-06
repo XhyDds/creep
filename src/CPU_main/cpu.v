@@ -1,5 +1,6 @@
 `define predictor
 `define DMA
+`define two_pre
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -153,28 +154,19 @@ module core_top(
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre;
-    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_;
-    // `ifdef DMA
-    // assign ifbr0=(ifbr0_&~flushup_exe0_exe1_0&~stall_exe0_exe1_0)&~stall_icache;
-    // assign ifbr1=(ifbr1_&~stall_exe0_exe1_1)&~stall_icache;
-    // assign flushup =            (flush_pre_1&ctr_reg_exe0_0[31])&~stall_icache;
-    // assign flushdown =          (flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0&ctr_id_reg_1[31])&~stall_icache;
-    // assign flushdownpre =       (flush_pre_0&~ctr_id_reg_1[31])&~stall_icache;
-    // assign flush_if0_if1 =      (ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg)&~stall_icache;
-    // assign flush_if1_fifo =     (ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg)&~stall_icache;
-    // assign flush_fifo_id =      (ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg)&~stall_icache;
-    // `endif
-    // `ifndef DMA
+    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre;
+
+    assign flush_mispre=0;
+    // assign flush_mispre=(pc!=npc_pdc_32)&if_pcp8;
     assign ifbr0=ifbr0_&~flushup_exe0_exe1_0&~stall_exe0_exe1_0;
     assign ifbr1=ifbr1_&~stall_exe0_exe1_1;
     assign flushup =            flush_pre_1&ctr_reg_exe0_0[31];
     assign flushdown =          flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0&ctr_id_reg_1[31];
     assign flushdownpre =       flush_pre_0&~ctr_id_reg_1[31];
-    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
+
+    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg|flush_mispre;
     assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
     assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
-    // `endif
-
     assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdownpre;
     assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -186,22 +178,6 @@ module core_top(
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
-
-    // `ifdef DMA
-    // assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;//
-    // assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
-    // assign stall_fifo_id =      break_point|stall_div1|stall_dcache|stall_icache;
-    // assign stall_id_reg0 =      break_point|stall_div1|stall_dcache|stall_icache;
-    // assign stall_id_reg1 =      break_point|stall_div1|stall_dcache|stall_icache;
-    // assign stall_reg_exe0_0 =   break_point|stall_div1|stall_dcache|stall_icache;
-    // assign stall_reg_exe0_1 =   break_point|stall_div1|stall_dcache|stall_icache;
-    // assign stall_exe0_exe1_0 =  break_point|stall_div1|stall_dcache|stall_icache;
-    // assign stall_exe0_exe1_1 =  break_point|stall_div1|stall_dcache|stall_icache;
-    // assign stall_to_dcache =    break_point|stall_div1;
-    // assign stall_exe1_wb_0 =    break_point|stall_div1|stall_dcache|stall_icache;
-    // assign stall_exe1_wb_1 =    break_point|stall_div1|stall_dcache|stall_icache;//
-    // `endif
-    // `ifndef DMA
     assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache;
     assign stall_fifo_id =      break_point|stall_div1|stall_dcache;
@@ -214,7 +190,7 @@ module core_top(
     assign stall_to_dcache =    break_point|stall_div1;
     assign stall_exe1_wb_0 =    break_point|stall_div1|stall_dcache;
     assign stall_exe1_wb_1 =    break_point|stall_div1|stall_dcache;
-    // `endif
+
     //ICache Return Buffer
     wire        mem_icache_addrOK;
     wire        mem_icache_dataOK;
@@ -1187,8 +1163,8 @@ module core_top(
         else if(flush_if0_if1_reg) npc=npc_reg;
         else if(ifsuc) npc=pc+4;
         `ifdef predictor
+        // else if(flush_if0_if1_reg) npc=pc+8;
         else begin npc=npc_pdc_32;ifnpc_pdc=1; end
-        // else begin npc={npc_test,2'b0};ifnpc_pdc=1; end
         `endif
         `ifndef predictor
         else if(pc[2]) npc=pc+4;
@@ -1198,7 +1174,7 @@ module core_top(
 
     always @(posedge clk) begin
         if(!rstn) pc<=32'h1c000000;
-        else if(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) pc<=npc;
+        else if(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar|flush_mispre) pc<=npc;
     end
 
     //IF0-IF1
