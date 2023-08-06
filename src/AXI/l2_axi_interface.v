@@ -210,7 +210,7 @@ module l2_axi_interface#(
             wvalid      = l2_wwvalid;
             wlast       = l2_wlast;
             l2_wready   = wready;
-            l2_waddrOK  = wready;
+            l2_waddrOK  = 1;
         end
         D_B: begin
             bready      = l2_bready;
