@@ -117,7 +117,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout_reg;
-    assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW;
+    assign exe=(pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW)&&inpc_valid;
     assign force_run=(inte&inpc_valid)|(~inte&excp_arg1[15]);
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;//|nclk_stall
@@ -502,11 +502,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         excp_flush<=0;ertn_flush<=0;
             if(run_reg)//?
                 begin
-                if(mode_reg==IDLE && !clk_stall)
-                    begin
-                    ERA<=inpc_reg+4;
-                    end   
-                else
+//                if(mode_reg==IDLE && !clk_stall)
+//                    begin
+//                    ERA<=inpc_reg+4;
+//                    end   
+//                else
                     begin
                     case(mode_reg)
                         ERTN:
