@@ -40,7 +40,7 @@ module pc_gh_hash#(
         pc[6]^pc[9 ]^pc[18],
         pc[7]^pc[8 ]^pc[19]
     };
-    assign hashed_8=gh_hashed_8&pc_hashed;
-    assign hashed_16=gh_hashed_16&pc_hashed;
-    assign hashed_32=gh_hashed_32&pc_hashed;
+    assign hashed_8=gh_hashed_8^pc_hashed;
+    assign hashed_16=gh_hashed_16^pc_hashed;
+    assign hashed_32=gh_hashed_32^pc_hashed;
 endmodule

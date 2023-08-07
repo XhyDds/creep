@@ -4,12 +4,10 @@ module kt#(
 )(
     input clk,
     //query
-    input [k_width-1:0]hashed_pc,//hash(pc)（暂定：有考虑延迟因素）
-    input [ADDR_WIDTH-1:0]pc_reg,
-    output[2:0]kind_pdc,
+    input [ADDR_WIDTH-1:0]pc,
+    output reg[2:0]kind_pdc,
     //update
-    input [k_width-1:0]hashed_pc_update,//ex段
-    input [ADDR_WIDTH-1:0]pc_ex,
+    input [ADDR_WIDTH-1:0]pc_update,//ex段
     input [2:0]kind_real,
     input stall,
     input update_en
@@ -21,10 +19,16 @@ module kt#(
                 INDIRECT_JUMP = 3'd5,
                 CALL = 3'd6,
                 JUMP=3'd7;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [k_width-1:0]hashed_pc;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [k_width-1:0]hashed_pc_upt;
+
     wire [2:0] _kind_pdc;
     wire [12:0] _pc;
 
-    assign kind_pdc=(_pc==pc_reg[24:12])?_kind_pdc:3'b000;
+    wire [2:0]kind_pdc_=(_pc==pc[24:12])?_kind_pdc:3'b000;
+    always @(posedge clk) begin
+        kind_pdc<=kind_pdc_;
+    end
     
     sp_bram#(
         .ADDR_WIDTH(k_width),
@@ -35,8 +39,26 @@ module kt#(
         .raddr(hashed_pc),
         .dout({_kind_pdc,_pc}),
         .enb(~stall),
-        .waddr(hashed_pc_update),
-        .din({kind_real,pc_ex[24:12]}),
+        .waddr(hashed_pc_upt),
+        .din({kind_real,pc_update[24:12]}),
         .we(update_en)
     );
+
+    //hash
+    pc_hash #(
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .k_width(k_width)
+    )u_pc_hashed(
+        .pc(pc),
+        .pc_hashed(hashed_pc)
+    );
+
+    pc_hash #(
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .k_width(k_width)
+    )u_pc_hashed_upt(
+        .pc(pc_update),
+        .pc_hashed(hashed_pc_upt)
+    );
+
 endmodule

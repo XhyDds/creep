@@ -1,31 +1,31 @@
 module pc_bh_hash#(
-    parameter DATA1_width=12,
-    parameter DATA2_width=16,   //bh
-    parameter HASH_width=8
+    parameter ADDR_WIDTH=30,   //pc
+    parameter bh_width=16,   //bh
+    parameter h_width=8
 )(
-    input [DATA1_width-1:0]     data1_raw,
-    input [DATA2_width-1:0]     data2_raw,
-    output[HASH_width-1:0]      data_hashed
+    input [ADDR_WIDTH-1:0]      pc,
+    input [bh_width-1:0]        bh,
+    output[h_width-1:0]      pc_bh_hashed
 );
-    wire [HASH_width-1:0] data1_hashed={
-        data1_raw[0]^data1_raw[11],
-        data1_raw[1]^data1_raw[10],
-        data1_raw[2]^data1_raw[9 ],
-        data1_raw[3]^data1_raw[8 ],
-        data1_raw[4],
-        data1_raw[5],
-        data1_raw[6],
-        data1_raw[7]
+    wire [h_width-1:0] bh_hashed={
+        bh[0]^bh[15],
+        bh[1]^bh[14],
+        bh[2]^bh[13],
+        bh[3]^bh[12],
+        bh[4]^bh[11],
+        bh[5]^bh[10],
+        bh[6]^bh[9 ],
+        bh[7]^bh[8 ]
     };
-    wire [HASH_width-1:0] data2_hashed={
-        data2_raw[0]^data2_raw[15],
-        data2_raw[1]^data2_raw[14],
-        data2_raw[2]^data2_raw[13],
-        data2_raw[3]^data2_raw[12],
-        data2_raw[4]^data2_raw[11],
-        data2_raw[5]^data2_raw[10],
-        data2_raw[6]^data2_raw[9 ],
-        data2_raw[7]^data2_raw[8 ]
+    wire [h_width-1:0] pc_hashed={
+        pc[0]^pc[15]^pc[20]^pc[27]^pc[29],
+        pc[1]^pc[14]^pc[21]^pc[26]^pc[28],
+        pc[2]^pc[13]^pc[22]^pc[25],
+        pc[3]^pc[12]^pc[23]^pc[24],
+        pc[4]^pc[11]^pc[16],
+        pc[5]^pc[10]^pc[17],
+        pc[6]^pc[9 ]^pc[18],
+        pc[7]^pc[8 ]^pc[19]
     };
-    assign data_hashed=data1_hashed&data2_hashed;
+    assign pc_bh_hashed=pc_hashed^bh_hashed;
 endmodule

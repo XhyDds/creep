@@ -1,16 +1,15 @@
 //hash函数for单输入
 module pc_hash#(
-    parameter DATA_width=30,
-    // parameter HASH_width=14 //暂定
-    parameter HASH_width=12
+    parameter ADDR_WIDTH=30,
+    parameter k_width=12
 ) (
-    input [DATA_width-1:0] data_raw,
-    output[HASH_width-1:0] data_hashed
+    input [ADDR_WIDTH-1:0] pc,
+    output[k_width-1:0] pc_hashed
 );
-    wire [DATA_width-1:0]d=data_raw;
+    wire [ADDR_WIDTH-1:0]d=pc;
 
     // 12:
-    assign data_hashed={d[0 ]^d[23]^d[26]^d[27]^d[28]^d[29],
+    assign pc_hashed={d[0 ]^d[23]^d[26]^d[27]^d[28]^d[29],
                         d[1 ]^d[22]^d[24]^d[25],
                         d[2 ]^d[21],
                         d[3 ]^d[20],

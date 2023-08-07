@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 //4 comp tage 
 module tage#(
     parameter gh_width = 32,
@@ -10,7 +8,7 @@ module tage#(
     input  clk,
     input  update_en,
     //pc
-    input  [ADDR_WIDTH-1:0]pc_reg,
+    input  [ADDR_WIDTH-1:0]pc,
     input  [gh_width-1:0]gh,
     //bh
     input  taken_bh,
@@ -42,74 +40,105 @@ module tage#(
     wire [1:0]choice_pdch_ex=pdch_ex[10:9];
     wire taken_altpdc_ex=pdch_ex[11];
 
-    wire [h_width-1:0] hashed_pc_gh_8;
-    wire [h_width-1:0] hashed_pc_gh_upt_8;
-    wire [h_width-1:0] hashed_pc_gh_16;
-    wire [h_width-1:0] hashed_pc_gh_upt_16;
-    wire [h_width-1:0] hashed_pc_gh_32;
-    wire [h_width-1:0] hashed_pc_gh_upt_32;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_8;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_upt_8;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_16;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_upt_16;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_32;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_upt_32;
 
+    reg [ADDR_WIDTH-1:0] pc_reg;
+    always @(posedge clk) begin
+        pc_reg<=pc;
+    end
 //comp
 
-    wire [1:0]u_8;
-    wire pred_8;
+    wire [1:0]u_8_;
+    wire pred_8_;
     reg [1:0] u_upt_8;
     reg pred_upt_8;
     wire [DATA_WIDTH-4:0] _pc_8;
-    wire hit_8=(_pc_8==pc_reg[23:0]);
+    wire hit_8_=(_pc_8==pc_reg[23:0]);
     reg update_en_8;
-    sp_dram#(
+    sp_bram#(
         .ADDR_WIDTH(h_width),
         .DATA_WIDTH(DATA_WIDTH)
     )
     bpht_regs_8(
         .clk(clk),
         .raddr(hashed_pc_gh_8),
-        .dout({pred_8,_pc_8,u_8}),
+        .dout({pred_8_,_pc_8,u_8_}),
+        .enb(1),
         .waddr(hashed_pc_gh_upt_8),
         .din({pred_upt_8,pc_ex[23:0],u_upt_8}),
         .we(update_en_8)
     );
+    reg [1:0]u_8;
+    reg pred_8;
+    reg hit_8;
+    always @(posedge clk) begin
+        u_8<=u_8_;
+        pred_8<=pred_8_;
+        hit_8<=hit_8_;
+    end
 
-    wire [1:0]u_16;
-    wire pred_16;
+    wire [1:0]u_16_;
+    wire pred_16_;
     reg [1:0] u_upt_16;
     reg pred_upt_16;
     wire [DATA_WIDTH-4:0] _pc_16;
-    wire hit_16=(_pc_16==pc_reg[23:0]);
+    wire hit_16_=(_pc_16==pc_reg[23:0]);
     reg update_en_16;
-    sp_dram#(
+    sp_bram#(
         .ADDR_WIDTH(h_width),
         .DATA_WIDTH(DATA_WIDTH)
     )
     bpht_regs_16(
         .clk(clk),
         .raddr(hashed_pc_gh_16),
-        .dout({pred_16,_pc_16,u_16}),
+        .dout({pred_16_,_pc_16,u_16_}),
+        .enb(1),
         .waddr(hashed_pc_gh_upt_16),
         .din({pred_upt_16,pc_ex[23:0],u_upt_16}),
         .we(update_en_16)
     );
+    reg [1:0]u_16;
+    reg pred_16;
+    reg hit_16;
+    always @(posedge clk) begin
+        u_16<=u_16_;
+        pred_16<=pred_16_;
+        hit_16<=hit_16_;
+    end
 
-    wire [1:0]u_32;
-    wire pred_32;
+    wire [1:0]u_32_;
+    wire pred_32_;
     reg [1:0] u_upt_32;
     reg pred_upt_32;
     wire [DATA_WIDTH-4:0] _pc_32;
-    wire hit_32=(_pc_32==pc_reg[23:0]);
+    wire hit_32_=(_pc_32==pc_reg[23:0]);
     reg update_en_32;
-    sp_dram#(
+    sp_bram#(
         .ADDR_WIDTH(h_width),
         .DATA_WIDTH(DATA_WIDTH)
     )
     bpht_regs_32(
         .clk(clk),
         .raddr(hashed_pc_gh_32),
-        .dout({pred_32,_pc_32,u_32}),
+        .dout({pred_32_,_pc_32,u_32_}),
+        .enb(1),
         .waddr(hashed_pc_gh_upt_32),
         .din({pred_upt_32,pc_ex[23:0],u_upt_32}),
         .we(update_en_32)
     );
+    reg [1:0]u_32;
+    reg pred_32;
+    reg hit_32;
+    always @(posedge clk) begin
+        u_32<=u_32_;
+        pred_32<=pred_32_;
+        hit_32<=hit_32_;
+    end
 
 //pred
     always @(*) begin
@@ -252,13 +281,12 @@ module tage#(
         .HASH_width(h_width)
     )u_hash(
         .gh(gh),
-        .pc(pc_reg),
+        .pc(pc),
         .hashed_8(hashed_pc_gh_8),
         .hashed_16(hashed_pc_gh_16),
         .hashed_32(hashed_pc_gh_32)
     );
 
-        //hash
     pc_gh_hash#(
         .GH_width(gh_width),
         .ADDR_width(ADDR_WIDTH),
@@ -272,4 +300,3 @@ module tage#(
     );
 
 endmodule
->>>>>>> 8b9b04c (tage)

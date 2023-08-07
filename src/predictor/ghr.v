@@ -1,3 +1,4 @@
+//尚未确定pdc周期是否正确
 module ghr#(
     parameter   gh_width = 16,
                 queue_len= 16       //取决于流水线中同时存在的最大指令数
@@ -5,7 +6,7 @@ module ghr#(
     input   clk,
     input   rstn,               
     input   stall,                  //因为会根据预测知识进行更新
-    output  reg [gh_width-1:0]gh,   
+    output  reg [gh_width-1:0]gh,   //当周期即可给出
     output  reg[gh_width-1:0] gh_ex,
     input   taken_pdc,              //预测得到的是否跳转
     input   taken_ex,               //实际是否跳转

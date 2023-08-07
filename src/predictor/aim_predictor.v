@@ -9,8 +9,7 @@ module aim_predictor#(
     input  update_en,
     //ex
     input  [ADDR_WIDTH-1:0] pc_ex,
-    input  [h_width-1:0] pc_ex_bh_hashed,
-    input  [k_width-1:0] pc_ex_hashed,
+    input  [bh_width-1:0] bh_ex,
     input  [gh_width-1:0] gh_ex,
     input  [2:0]kind_ex,
     input  choice_real,
@@ -26,9 +25,9 @@ module aim_predictor#(
     output [1:0]taken_pdch_b,
     output [1:0]taken_pdch_g,
     //当前
-    input  [h_width-1:0] pc_bh_hashed,
-    input  [k_width-1:0] pc_hashed,
     input  [gh_width-1:0] gh,
+    input  [ADDR_WIDTH-1:0] pc,
+    input  [bh_width-1:0] bh_reg,
     input  [ADDR_WIDTH-1:0] pc_reg,
     //tage
     output [11:0] tage_pdch,
@@ -50,19 +49,21 @@ module aim_predictor#(
     wire try_to_pdc=(kind_ex==DIRECT_JUMP);
 
     bpht#(              //pc+bh
-        .bh_width(h_width)
+        .bh_width(bh_width),
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .h_width(h_width)
     )
     bpht_b(
         .clk(clk),
-        .hashed_pc(pc_bh_hashed),
         .pc(pc_reg),
+        .bh(bh_reg),
         .b_taken_pdc(taken_b),
         .taken_pdch_b(taken_pdch_b),
-        .hashed_pc_update(pc_ex_bh_hashed),
         .b_taken_real(taken_real),
         .taken_pdch_ex_b(taken_pdch_ex_b),
         .update_en(try_to_pdc&&update_en),
-        .pc_update(pc_ex)
+        .pc_update(pc_ex),
+        .bh_update(bh_ex)
     );
 
     wire taken_tage;
@@ -75,7 +76,7 @@ module aim_predictor#(
     )u_tage(
         .clk(clk),
         .update_en(try_to_pdc&&update_en),
-        .pc_reg(pc_reg),
+        .pc(pc),
         .gh(gh),
         .taken_bh(taken_b),
         .pc_ex(pc_ex),
@@ -87,8 +88,8 @@ module aim_predictor#(
         .pdch(tage_pdch)
     );
 
-    assign taken_pdc= kind_pdc[2]
-                    | ( kind_pdc[0] & taken_tage );    
     // assign taken_pdc= kind_pdc[2]
-    //                 | ( kind_pdc[0] & taken_b );
+    //                 | ( kind_pdc[0] & taken_tage );    
+    assign taken_pdc= kind_pdc[2]
+                    | ( kind_pdc[0] & taken_b );
 endmodule

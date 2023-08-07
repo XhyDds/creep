@@ -68,155 +68,36 @@ module predictor #(
 
     assign pdch={taken_pdch_g,taken_pdch_b,choice_pdch_btb_ras,choice_pdch_b_g};
 
-    //hash
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed1;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [k_width-1:0] pc_hashed2;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_gh_hashed1;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed;
-    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *) wire [h_width-1:0] pc_bh_hashed1;
-
-    wire [k_width-1:0] pc_ex_hashed;
-    wire [h_width-1:0] pc_ex_gh_hashed;
-    wire [h_width-1:0] pc_ex_bh_hashed;
-
     wire [gh_width-1:0] gh;
-    wire [bh_width-1:0] bh;
+    wire [bh_width-1:0] bh_reg;
     wire [gh_width-1:0] gh_ex;
-
-    (* MAX_FANOUT = 3 *)reg [k_width-1:0] pc_hashed_reg;
     reg [ADDR_WIDTH-1:0] pc_reg;
-    reg [gh_width-1:0] gh_reg;
+    reg [ADDR_WIDTH-1:0] pc_reg_reg;
 
     always @(posedge clk) begin
         if(!rstn) begin
-            pc_hashed_reg<=0;
             pc_reg<=30'h0700_0000;
-            gh_reg<=0;
+            pc_reg_reg<=30'h0700_0000;
         end
         else if(~stall) begin
-            pc_hashed_reg<=pc_hashed;
             pc_reg<=pc;
-            gh_reg<=gh;
+            pc_reg_reg<=pc_reg;
         end
     end
-
-    pc_hash#(
-        .DATA_width(ADDR_WIDTH),
-        .HASH_width(k_width)
-    )
-    single_hash_pc(
-        .data_raw(pc),
-        .data_hashed(pc_hashed)
-    );
-
-    pc_hash#(
-        .DATA_width(ADDR_WIDTH),
-        .HASH_width(k_width)
-    )
-    single_hash_pc1(
-        .data_raw(pc),
-        .data_hashed(pc_hashed1)
-    );
-
-    pc_hash#(
-        .DATA_width(ADDR_WIDTH),
-        .HASH_width(k_width)
-    )
-    single_hash_pc2(
-        .data_raw(pc),
-        .data_hashed(pc_hashed2)
-    );
-
-    pc_hash#(
-        .DATA_width(ADDR_WIDTH),
-        .HASH_width(k_width)
-    )
-    single_hash_pc_ex(
-        .data_raw(pc_ex),
-        .data_hashed(pc_ex_hashed)
-    );
-
-    pc_gh_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(gh_width),
-        .HASH_width(h_width)
-    )
-    combine_hash_pc_gh(
-        .data1_raw(pc_hashed_reg),
-        .data2_raw(gh_reg),
-        .data_hashed(pc_gh_hashed)
-    );
-    pc_gh_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(gh_width),
-        .HASH_width(h_width)
-    )
-    combine_hash_pc_gh1(
-        .data1_raw(pc_hashed_reg),
-        .data2_raw(gh_reg),
-        .data_hashed(pc_gh_hashed1)
-    );
-
-    pc_bh_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(bh_width),
-        .HASH_width(h_width)
-    )
-    combine_hash_pc_bh(
-        .data1_raw(pc_hashed_reg),
-        .data2_raw(bh),
-        .data_hashed(pc_bh_hashed)
-    );
-
-    pc_bh_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(bh_width),
-        .HASH_width(h_width)
-    )
-    combine_hash_pc_bh1(
-        .data1_raw(pc_hashed_reg),
-        .data2_raw(bh),
-        .data_hashed(pc_bh_hashed1)
-    );
-
-    pc_gh_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(gh_width),
-        .HASH_width(h_width)
-    )
-    pc_gh_hash_pc_ex_gh(
-        .data1_raw(pc_ex_hashed),
-        .data2_raw(gh_ex),
-        .data_hashed(pc_ex_gh_hashed)
-    );
-
-    pc_bh_hash#(
-        .DATA1_width(k_width),
-        .DATA2_width(bh_width),
-        .HASH_width(h_width)
-    )
-    combine_hash_pc_ex_bh(
-        .data1_raw(pc_ex_hashed),
-        .data2_raw(bh_ex),
-        .data_hashed(pc_ex_bh_hashed)
-    );
 
     //方向预测
     aim_predictor#(
         .h_width(h_width),
         .k_width(k_width),
         .bh_width(bh_width),
+        .gh_width(gh_width),
         .ADDR_WIDTH(ADDR_WIDTH)
     )
     u_aim_predictor(
         .clk(clk),
         .pc_ex(pc_ex),
-        .pc_ex_gh_hashed(pc_ex_gh_hashed),
-        .pc_ex_bh_hashed(pc_ex_bh_hashed),
-        .pc_ex_hashed(pc_ex_hashed),
         .gh_ex(gh_ex),
+        .bh_ex(bh_ex),
         .kind_ex(kind_ex),
         .choice_real(choice_real_b_g),
         .taken_real(taken_real),
@@ -229,12 +110,10 @@ module predictor #(
         .choice_pdch(choice_pdch_b_g),
         .taken_pdch_b(taken_pdch_b),
         .taken_pdch_g(taken_pdch_g),
-        .pc_gh_hashed1(pc_gh_hashed1),
-        .pc_gh_hashed2(pc_gh_hashed),
-        .pc_bh_hashed(pc_bh_hashed),
-        .pc_hashed(pc_hashed_reg),
         .gh(gh),
+        .pc(pc),
         .pc_reg(pc_reg),
+        .bh_reg(bh_reg),
         .update_en(update_en),
 
         .tage_pdch(tage_pdch),
@@ -244,16 +123,15 @@ module predictor #(
 
     //类别预测
     kt#(
-        .k_width(k_width)
+        .k_width(k_width),
+        .ADDR_WIDTH(ADDR_WIDTH)
     )
     u_kt(
         .clk(clk),
-        .hashed_pc(pc_hashed1),
-        .pc_reg(pc_reg),
+        .pc(pc),
         .kind_pdc(kind_pdc),
         .stall(stall),
-        .hashed_pc_update(pc_ex_hashed),
-        .pc_ex(pc_ex),
+        .pc_update(pc_ex),
         .kind_real(kind_ex),
         .update_en(update_en)
     );
@@ -261,7 +139,7 @@ module predictor #(
     //历史查取
     wire try_to_pdc=(kind_ex!=NOT_JUMP);
 
-    assign bh_pdc=bh;
+    assign bh_pdc=bh_reg;
 
     bht#(
         .k_width(k_width),
@@ -270,10 +148,10 @@ module predictor #(
     u_bht(
         .clk(clk),
         .stall(stall),
-        .hashed_pc(pc_hashed2),
-        .bh_pdc(bh),
-        .hashed_pc_update(pc_ex_hashed),
+        .pc(pc),
+        .bh_pdc(bh_reg),
         .bh_ex(bh_ex),
+        .pc_update(pc_ex),
         .outcome_real(taken_real),
         .update_en(try_to_pdc&&update_en)
     );
@@ -310,9 +188,8 @@ module predictor #(
         .update_en(update_en),
         .taken_ex(taken_real),
         .npc_ex(npc_ex),
+        .bh_ex(bh_ex),
         .ret_pc_ex(ret_pc_ex),
-        .pc_ex_bh_hashed(pc_ex_bh_hashed),
-        .pc_ex_hashed(pc_ex_hashed),
         .pc_ex(pc_ex),
         .kind_ex(kind_ex),
         .choice_real(choice_real_btb_ras),
@@ -323,9 +200,9 @@ module predictor #(
         .taken_pdc(taken_pdc),
         .choice_btb_ras(choice_pdc_btb_ras),
         .choice_pdch(choice_pdch_btb_ras),
-        .pc_bh_hashed(pc_bh_hashed1),
-        .pc_hashed_reg(pc_hashed_reg),
+        .bh_reg(bh_reg),
         .pc_reg(pc_reg),
+        .pc_reg_reg(pc_reg_reg),
         .npc_test(npc_test)
     );
 
