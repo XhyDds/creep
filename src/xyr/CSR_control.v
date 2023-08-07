@@ -6,6 +6,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input pipeline_CSR_flush,
     //output CSR_pipeline_stall,
     output CSR_pipeline_flush,
+    output CSR_pipeline_inte_flush,
     output [31:0] CSR_pipeline_outpc,
     input pipeline_CSR_jumpc_valid,
     input [31:0] pipeline_CSR_jumpc,
@@ -108,7 +109,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;wire [9:0] ASIDin;
     
-    reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
+    reg [31:0] dwcsr_reg;reg flushout_reg;reg inte_flush_reg;reg [31:0] outpc_reg;
     reg [31:0] dout_reg;reg run_reg;
     reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
@@ -116,7 +117,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg TCFG_change;reg nexcp_flush,nertn_flush;
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
-    assign CSR_pipeline_flush=flushout_reg;
+    assign CSR_pipeline_flush=flushout_reg,CSR_pipeline_inte_flush=inte_flush_reg;
     assign exe=(pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW)&&inpc_valid;
     assign force_run=(inte&inpc_valid)|(~inte&excp_arg1[15]);
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
@@ -195,6 +196,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     if(!rstn||(flushin && !stallin && !force_run))
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
+        inte_flush_reg<=0;
         outpc_reg<=0;dout_reg<=0;
         run_reg<=0;
         ecode_reg<=0;esubcode_reg<=0;
@@ -205,6 +207,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     else if(!stallin)//?||force_run
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
+        inte_flush_reg<=inte&inpc_valid;
         outpc_reg<=outpc;dout_reg<=dout;
         run_reg<=(!flushin && exe)||force_run;//?
         ecode_reg<=ecode;esubcode_reg<=esubcode;
