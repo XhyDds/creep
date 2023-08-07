@@ -1,6 +1,6 @@
 `define predictor
 `define DMA
-`define two_pre
+// `define two_pre
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -102,20 +102,13 @@ module core_top(
     vaddr_exe0_exe1,    paddr_exe0_exe1,
     pc_br_exe0_exe1_0,  pc_br_exe0_exe1_1,
     brresult_exe0_exe1_0,                   brresult_exe0_exe1_1,
-    npc_reg,            MMU_pipeline_PADDR1_reg;
+    MMU_pipeline_PADDR1_reg;
 
     (* MAX_FANOUT = 3 *)reg [31:0]
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,flush_if0_if1_reg;
-
-    always @(posedge clk) begin
-        if(!rstn) flush_if0_if1_reg<=0;
-        else flush_if0_if1_reg<=ifbr0|ifbr1|ifpriv|ifcacop_ibar;
-        if(!rstn) npc_reg<=0;
-        else npc_reg<=npc;
-    end
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,flush_if0_if1_reg,if_guess_pc;
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -124,7 +117,7 @@ module core_top(
 
     reg [63:0]ir_if1_fifo;
 
-    reg [63:0]pre_mmu_if0,pre_if0_if1,pre_if1_fifo,pre_id_reg_0,pre_id_reg_1,pre_reg_exe0_0,pre_reg_exe0_1,pre_exe0_exe1_0,pre_exe0_exe1_1;
+    reg [63:0]pre_mmu_if0,pre_pc,pre_if0_if1,pre_if1_fifo,pre_id_reg_0,pre_id_reg_1,pre_reg_exe0_0,pre_reg_exe0_1,pre_exe0_exe1_0,pre_exe0_exe1_1;
 
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
     rk_reg_exe0_0,rk_reg_exe0_1,
@@ -154,27 +147,38 @@ module core_top(
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre;
-    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre;
+    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre,ifinteflush;
+    reg ifnpc_pdc,if_guess;
 
+    always @(posedge clk) begin
+        if(!rstn) flush_if0_if1_reg<=0;
+        else flush_if0_if1_reg<=flush_if0_if1;
+    end
+
+    `ifndef two_pre
     assign flush_mispre=0;
-    // assign flush_mispre=(pc!=npc_pdc_32)&if_pcp8;
+    `endif
+    `ifdef two_pre
+    assign flush_mispre=(pc!=npc_pdc_32)&if_guess_pc&ifnpc_pdc;
+    `endif
+
     assign ifbr0=ifbr0_&~flushup_exe0_exe1_0&~stall_exe0_exe1_0;
     assign ifbr1=ifbr1_&~stall_exe0_exe1_1;
     assign flushup =            flush_pre_1&ctr_reg_exe0_0[31];
     assign flushdown =          flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0&ctr_id_reg_1[31];
     assign flushdownpre =       flush_pre_0&~ctr_id_reg_1[31];
 
-    assign flush_if0_if1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg|flush_mispre;
-    assign flush_if1_fifo =     ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
-    assign flush_fifo_id =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_if0_if1_reg;
-    assign flush_id_reg0 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_id_reg1 =      ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdownpre;
-    assign flush_reg_exe0_0 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_reg_exe0_1 =   ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdown;
-    assign flush_exe0_exe1_0 =  ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushup;
-    assign flush_exe0_exe1_1 =  ifpriv|ifmmu_excp|ifbr1|ifbr0;
-    assign flush_exe1_wb_0 =    ifpriv|ifmmu_excp|ifbr1;
-    assign flush_exe1_wb_1 =    ifmmu_excp;
+    assign flush_if0_if1 =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_mispre;
+    assign flush_if1_fifo =     ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_fifo_id =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_id_reg0 =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_id_reg1 =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdownpre;
+    assign flush_reg_exe0_0 =   ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
+    assign flush_reg_exe0_1 =   ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdown;
+    assign flush_exe0_exe1_0 =  ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushup;
+    assign flush_exe0_exe1_1 =  ifinteflush|ifpriv|ifmmu_excp|ifbr1|ifbr0;
+    assign flush_exe1_wb_0 =    ifinteflush|ifpriv|ifmmu_excp|ifbr1;
+    assign flush_exe1_wb_1 =    ifinteflush|ifmmu_excp;
 
     assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|ifidle;
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
@@ -844,6 +848,7 @@ module core_top(
         .pipeline_CSR_stall     		( stall_exe0_exe1_1     		),
         .CSR_pipeline_clk_stall     	( ifidle               ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
+        .CSR_pipeline_inte_flush        ( ifinteflush                   ),
         .CSR_pipeline_outpc     		( pc_priv     		            ),
         .pipeline_CSR_type      		( ctr_reg_exe0_1_excp[3:0]     	),
         .pipeline_CSR_subtype   		( ctr_reg_exe0_1_excp[11:7]     ),
@@ -1040,7 +1045,7 @@ module core_top(
     assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
     assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
 
-    wire [29:0] npc_test;//给ccr用的测试线，�???要左移两位使用，0,4交替
+    wire [29:0] npc_test;//给ccr用的测试线，�???要左移两位使用，0,4交替
 
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
@@ -1068,7 +1073,7 @@ module core_top(
         .clk         		( clk         		),
         .rstn        		( rstn        		),
         .update_en          ( update_en         ),
-        .stall              ( ~(!stall_pc|flush_if0_if1_reg) ),
+        .stall              ( ~(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) ),
 
         .pc_ex       		( out_pc_ex         ),
         .ret_pc_ex          ( ret_pc_ex         ),
@@ -1153,17 +1158,18 @@ module core_top(
     `endif
     assign ifsuc= ~MMU_pipeline_memtype0[0] | dma;
     wire [31:0]npc_pdc_32={npc_pdc,2'b0};
-    reg ifnpc_pdc;
     always @(*) begin
         ifnpc_pdc=0;
+        if_guess=0;
         if(ifpriv) npc=pc_priv;
         else if(ifbr1) npc=pc_br1;
         else if(ifbr0) npc=pc_br0;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
-        else if(flush_if0_if1_reg) npc=npc_reg;
         else if(ifsuc) npc=pc+4;
         `ifdef predictor
-        // else if(flush_if0_if1_reg) npc=pc+8;
+            `ifdef two_pre
+                else if(flush_if0_if1_reg) begin npc=pc+8;if_guess=1; end
+            `endif
         else begin npc=npc_pdc_32;ifnpc_pdc=1; end
         `endif
         `ifndef predictor
@@ -1173,8 +1179,16 @@ module core_top(
     end
 
     always @(posedge clk) begin
-        if(!rstn) pc<=32'h1c000000;
-        else if(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar|flush_mispre) pc<=npc;
+        if(!rstn) begin 
+            pc<=32'h1c000000; 
+            if_guess_pc<=0;
+            // pre_pc<=0;
+        end
+        else if(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) begin 
+            pc<=npc; 
+            if_guess_pc<=if_guess;
+            // pre_pc<={2'b0,pdch,1'b0,bh_pdc,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+        end
     end
 
     //IF0-IF1
@@ -1428,13 +1442,13 @@ module core_top(
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�????测访存地�????是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�????
+    always @(*) begin//�????测访存地�????是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�????
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
         if(ctr_reg_exe0_1[22]&(|PLV)) begin 
             ctr_reg_exe0_1_excp=liwai;
             excp_arg_reg_exe0_1_excp=excp_argIPE; 
-        end//用户态访问越�????
+        end//用户态访问越�????
         else if(ctr_reg_exe0_1[3:0]==5&ctr_reg_exe0_1[11:7]!=8)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1739,7 +1753,7 @@ module core_top(
         .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
-        .pipeline_dcache_ctrl   		( {30'b0,ifmmu_excp,stall_to_dcache}),
+        .pipeline_dcache_ctrl   		( {30'b0,flush_exe1_wb_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
         .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
         .SUC_pipeline_dcache            ( ~MMU_pipeline_memtype1[0] | dma),
