@@ -17,11 +17,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�???????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�????????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�???????????，ex1�???????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�????????????，ex1�????????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�??????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�???????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -109,18 +109,16 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;wire [9:0] ASIDin;
     
     reg [31:0] dwcsr_reg;reg flushout_reg;reg [31:0] outpc_reg;
-    reg [31:0] dout_reg;//reg run_reg;
-    //reg exe_reg,inte_reg;
-    reg run_reg;
+    reg [31:0] dout_reg;reg run_reg;
     reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
-    reg [31:0] jumpc_reg;reg TCFG_change;reg nexcp_flush,nertn_flush;
+    //reg [31:0] jumpc_reg;
+    reg TCFG_change;reg nexcp_flush,nertn_flush;
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
-    //assign CSR_pipeline_flush=flushout||flushout_reg;//CSR_pipeline_stall=busy,
     assign CSR_pipeline_flush=flushout_reg;
     assign exe=pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW;
-    assign force_run=inte|excp_arg1[15];
+    assign force_run=(inte&inpc_valid)|(~inte&excp_arg1[15]);
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;//|nclk_stall
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
@@ -198,39 +196,34 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
         outpc_reg<=0;dout_reg<=0;
-        //exe_reg<=0;inte_reg<=0;
-        run_reg<=0;//?
+        run_reg<=0;
         ecode_reg<=0;esubcode_reg<=0;
         mode_reg<=0;inpc_reg<=0;evaddr_reg<=0;
         csr_num_reg<=0;inst_stop_reg<=0;
         
-        //excp_flush<=0;ertn_flush<=0;
         end
     else if(!stallin)//?||force_run
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
         outpc_reg<=outpc;dout_reg<=dout;
-        //exe_reg<=exe;inte_reg<=inte;
-        run_reg<=(!stallin && !flushin && exe)||force_run;
+        run_reg<=(!flushin && exe)||force_run;//?
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
-        
-        //excp_flush<=nexcp_flush;ertn_flush<=nertn_flush;
         end
     end
     always@(posedge(clk))
     begin
     if(!rstn)
         begin
-        jumpc_reg<=0;
+        //jumpc_reg<=0;
         clk_stall<=0;
         end
     else 
         begin
         clk_stall<=nclk_stall;
-        if(jumpc_valid)
-            jumpc_reg<=jumpc;
+//        if(jumpc_valid)
+//            jumpc_reg<=jumpc;
         end
     end
     always@(posedge(clk))
@@ -267,8 +260,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     mode=pipeline_CSR_subtype;
     evaddr=inpc;//TLBR(F),ADEF,PIF,PPI
 
-    if(!inpc_valid)
-        inpc=jumpc_reg;
+//    if(!inpc_valid)
+//        inpc=jumpc_reg;
     if(inte)
         begin
         mode=INTE;
@@ -536,10 +529,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                                 begin
                                 CRMD[4:3]<=2'b01;
                                 end
-                             //else if(ecode_reg==INT)
-                                 //begin
                                 excp_flush<=1;
-                                 //end
                             ESTAT_Ecode<=ecode_reg;
                             ESTAT_EsubCode<=esubcode_reg;
                             case(ecode_reg)
