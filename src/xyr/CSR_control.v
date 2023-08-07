@@ -285,7 +285,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     flushout=1;
     inst_stop=0;
     TI_cl=0;//TI_cl
-    nclk_stall=clk_stall;
+    nclk_stall=clk_stall&~inte;
     
     nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
     if((!flushin && exe)||force_run)//?
@@ -306,7 +306,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                begin
                inst_stop=1;
                flushout=1; 
-               nclk_stall=0; 
+               //nclk_stall=0; 
                if(ecode!=TLBR)
                      nexcp_flush=1;
                end 
