@@ -1,4 +1,4 @@
-module prefetching#(
+module prefetching_test#(
     parameter ADDR_WIDTH    = 32,
               L2cache_width = 3
 )(
@@ -12,8 +12,38 @@ module prefetching#(
     input        hit_l2cache_pref,//预取请求的Hit
     input        miss_l2cache_pref//预取过程中来自L1访问的Miss 
 );
-    reg req_prefetching;
+    reg [31:0]seed;
+    reg [31:0]lay_out;
+    wire req_prefetching;
     reg [31:0] addr_prefetching;
+
+    assign req_prefetching=(seed==lay_out);
+
+    always @(posedge clk) begin
+        if(!rstn) begin
+            type_pref_l2cache<=0;
+            seed<=1;
+            lay_out<=0;
+        end
+        else begin
+            type_pref_l2cache<=~type_pref_l2cache;
+            if(seed==32'd10) begin
+                seed<=1;
+            end
+            else begin
+                if(lay_out==seed) begin
+                    seed<=seed+1;
+                end
+                else ;
+            end
+
+            if(lay_out==seed) begin
+                lay_out<=0;
+            end
+            else if(crt==IDLE) lay_out<=lay_out+1;
+            else ;
+        end
+    end
 
     //statemachine
     reg [1:0] crt;
@@ -58,23 +88,30 @@ module prefetching#(
 
     always @(posedge clk) begin
         if(!rstn) begin
-            addr_pref_l2cache<=addr_prefetching;
+            addr_pref_l2cache<={8'h0,addr_prefetching[23:0]};
         end
         else begin
             case (crt)
                 IDLE: begin
                     if(nxt==REQ) 
-                        addr_pref_l2cache<=addr_prefetching;
+                        addr_pref_l2cache<={8'h0,addr_prefetching[23:0]};
                     else
-                        addr_pref_l2cache<=0;
+                        addr_pref_l2cache<={32'h1234ABCD};
                 end
                 REQ:  begin
                     if(nxt==IDLE) 
-                        addr_pref_l2cache<=0;
+                        addr_pref_l2cache<={32'h1234ABCD};
                     else ;
                 end
                 default: ;
             endcase
         end
     end
+
+    Random u_random(
+        .en(req_prefetching),
+        .clk(clk),
+        .rstn(rstn),
+        .randnum(addr_prefetching)
+    );
 endmodule
