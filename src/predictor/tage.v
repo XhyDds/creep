@@ -6,6 +6,7 @@ module tage#(
             DATA_WIDTH = 27
 )(
     input  clk,
+    input  stall,
     input  update_en,
     //pc
     input  [ADDR_WIDTH-1:0]pc,
@@ -49,6 +50,7 @@ module tage#(
 
     reg [ADDR_WIDTH-1:0] pc_reg;
     always @(posedge clk) begin
+        if(~stall)
         pc_reg<=pc;
     end
 //comp
@@ -68,7 +70,7 @@ module tage#(
         .clk(clk),
         .raddr(hashed_pc_gh_8),
         .dout({pred_8_,_pc_8,u_8_}),
-        .enb(1),
+        .enb(~stall),
         .waddr(hashed_pc_gh_upt_8),
         .din({pred_upt_8,pc_ex[23:0],u_upt_8}),
         .we(update_en_8)
@@ -77,9 +79,11 @@ module tage#(
     reg pred_8;
     reg hit_8;
     always @(posedge clk) begin
-        u_8<=u_8_;
-        pred_8<=pred_8_;
-        hit_8<=hit_8_;
+        if(~stall) begin
+            u_8<=u_8_;
+            pred_8<=pred_8_;
+            hit_8<=hit_8_;            
+        end
     end
 
     wire [1:0]u_16_;
@@ -97,7 +101,7 @@ module tage#(
         .clk(clk),
         .raddr(hashed_pc_gh_16),
         .dout({pred_16_,_pc_16,u_16_}),
-        .enb(1),
+        .enb(~stall),
         .waddr(hashed_pc_gh_upt_16),
         .din({pred_upt_16,pc_ex[23:0],u_upt_16}),
         .we(update_en_16)
@@ -106,9 +110,11 @@ module tage#(
     reg pred_16;
     reg hit_16;
     always @(posedge clk) begin
-        u_16<=u_16_;
-        pred_16<=pred_16_;
-        hit_16<=hit_16_;
+        if(~stall) begin
+            u_16<=u_16_;
+            pred_16<=pred_16_;
+            hit_16<=hit_16_;
+        end
     end
 
     wire [1:0]u_32_;
@@ -126,7 +132,7 @@ module tage#(
         .clk(clk),
         .raddr(hashed_pc_gh_32),
         .dout({pred_32_,_pc_32,u_32_}),
-        .enb(1),
+        .enb(~stall),
         .waddr(hashed_pc_gh_upt_32),
         .din({pred_upt_32,pc_ex[23:0],u_upt_32}),
         .we(update_en_32)
@@ -135,9 +141,11 @@ module tage#(
     reg pred_32;
     reg hit_32;
     always @(posedge clk) begin
-        u_32<=u_32_;
-        pred_32<=pred_32_;
-        hit_32<=hit_32_;
+        if(~stall) begin
+            u_32<=u_32_;
+            pred_32<=pred_32_;
+            hit_32<=hit_32_;
+        end
     end
 
 //pred

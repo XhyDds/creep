@@ -5,6 +5,7 @@ module btb#(
               ADDR_WIDTH = 30
 )(
     input clk,
+    input stall,
     //query//hash(pc,gh)
     input [bh_width-1:0]bh,
     output [ADDR_WIDTH-1:0]npc_pdc,
@@ -35,7 +36,7 @@ module btb#(
         .clk(clk),
         .raddr(hashed_bh_pc),
         .dout({npc_pdc_,hashed_pc_tag}),
-        .enb(1),
+        .enb(~stall),
         .waddr(hashed_bh_pc_upt),
         .din({npc_real,hashed_pc_upt}),
         .we(update_en)

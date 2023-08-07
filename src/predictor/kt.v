@@ -27,6 +27,7 @@ module kt#(
 
     wire [2:0]kind_pdc_=(_pc==pc[24:12])?_kind_pdc:3'b000;
     always @(posedge clk) begin
+        if(~stall)
         kind_pdc<=kind_pdc_;
     end
     

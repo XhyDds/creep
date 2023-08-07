@@ -4,6 +4,7 @@ module bpht#(
              h_width = 8
 )(
     input clk,
+    input stall,
     //query
     input [ADDR_WIDTH-1:0]pc,
     input [bh_width-1:0]bh,//hash(pc,bh)
@@ -34,7 +35,7 @@ module bpht#(
         .clk(clk),
         .raddr(hashed_pc_bh),
         .dout({_bph,_pc}),
-        .enb(1),
+        .enb(~stall),
         .waddr(hashed_pc_bh_upt),
         .din({_bph_new,pc_update}),
         .we(update_en)

@@ -3,6 +3,7 @@ module cpht#(
               ADDR_WIDTH=30
 )(
     input clk,
+    input stall,
     //query
     input [ADDR_WIDTH-1:0]pc,
     output choice_pdc,
@@ -29,7 +30,7 @@ module cpht#(
         .clk(clk),
         .raddr(hashed_pc),
         .dout(_cph),
-        .enb(1),
+        .enb(~stall),
         .waddr(hashed_pc_upt),
         .din(_cph_new),
         .we(update_en)
