@@ -18,11 +18,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     input [31:0]pipeline_CSR_din,
     input [31:0]pipeline_CSR_mask,
     output [31:0] CSR_pipeline_dout,
-    input [15:0] pipeline_CSR_excp_arg1,//�????????????高位为是否有效，剩余部分分别为esubcode与ecode
+    input [15:0] pipeline_CSR_excp_arg1,//�?????????????高位为是否有效，剩余部分分别为esubcode与ecode
     input [31:0] pipeline_CSR_inpc1,//ex2段pc
-    input [31:0] pipeline_CSR_evaddr0,//出错虚地�????????????，ex1�????????????
+    input [31:0] pipeline_CSR_evaddr0,//出错虚地�?????????????，ex1�?????????????
     input [31:0] pipeline_CSR_evaddr1,
-    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�???????????
+    input [8:0]pipeline_CSR_ESTAT,//中断信息,8为核间中�????????????
     output CSR_pipeline_clk_stall,
     output [8:0]CSR_pipeline_CRMD,
     output CSR_pipeline_LLBit,
@@ -118,8 +118,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout_reg,CSR_pipeline_inte_flush=inte_flush_reg;
-    assign exe=(pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW)&&inpc_valid;
-    assign force_run=(inte&inpc_valid)|(~inte&excp_arg1[15]);
+    assign exe=(pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW||inte)&&inpc_valid;
+    assign force_run=excp_arg1[15];//MMU>inte,inst MMU early
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;//|nclk_stall
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
@@ -265,13 +265,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 
 //    if(!inpc_valid)
 //        inpc=jumpc_reg;
-    if(inte)
-        begin
-        mode=INTE;
-        ecode=INT;
-        esubcode=DEFAULT;
-        end 
-    else if(excp_arg1[15])
+    if(excp_arg1[15])//MMU>inte
         begin
         mode=INTE;
         inpc=pipeline_CSR_inpc1; 
@@ -279,6 +273,12 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         esubcode=excp_arg1[14:6];
         evaddr=pipeline_CSR_evaddr1;//TLBR(L,S),PIL,PIS,PME,ADEM
         end
+    else if(inte)
+        begin
+        mode=INTE;
+        ecode=INT;
+        esubcode=DEFAULT;
+        end 
     else if(ecode==ALE)//ALE
         evaddr=pipeline_CSR_evaddr0;
     end
