@@ -1,10 +1,6 @@
 module br_alu (
     input [31:0]ctr,pc,imm,rrj,alu1,alu2,
-<<<<<<< HEAD
-    input [63:0]pre,
-=======
     input [75:0]pre,
->>>>>>> 8b9b04c (tage)
     output reg flush_pre,ifbr_,
     output reg [31:0]brresult
 );

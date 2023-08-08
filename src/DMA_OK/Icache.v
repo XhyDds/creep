@@ -45,6 +45,7 @@ module Icache#(
     
     input       [31:0]pipeline_icache_opcode,//cache操作
     input       pipeline_icache_opflag,//0-正常访存 1-cache操作    
+    output      ack_op,
     input       [31:0]pipeline_icache_ctrl,//stall flush branch ...
     output      icache_pipeline_stall,//stall form icache     不知道可不可以用ready代替，先留着
 
@@ -55,7 +56,6 @@ module Icache#(
     output      icache_mem_req,
     output      icache_mem_SUC,
     output      [1:0]icache_mem_size,//0-1byte  1-2b    2-4b
-    input       mem_icache_addrOK,
     input       mem_icache_dataOK
     );
 
@@ -75,7 +75,7 @@ assign ptag = paddr_pipeline_icache[31:offset_width+index_width+2];
 
 //rquest buffer
 wire [31:0]rbuf_addr,rbuf_opcode,rbuf_paddr;
-wire rbuf_opflag,rbuf_we,rbuf_stall;
+wire rbuf_opflag,rbuf_we,rbuf_stall,rbuf_SUC;
 wire [offset_width-1:0]rbuf_offset;
 wire [index_width-1:0]rbuf_index;
 wire [32-offset_width-index_width-2-1:0]rbuf_tag;
@@ -115,7 +115,7 @@ Icache_lru #(
     .way(way)
 )
 Icache_lru(
-    .clk(clk),.rstn(rstn),
+    .clk(clk),
     .use0(use0),.use1(use1),
     .addr(rbuf_index),
     .way_sel(way_sel_lru)
@@ -169,9 +169,8 @@ Icache_TagV(
 );
 
 //data choose
-//需要stall所以需要锁存
 wire choose_way,choose_return;
-wire [offset_width-1:0]choose_word;
+wire [offset_width-1:0]choose_word = rbuf_addr[2+offset_width-1:2];
 reg [63:0]data_out;
 reg data_flag;
 reg [32*(1<<offset_width)-1:0]data_line;
@@ -185,25 +184,47 @@ always @(*) begin
     end
 end
 always @(*) begin
-    case (choose_word)
-        2'd0:begin
-            data_out = data_line[63:0];
-            data_flag=1;
-        end
-        2'd1:begin
-            data_out = {32'h1234ABCD,data_line[63:32]};
-            data_flag=0;
-        end
-        2'd2:begin
-            data_out = data_line[127:64];
-            data_flag=1;
-        end
-        2'd3:begin
-            data_out = {32'h1234ABCD,data_line[127:96]};
-            data_flag=0;
-        end
-        default: data_out = 64'h1234ABCD1234ABCD;
-    endcase
+    if(rbuf_SUC)begin
+        data_out = data_line[63:0];
+        data_flag=0;
+    end
+    else begin
+        case (choose_word)
+            'd0:begin
+                data_out = data_line[63:0];
+                data_flag=1;
+            end
+            'd1:begin
+                data_out = {32'd0,data_line[63:32]};
+                data_flag=0;
+            end
+            'd2:begin
+                data_out = data_line[127:64];
+                data_flag=1;
+            end
+            'd3:begin
+                data_out = {32'd0,data_line[127:96]};
+                data_flag=0;
+            end
+            'd4:begin
+                data_out = data_line[191:128];
+                data_flag=1;
+            end
+            'd5:begin
+                data_out = {32'd0,data_line[191:160]};
+                data_flag=0;
+            end
+            'd6:begin
+                data_out = data_line[255:192];
+                data_flag=1;
+            end
+            'd7:begin
+                data_out = {32'd0,data_line[255:224]};
+                data_flag=0;
+            end
+            default: data_out = 0;
+        endcase
+    end
 end
 //锁存
 reg choose_stall;
@@ -222,10 +243,11 @@ wire [1+offset_width:0]temp;
 assign temp=0;
 assign icache_mem_SUC = rbuf_SUC;
 `ifdef MMU
-assign addr_icache_mem = {rbuf_paddr[31:2+offset_width],temp};
+assign addr_icache_mem = rbuf_SUC ? rbuf_paddr : {rbuf_paddr[31:2+offset_width],{(offset_width+2){1'b0}}};
 `else 
-assign addr_icache_mem = {rbuf_addr[31:2+offset_width],temp};
+assign addr_icache_mem = rbuf_SUC ? rbuf_addr : {rbuf_addr[31:2+offset_width],{(offset_width+2){1'b0}}};
 `endif
+assign icache_mem_size = 2'd2;
 
 //FSM
 Icache_FSMmain #(
@@ -242,13 +264,12 @@ Icache_FSMmain(
     .icache_pipeline_ready1(icache_pipeline_ready),
     .pipeline_icache_opcode(pipeline_icache_opcode),
     .pipeline_icache_opflag(pipeline_icache_opflag),
+    .ack_op(ack_op),
     .pipeline_icache_ctrl(pipeline_icache_ctrl),
     .icache_pipeline_stall(icache_pipeline_stall),
 
     //icache  mem
     .icache_mem_req(icache_mem_req),
-    .icache_mem_size(icache_mem_size),
-    .mem_icache_addrOK(mem_icache_addrOK),
     .mem_icache_dataOK(mem_icache_dataOK),
 
     //request buffer
@@ -274,8 +295,7 @@ Icache_FSMmain(
     //data choose
     // .FSM_choose_stall(choose_stall),
     .FSM_choose_way(choose_way),
-    .FSM_choose_return(choose_return),
-    .FSM_choose_word(choose_word)
+    .FSM_choose_return(choose_return)
 );
 endmodule
 

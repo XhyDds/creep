@@ -12,13 +12,13 @@ module Write_FSM(
     input  out_wready,
     input  out_bvalid,
 
-    output reg [3:0] crt,
-    output reg [3:0] nxt
+    output reg [4:0] crt,
+    output reg [4:0] nxt
 );
-    parameter IDLE = 4'd0,DMA_AW=4'd1 , DMA_W=4'd2 , DMA_R=4'd3,
-        PULL=4'd4,SEND_0=4'd5,SEND_1=4'd6,SEND_2=4'd7,SEND_3=4'd8,SEND_4=4'd9,SEND_5=4'd10,SEND_6=4'd11,SEND_7=4'd12,_SEND=4'd13;
+    parameter IDLE = 5'd0,DMA_AW=5'd1 , DMA_W=5'd2 , DMA_R=5'd3,
+        PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,_SEND=5'd13;
 
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if (!rstn) begin
             crt<=IDLE;
         end

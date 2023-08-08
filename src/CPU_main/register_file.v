@@ -25,14 +25,14 @@ module register_file (
     end
 
     always @(*) begin//r0读出为0
-        rrk0=|rk0?((ifwb1&rk0==wb_addr1)?wb_data1:(ifwb0&rk0==wb_addr0)?wb_data0:rf[rk0]):0;
-        rrk1=|rk1?((ifwb1&rk1==wb_addr1)?wb_data1:(ifwb0&rk1==wb_addr0)?wb_data0:rf[rk1]):0;
+        rrk0=|rk0?((ifwb0&rk0==wb_addr0)?wb_data0:(ifwb1&rk0==wb_addr1)?wb_data1:rf[rk0]):0;
+        rrk1=|rk1?((ifwb0&rk1==wb_addr0)?wb_data0:(ifwb1&rk1==wb_addr1)?wb_data1:rf[rk1]):0;
 
-        rrj0=|rj0?((ifwb1&rj0==wb_addr1)?wb_data1:(ifwb0&rj0==wb_addr0)?wb_data0:rf[rj0]):0;
-        rrj1=|rj1?((ifwb1&rj1==wb_addr1)?wb_data1:(ifwb0&rj1==wb_addr0)?wb_data0:rf[rj1]):0;
+        rrj0=|rj0?((ifwb0&rj0==wb_addr0)?wb_data0:(ifwb1&rj0==wb_addr1)?wb_data1:rf[rj0]):0;
+        rrj1=|rj1?((ifwb0&rj1==wb_addr0)?wb_data0:(ifwb1&rj1==wb_addr1)?wb_data1:rf[rj1]):0;
 
-        rrd0=|rd0?((ifwb1&rd0==wb_addr1)?wb_data1:(ifwb0&rd0==wb_addr0)?wb_data0:rf[rd0]):0;
-        rrd1=|rd1?((ifwb1&rd1==wb_addr1)?wb_data1:(ifwb0&rd1==wb_addr0)?wb_data0:rf[rd1]):0;
+        rrd0=|rd0?((ifwb0&rd0==wb_addr0)?wb_data0:(ifwb1&rd0==wb_addr1)?wb_data1:rf[rd0]):0;
+        rrd1=|rd1?((ifwb0&rd1==wb_addr0)?wb_data0:(ifwb1&rd1==wb_addr1)?wb_data1:rf[rd1]):0;
     end
 
     assign rf_rdata=rf[reg_num];

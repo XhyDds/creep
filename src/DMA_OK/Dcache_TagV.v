@@ -43,17 +43,6 @@ wire [data_width-1:0]TagV_data[way-1:0];
 reg [(1<<addr_width)-1:0]valid0; 
 reg [(1<<addr_width)-1:0]valid1;
 
-// always @(posedge clk)begin
-//     if(!rstn)begin
-//         valid0<=0;
-//         valid1<=0;
-//     end
-//     else begin
-//         if(TagV_we[0])valid0[TagV_addr_write]<=1;
-//         if(TagV_we[1])valid1[TagV_addr_write]<=1;
-//     end
-// end
-
 always @(posedge clk) begin
     if(TagV_init[1])begin
         if(!TagV_init[0])valid0[TagV_addr_write] <= 0;
@@ -67,9 +56,32 @@ always @(posedge clk) begin
     end
 end
 
-wire [data_width-1:0]zero = 0;
+reg v0,v1;
+always @(posedge clk) begin
+    if(TagV_addr_write != TagV_addr_read)begin
+        v0 <= valid0[TagV_addr_read];
+        v1 <= valid1[TagV_addr_read];
+    end
+    else begin
+        if(TagV_init[1])begin
+            if(!TagV_init[0])v0 <= 0;
+            else v1 <= 0;
+        end
+        else begin
+            if(TagV_unvalid[0])v0 <= 0;
+            else if(TagV_we[0])v0 <= 1;
+            else v0 <= valid0[TagV_addr_read];
+            if(TagV_unvalid[1])v1 <= 0;
+            else if(TagV_we[1])v1 <= 1;
+            else v1 <= valid1[TagV_addr_read];
+        end
+        
+    end
+end
 
-bram #(
+wire [data_width-1:0]zero = 0;
+wire [way-1:0]hit_t;
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width))
 way0(
@@ -80,10 +92,12 @@ way0(
     .we(TagV_we[0] || (TagV_init == 2'b10)),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[0])
+    .dout(TagV_data[0]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[0])
 );
 
-bram #(
+lutram #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width))
 way1(
@@ -94,10 +108,12 @@ way1(
     .we(TagV_we[1] || (TagV_init == 2'b11)),
 
     .raddr(TagV_addr_read),
-    .dout(TagV_data[1])
+    .dout(TagV_data[1]),
+    .din_comp(TagV_din_compare),
+    .hit(hit_t[1])
 );
 
-assign hit[0]=(TagV_data[0]==TagV_din_compare)&&(valid0[TagV_addr_write]);//这个地址就是rbuf的地址
-assign hit[1]=(TagV_data[1]==TagV_din_compare)&&(valid1[TagV_addr_write]);
+assign hit[0]=(TagV_data[0] == TagV_din_compare)&&(v0);//这个地址就是rbuf的地址
+assign hit[1]=(TagV_data[1] == TagV_din_compare)&&(v1);
 
 endmodule

@@ -37,12 +37,12 @@ module WriteBuffer #(
     output reg query_ok,                       //query是否成功
 
     //状态机
-    input  [3:0] crt_pull,
-    input  [3:0] nxt_pull,
+    input  [4:0] crt_pull,
+    input  [4:0] nxt_pull,
     output reg [31:0] pointer,
     input  dma_sign
 );
-    parameter WORD = (1<<offset_width)*32;
+    localparam WORD = (1<<offset_width)*32;
     reg [31:0] buffer_addr[length-1:0];
     reg [WORD-1:0] buffer_data[0:length-1];
 
@@ -53,8 +53,8 @@ module WriteBuffer #(
 
     //pull(->axi)
     //state machine
-    parameter IDLE_L = 4'd0,
-            PULL=4'd4,SEND_0=4'd5,SEND_1=4'd6,SEND_2=4'd7,SEND_3=4'd8,SEND_4=4'd9,SEND_5=4'd10,SEND_6=4'd11,SEND_7=4'd12,_SEND=4'd13;
+    localparam IDLE_L = 5'd0,
+            PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,_SEND=5'd13;
     //外部输入
     //组合action
     reg pointer_minus;
@@ -126,7 +126,7 @@ module WriteBuffer #(
         endcase
     end
     //时序action
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             _out_data<=0;
         end
@@ -147,7 +147,7 @@ module WriteBuffer #(
     //statemachine
     localparam IDLE_H = 4'd0,PUSH=4'd1;
     reg [3:0] crt_push,nxt_push;
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if (!rstn) begin
             crt_push<=IDLE_H;
         end
@@ -185,7 +185,7 @@ module WriteBuffer #(
         endcase
     end
     //时序action
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             buffer_addr[32'd0]<=0;
             buffer_data[32'd0]<=0;
@@ -221,7 +221,7 @@ module WriteBuffer #(
     end
 
     //pointer仲裁
-    always @(posedge clk,negedge rstn) begin
+    always @(posedge clk)begin
         if(!rstn) begin
             pointer<=0;
         end

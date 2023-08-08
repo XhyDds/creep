@@ -25,20 +25,15 @@ module Icache_lru#(
                 way=2
 )
 (
-    input       clk,rstn,
+    input       clk,
     input       use0,use1,
     input       [addr_width-1:0]addr,
-    output      way_sel
+    output reg  way_sel
     );
 reg [(1<<addr_width)-1:0]record;
-assign way_sel=record[addr];
 always @(posedge clk)begin
-    if(!rstn)begin
-        record<=0;
-    end
-    else begin
-        if(use0)record[addr]<=1;//下一次用1
-        else if(use1)record[addr]<=0;//下一次用0
-    end
+    way_sel <= record[addr];//不需要写优先
+    if(use0)record[addr]<=1;
+    else if(use1)record[addr]<=0;
 end   
 endmodule

@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 // 0 warning
-module bram #(
+module lutram #(
     parameter DATA_WIDTH = 32,
             //   INIT_FILE = "C:\Users\lenovo\Desktop\data_init.coe"
               ADDR_WIDTH = 8
@@ -32,32 +32,26 @@ module bram #(
     input [ADDR_WIDTH-1:0] waddr,
     input [DATA_WIDTH-1:0] din,   // Data Input
     input we,                     // Write Enable
-    output [DATA_WIDTH-1:0] dout
+    output [DATA_WIDTH-1:0] dout,
+    input  [DATA_WIDTH-1:0] din_comp,
+    output reg hit
 ); 
+    reg [DATA_WIDTH-1:0] dout_r;
+    reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
 
-wire [DATA_WIDTH-1:0]dout_1;
-reg [DATA_WIDTH-1:0]din_reg;
-reg choose;
-always @(posedge clk)begin
-    din_reg <= din;
-    choose <= we && (raddr == waddr);
-end
-assign dout = choose ? din_reg : dout_1;
+    integer i;
+    initial begin
+        for (i = 0; i < (1 << ADDR_WIDTH); i = i + 1) begin
+            ram[i] = 0;
+        end
+    end
 
-ip_bram #(
-    .RAM_WIDTH(DATA_WIDTH),
-    .RAM_DEPTH(1<<ADDR_WIDTH)
-)
-ip_bram(
-    .clka(clk),
-    .addra(waddr),
-    .addrb(raddr),
-    .dina(din),
-    .wea(we),
-    .enb(1'b1),
-    .doutb(dout_1)
-);
+    assign dout = dout_r;
 
-
+    always @(posedge clk) begin
+        hit <=  din_comp == ((waddr == raddr && we) ? din : ram[raddr]);
+        dout_r <= (waddr == raddr && we) ? din : ram[raddr];
+        if (we) ram[waddr] <= din;
+    end
 
 endmodule
