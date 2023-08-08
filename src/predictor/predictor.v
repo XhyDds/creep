@@ -95,6 +95,7 @@ module predictor #(
     )
     u_aim_predictor(
         .clk(clk),
+        .stall(stall),
         .pc_ex(pc_ex),
         .gh_ex(gh_ex),
         .bh_ex(bh_ex),

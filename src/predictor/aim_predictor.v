@@ -6,6 +6,7 @@ module aim_predictor#(
                 gh_width = 32
 )(
     input  clk,
+    input  stall,
     input  update_en,
     //ex
     input  [ADDR_WIDTH-1:0] pc_ex,
@@ -55,6 +56,7 @@ module aim_predictor#(
     )
     bpht_b(
         .clk(clk),
+        .stall(stall),
         .pc(pc_reg),
         .bh(bh_reg),
         .b_taken_pdc(taken_b),
@@ -75,6 +77,7 @@ module aim_predictor#(
         .DATA_WIDTH(27)
     )u_tage(
         .clk(clk),
+        .stall(stall),
         .update_en(try_to_pdc&&update_en),
         .pc(pc),
         .gh(gh),
