@@ -74,7 +74,7 @@ wire [32*(1<<offset_width)-1:0]usesignal4 = din_mem_dcache;
 
 reg [4:0]state,next_state;
 localparam Idle=5'd0,req=5'd1,send=5'd2,send_=5'd3;
-always @(posedge clk)begin
+always @(posedge clk,negedge rstn) begin
     if(!rstn)state<=Idle;
     else state<=next_state;
 end

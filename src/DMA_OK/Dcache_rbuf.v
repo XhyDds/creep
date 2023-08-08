@@ -28,14 +28,15 @@ module Dcache_rbuf
     input opflag,type1,SUC,
     output reg rbuf_opflag,rbuf_type,rbuf_SUC,
     input [3:0]wstrb,
-    output reg [3:0]rbuf_wstrb
+    output reg [3:0]rbuf_wstrb,
+    input [1:0]size,
+    output reg [1:0]rbuf_size
     );
-reg we_reg,rbuf_SUC1;
 reg [31:0]rbuf_paddr1;
+reg rbuf_SUC1;
+reg we_reg;
 always @(posedge clk) begin
     we_reg <= rbuf_we;
-end
-always @(posedge clk) begin
     if(rbuf_we)begin
         rbuf_addr<=addr;
         rbuf_data<=data;
@@ -44,10 +45,11 @@ always @(posedge clk) begin
         rbuf_wstrb<=wstrb;
         rbuf_type<=type1;
         rbuf_pc<=pc;
+        rbuf_size <= size;
     end
     if(we_reg)begin
-        rbuf_SUC1 <= SUC;
         rbuf_paddr1 <= paddr;
+        rbuf_SUC1 <= SUC; 
     end
 end
 always @(*) begin

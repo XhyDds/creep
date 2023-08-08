@@ -32,29 +32,33 @@ module bram_bytewrite#(
     input [DATA_WIDTH/8-1:0]we,    // Write Enable
     output [DATA_WIDTH-1:0] dout   // Data Output
 ); 
-    reg [ADDR_WIDTH-1:0] addr_r;  // Address Register
-    reg [DATA_WIDTH-1:0] ram [0:(1 << ADDR_WIDTH)-1];
-
-    // initial $readmemh(INIT_FILE, ram); // initialize memory
-    integer j;
-    initial begin
-        for (j = 0; j < (1 << ADDR_WIDTH); j = j + 1) begin
-            ram[j] = 0;
-        end
+wire [DATA_WIDTH-1:0]dout1;
+reg [DATA_WIDTH-1:0]din_reg;
+reg [DATA_WIDTH/8-1:0]choose;
+always @(posedge clk)begin
+    din_reg <= din;
+    if(raddr == waddr)choose <= we;
+    else choose <= 0;
+end
+generate
+    genvar i;
+    for(i = 0; i < DATA_WIDTH/8; i = i+1) begin
+        assign dout[(i+1)*8-1:(i*8)] = (choose[i]) ? din_reg[(i+1)*8-1:(i*8)] : dout1[(i+1)*8-1:(i*8)];
     end
+endgenerate
 
-    always @(posedge clk) begin
-        // addr_r <= raddr == waddr ? waddr : raddr;????
-        addr_r <= raddr;
-    end
-    assign dout = ram[addr_r];
-    generate
-        genvar i;
-        for(i = 0; i < DATA_WIDTH/8; i = i+1) begin
-            always @(posedge clk) begin
-                if(we[i])
-                    ram[waddr][(i+1)*8-1:(i*8)] <= din[(i+1)*8-1:(i*8)];
-            end
-        end
-    endgenerate
+ip_bytewrite #(
+    .NB_COL(DATA_WIDTH/8),
+    .COL_WIDTH(8),
+    .RAM_DEPTH(1<< ADDR_WIDTH)
+)
+ip_bytewrite(
+    .clka(clk),
+    .addra(waddr),
+    .addrb(raddr),
+    .dina(din),
+    .wea(we),
+    .enb(1'b1),
+    .doutb(dout1)
+);
 endmodule

@@ -18,6 +18,7 @@ module ReturnBuffer #(
         input           cache_mem_rdy,
     // `endif
     input               rlast
+    // input               dma_sign
 );
     localparam  WORD_NUM = (1 << offset_width)*32-1,              // words per block(set)
                 WORD_SIZE = 2;                                  // word offset width
@@ -42,7 +43,8 @@ module ReturnBuffer #(
         case (state)
             IDLE: begin
                 if(rready) begin
-                    next_state = RECEIVE;
+                    if(rlast) next_state=SEND;
+                    else next_state = RECEIVE;
                 end
                 else begin
                     next_state = IDLE;
@@ -91,7 +93,8 @@ module ReturnBuffer #(
             case (state)
                 IDLE: begin
                     if(rready) begin
-                        _word <= {rdata,_word[(1<<offset_width)*32-1:32]};
+                        if(rlast) _word<={{((1<<offset_width)*32-32){1'b0}},rdata};
+                        else _word <= {rdata,_word[(1<<offset_width)*32-1:32]};
                     end
                     else begin
                         _word <= 0;
