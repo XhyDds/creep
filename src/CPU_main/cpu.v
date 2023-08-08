@@ -108,7 +108,7 @@ module core_top(
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,flush_if0_if1_reg,if_guess_pc;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,if_guess_pc;
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -149,11 +149,6 @@ module core_top(
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre;
     wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre,ifinteflush;
     reg ifnpc_pdc,if_guess;
-
-    always @(posedge clk) begin
-        if(!rstn) flush_if0_if1_reg<=0;
-        else flush_if0_if1_reg<=flush_if0_if1;
-    end
 
     `ifndef two_pre
     assign flush_mispre=0;
@@ -1181,7 +1176,7 @@ module core_top(
         else if(ifsuc) npc=pc+4;
         `ifdef predictor
             `ifdef two_pre
-                else if(flush_if0_if1_reg) begin npc=pc+8;if_guess=1; end
+                else if(flush_if0_if1) begin npc=pc+8;if_guess=1; end
             `endif
         else begin npc=npc_pdc_32;ifnpc_pdc=1; end
         `endif
