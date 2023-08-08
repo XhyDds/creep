@@ -207,7 +207,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     else if(!stallin)//?||force_run
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
-        inte_flush_reg<=inte&inpc_valid;
+        inte_flush_reg<=inte&inpc_valid&~excp_arg1[15];
         outpc_reg<=outpc;dout_reg<=dout;
         run_reg<=(!flushin && exe)||force_run;//?
         ecode_reg<=ecode;esubcode_reg<=esubcode;
