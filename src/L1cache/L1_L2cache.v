@@ -143,7 +143,7 @@ Icache(
     .flag_icache_pipeline(flag_icache_pipeline),
     .SUC_pipeline_icache(SUC_pipeline_icache),
 
-    .pipeline_icache_valid(pipeline_icache_valid),
+    .pipeline_icache_valid(pipeline_icache_valid | op_i),
     .icache_pipeline_valid(icache_pipeline_valid),
 
     .pipeline_icache_opcode(opcode_i),
@@ -189,7 +189,7 @@ Dcache(
     .type_pipeline_dcache(type_pipeline_dcache),
     .SUC_pipeline_dcache(SUC_pipeline_dcache),
 
-    .pipeline_dcache_valid(pipeline_dcache_valid),
+    .pipeline_dcache_valid(pipeline_dcache_valid | op_d),
     .dcache_pipeline_ready(dcache_pipeline_ready),
 
     .pipeline_dcache_wstrb(pipeline_dcache_wstrb),
