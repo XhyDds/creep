@@ -21,8 +21,14 @@ module bpht#(
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_bh_upt;
     wire[1:0] _bph;
     wire[ADDR_WIDTH-1:0]_pc;
+
+    reg [ADDR_WIDTH-1:0] pc_reg;
+    always @(posedge clk) begin
+        if(~stall) pc_reg<=pc;
+    end
+
     // assign b_taken_pdc=_bph[1];
-    assign b_taken_pdc=(_pc==pc)&_bph[1];
+    assign b_taken_pdc=(_pc==pc_reg)&_bph[1];
     assign taken_pdch_b=_bph;
 
     wire[1:0] _bph_new;

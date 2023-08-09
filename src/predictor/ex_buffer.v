@@ -1,7 +1,7 @@
 //尚未完成
 module ex_buffer#(
     parameter length = 6,
-            bh_width=14
+            bh_width=16
             // ,DATA_WIDTH=99
 )(
     input clk,

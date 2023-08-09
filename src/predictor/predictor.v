@@ -30,8 +30,8 @@ module predictor #(
     output [ADDR_WIDTH-1:0]npc_pdc,
     output [2:0]kind_pdc,
     output taken_pdc,
-    output [bh_width-1:0] bh_pdc,
-    output [1:0]choice_pdc,     //1:ras/btb  0:g/h
+    output reg[bh_width-1:0] bh_pdc,//需要寄存
+    output [1:0]choice_pdc,      //1:ras/btb  0:g/h
     output [7:0]pdch,
     output [11:0]tage_pdch,
     //当前
@@ -140,7 +140,10 @@ module predictor #(
     //历史查取
     wire try_to_pdc=(kind_ex!=NOT_JUMP);
 
-    assign bh_pdc=bh_reg;
+    // assign bh_pdc=bh_reg;
+    always @(posedge clk) begin
+        if(~stall) bh_pdc<=bh_reg;
+    end
 
     bht#(
         .k_width(k_width),

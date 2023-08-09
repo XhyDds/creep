@@ -1055,7 +1055,7 @@ module core_top(
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
     wire [29:0] out_npc_pdc   ;
-    wire [13:0] out_bh_ex     ;
+    wire [bh_width-1:0] out_bh_ex     ;
     wire        out_taken_ex  ;
     wire [2:0]  out_kind_ex   ;
     wire [29:0] out_npc_ex    ;
@@ -1109,7 +1109,8 @@ module core_top(
     );
 
     ex_buffer #(
-        .length(6)
+        .length(6),
+        .bh_width(bh_width)
     )u_ex_buffer(
         .clk(clk),
         .rstn(rstn),

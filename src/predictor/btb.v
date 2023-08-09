@@ -27,6 +27,11 @@ module btb#(
 
     assign npc_pdc = (hashed_pc_tag==hashed_pc)?npc_pdc_:(pc[0]?(pc+1):(pc+2));
 
+    reg [ADDR_WIDTH-1:0] pc_reg;
+    always @(posedge clk) begin
+        if(~stall) pc_reg <= pc;
+    end
+
     sp_bram#(
         .ADDR_WIDTH(h_width),
         .DATA_WIDTH(ADDR_WIDTH+k_width),
@@ -66,7 +71,7 @@ module btb#(
         .ADDR_WIDTH(ADDR_WIDTH),
         .k_width(k_width)
     )u_pc_hashed(
-        .pc(pc),
+        .pc(pc_reg),
         .pc_hashed(hashed_pc)
     );
 

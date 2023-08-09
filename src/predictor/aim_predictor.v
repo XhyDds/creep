@@ -1,7 +1,7 @@
 module aim_predictor#(
     parameter   h_width   = 8,
                 k_width   = 12,
-                bh_width  = 32,
+                bh_width  = 16,
                 ADDR_WIDTH = 30,
                 gh_width = 32
 )(
