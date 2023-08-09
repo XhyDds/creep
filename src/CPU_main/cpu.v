@@ -1,5 +1,5 @@
 `define predictor
-`define DMA
+// `define DMA
 // `define two_pre
 // module mycpu_top(
 module core_top(
@@ -1207,20 +1207,17 @@ module core_top(
 
     //IF1-FIFO
     //flush套壳
-    // reg fflush_if0_if1;
-    // always @(posedge clk) begin
-    //     if(!rstn) begin
-    //         fflush_if0_if1 <= 0;
-    //     end
-    //     else if(flush_if0_if1) fflush_if0_if1 <= 1;
-    //     else if(!(stall_icache|stall_to_icache)) fflush_if0_if1 <= 0;
-    // end
-
-    // wire ifflush_if1_fifo;
-    // assign ifflush_if1_fifo=flush_if0_if1|fflush_if0_if1;
+    reg fflush_if0_if1;
+    always @(posedge clk) begin
+        if(!rstn) begin
+            fflush_if0_if1 <= 0;
+        end
+        else if(flush_if0_if1) fflush_if0_if1 <= 1;
+        else if(!(stall_icache|stall_to_icache)) fflush_if0_if1 <= 0;
+    end
 
     always @(posedge clk) begin
-        if(!rstn|flush_if1_fifo/*|ifflush_if1_fifo*/) begin
+        if(!rstn|flush_if1_fifo|fflush_if0_if1) begin
             pc_if1_fifo<=0;
             ir_if1_fifo<=0;
             icache_valid_if1_fifo<=0;
