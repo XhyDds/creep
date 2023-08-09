@@ -1720,11 +1720,11 @@ module core_top(
         .rstn                   		( rstn                   		),
 
         //  Icache
-        .addr_pipeline_icache   		( pc                       		),
+        .addr_pipeline_icache   		( |pc[1:0]?32'h1C000000:pc   	),
         .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_valid  		( |pc[1:0]?0:1  		),
+        .pipeline_icache_valid  		( 1  		                    ),
         .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
