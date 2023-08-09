@@ -921,6 +921,8 @@ module core_top(
 
     wire [31:0]	MMU_pipeline_PADDR1;
     wire [1:0]	MMU_pipeline_memtype1;
+    wire MMU_pipeline_PADDR_valid0;
+    wire MMU_pipeline_PADDR_valid1;
 
     Memory_Maping_Unit #(
         .TLB_n(TLB_n),
@@ -963,13 +965,15 @@ module core_top(
         .MMU_pipeline_PADDR0    		( MMU_pipeline_PADDR0	        ),
         .MMU_pipeline_excp_arg0 		( MMU_pipeline_excp_arg0        ),
         .MMU_pipeline_memtype0  		( MMU_pipeline_memtype0         ),
+        .MMU_pipeline_PADDR_valid0      ( MMU_pipeline_PADDR_valid0     ),
 
         .pipeline_MMU_optype1   		( type_pipeline_dcache?2'd2:2'd1),
         .pipeline_MMU_VADDR_valid1      ( pipeline_MMU_valid            ),
         .pipeline_MMU_VADDR1    		( addr_pipeline_dcache 		    ),
         .MMU_pipeline_PADDR1    		( MMU_pipeline_PADDR1 		    ),
         .MMU_pipeline_excp_arg1 		( MMU_pipeline_excp_arg1 		),
-        .MMU_pipeline_memtype1  		( MMU_pipeline_memtype1 	    ) 
+        .MMU_pipeline_memtype1  		( MMU_pipeline_memtype1 	    ),
+        .MMU_pipeline_PADDR_valid1      ( MMU_pipeline_PADDR_valid1     )
     );
 
     wire [31:0]	dout_dcache_pipeline;
