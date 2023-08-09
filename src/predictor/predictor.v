@@ -75,12 +75,11 @@ module predictor #(
     reg [ADDR_WIDTH-1:0] pc_reg_reg;
 
     always @(posedge clk) begin
+        pc_reg<=pc;//第一段
         if(!rstn) begin
-            pc_reg<=30'h0700_0000;
             pc_reg_reg<=30'h0700_0000;
         end
         else if(~stall) begin
-            pc_reg<=pc;
             pc_reg_reg<=pc_reg;
         end
     end

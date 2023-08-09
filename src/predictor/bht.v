@@ -26,7 +26,8 @@ module bht#(
         .clk(clk),
         .raddr(pc_hashed),
         .dout(bh_pdc),
-        .enb(~stall),
+        // .enb(~stall),
+        .enb(1),
         .waddr(pc_hashed_upt),
         .din({bh_ex[bh_width-2:0],outcome_real}),
         .we(update_en)
