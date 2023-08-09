@@ -1,4 +1,4 @@
-module CSR_control#(//tlbfill bug?
+module CSR_control#(
 parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 )(
     input clk,rstn,
@@ -114,7 +114,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
     //reg [31:0] jumpc_reg;
-    reg TCFG_change;reg nexcp_flush,nertn_flush;
+    reg TCFG_change;reg nexcp_flush,nertn_flush,ntlbfill_en;
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout_reg,CSR_pipeline_inte_flush=inte_flush_reg;
@@ -221,12 +221,14 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         //jumpc_reg<=0;
         clk_stall<=0;
+        tlbfill_en<=0;
         end
     else 
         begin
         clk_stall<=nclk_stall;
 //        if(jumpc_valid)
 //            jumpc_reg<=jumpc;
+        tlbfill_en<=ntlbfill_en;
         end
     end
     always@(posedge(clk))
@@ -290,7 +292,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     TI_cl=0;//TI_cl
     nclk_stall=clk_stall&~inte;
     
-    nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
+    nexcp_flush=0;nertn_flush=0;ntlbfill_en=0;
     if((!flushin && exe)||force_run)//?
         begin
         case(mode)
@@ -329,7 +331,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
                 end
             TLBFILL:
                 begin
-                tlbfill_en=1;
+                ntlbfill_en=1;
                 flushout=1; 
                 end      
         endcase
@@ -375,7 +377,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     TLBELO1out[6:0]=TLBELO1_VDPLVMATG;
     TLBELO1out[TLB_PALEN-5:8]=TLBELO1_PPN;
     rand_en=0;
-    case(mode)
+    case(mode_reg)
         TLBWR:
             begin
             if(ecode==TLBR)
