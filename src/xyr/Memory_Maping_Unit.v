@@ -66,7 +66,7 @@ module Memory_Maping_Unit#(//stall frist
     reg [31:0]PADDR0,PADDR1;reg [15:0]excp_arg0,excp_arg1;
     reg [1:0]memtype0,memtype1;wire VADDR_valid0,VADDR_valid1;
     reg VADDR_valid0_reg,VADDR_valid1_reg;
-    reg PADDR_valid0,PADDR_valid1;
+    wire PADDR_valid0,PADDR_valid1;
     //reg VADDR_valid0_reg,VADDR_valid1_reg;//reg [31:0]temp0,temp1;
     reg TLB_found0,TLB_found1;reg [5:0] found_ps0,found_ps1;
     reg found_v0,found_d0,found_v1,found_d1;
@@ -127,7 +127,7 @@ module Memory_Maping_Unit#(//stall frist
         optype0_reg<=0;optype1_reg<=0;
         VADDR0_reg<=0;VADDR1_reg<=0;
         VADDR_valid0_reg<=0;VADDR_valid1_reg<=0;
-        PADDR_valid0<=0;PADDR_valid1<=0;
+        //PADDR_valid0<=0;PADDR_valid1<=0;
         end
     else if(~stallw)
         begin
@@ -137,9 +137,11 @@ module Memory_Maping_Unit#(//stall frist
         optype0_reg<=optype0;optype1_reg<=optype1;
         VADDR0_reg<=VADDR0;VADDR1_reg<=VADDR1;
         VADDR_valid0_reg<=VADDR_valid0;VADDR_valid1_reg<=VADDR_valid1;
-        PADDR_valid0<=VADDR_valid0;PADDR_valid1<=VADDR_valid1;
+        //PADDR_valid0<=VADDR_valid0;PADDR_valid1<=VADDR_valid1;
         end
     end
+    assign PADDR_valid0=VADDR_valid0_reg&~excp_arg0[15];
+    assign PADDR_valid1=VADDR_valid1_reg&~excp_arg1[15];
     
     genvar i;
     generate
