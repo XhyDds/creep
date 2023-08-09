@@ -11,6 +11,5 @@ always @(posedge clk) begin
     if(!rstn)out <= {(width){1'b0}};
     else if(we)out <= in;
     else if(clear)out <= {(width){1'b0}};
-    else out <= 0;
 end
 endmodule
