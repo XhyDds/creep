@@ -29,19 +29,21 @@ module Memory_Maping_Unit#(//stall frist
     input [1:0] pipeline_MMU_optype0,//0-fetch 1-load 2-store
     input pipeline_MMU_VADDR_valid0,
     input [31:0] pipeline_MMU_VADDR0,
+    output MMU_pipeline_PADDR_valid0,
     output [31:0] MMU_pipeline_PADDR0,
     output [15:0] MMU_pipeline_excp_arg0,//valid,subcode,code
-    output [2:0] MMU_pipeline_memtype0,//valid,memtype;
+    output [1:0] MMU_pipeline_memtype0,
+   
     
     input pipeline_MMU_stall1,
     input pipeline_MMU_flush1,
     input [1:0] pipeline_MMU_optype1,//0-fetch 1-load 2-store
     input pipeline_MMU_VADDR_valid1,
     input [31:0] pipeline_MMU_VADDR1,
+    output MMU_pipeline_PADDR_valid1,
     output [31:0] MMU_pipeline_PADDR1,
     output [15:0] MMU_pipeline_excp_arg1,
-    output [2:0] MMU_pipeline_memtype1
-    
+    output [1:0] MMU_pipeline_memtype1
 );
     localparam TLB_nex=(1<<TLB_n)-1;
     localparam MMU=11,PRIV_MMU=10;
@@ -62,7 +64,8 @@ module Memory_Maping_Unit#(//stall frist
     wire [31:0]VADDR0,VADDR1;
     wire [1:0]optype0,optype1;//reg [1:0] optype0_reg,optype1_reg;
     reg [31:0]PADDR0,PADDR1;reg [15:0]excp_arg0,excp_arg1;
-    reg [2:0]memtype0,memtype1;wire VADDR_valid0,VADDR_valid1;
+    reg [1:0]memtype0,memtype1;wire VADDR_valid0,VADDR_valid1;
+    reg PADDR_valid0,PADDR_valid1;
     //reg VADDR_valid0_reg,VADDR_valid1_reg;//reg [31:0]temp0,temp1;
     reg TLB_found0,TLB_found1;reg [5:0] found_ps0,found_ps1;
     reg found_v0,found_d0,found_v1,found_d1;
@@ -72,10 +75,11 @@ module Memory_Maping_Unit#(//stall frist
     assign VADDR0=pipeline_MMU_VADDR0,optype0=pipeline_MMU_optype0;
     assign MMU_pipeline_PADDR0=PADDR0,MMU_pipeline_excp_arg0=excp_arg0;
     assign MMU_pipeline_memtype0=memtype0,VADDR_valid0=pipeline_MMU_VADDR_valid0;
+    assign MMU_pipeline_PADDR_valid0=PADDR_valid0;
     assign VADDR1=pipeline_MMU_VADDR1,optype1=pipeline_MMU_optype1;
     assign MMU_pipeline_PADDR1=PADDR1,MMU_pipeline_excp_arg1=excp_arg1;
     assign MMU_pipeline_memtype1=memtype1,VADDR_valid1=pipeline_MMU_VADDR_valid1;
-    
+    assign MMU_pipeline_PADDR_valid1=PADDR_valid1;
     
     
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
@@ -120,6 +124,7 @@ module Memory_Maping_Unit#(//stall frist
         TLBELO0out<=0;TLBELO1out<=0;
         ASIDout<=0;//exe_reg<=0;
         //optype0_reg<=0;optype1_reg<=0;
+        PADDR_valid0<=0;PADDR_valid1<=0;
         end
     else if(~stallw)
         begin
@@ -127,6 +132,7 @@ module Memory_Maping_Unit#(//stall frist
         TLBELO0out<=TLBELO0;TLBELO1out<=TLBELO1;
         ASIDout<=ASIDrd;//exe_reg<=exe;
         //optype0_reg<=optype0;optype1_reg<=optype1;
+        PADDR_valid0<=VADDR_valid0;PADDR_valid1<=VADDR_valid1;
         end
     end
     
@@ -308,8 +314,7 @@ module Memory_Maping_Unit#(//stall frist
     else if(~stall0)
         begin
         PADDR0<=({found_ppn0,12'b0}&addrmask0)|(VADDR0&~addrmask0);
-        memtype0[1:0]<=found_mat0;
-        memtype0[2]<=VADDR_valid0;
+        memtype0<=found_mat0;
         excp_arg0<=0;
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
@@ -317,20 +322,20 @@ module Memory_Maping_Unit#(//stall frist
             PADDR0<=VADDR0;
             excp_arg0<=0;
             if(optype0==FETCH)
-                memtype0[1:0]<=CRMDin[6:5];
+                memtype0<=CRMDin[6:5];
             else
-                memtype0[1:0]<=CRMDin[8:7];
+                memtype0<=CRMDin[8:7];
             end
         else if(DMW0_plvOK && DMW0in[31:29]==VADDR0[31:29])
             begin
             PADDR0<={DMW0in[27:25],VADDR0[28:0]};
-            memtype0[1:0]<=DMW0in[5:4];
+            memtype0<=DMW0in[5:4];
             excp_arg0<=0;
             end
         else if(DMW1_plvOK && DMW1in[31:29]==VADDR0[31:29])
             begin
             PADDR0<={DMW1in[27:25],VADDR0[28:0]};
-            memtype0[1:0]<=DMW1in[5:4];
+            memtype0<=DMW1in[5:4];
             excp_arg0<=0;
             end
         else if(CRMDin[1:0]!=0 && VADDR0[31]==1)
@@ -409,8 +414,7 @@ module Memory_Maping_Unit#(//stall frist
     else if(~stall1)
         begin
         PADDR1<=({found_ppn1,12'b0}&addrmask1)|(VADDR1&~addrmask1);
-        memtype1[1:0]<=found_mat1;
-        memtype1[2]<=VADDR_valid1;
+        memtype1<=found_mat1;
         excp_arg1<=0;
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
@@ -418,20 +422,20 @@ module Memory_Maping_Unit#(//stall frist
             PADDR1<=VADDR1;
             excp_arg1<=0;
             if(optype1==FETCH)
-                memtype1[1:0]<=CRMDin[6:5];
+                memtype1<=CRMDin[6:5];
             else
-                memtype1[1:0]<=CRMDin[8:7];
+                memtype1<=CRMDin[8:7];
             end
         else if(DMW0_plvOK && DMW0in[31:29]==VADDR1[31:29])
             begin
             PADDR1<={DMW0in[27:25],VADDR1[28:0]};
-            memtype1[1:0]<=DMW0in[5:4];
+            memtype1<=DMW0in[5:4];
             excp_arg1<=0;
             end
         else if(DMW1_plvOK && DMW1in[31:29]==VADDR1[31:29])
             begin
             PADDR1<={DMW1in[27:25],VADDR1[28:0]};
-            memtype1[1:0]<=DMW1in[5:4];
+            memtype1<=DMW1in[5:4];
             excp_arg1<=0;
             end
         else if(CRMDin[1:0]!=0 && VADDR1[31]==1)
