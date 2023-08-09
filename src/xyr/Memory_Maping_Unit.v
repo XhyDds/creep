@@ -29,6 +29,7 @@ module Memory_Maping_Unit#(//stall frist
     input [1:0] pipeline_MMU_optype0,//0-fetch 1-load 2-store
     input pipeline_MMU_VADDR_valid0,
     input [31:0] pipeline_MMU_VADDR0,
+    output MMU_pipeline_PADDR_valid0,
     output [31:0] MMU_pipeline_PADDR0,
     output [15:0] MMU_pipeline_excp_arg0,//valid,subcode,code
     output [1:0] MMU_pipeline_memtype0,
@@ -38,6 +39,7 @@ module Memory_Maping_Unit#(//stall frist
     input [1:0] pipeline_MMU_optype1,//0-fetch 1-load 2-store
     input pipeline_MMU_VADDR_valid1,
     input [31:0] pipeline_MMU_VADDR1,
+    output MMU_pipeline_PADDR_valid1,
     output [31:0] MMU_pipeline_PADDR1,
     output [15:0] MMU_pipeline_excp_arg1,
     output [1:0] MMU_pipeline_memtype1
@@ -63,6 +65,7 @@ module Memory_Maping_Unit#(//stall frist
     wire [1:0]optype0,optype1;//reg [1:0] optype0_reg,optype1_reg;
     reg [31:0]PADDR0,PADDR1;reg [15:0]excp_arg0,excp_arg1;
     reg [1:0]memtype0,memtype1;wire VADDR_valid0,VADDR_valid1;
+    reg PADDR_valid0,PADDR_valid1;
     //reg VADDR_valid0_reg,VADDR_valid1_reg;//reg [31:0]temp0,temp1;
     reg TLB_found0,TLB_found1;reg [5:0] found_ps0,found_ps1;
     reg found_v0,found_d0,found_v1,found_d1;
@@ -72,10 +75,11 @@ module Memory_Maping_Unit#(//stall frist
     assign VADDR0=pipeline_MMU_VADDR0,optype0=pipeline_MMU_optype0;
     assign MMU_pipeline_PADDR0=PADDR0,MMU_pipeline_excp_arg0=excp_arg0;
     assign MMU_pipeline_memtype0=memtype0,VADDR_valid0=pipeline_MMU_VADDR_valid0;
+    assign MMU_pipeline_PADDR_valid0=PADDR_valid0;
     assign VADDR1=pipeline_MMU_VADDR1,optype1=pipeline_MMU_optype1;
     assign MMU_pipeline_PADDR1=PADDR1,MMU_pipeline_excp_arg1=excp_arg1;
     assign MMU_pipeline_memtype1=memtype1,VADDR_valid1=pipeline_MMU_VADDR_valid1;
-    
+    assign MMU_pipeline_PADDR_valid1=PADDR_valid1;
     
     
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
@@ -120,6 +124,7 @@ module Memory_Maping_Unit#(//stall frist
         TLBELO0out<=0;TLBELO1out<=0;
         ASIDout<=0;exe_reg<=0;
         //optype0_reg<=0;optype1_reg<=0;
+        PADDR_valid0<=0;PADDR_valid1<=0;
         end
     else if(~stallw)
         begin
@@ -127,6 +132,7 @@ module Memory_Maping_Unit#(//stall frist
         TLBELO0out<=TLBELO0;TLBELO1out<=TLBELO1;
         ASIDout<=ASIDrd;exe_reg<=exe;
         //optype0_reg<=optype0;optype1_reg<=optype1;
+        PADDR_valid0<=VADDR_valid0;PADDR_valid1<=VADDR_valid1;
         end
     end
     
