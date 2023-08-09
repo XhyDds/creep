@@ -18,7 +18,7 @@ module L1_L2cache#(
     input       SUC_pipeline_icache,
 
     input       pipeline_icache_valid,
-    output      icache_pipeline_ready,
+    output      icache_pipeline_valid,
 
     input       [31:0]pipeline_icache_opcode,//cache操作
     input       pipeline_icache_opflag,//0-正常访存 1-cache操作    
@@ -144,7 +144,7 @@ Icache(
     .SUC_pipeline_icache(SUC_pipeline_icache),
 
     .pipeline_icache_valid(pipeline_icache_valid),
-    .icache_pipeline_ready(icache_pipeline_ready),
+    .icache_pipeline_valid(icache_pipeline_valid),
 
     .pipeline_icache_opcode(opcode_i),
     .pipeline_icache_opflag(op_i),

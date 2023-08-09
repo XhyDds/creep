@@ -41,7 +41,7 @@ module Icache#(
     input       SUC_pipeline_icache,
 
     input       pipeline_icache_valid,
-    output      icache_pipeline_ready,
+    output      icache_pipeline_valid,
     
     input       [31:0]pipeline_icache_opcode,//cache操作
     input       pipeline_icache_opflag,//0-正常访存 1-cache操作    
@@ -233,7 +233,7 @@ reg data_flag_reg;
 always @(posedge clk) begin
     data_out_reg <= dout_icache_pipeline;
     data_flag_reg <= flag_icache_pipeline;
-    choose_stall <= rbuf_stall & icache_pipeline_ready;
+    choose_stall <= rbuf_stall & icache_pipeline_valid;
 end
 assign dout_icache_pipeline = (choose_stall) ? data_out_reg : data_out;
 assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : data_flag;
@@ -261,7 +261,7 @@ Icache_FSMmain(
 
     //pipeline  icache
     .pipeline_icache_valid(pipeline_icache_valid),
-    .icache_pipeline_ready1(icache_pipeline_ready),
+    .icache_pipeline_valid1(icache_pipeline_valid),
     .pipeline_icache_opcode(pipeline_icache_opcode),
     .pipeline_icache_opflag(pipeline_icache_opflag),
     .ack_op(ack_op),

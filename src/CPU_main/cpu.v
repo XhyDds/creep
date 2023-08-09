@@ -202,7 +202,7 @@ module core_top(
     //ICache
     wire [63:0]	dout_icache_pipeline;
     wire 	    flag_icache_pipeline;
-    wire        icache_pipeline_ready;
+    wire        icache_pipeline_valid;
 
     wire [31:0]	addr_icache_mem;
     wire [1:0]	icache_mem_size;
@@ -1236,7 +1236,7 @@ module core_top(
             PLV_if1_fifo<=PLV_if0_if1;
             pre_if1_fifo<=pre_if0_if1;
             ir_if1_fifo<=dout_icache_pipeline;
-            icache_valid_if1_fifo<=icache_pipeline_ready;
+            icache_valid_if1_fifo<=icache_pipeline_valid;
             flag_if1_fifo<=flag_icache_pipeline;
             MMU_pipeline_excp_arg0_if1_fifo<=MMU_pipeline_excp_arg0;
             npc_if1_fifo<=pc;
@@ -1728,7 +1728,7 @@ module core_top(
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
         .pipeline_icache_valid  		( |pc[1:0]?0:1  		),
-        .icache_pipeline_ready  		( icache_pipeline_ready  		),//
+        .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
         .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
