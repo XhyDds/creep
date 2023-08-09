@@ -124,7 +124,7 @@ module Memory_Maping_Unit#(//stall frist
         TLBELO0out<=0;TLBELO1out<=0;
         ASIDout<=0;//exe_reg<=0;
         //optype0_reg<=0;optype1_reg<=0;
-        PADDR_valid0<=0;PADDR_valid1<=0;
+        //PADDR_valid0<=0;PADDR_valid1<=0;
         end
     else if(~stallw)
         begin
@@ -132,7 +132,7 @@ module Memory_Maping_Unit#(//stall frist
         TLBELO0out<=TLBELO0;TLBELO1out<=TLBELO1;
         ASIDout<=ASIDrd;//exe_reg<=exe;
         //optype0_reg<=optype0;optype1_reg<=optype1;
-        PADDR_valid0<=VADDR_valid0;PADDR_valid1<=VADDR_valid1;
+        //PADDR_valid0<=VADDR_valid0;PADDR_valid1<=VADDR_valid1;
         end
     end
     
@@ -309,13 +309,14 @@ module Memory_Maping_Unit#(//stall frist
     if(!rstn || flush0)//flush first
         begin
         PADDR0<=0;excp_arg0<=0;
-        memtype0<=0;
+        memtype0<=0;PADDR_valid0<=0;
         end
     else if(~stall0)
         begin
         PADDR0<=({found_ppn0,12'b0}&addrmask0)|(VADDR0&~addrmask0);
         memtype0<=found_mat0;
         excp_arg0<=0;
+        PADDR_valid0<=1;
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
             PADDR0<=0;
@@ -340,6 +341,7 @@ module Memory_Maping_Unit#(//stall frist
             end
         else if(CRMDin[1:0]!=0 && VADDR0[31]==1)
             begin
+            PADDR_valid0<=0;
             if(optype0==FETCH)
                 excp_arg0<={VADDR_valid0,ADEF,ADE}; 
             else
@@ -347,9 +349,12 @@ module Memory_Maping_Unit#(//stall frist
             end
         else if(TLB_found0==0)
             begin
+            PADDR_valid0<=0;
             excp_arg0<={VADDR_valid0,DEFAULT,TLBR};
             end
         else if(found_v0==0)
+            begin
+            PADDR_valid0<=0;
             case(optype0)
                 FETCH:
                    excp_arg0<={VADDR_valid0,DEFAULT,PIF}; 
@@ -358,10 +363,17 @@ module Memory_Maping_Unit#(//stall frist
                 STORE:
                     excp_arg0<={VADDR_valid0,DEFAULT,PIS};
             endcase
+            end
         else if(CRMDin[1:0]>found_plv0)
+            begin
+            PADDR_valid0<=0;
             excp_arg0<={VADDR_valid0,DEFAULT,PPI};
+            end
         else if(optype0==STORE&&found_d0==0)
+            begin
+            PADDR_valid0<=0;
             excp_arg0<={VADDR_valid0,DEFAULT,PME};
+            end
         else
             excp_arg0<=0;
        end 
@@ -410,12 +422,14 @@ module Memory_Maping_Unit#(//stall frist
         begin
         PADDR1<=0;excp_arg1<=0;
         memtype1<=0;
+        PADDR_valid1<=0;
         end
     else if(~stall1)
         begin
         PADDR1<=({found_ppn1,12'b0}&addrmask1)|(VADDR1&~addrmask1);
         memtype1<=found_mat1;
         excp_arg1<=0;
+        PADDR_valid1<=1;
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
             PADDR1<=0;
@@ -440,6 +454,7 @@ module Memory_Maping_Unit#(//stall frist
             end
         else if(CRMDin[1:0]!=0 && VADDR1[31]==1)
             begin
+            PADDR_valid1<=0;
             if(optype1==FETCH)
                 excp_arg1<={VADDR_valid1,ADEF,ADE}; 
             else
@@ -447,9 +462,12 @@ module Memory_Maping_Unit#(//stall frist
             end
         else if(TLB_found1==0)
             begin
+            PADDR_valid1<=0;
             excp_arg1<={VADDR_valid1,DEFAULT,TLBR};
             end
         else if(found_v1==0)
+            begin
+            PADDR_valid1<=0;
             case(optype1)
                 FETCH:
                    excp_arg1<={VADDR_valid1,DEFAULT,PIF}; 
@@ -458,10 +476,17 @@ module Memory_Maping_Unit#(//stall frist
                 STORE:
                     excp_arg1<={VADDR_valid1,DEFAULT,PIS};
             endcase
+            end
         else if(CRMDin[1:0]>found_plv1)
+            begin
+            PADDR_valid1<=0;
             excp_arg1<={VADDR_valid1,DEFAULT,PPI};
+            end
         else if(optype1==STORE&&found_d1==0)
+            begin
+            PADDR_valid1<=0;
             excp_arg1<={VADDR_valid1,DEFAULT,PME};
+            end
         else 
             excp_arg1<=0;    
         
