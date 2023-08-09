@@ -1878,8 +1878,8 @@ module core_top(
     wire     [5:0]  ws_csr_ecode        =   csr_ecode;
     wire            ws_valid_diff0      =   (ws_valid1)?ws_valid0:ws_valid1;
     wire            ws_valid_diff1      =   (ws_valid1)?ws_valid1:ws_valid0;
-    wire            cnt_inst_diff0      =   ctr_exe1_wb_0[23];
-    wire            cnt_inst_diff1      =   ctr_exe1_wb_1[23];
+    wire            cnt_inst_diff0      =   (ws_valid1)?ctr_exe1_wb_0[23]:ctr_exe1_wb_1[23];
+    wire            cnt_inst_diff1      =   (ws_valid1)?ctr_exe1_wb_1[23]:ctr_exe1_wb_0[23];
     wire    [63:0]  ws_timer_64_diff    =   countresult_exe1_wb_1;
 
     wire     [7:0]  inst_ld_en_diff     =   ctr_exe1_wb_1[4];
