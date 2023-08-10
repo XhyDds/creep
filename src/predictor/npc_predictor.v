@@ -39,10 +39,18 @@ module npc_predictor#(
                 INDIRECT_JUMP = 3'd5,
                 CALL = 3'd6,
                 JUMP=3'd7;
+    `ifndef DMA
     always @(*) begin
         if(pc_reg[0]) npc_test=pc_reg+1;
         else npc_test=pc_reg+2;
     end
+    `endif
+
+    `ifdef DMA
+    always @(*) begin
+        npc_test=pc_reg+1;
+    end
+    `endif
     
     wire [ADDR_WIDTH-1:0]npc_btb;
     wire [ADDR_WIDTH-1:0]npc_ras;
@@ -96,7 +104,8 @@ module npc_predictor#(
         .choice_pdch_ex(choice_pdch_ex),
         .update_en((kind_ex==RET)&&update_en)
     );
-
+    
+    `ifndef DMA
     always @(*) begin
         // if(stall) npc_pdc=pc_reg;
         // else 
@@ -114,4 +123,22 @@ module npc_predictor#(
         end
         else                    npc_pdc=(({ADDR_WIDTH{~pc_reg_reg[0]}})&(pc_reg_reg+2))|(({ADDR_WIDTH{pc_reg_reg[0]}})&(pc_reg_reg+1));
     end
+    `endif
+
+    `ifdef DMA
+    always @(*) begin
+        if(taken_pdc) begin
+            case (kind_pdc)
+                NOT_JUMP:       npc_pdc=pc_reg_reg+1;
+                DIRECT_JUMP:    npc_pdc=npc_btb;
+                RET:            npc_pdc=(({ADDR_WIDTH{choice_btb_ras}})&npc_btb)|(({ADDR_WIDTH{~choice_btb_ras}})&npc_ras);
+                INDIRECT_JUMP:  npc_pdc=npc_btb;
+                JUMP:           npc_pdc=npc_btb;
+                CALL:           npc_pdc=npc_btb;
+                default:        npc_pdc=pc_reg_reg+1;
+            endcase
+        end
+        else                    npc_pdc=pc_reg_reg+1;
+    end
+    `endif
 endmodule
