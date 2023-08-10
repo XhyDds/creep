@@ -266,7 +266,7 @@ Icache_FSMmain(
     .pipeline_icache_opflag(pipeline_icache_opflag),
     .ack_op(ack_op),
     .pipeline_icache_ctrl(pipeline_icache_ctrl),
-    .icache_pipeline_stall(icache_pipeline_stall),
+    .icache_pipeline_stall1(icache_pipeline_stall),
 
     //icache  mem
     .icache_mem_req(icache_mem_req),
