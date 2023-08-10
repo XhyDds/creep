@@ -312,14 +312,7 @@ always @(*) begin
             end
             else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
                 hit_record_we = 1;
-                if(FSM_hit[0])FSM_TagV_unvalid = 8'b00000001;
-                else if(FSM_hit[1])FSM_TagV_unvalid = 8'b00000010;
-                else if(FSM_hit[2])FSM_TagV_unvalid = 8'b00000100;
-                else if(FSM_hit[3])FSM_TagV_unvalid = 8'b00001000;
-                else if(FSM_hit[4])FSM_TagV_unvalid = 8'b00010000;
-                else if(FSM_hit[5])FSM_TagV_unvalid = 8'b00100000;
-                else if(FSM_hit[6])FSM_TagV_unvalid = 8'b01000000;
-                else if(FSM_hit[7])FSM_TagV_unvalid = 8'b10000000;
+                FSM_TagV_unvalid = FSM_hit;
             end
         end
         prefetch_check:begin
@@ -386,20 +379,23 @@ always @(*) begin
         Lookup:begin
             missvalid = ~Hit;
             if(!(FSM_rbuf_from == 2'b01 && flush) && !FSM_rbuf_SUC)begin
-            if(Hit)begin
-                if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
-                    FSM_use[hit_pos] = 1;
-                    FSM_choose_way = hit_pos;
-                    if(FSM_rbuf_from[1])l2cache_dcache_dataOK =1;
-                    else l2cache_icache_dataOK = 1;
-                end
-                else begin//写命中
-                    FSM_Dirtytable_set1 = 1;
-                    FSM_use[hit_pos] = 1;
-                    FSM_Data_we[hit_pos] = 1;
-                    FSM_Dirtytable_way_select = hit_pos;
+                if(Hit)begin
+                    if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
+                        FSM_use[hit_pos] = 1;
+                        FSM_choose_way = hit_pos;
+                        if(FSM_rbuf_from[1])l2cache_dcache_dataOK =1;
+                        else l2cache_icache_dataOK = 1;
+                    end
+                    else begin//写命中
+                        FSM_Dirtytable_set1 = 1;
+                        FSM_use[hit_pos] = 1;
+                        FSM_Data_we[hit_pos] = 1;
+                        FSM_Dirtytable_way_select = hit_pos;
+                    end
                 end
             end
+            if(FSM_rbuf_SUC)begin
+                FSM_TagV_unvalid = FSM_hit;
             end
         end
         checkDirty:begin
