@@ -1,5 +1,5 @@
 `define predictor
-`define two_pre
+// `define two_pre
 // `define DMA
 // module mycpu_top(
 module core_top(
@@ -2169,8 +2169,8 @@ module core_top(
         .eret               (cmt_ertn       ),
         .intrNo             (csr_estat_diff_0[12:2]),
         .cause              (cmt_csr_ecode  ),
-        .exceptionPC        (pc_exe1_wb_1   ),
-        .exceptionInst      (ir_exe1_wb_1   )
+        .exceptionPC        (cmt_pc1        ),
+        .exceptionInst      (cmt_inst1      )
     );
 
     DifftestTrapEvent DifftestTrapEvent(
