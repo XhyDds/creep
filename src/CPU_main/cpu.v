@@ -1,5 +1,6 @@
 `define predictor
 `define two_pre
+`define DMA
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -1164,16 +1165,14 @@ module core_top(
 `endif
 
     //PC
-    // wire dma;
-    // `ifdef DMA
-    //     assign dma = 1'b1;
-    // `endif
-    // `ifndef DMA
-    //     assign dma = 1'b0;
-    // `endif
-    // assign ifsuc= ~MMU_pipeline_memtype0[0] & MMU_pipeline_valid0;
+    wire dma;
+    `ifdef DMA
+        assign dma = 1'b1;
+    `endif
+    `ifndef DMA
+        assign dma = 1'b0;
+    `endif
     assign ifsuc= ~MMU_pipeline_memtype0[0] & |MMU_pipeline_PADDR0;
-    // assign ifsuc= ~MMU_pipeline_memtype0[0] | dma;
     wire [31:0]npc_pdc_32={npc_pdc,2'b0};
     always @(*) begin
         ifnpc_pdc=0;
@@ -1183,6 +1182,8 @@ module core_top(
         else if(ifbr0) npc=pc_br0;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
         else if(ifsuc) npc=pc_if0_if1+4;
+        else if(dma) npc=pc+4;
+        
         `ifdef predictor
             `ifdef two_pre
                 else if(flush_mispre) begin npc=npc_pdc_32;ifnpc_pdc=1; end 
@@ -1192,6 +1193,7 @@ module core_top(
                 else begin npc=npc_pdc_32;ifnpc_pdc=1; end
             `endif
         `endif
+
         `ifndef predictor
         else if(pc[2]) npc=pc+4;
         else npc=pc+8;//Icache ONLY
