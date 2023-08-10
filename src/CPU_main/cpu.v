@@ -1764,11 +1764,11 @@ module core_top(
         .rstn                   		( rstn                   		),
 
         //  Icache
-        .addr_pipeline_icache   		( |pc[1:0]?32'h1C000000:pc   	),
+        .addr_pipeline_icache   		( pipeline_icache_opflag?addr_pipeline_dcache:(|pc[1:0]?32'h1C000000:pc)    ),
         .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_valid  		( ~flush_if0_if1                ),
+        .pipeline_icache_valid  		( ~flush_if0_if1&~pipeline_icache_opflag),
         .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
@@ -2169,8 +2169,8 @@ module core_top(
         .eret               (cmt_ertn       ),
         .intrNo             (csr_estat_diff_0[12:2]),
         .cause              (cmt_csr_ecode  ),
-        .exceptionPC        (pc_exe1_wb_1   ),
-        .exceptionInst      (ir_exe1_wb_1   )
+        .exceptionPC        (cmt_pc1        ),
+        .exceptionInst      (cmt_inst1      )
     );
 
     DifftestTrapEvent DifftestTrapEvent(

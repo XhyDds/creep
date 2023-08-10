@@ -22,15 +22,19 @@ module btb#(
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [k_width-1:0]hashed_pc_upt;
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0]hashed_bh_pc_upt;
 
-
-    wire [ADDR_WIDTH-1:0] npc_pdc_;
-
-    assign npc_pdc = (hashed_pc_tag==hashed_pc)?npc_pdc_:(pc[0]?(pc+1):(pc+2));
-
     reg [ADDR_WIDTH-1:0] pc_reg;
     always @(posedge clk) begin
         if(~stall) pc_reg <= pc;
     end
+
+    wire [ADDR_WIDTH-1:0] npc_pdc_;
+    `ifndef DMA
+    assign npc_pdc = (hashed_pc_tag==hashed_pc)?npc_pdc_:(pc_reg[0]?(pc_reg+1):(pc_reg+2));
+    `endif
+    `ifdef DMA
+    assign npc_pdc = (hashed_pc_tag==hashed_pc)?npc_pdc_:(pc_reg+1);
+    `endif
+
 
     sp_bram#(
         .ADDR_WIDTH(h_width),
