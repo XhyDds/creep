@@ -1,2 +1,0 @@
-L1_offset_width=2
-L2_offset_width=3
