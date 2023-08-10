@@ -378,13 +378,13 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     case(mode)
         TLBWR:
             begin
-            if(ecode==TLBR)
+            if(ESTAT_Ecode==TLBR)
                 TLBIDXout[31]=0;//NE=0,E=1
             end
         TLBFILL:
             begin
             rand_en=1; 
-            if(ecode==TLBR)
+            if(ESTAT_Ecode==TLBR)
                 TLBIDXout[31]=0;//NE=0,E=1
             TLBIDXout[TLB_n-1:0]=randnum[TLB_n-1:0];
             //TLBIDXout[TLB_n-1:0]=0;
