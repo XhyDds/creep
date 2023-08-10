@@ -172,7 +172,7 @@ module predictor #(
         .gh_ex(gh_ex),
         .taken_pdc(taken_pdc),
         .taken_ex(taken_real),
-        .mis_pdc(taken_pdch_ex_g[1]!=taken_real),
+        .mis_pdc(mis_pdc_taken),
         .is_jump_pdc(kind_pdc!=NOT_JUMP),
         .is_jump_ex(kind_ex!=NOT_JUMP),
         .is_jump_pdc_ex(kind_pdc_ex!=NOT_JUMP),

@@ -69,6 +69,7 @@ module aim_predictor#(
     );
 
     wire taken_tage;
+    assign taken_pdch_g={taken_tage,1'b0};
 
     tage #(
         .gh_width(gh_width),

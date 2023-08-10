@@ -38,8 +38,8 @@ module tage#(
     wire [1:0]u_pdch_ex_8=pdch_ex[4:3];
     wire [1:0]u_pdch_ex_16=pdch_ex[6:5];
     wire [1:0]u_pdch_ex_32=pdch_ex[8:7];
-    wire [1:0]choice_pdch_ex=pdch_ex[10:9];
-    wire taken_altpdc_ex=pdch_ex[11];
+    wire taken_altpdc_ex=pdch_ex[9];
+    wire [1:0]choice_pdch_ex=pdch_ex[11:10];
 
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_8;
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_upt_8;
