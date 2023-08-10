@@ -181,7 +181,7 @@ Dcache(
     .clk(clk),
     .rstn(rstn),
 
-    .addr_pipeline_dcache(op_d ? addr_d : addr_pipeline_dcache),
+    .addr_pipeline_dcache(/*op_d ? addr_d : */addr_pipeline_dcache),
     .paddr_pipeline_dcache(paddr_pipeline_dcache),
     .din_pipeline_dcache(din_pipeline_dcache),
     .pcin_pipeline_dcache(pcin_pipeline_dcache),
@@ -189,12 +189,12 @@ Dcache(
     .type_pipeline_dcache(type_pipeline_dcache),
     .SUC_pipeline_dcache(SUC_pipeline_dcache),
 
-    .pipeline_dcache_valid(pipeline_dcache_valid | op_d),
+    .pipeline_dcache_valid(pipeline_dcache_valid/* | op_d*/),
     .dcache_pipeline_ready(dcache_pipeline_ready),
 
     .pipeline_dcache_wstrb(pipeline_dcache_wstrb),
-    .pipeline_dcache_opcode(opcode_d),
-    .pipeline_dcache_opflag(op_d),
+    .pipeline_dcache_opcode(pipeline_dcache_opcode),
+    .pipeline_dcache_opflag(pipeline_dcache_opflag),
     .ack_op(ack_d),
     .pipeline_dcache_ctrl(pipeline_dcache_ctrl),
     .dcache_pipeline_stall(dcache_pipeline_stall),

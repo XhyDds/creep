@@ -274,7 +274,7 @@ always @(*) begin
     FSM_TagV_init = 0;
     hit_record_we = 0;
     FSM_TagV_unvalid = 0;
-    ack_op = 0;
+    ack_op = (next_state == Operation);
     hit_l2cache_pref = 0;
     complete_l2cache_pref = 0;
     addrOK_l2cache_pref = 0;
@@ -297,7 +297,6 @@ always @(*) begin
             end
         end
         Operation:begin
-            ack_op = 1;
             if(FSM_rbuf_opcode[4:3] == 2'd0)begin//Tag、valid置零
                 FSM_TagV_init = {1'b1,FSM_rbuf_opaddr[2:0]};
             end

@@ -210,7 +210,7 @@ always @(*) begin
     FSM_choose_return = 0;
     FSM_Data_replace = 0;
     FSM_TagV_init = 0;
-    ack_op = 0;
+    ack_op = (next_state == Operation);
     case (state)
         Idle:begin
             dcache_pipeline_ready=1;
@@ -245,7 +245,6 @@ always @(*) begin
         Operation:begin
             dcache_pipeline_ready = 1;
             FSM_rbuf_we = 1;
-            ack_op = 1;
             if(!flush_outside)begin
                 if(FSM_rbuf_opcode[4:3] == 2'd0)begin
                     FSM_TagV_init = {1'b1,FSM_rbuf_addr[0]};

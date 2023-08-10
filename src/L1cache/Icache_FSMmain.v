@@ -35,7 +35,7 @@ module Icache_FSMmain#(
     input       pipeline_icache_opflag,
     output reg  ack_op,
     input       [31:0]pipeline_icache_ctrl,//stall flush branch ...
-    output reg  icache_pipeline_stall,//stall form icache
+    output      icache_pipeline_stall1,//stall form icache
 
     output reg  icache_mem_req,
     input       mem_icache_dataOK,//返回的数据有效
@@ -69,6 +69,7 @@ module Icache_FSMmain#(
 //对字节和byte的选择暂未加入
 
 reg icache_pipeline_valid;
+reg icache_pipeline_stall;
 assign FSM_TagV_we=FSM_Data_we;
 wire hit0,hit1;
 assign hit0=FSM_hit[0];
@@ -83,6 +84,7 @@ always @(posedge clk) begin
     rstn_reg <= rstn;
 end
 assign icache_pipeline_valid1=icache_pipeline_valid&rstn_reg;//初始态不能给ready
+assign icache_pipeline_stall1 = icache_pipeline_stall | opflag;//存cacop后pc正确 不能流
 wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 reg [4:0]state;
 reg [4:0]next_state;
@@ -153,7 +155,7 @@ always @(*) begin
     FSM_TagV_init = 2'b0;
     FSM_TagV_ibar = 0;
     FSM_TagV_unvalid = 2'b0;
-    ack_op = 0;
+    ack_op = (next_state == Operation);
     icache_pipeline_stall = 1;
     case (state)
         Idle:begin
@@ -187,7 +189,6 @@ always @(*) begin
         Operation:begin//所有op一周期可以做完 流水
             icache_pipeline_stall = 0;
             FSM_rbuf_we=1;
-            ack_op = 1;
             if(!flush_outside)begin
                 if(FSM_rbuf_opcode[31])FSM_TagV_ibar = 1;
                 else if(FSM_rbuf_opcode[4:3] == 2'd0)begin
