@@ -1,6 +1,6 @@
 `define predictor
 `define two_pre
-`define DMA
+// `define DMA
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -143,7 +143,7 @@ module core_top(
     wire [15:0]MMU_pipeline_excp_arg1;
 
     wire ifbr0,ifbr1,ifcacop_ibar,ifsuc;
-    wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
+    wire ifmmu_excp1=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre,flush_if0_if1_left,flush_if0_if1_right;
@@ -165,17 +165,17 @@ module core_top(
 
     assign flush_if0_if1 =      flush_if0_if1_right|flush_if0_if1_left&~stall_if0_if1;
     assign flush_if0_if1_left = flush_mispre|ifsuc;
-    assign flush_if0_if1_right =ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_if1_fifo =     ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_fifo_id =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_id_reg0 =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_id_reg1 =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdownpre;
-    assign flush_reg_exe0_0 =   ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
-    assign flush_reg_exe0_1 =   ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushdown;
-    assign flush_exe0_exe1_0 =  ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flushup;
-    assign flush_exe0_exe1_1 =  ifinteflush|ifpriv|ifmmu_excp|ifbr1|ifbr0;
-    assign flush_exe1_wb_0 =    ifinteflush|ifpriv|ifmmu_excp|ifbr1;
-    assign flush_exe1_wb_1 =    ifinteflush|ifmmu_excp;
+    assign flush_if0_if1_right =ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle;
+    assign flush_if1_fifo =     ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle;
+    assign flush_fifo_id =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle;
+    assign flush_id_reg0 =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle;
+    assign flush_id_reg1 =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle|flushdownpre;
+    assign flush_reg_exe0_0 =   ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle;
+    assign flush_reg_exe0_1 =   ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle|flushdown;
+    assign flush_exe0_exe1_0 =  ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle|flushup;
+    assign flush_exe0_exe1_1 =  ifinteflush|ifpriv|ifmmu_excp1|ifbr1|ifbr0;
+    assign flush_exe1_wb_0 =    ifinteflush|ifpriv|ifmmu_excp1|ifbr1;
+    assign flush_exe1_wb_1 =    ifinteflush|ifmmu_excp1;
 
     assign stall_pc_ =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|ifidle;
     assign stall_pc =           ~(!stall_pc_|ifbr0|ifbr1|ifpriv|ifcacop_ibar);
@@ -856,8 +856,8 @@ module core_top(
 
         .pipeline_CSR_jumpc_valid       ( ifbr0|ifbr1|ifpriv            ),
         .pipeline_CSR_jumpc             ( npc                           ),
-        .pipeline_CSR_inpc_valid        ( ir_valid_reg_exe0_1           ),
-        .pipeline_CSR_inpc0     		( pc_reg_exe0_1     		    ),
+        .pipeline_CSR_inpc_valid        ( ir_valid_reg_exe0_1?ir_valid_reg_exe0_1:ir_valid_reg_exe0_0),
+        .pipeline_CSR_inpc0     		( ir_valid_reg_exe0_1?pc_reg_exe0_1:pc_reg_exe0_0     		 ),
         .pipeline_CSR_excp_arg0 		( excp_arg_reg_exe0_1_excp      ),
         .pipeline_CSR_evaddr0   		( addr_pipeline_dcache          ),
 
@@ -1172,7 +1172,7 @@ module core_top(
     `ifndef DMA
         assign dma = 1'b0;
     `endif
-    assign ifsuc= ~MMU_pipeline_memtype0[0] & |MMU_pipeline_PADDR0;
+    assign ifsuc= ~MMU_pipeline_memtype0[0] & MMU_pipeline_PADDR_valid0;
     wire [31:0]npc_pdc_32={npc_pdc,2'b0};
     always @(*) begin
         ifnpc_pdc=0;
@@ -1187,6 +1187,7 @@ module core_top(
         `ifdef predictor
             `ifdef two_pre
                 else if(flush_mispre) begin npc=npc_pdc_32;ifnpc_pdc=1; end 
+                else if(pc[2]) begin npc=pc+4;ifguess=1;ifnpc_pdc=1; end
                 else begin npc=pc+8;ifguess=1;ifnpc_pdc=1; end
             `endif
             `ifndef two_pre
@@ -1767,11 +1768,11 @@ module core_top(
         .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_valid  		( 1  		                    ),
+        .pipeline_icache_valid  		( ~flush_if0_if1                ),
         .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
-        .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
+        .pipeline_icache_ctrl           ( {30'b0,1'b0,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
         .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0]     ),
         .pc_icache_pipeline             ( pc_icache_pipeline    ),
@@ -1782,7 +1783,7 @@ module core_top(
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_valid  		( pipeline_dcache_valid&~ifmmu_excp&~flush_exe0_exe1_1&~stall_exe0_exe1_1     ),
+        .pipeline_dcache_valid  		( pipeline_dcache_valid&~flush_exe0_exe1_1&~stall_exe0_exe1_1     ),
         .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_size           ( pipeline_dcache_size          ),
