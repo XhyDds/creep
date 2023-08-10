@@ -127,10 +127,7 @@ wire icache_mem_req;
 wire icache_mem_SUC;
 wire [1:0]icache_mem_size;
 wire mem_icache_dataOK;
-reg op_i_reg;
-always @(posedge clk) begin
-    op_i_reg <= op_i;
-end
+
 Icache #(
     .index_width(I_index_width),
     .offset_width(L1_offset_width)
@@ -140,7 +137,7 @@ Icache(
     .rstn(rstn),
 
     .addr_pipeline_icache(op_i ? addr_i : addr_pipeline_icache),
-    .paddr_pipeline_icache(op_i_reg ? addr_i : paddr_pipeline_icache),//???
+    .paddr_pipeline_icache(op_i ? addr_i : paddr_pipeline_icache),
     .dout_icache_pipeline(dout_icache_pipeline),
     .pc_icache_pipeline(pc_icache_pipeline),
     .flag_icache_pipeline(flag_icache_pipeline),

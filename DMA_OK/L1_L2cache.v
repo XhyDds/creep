@@ -18,7 +18,7 @@ module L1_L2cache#(
     input       SUC_pipeline_icache,
 
     input       pipeline_icache_valid,
-    output      icache_pipeline_valid,
+    output      icache_pipeline_ready,
 
     input       [31:0]pipeline_icache_opcode,//cache操作
     input       pipeline_icache_opflag,//0-正常访存 1-cache操作    
@@ -127,10 +127,7 @@ wire icache_mem_req;
 wire icache_mem_SUC;
 wire [1:0]icache_mem_size;
 wire mem_icache_dataOK;
-reg op_i_reg;
-always @(posedge clk) begin
-    op_i_reg <= op_i;
-end
+
 Icache #(
     .index_width(I_index_width),
     .offset_width(L1_offset_width)
@@ -140,14 +137,14 @@ Icache(
     .rstn(rstn),
 
     .addr_pipeline_icache(op_i ? addr_i : addr_pipeline_icache),
-    .paddr_pipeline_icache(op_i_reg ? addr_i : paddr_pipeline_icache),//???
+    .paddr_pipeline_icache(paddr_pipeline_icache),
     .dout_icache_pipeline(dout_icache_pipeline),
     .pc_icache_pipeline(pc_icache_pipeline),
     .flag_icache_pipeline(flag_icache_pipeline),
     .SUC_pipeline_icache(SUC_pipeline_icache),
 
-    .pipeline_icache_valid(pipeline_icache_valid | op_i),
-    .icache_pipeline_valid(icache_pipeline_valid),
+    .pipeline_icache_valid(pipeline_icache_valid),
+    .icache_pipeline_ready(icache_pipeline_ready),
 
     .pipeline_icache_opcode(opcode_i),
     .pipeline_icache_opflag(op_i),
@@ -184,7 +181,7 @@ Dcache(
     .clk(clk),
     .rstn(rstn),
 
-    .addr_pipeline_dcache(/*op_d ? addr_d : */addr_pipeline_dcache),
+    .addr_pipeline_dcache(op_d ? addr_d : addr_pipeline_dcache),
     .paddr_pipeline_dcache(paddr_pipeline_dcache),
     .din_pipeline_dcache(din_pipeline_dcache),
     .pcin_pipeline_dcache(pcin_pipeline_dcache),
@@ -192,12 +189,12 @@ Dcache(
     .type_pipeline_dcache(type_pipeline_dcache),
     .SUC_pipeline_dcache(SUC_pipeline_dcache),
 
-    .pipeline_dcache_valid(pipeline_dcache_valid/* | op_d*/),
+    .pipeline_dcache_valid(pipeline_dcache_valid),
     .dcache_pipeline_ready(dcache_pipeline_ready),
 
     .pipeline_dcache_wstrb(pipeline_dcache_wstrb),
-    .pipeline_dcache_opcode(pipeline_dcache_opcode),
-    .pipeline_dcache_opflag(pipeline_dcache_opflag),
+    .pipeline_dcache_opcode(opcode_d),
+    .pipeline_dcache_opflag(op_d),
     .ack_op(ack_d),
     .pipeline_dcache_ctrl(pipeline_dcache_ctrl),
     .dcache_pipeline_stall(dcache_pipeline_stall),
