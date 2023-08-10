@@ -51,7 +51,7 @@ addr_im(
     .clk(clk),
     .rstn(rstn),
     .we(opin_i),
-    .clear(ack_i),
+    .clear(0),
     .in(addrin_i),
     .out(addr_i)
     );
@@ -63,7 +63,7 @@ addr_dm(
     .clk(clk),
     .rstn(rstn),
     .we(opin_d),
-    .clear(ack_d),
+    .clear(0),
     .in(addrin_d),
     .out(addr_d)
     );
@@ -75,7 +75,7 @@ addr_l2m(
     .clk(clk),
     .rstn(rstn),
     .we(opin_l2),
-    .clear(ack_l2),
+    .clear(0),
     .in(addrin_l2),
     .out(addr_l2)
     );
@@ -87,7 +87,7 @@ opcode_im(
     .clk(clk),
     .rstn(rstn),
     .we(opin_i),
-    .clear(ack_i),
+    .clear(0),
     .in(opcodein_i),
     .out(opcode_i)
     );
@@ -99,7 +99,7 @@ opcode_dm(
     .clk(clk),
     .rstn(rstn),
     .we(opin_d),
-    .clear(ack_d),
+    .clear(0),
     .in(opcodein_d),
     .out(opcode_d)
     );
@@ -111,7 +111,7 @@ opcode_l2m(
     .clk(clk),
     .rstn(rstn),
     .we(opin_l2),
-    .clear(ack_l2),
+    .clear(0),
     .in(opcodein_l2),
     .out(opcode_l2)
     );
