@@ -81,7 +81,8 @@ module aim_predictor#(
         .update_en(try_to_pdc&&update_en),
         .pc(pc),
         .gh(gh),
-        .taken_bh(taken_b),
+        // .taken_bh(taken_b),
+        .taken_bh(0),
         .pc_ex(pc_ex),
         .taken_pdc_ex(taken_pdc_ex),
         .taken_ex(taken_real),
@@ -91,8 +92,8 @@ module aim_predictor#(
         .pdch(tage_pdch)
     );
 
-    // assign taken_pdc= kind_pdc[2]
-    //                 | ( kind_pdc[0] & taken_tage );    
     assign taken_pdc= kind_pdc[2]
-                    | ( kind_pdc[0] & taken_b );
+                    | ( kind_pdc[0] & taken_tage );    
+    // assign taken_pdc= kind_pdc[2]
+    //                 | ( kind_pdc[0] & taken_b );
 endmodule
