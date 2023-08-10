@@ -21,7 +21,7 @@ module cache_ctr (
         addr_pipeline_dcache=rrj+imm;
         din_pipeline_dcache=0;
         type_pipeline_dcache=ctr[5];
-        pipeline_dcache_valid=ctr[5]|ctr[4]|ctr[28];
+        pipeline_dcache_valid=ctr[5]|ctr[4];
         pipeline_MMU_valid=ctr[5]|ctr[4]|ctr[28]&(excp_arg[4:3]==2);
         pipeline_dcache_wstrb=0;
         pipeline_dcache_opflag=0;
@@ -119,7 +119,7 @@ module cache_ctr (
                 8: begin //cacop
                     case (excp_arg[2:0])
                         0: pipeline_icache_opflag=1;
-                        1: pipeline_dcache_opflag=1;
+                        1: begin pipeline_dcache_opflag=1;pipeline_dcache_valid=1; end
                         2: pipeline_l2cache_opflag=1;
                     endcase
                     pipeline_cache_opcode={1'b0,15'b0,excp_arg};
