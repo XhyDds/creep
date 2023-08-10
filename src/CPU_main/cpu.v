@@ -1,5 +1,5 @@
 `define predictor
-// `define two_pre
+`define two_pre
 // `define DMA
 // module mycpu_top(
 module core_top(
