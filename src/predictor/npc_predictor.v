@@ -55,6 +55,7 @@ module npc_predictor#(
     )
     btb_table(
         .clk(clk),
+        .stall(stall),
         .pc(pc_reg),
         .bh(bh_reg),
         .npc_pdc(npc_btb),
@@ -86,6 +87,7 @@ module npc_predictor#(
     )
     cpht_btb_ras(
         .clk(clk),
+        .stall(stall),
         .pc(pc_reg),
         .choice_pdc(choice_btb_ras),
         .choice_pdch(choice_pdch),
