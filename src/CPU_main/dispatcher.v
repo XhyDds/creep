@@ -3,12 +3,13 @@ module dispatcher (
     input [31:0]imm0,imm1,control0,control1,pc0,pc1,ir0,ir1,npc0,npc1,
     input [4:0]rk0,rk1,rj0,rj1,rd0,rd1,
     input [15:0]excp_arg0,excp_arg1,
-    input [63:0]pre0,pre1,
+    input [75:0]pre0,pre1,
     output reg [4:0]rk00,rk11,rj00,rj11,rd00,rd11,
     output reg [31:0]imm00,imm11,control00,control11,pc00,pc11,ir00,ir11,npc00,npc11,
     output reg [15:0]excp_arg00,excp_arg11,
-    output reg [63:0]pre00,pre11,
-    output reg if0,if1,valid00,valid11
+    output reg [75:0]pre00,pre11,
+    (* MAX_FANOUT = 2 *)output reg if0,if1,
+    output reg valid00,valid11
 );
     //上方alu div mul，下方全功能
     //可同时发射：不相关且有一条是算术指令

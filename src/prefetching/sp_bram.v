@@ -10,6 +10,7 @@ module sp_bram #(
 
     input [ADDR_WIDTH-1:0] raddr,  // Read Address
     output reg[DATA_WIDTH-1:0] dout,
+    input enb,
 
     input [ADDR_WIDTH-1:0] waddr,
     input [DATA_WIDTH-1:0] din,   // Data Input
@@ -27,7 +28,7 @@ module sp_bram #(
     // assign dout = (addr_r==waddr&&we)?din:ram[addr_r];//write first
 
     always @(posedge clk) begin
-        dout <= ram[raddr];
+        if(enb) dout <= ram[raddr];
         if (we) ram[waddr] <= din;
     end
 

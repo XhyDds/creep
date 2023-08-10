@@ -1,21 +1,22 @@
 module bht#(
-    parameter k_width = 14,
-              bh_width = 14
+    parameter   ADDR_WIDTH = 30,
+                k_width = 12,
+                bh_width = 14
 )(
     input clk,
     input stall,
     //query
-    input [k_width-1:0]hashed_pc,//hash(pc)
+    input [ADDR_WIDTH-1:0]pc,//hash(pc)
     output [bh_width-1:0]bh_pdc,
     //update
-    input [k_width-1:0]hashed_pc_update,
+    input [ADDR_WIDTH-1:0]pc_update,
     input outcome_real,
     input [bh_width-1:0]bh_ex,
     input update_en
 );
-    wire[k_width-1:0] _bh_new;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [k_width-1:0] pc_hashed;
+    (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [k_width-1:0] pc_hashed_upt;
 
-    assign _bh_new={bh_ex[bh_width-2:0],outcome_real};
 
     sp_bram#(
         .ADDR_WIDTH(k_width),
@@ -23,11 +24,28 @@ module bht#(
     )
     bht_regs(
         .clk(clk),
-        .raddr(hashed_pc),
+        .raddr(pc_hashed),
         .dout(bh_pdc),
-        .enb(~stall),
-        .waddr(hashed_pc_update),
-        .din(_bh_new),
+        // .enb(~stall),
+        .enb(1),
+        .waddr(pc_hashed_upt),
+        .din({bh_ex[bh_width-2:0],outcome_real}),
         .we(update_en)
+    );
+    //hash
+    pc_hash #(
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .k_width(k_width)
+    )u_pc_hashed(
+        .pc(pc),
+        .pc_hashed(pc_hashed)
+    );
+
+    pc_hash #(
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .k_width(k_width)
+    )u_pc_hashed_upt(
+        .pc(pc_update),
+        .pc_hashed(pc_hashed_upt)
     );
 endmodule

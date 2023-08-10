@@ -1,6 +1,6 @@
 module br_pre (
     input [31:0]ctr,pc,brresult,npc,
-    input [63:0]pre,
+    input [75:0]pre,
     input ifbr_,
     output reg ifbr,
     output reg [31:0]pc_br,pc_br_pdc

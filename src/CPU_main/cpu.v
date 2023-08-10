@@ -1,6 +1,5 @@
 `define predictor
-// `define DMA
-// `define two_pre
+`define two_pre
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -108,7 +107,7 @@ module core_top(
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,if_guess_pc;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,ifguess_pc;
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -117,7 +116,7 @@ module core_top(
 
     reg [63:0]ir_if1_fifo;
 
-    reg [63:0]pre_mmu_if0,pre_pc,pre_if0_if1,pre_if1_fifo,pre_id_reg_0,pre_id_reg_1,pre_reg_exe0_0,pre_reg_exe0_1,pre_exe0_exe1_0,pre_exe0_exe1_1;
+    reg [75:0]pre_mmu_if0,pre_pc,pre_if0_if1,pre_if1_fifo,pre_id_reg_0,pre_id_reg_1,pre_reg_exe0_0,pre_reg_exe0_1,pre_exe0_exe1_0,pre_exe0_exe1_1;
 
     reg [4:0]rd_exe1_wb_0,rd_exe1_wb_1,
     rk_reg_exe0_0,rk_reg_exe0_1,
@@ -146,15 +145,15 @@ module core_top(
     wire ifmmu_excp=MMU_pipeline_excp_arg1[15];
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
-    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre;
-    wire stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre,ifinteflush;
-    reg ifnpc_pdc,if_guess;
+    wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre,flush_if0_if1_left,flush_if0_if1_right;
+    wire stall_pc_,stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre,ifinteflush;
+    reg ifnpc_pdc,ifguess;
 
     `ifndef two_pre
     assign flush_mispre=0;
     `endif
     `ifdef two_pre
-    assign flush_mispre=(pc!=npc_pdc_32)&if_guess_pc&ifnpc_pdc;
+    assign flush_mispre=(pc!=npc_pdc_32)&ifguess_pc;
     `endif
 
     assign ifbr0=ifbr0_&~flushup_exe0_exe1_0&~stall_exe0_exe1_0;
@@ -163,7 +162,9 @@ module core_top(
     assign flushdown =          flush_pre_1&~ctr_reg_exe0_0[31]|flush_pre_0&ctr_id_reg_1[31];
     assign flushdownpre =       flush_pre_0&~ctr_id_reg_1[31];
 
-    assign flush_if0_if1 =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle|flush_mispre;
+    assign flush_if0_if1 =      flush_if0_if1_right|flush_if0_if1_left&~stall_if0_if1;
+    assign flush_if0_if1_left = flush_mispre|ifsuc;
+    assign flush_if0_if1_right =ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_if1_fifo =     ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_fifo_id =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
     assign flush_id_reg0 =      ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp|ifidle;
@@ -175,7 +176,8 @@ module core_top(
     assign flush_exe1_wb_0 =    ifinteflush|ifpriv|ifmmu_excp|ifbr1;
     assign flush_exe1_wb_1 =    ifinteflush|ifmmu_excp;
 
-    assign stall_pc =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|ifidle;
+    assign stall_pc_ =           break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|ifidle;
+    assign stall_pc =           ~(!stall_pc_|ifbr0|ifbr1|ifpriv|ifcacop_ibar);
     assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache;
     assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;
     assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache;
@@ -220,8 +222,8 @@ module core_top(
     wire    ir_valid1;
     wire    [1:0]   PLV0;
     wire    [1:0]   PLV1;
-    wire    [63:0]  pre0;
-    wire    [63:0]  pre1;
+    wire    [75:0]  pre0;
+    wire    [75:0]  pre1;
     wire    [15:0]  excp_arg0_mmu;
     wire    [15:0]  excp_arg1_mmu;
     wire    [31:0]  npc0;
@@ -322,8 +324,8 @@ module core_top(
     wire [31:0] ir11;
     wire ir_valid00;
     wire ir_valid11;
-    wire [63:0]pre00;
-    wire [63:0]pre11;
+    wire [75:0]pre00;
+    wire [75:0]pre11;
     wire [31:0]npc00;
     wire [31:0]npc11;
 
@@ -919,6 +921,8 @@ module core_top(
 
     wire [31:0]	MMU_pipeline_PADDR1;
     wire [1:0]	MMU_pipeline_memtype1;
+    wire MMU_pipeline_PADDR_valid0;
+    wire MMU_pipeline_PADDR_valid1;
 
     Memory_Maping_Unit #(
         .TLB_n(TLB_n),
@@ -956,18 +960,20 @@ module core_top(
         .pipeline_MMU_TLBELO1   		( CSR_MMU_TLBELO1 ),
 
         .pipeline_MMU_optype0   		( 2'b0 	    ),//fetch
-        .pipeline_MMU_VADDR_valid0      ( |pc[1:0]?1'b0:1'b1      ),
+        .pipeline_MMU_VADDR_valid0      ( ~|pc[1:0]                     ),
         .pipeline_MMU_VADDR0    		( pc    ),
         .MMU_pipeline_PADDR0    		( MMU_pipeline_PADDR0	        ),
         .MMU_pipeline_excp_arg0 		( MMU_pipeline_excp_arg0        ),
         .MMU_pipeline_memtype0  		( MMU_pipeline_memtype0         ),
+        .MMU_pipeline_PADDR_valid0      ( MMU_pipeline_PADDR_valid0     ),
 
         .pipeline_MMU_optype1   		( type_pipeline_dcache?2'd2:2'd1),
         .pipeline_MMU_VADDR_valid1      ( pipeline_MMU_valid            ),
         .pipeline_MMU_VADDR1    		( addr_pipeline_dcache 		    ),
         .MMU_pipeline_PADDR1    		( MMU_pipeline_PADDR1 		    ),
         .MMU_pipeline_excp_arg1 		( MMU_pipeline_excp_arg1 		),
-        .MMU_pipeline_memtype1  		( MMU_pipeline_memtype1 	    ) 
+        .MMU_pipeline_memtype1  		( MMU_pipeline_memtype1 	    ),
+        .MMU_pipeline_PADDR_valid1      ( MMU_pipeline_PADDR_valid1     )
     );
 
     wire [31:0]	dout_dcache_pipeline;
@@ -1016,10 +1022,14 @@ module core_top(
     );
 
     //传给流水线，寄存
+    localparam  k_width = 12,
+                bh_width = 16,
+                gh_width = 32,
+                h_width = 8;
     wire [29:0]npc_pdc;
     wire [2:0]kind_pdc;
     wire taken_pdc;
-    wire [13:0]bh_pdc;
+    wire [bh_width-1:0]bh_pdc;
     wire [1:0]choice_pdc;
 
 `ifdef predictor
@@ -1045,7 +1055,7 @@ module core_top(
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
     wire [29:0] out_npc_pdc   ;
-    wire [13:0] out_bh_ex     ;
+    wire [bh_width-1:0] out_bh_ex     ;
     wire        out_taken_ex  ;
     wire [2:0]  out_kind_ex   ;
     wire [29:0] out_npc_ex    ;
@@ -1056,6 +1066,9 @@ module core_top(
 
     wire[7:0] out_pdch;
     wire [7:0] pdch;
+
+    wire [11:0]tage_pdch;
+    wire [11:0]tage_pdch_ex;
 
     predictor #(
         .k_width       		( 14   		),
@@ -1068,7 +1081,7 @@ module core_top(
         .clk         		( clk         		),
         .rstn        		( rstn        		),
         .update_en          ( update_en         ),
-        .stall              ( ~(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) ),
+        .stall              ( stall_pc          ),
 
         .pc_ex       		( out_pc_ex         ),
         .ret_pc_ex          ( ret_pc_ex         ),
@@ -1080,6 +1093,8 @@ module core_top(
         .choice_real 		( choice_real 		),
         .choice_pdc_ex      ( out_choice_pdc    ),
         .out_pdch           ( out_pdch          ),
+        .kind_pdc_ex        ( out_kind_pdc      ),
+        .tage_pdch_ex       ( tage_pdch_ex      ),
 
         .npc_pdc     		( npc_pdc  	    	),
         .kind_pdc    		( kind_pdc       	),
@@ -1087,13 +1102,15 @@ module core_top(
         .bh_pdc             ( bh_pdc            ),
         .choice_pdc  		( choice_pdc    	),
         .pdch               ( pdch              ),
+        .tage_pdch          ( tage_pdch         ),
 
         .pc          		( npc[31:2]          ),
         .npc_test           ( npc_test          )
     );
 
     ex_buffer #(
-        .length(6)
+        .length(6),
+        .bh_width(bh_width)
     )u_ex_buffer(
         .clk(clk),
         .rstn(rstn),
@@ -1109,9 +1126,10 @@ module core_top(
         .in_npc_ex_0(pc_br0[31:2]),
         .in_pc_ex_0(pc_exe0_exe1_0[31:2]),
         .in_flush_pre_0(flush_pre_exe0_exe1_0 | ifbr0),
-        .in_bh_pdc_0(pre_exe0_exe1_0[52:39]),
-        .in_pack_size_0(pre_exe0_exe1_0[53]),
-        .in_pdch_0(pre_exe0_exe1_0[61:54]),
+        .in_bh_pdc_0(pre_exe0_exe1_0[59+bh_width:60]),
+        .in_pack_size_0(pre_exe0_exe1_0[39]),
+        .in_pdch_0(pre_exe0_exe1_0[47:40]),
+        .in_tage_pdch_0(pre_exe0_exe1_0[59:48]),
 
         .in_taken_pdc_1(pre_exe0_exe1_1[33]),
         .in_kind_pdc_1(pre_exe0_exe1_1[32:30]),
@@ -1122,9 +1140,10 @@ module core_top(
         .in_npc_ex_1(pc_br1[31:2]),
         .in_pc_ex_1(pc_exe0_exe1_1[31:2]),
         .in_flush_pre_1(flush_pre_exe0_exe1_1 | ifbr1),
-        .in_bh_pdc_1(pre_exe0_exe1_1[52:39]),
-        .in_pack_size_1(pre_exe0_exe1_1[53]),
-        .in_pdch_1(pre_exe0_exe1_1[61:54]),
+        .in_bh_pdc_1(pre_exe0_exe1_1[59+bh_width:60]),
+        .in_pack_size_1(pre_exe0_exe1_1[39]),
+        .in_pdch_1(pre_exe0_exe1_1[47:40]),
+        .in_tage_pdch_1(pre_exe0_exe1_1[59:48]),
 
         .out_taken_pdc (out_taken_pdc ),
         .out_kind_pdc  (out_kind_pdc  ),
@@ -1136,6 +1155,7 @@ module core_top(
         .out_pc_ex     (out_pc_ex     ),
         .out_choice_pdc(out_choice_pdc),
         .out_pdch      (out_pdch),
+        .out_tage_pdch  (tage_pdch_ex),
 
         .ret_pc_ex(ret_pc_ex),
 
@@ -1144,28 +1164,33 @@ module core_top(
 `endif
 
     //PC
-    wire dma;
-    `ifdef DMA
-        assign dma = 1'b1;
-    `endif
-    `ifndef DMA
-        assign dma = 1'b0;
-    `endif
-    assign ifsuc= ~MMU_pipeline_memtype0[0] | dma;
+    // wire dma;
+    // `ifdef DMA
+    //     assign dma = 1'b1;
+    // `endif
+    // `ifndef DMA
+    //     assign dma = 1'b0;
+    // `endif
+    // assign ifsuc= ~MMU_pipeline_memtype0[0] & MMU_pipeline_valid0;
+    assign ifsuc= ~MMU_pipeline_memtype0[0] & |MMU_pipeline_PADDR0;
+    // assign ifsuc= ~MMU_pipeline_memtype0[0] | dma;
     wire [31:0]npc_pdc_32={npc_pdc,2'b0};
     always @(*) begin
         ifnpc_pdc=0;
-        if_guess=0;
+        ifguess=0;
         if(ifpriv) npc=pc_priv;
         else if(ifbr1) npc=pc_br1;
         else if(ifbr0) npc=pc_br0;
         else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
-        else if(ifsuc) npc=pc+4;
+        else if(ifsuc) npc=pc_if0_if1+4;
         `ifdef predictor
             `ifdef two_pre
-                else if(flush_if0_if1) begin npc=pc+8;if_guess=1; end
+                else if(flush_mispre) begin npc=npc_pdc_32;ifnpc_pdc=1; end 
+                else begin npc=pc+8;ifguess=1;ifnpc_pdc=1; end
             `endif
-        else begin npc=npc_pdc_32;ifnpc_pdc=1; end
+            `ifndef two_pre
+                else begin npc=npc_pdc_32;ifnpc_pdc=1; end
+            `endif
         `endif
         `ifndef predictor
         else if(pc[2]) npc=pc+4;
@@ -1176,48 +1201,54 @@ module core_top(
     always @(posedge clk) begin
         if(!rstn) begin 
             pc<=32'h1c000000; 
-            if_guess_pc<=0;
-            // pre_pc<=0;
+            ifguess_pc<=0;
         end
-        else if(!stall_pc|ifbr0|ifbr1|ifpriv|ifcacop_ibar) begin 
+        else if(stall_pc) ;
+        else begin 
             pc<=npc; 
-            if_guess_pc<=if_guess;
-            // pre_pc<={2'b0,pdch,1'b0,bh_pdc,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
+            ifguess_pc<=ifguess;
         end
     end
 
     //IF0-IF1
     always @(posedge clk) begin
-        if(!rstn|flush_if0_if1) begin
+        if(!rstn|flush_if0_if1_right) begin
             pc_if0_if1<=0;
             PLV_if0_if1<=0;
-            pre_if0_if1<=0;
-            // MMU_pipeline_excp_arg0_if0_if1<=0;
         end
         else if(stall_if0_if1);
+        else if(flush_if0_if1_left) begin
+            pc_if0_if1<=0;
+            PLV_if0_if1<=0;
+        end
         else begin
             pc_if0_if1<=pc;
             PLV_if0_if1<=PLV;
-            // MMU_pipeline_excp_arg0_if0_if1<=MMU_pipeline_excp_arg0;
-            //pre
-            pre_if0_if1<={2'b0,pdch,1'b0,bh_pdc,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
-            //61:54 53 52:39 38 37 36:35 34 33 32:30 29:0
         end
     end
 
     //IF1-FIFO
     //flush套壳
-    reg fflush_if0_if1;
+    reg fflush_if0_if1_right;
     always @(posedge clk) begin
         if(!rstn) begin
-            fflush_if0_if1 <= 0;
+            fflush_if0_if1_right <= 0;
         end
-        else if(flush_if0_if1) fflush_if0_if1 <= 1;
-        else if(!(stall_icache|stall_to_icache)) fflush_if0_if1 <= 0;
+        else if(flush_if0_if1_right) fflush_if0_if1_right <= 1;
+        else if(!(stall_icache|stall_to_icache)) fflush_if0_if1_right <= 0;
+    end
+
+    reg fflush_if0_if1_left;
+    always @(posedge clk) begin
+        if(!rstn) begin
+            fflush_if0_if1_left <= 0;
+        end
+        else if(~stall_if0_if1&flush_if0_if1_left) fflush_if0_if1_left <= 1;
+        else if(!(stall_icache|stall_to_icache)) fflush_if0_if1_left <= 0;
     end
 
     always @(posedge clk) begin
-        if(!rstn|flush_if1_fifo|fflush_if0_if1) begin
+        if(!rstn|flush_if1_fifo|fflush_if0_if1_right) begin
             pc_if1_fifo<=0;
             ir_if1_fifo<=0;
             icache_valid_if1_fifo<=0;
@@ -1228,15 +1259,25 @@ module core_top(
             MMU_pipeline_excp_arg0_if1_fifo<=0;
         end
         else if(stall_if1_fifo);
+        else if(fflush_if0_if1_left) begin
+            pc_if1_fifo<=0;
+            ir_if1_fifo<=0;
+            icache_valid_if1_fifo<=0;
+            flag_if1_fifo<=0;
+            PLV_if1_fifo<=0;
+            pre_if1_fifo<=0;
+            npc_if1_fifo<=0;
+            MMU_pipeline_excp_arg0_if1_fifo<=0;
+        end
         else begin
             pc_if1_fifo<=pc_if0_if1;
             PLV_if1_fifo<=PLV_if0_if1;
-            pre_if1_fifo<=pre_if0_if1;
+            pre_if1_fifo<={{(16-bh_width){1'b0}},bh_pdc,tage_pdch,pdch,1'b0,1'b0,ifsuc,choice_pdc,ifnpc_pdc,taken_pdc,kind_pdc,npc_pdc};
             ir_if1_fifo<=dout_icache_pipeline;
             icache_valid_if1_fifo<=icache_pipeline_valid;
             flag_if1_fifo<=flag_icache_pipeline;
             MMU_pipeline_excp_arg0_if1_fifo<=MMU_pipeline_excp_arg0;
-            npc_if1_fifo<=pc;
+            npc_if1_fifo<=flush_if0_if1_left?npc:pc;
         end
     end
 
@@ -1730,7 +1771,7 @@ module core_top(
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
         .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
-        .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0] | dma),
+        .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0]     ),
         .pc_icache_pipeline             ( pc_icache_pipeline    ),
 
         //  Dcache
