@@ -129,8 +129,8 @@ always @(*) begin
         Operation:begin
             if(flush_outside)next_state = Flush;
             else if(pipeline_icache_valid)begin
-                if(opflag)next_state = Operation;
-                else next_state = Lookup;
+                // if(opflag)next_state = Operation;
+                next_state = Lookup;
             end
         end
         Miss_r_waitdata:begin

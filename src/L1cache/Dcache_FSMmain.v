@@ -158,8 +158,8 @@ always @(*) begin
             end
             else begin
                 if(pipeline_dcache_valid)begin
-                    if(opflag)next_state=Operation;
-                    else next_state=Lookup;
+                    // if(opflag)next_state=Operation;
+                    next_state=Lookup;
                 end
                 else next_state=Idle;
             end
