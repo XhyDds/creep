@@ -1783,7 +1783,7 @@ module core_top(
         .pipeline_icache_valid  		( ~flush_if0_if1),
         .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
-        .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
+        .pipeline_icache_opflag 		( pipeline_icache_opflag&~flush_exe0_exe1_1),
         .icache_pipeline_doneop         ( icache_pipeline_doneop        ),
         // .icache_pipeline_stallop        ( stallicacop       ),
         .pipeline_icache_ctrl           ( {30'b0,1'b0,stall_to_icache} ),
@@ -1812,8 +1812,8 @@ module core_top(
 
         //  L2-pipeline
         .addr_pipeline_l2cache          ( opcode_exe0_exe1[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe0_exe1          ),
-        .pipeline_l2cache_opflag        ( l2opflag_exe0_exe1       ),
-        .pipeline_l2cache_opcode        ( opcode_exe0_exe1        ),
+        .pipeline_l2cache_opflag        ( l2opflag_exe0_exe1            ),
+        .pipeline_l2cache_opcode        ( opcode_exe0_exe1              ),
 
         //  L2cache to Mem
         .addr_l2cache_mem_r             ( addr_l2cache_mem_r   ),
