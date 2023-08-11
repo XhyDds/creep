@@ -1181,7 +1181,7 @@ module core_top(
         if(ifpriv) npc=pc_priv;
         else if(ifbr1) npc=pc_br1;
         else if(ifbr0) npc=pc_br0;
-        else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
+        else if(ifcacop_ibar) npc=pc_exe0_exe1_1+4;
         else if(ifsuc) npc=pc_if0_if1+4;
         else if(dma) npc=pc+4;
         
