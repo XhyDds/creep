@@ -316,7 +316,7 @@ module Memory_Maping_Unit#(//stall frist
         PADDR0<=({found_ppn0,12'b0}&addrmask0)|(VADDR0&~addrmask0);
         memtype0<=found_mat0;
         excp_arg0<=0;
-        PADDR_valid0<=1;
+        PADDR_valid0<=VADDR_valid0;
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
             PADDR0<=0;
@@ -429,7 +429,7 @@ module Memory_Maping_Unit#(//stall frist
         PADDR1<=({found_ppn1,12'b0}&addrmask1)|(VADDR1&~addrmask1);
         memtype1<=found_mat1;
         excp_arg1<=0;
-        PADDR_valid1<=1;
+        PADDR_valid1<=VADDR_valid1;
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
             PADDR1<=0;
