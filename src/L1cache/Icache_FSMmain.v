@@ -84,11 +84,11 @@ always @(posedge clk) begin
     rstn_reg <= rstn;
 end
 assign icache_pipeline_valid1=icache_pipeline_valid&rstn_reg;//初始态不能给ready
-assign icache_pipeline_stall1 = icache_pipeline_stall | opflag;//存cacop后pc正确 不能流
 wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Miss_r_waitdata=5'd2,Operation=5'd3,Flush=5'd4;
+assign icache_pipeline_stall1 = icache_pipeline_stall | (next_state == Operation);
 always @(posedge clk)begin
     if(!rstn)state<=0;
     else state<=next_state;

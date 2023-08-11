@@ -274,7 +274,7 @@ Dcache_FSMmain1(
 
     //pipeline  dcache
     .pipeline_dcache_valid(pipeline_dcache_valid),
-    .dcache_pipeline_ready(dcache_pipeline_ready),
+    .dcache_pipeline_ready1(dcache_pipeline_ready),
     .pipeline_dcache_wstrb(pipeline_dcache_wstrb),
     .pipeline_dcache_opcode(pipeline_dcache_opcode),
     .pipeline_dcache_opflag(pipeline_dcache_opflag),

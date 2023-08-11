@@ -139,18 +139,18 @@ Icache(
     .clk(clk),
     .rstn(rstn),
 
-    .addr_pipeline_icache(op_i ? addr_i : addr_pipeline_icache),
-    .paddr_pipeline_icache(op_i_reg ? addr_i : paddr_pipeline_icache),//???
+    .addr_pipeline_icache(/*op_i ? addr_i : */addr_pipeline_icache),
+    .paddr_pipeline_icache(/*op_i_reg ? addr_i : */paddr_pipeline_icache),//???
     .dout_icache_pipeline(dout_icache_pipeline),
     .pc_icache_pipeline(pc_icache_pipeline),
     .flag_icache_pipeline(flag_icache_pipeline),
     .SUC_pipeline_icache(SUC_pipeline_icache),
 
-    .pipeline_icache_valid(pipeline_icache_valid | op_i),
+    .pipeline_icache_valid(pipeline_icache_valid/* | op_i*/),
     .icache_pipeline_valid(icache_pipeline_valid),
 
     .pipeline_icache_opcode(opcode_i),
-    .pipeline_icache_opflag(op_i),
+    .pipeline_icache_opflag(pipeline_icache_opflag),
     .ack_op(ack_i),
     .pipeline_icache_ctrl(pipeline_icache_ctrl),
     .icache_pipeline_stall(icache_pipeline_stall),
