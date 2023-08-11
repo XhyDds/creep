@@ -97,11 +97,9 @@ always @(*) begin
     next_state = Idle;
     case (state)
         Idle:begin
-            if(pipeline_icache_valid)begin
-                if(fStall_outside)next_state = Idle;
-                else if(opflag)next_state = Operation;
-                else next_state = Lookup;
-            end
+            if(fStall_outside)next_state = Idle;
+            else if(opflag)next_state = Operation;
+            else if(pipeline_icache_valid)next_state = Lookup;
         end
         Lookup:begin
             if(Miss)begin//Miss优先级应该比Stall高
@@ -111,20 +109,14 @@ always @(*) begin
             else begin//Hit
                 if(flush_outside)next_state = Flush;
                 else if(fStall_outside)next_state = Lookup;
-                else if(pipeline_icache_valid)begin
-                    if(opflag)next_state = Operation;
-                    else next_state = Lookup;
-                end
+                else if(opflag)next_state = Operation;
+                else if(pipeline_icache_valid)next_state = Lookup;
             end
         end
         Flush:begin
             if(flush_outside)next_state = Flush;
-            else begin
-                if(pipeline_icache_valid)begin
-                    if(opflag)next_state = Operation;
-                    else next_state = Lookup;
-                end
-            end
+            else if(opflag)next_state = Operation;
+            else if(pipeline_icache_valid)next_state = Lookup;
         end
         Operation:begin
             if(flush_outside)next_state = Flush;
@@ -135,10 +127,8 @@ always @(*) begin
         end
         Miss_r_waitdata:begin
             if(!mem_icache_dataOK)next_state = Miss_r_waitdata;
-            else if(pipeline_icache_valid)begin
-                if(opflag)next_state = Operation;
-                else next_state = Lookup;
-            end
+            else if(opflag)next_state = Operation;
+            else if(pipeline_icache_valid)next_state = Lookup;
         end
         default:next_state = Idle;
     endcase

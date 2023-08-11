@@ -93,14 +93,11 @@ always @(posedge clk) begin
     else state<=next_state;
 end
 always @(*) begin
-    next_state = 0;
+    next_state = Idle;
     case (state)
         Idle:begin
-            if(pipeline_dcache_valid)begin
-                if(opflag)next_state=Operation;
-                else next_state=Lookup;
-            end
-            else next_state=Idle;
+            if(opflag)next_state=Operation;
+            else if(pipeline_dcache_valid)next_state=Lookup;
         end
         Lookup:begin
                 if(Miss)begin
@@ -110,31 +107,23 @@ always @(*) begin
                     end
                     else begin
                         if(!mem_dcache_addrOK)next_state=Miss_w;
-                        else begin
-                            if(pipeline_dcache_valid)begin
-                                if(opflag)next_state=Operation;
-                                else next_state=Lookup;
-                            end
-                            else next_state=Idle;
-                        end
+                        else if(opflag)next_state=Operation;
+                        else if(pipeline_dcache_valid)next_state=Lookup;
+                        else next_state=Idle;
                     end
                 end
                 else begin//hit
                     if(flush_outside)next_state = Flush;
                     else if(!FSM_rbuf_type)begin//r
-                        if(pipeline_dcache_valid)begin
-                            if(opflag)next_state=Operation;
-                            else next_state=Lookup;
-                        end
+                        if(opflag)next_state=Operation;
+                        else if(pipeline_dcache_valid)next_state=Lookup;
                         else next_state=Idle;
                     end
                     else begin
                         if(!mem_dcache_addrOK)next_state=Hit_w;
                         else begin
-                            if(pipeline_dcache_valid)begin
-                                if(opflag)next_state=Operation;
-                                else next_state=Lookup;
-                            end
+                            if(opflag)next_state=Operation;
+                            else if(pipeline_dcache_valid)next_state=Lookup;
                             else next_state=Idle;
                         end
                     end
@@ -145,10 +134,8 @@ always @(*) begin
                 next_state = Flush;
             end
             else begin
-                if(pipeline_dcache_valid)begin
-                    if(opflag)next_state=Operation;
-                    else next_state=Lookup;
-                end
+                if(opflag)next_state=Operation;
+                else if(pipeline_dcache_valid)next_state=Lookup;
                 else next_state=Idle;
             end
         end
@@ -167,10 +154,8 @@ always @(*) begin
         Hit_w:begin
             if(!mem_dcache_addrOK)next_state = Hit_w;
             else begin
-                if(pipeline_dcache_valid)begin
-                    if(opflag)next_state=Operation;
-                    else next_state=Lookup;
-                end
+                if(opflag)next_state=Operation;
+                else if(pipeline_dcache_valid)next_state=Lookup;
                 else next_state=Idle;
             end
         end
@@ -179,19 +164,15 @@ always @(*) begin
             else next_state = Miss_r_waitdata1;
         end
         Miss_r_waitdata1:begin
-            if(pipeline_dcache_valid)begin
-                if(opflag)next_state=Operation;
-                else next_state=Lookup;
-            end
+            if(opflag)next_state=Operation;
+            else if(pipeline_dcache_valid)next_state=Lookup;
             else next_state=Idle;
         end
         Miss_w:begin
             if(!mem_dcache_addrOK)next_state=Miss_w;
             else begin
-                if(pipeline_dcache_valid)begin
-                    if(opflag)next_state=Operation;
-                    else next_state=Lookup;
-                end
+                if(opflag)next_state=Operation;
+                else if(pipeline_dcache_valid)next_state=Lookup;
                 else next_state=Idle;
             end
         end
