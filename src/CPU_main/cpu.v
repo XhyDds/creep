@@ -96,19 +96,18 @@ module core_top(
     ir_reg_exe0_0,      ir_reg_exe0_1,
     ir_exe0_exe1_0,     ir_exe0_exe1_1,
     ir_exe1_wb_0,       ir_exe1_wb_1,
-    addr_pipeline_dcache_exe0_exe1,
     din_pipeline_dcache_exe0_exe1,          din_pipeline_dcache_exe1_wb,
-    vaddr_exe1_wb,      paddr_exe1_wb,
     vaddr_exe0_exe1,    paddr_exe0_exe1,
+    vaddr_exe1_wb,      paddr_exe1_wb,
     pc_br_exe0_exe1_0,  pc_br_exe0_exe1_1,
     brresult_exe0_exe1_0,                   brresult_exe0_exe1_1,
-    MMU_pipeline_PADDR1_reg,                pipeline_cache_opcode_reg;
+    MMU_pipeline_PADDR1_reg,                opcode_exe0_exe1;
 
     (* MAX_FANOUT = 3 *)reg [31:0]
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,ifguess_pc,pipeline_l2cache_opflag_reg,iopflag_exe0_exe1;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,ifguess_pc,l2opflag_exe0_exe1,iopflag_exe0_exe1;
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -864,7 +863,7 @@ module core_top(
 
         .pipeline_CSR_inpc1     		( pc_exe0_exe1_1     		    ),
         .pipeline_CSR_excp_arg1 		( MMU_pipeline_excp_arg1        ),
-        .pipeline_CSR_evaddr1   		( addr_pipeline_dcache_exe0_exe1		),
+        .pipeline_CSR_evaddr1   		( vaddr_exe0_exe1		),
 
         .pipeline_CSR_ESTAT     		( 0     		     ),
         .CSR_pipeline_CRMD      		( CRMD      		 ),
@@ -1000,7 +999,7 @@ module core_top(
     dcache_extend u_dcache_extend(
         //ports
         .ctr_exe0_exe1_1             		( ctr_exe0_exe1_1      ),
-        .addr_pipeline_dcache    		    ( addr_pipeline_dcache_exe0_exe1       ),
+        .addr_pipeline_dcache    		    ( vaddr_exe0_exe1       ),
         .dout_dcache_pipeline        		( dout_dcache_pipeline ),
         .dout_dcache_pipeline_extend 		( dcacheresult 		   ),
         .din_pipeline_dcache                ( din_pipeline_dcache_exe0_exe1 ),
@@ -1527,8 +1526,6 @@ module core_top(
             npc_exe0_exe1_0<=0;
             flushup_exe0_exe1_0<=0;
             brresult_exe0_exe1_0<=0;
-            pipeline_cache_opcode_reg<=0;
-            pipeline_l2cache_opflag_reg<=0;
         end
         else if(stall_exe0_exe1_0);
         else if(flush_exe0_exe1_0) begin
@@ -1547,8 +1544,6 @@ module core_top(
             npc_exe0_exe1_0<=0;
             flushup_exe0_exe1_0<=0;
             brresult_exe0_exe1_0<=0;
-            pipeline_cache_opcode_reg<=0;
-            pipeline_l2cache_opflag_reg<=0;
         end
         else begin
             ctr_exe0_exe1_0 <= ctr_reg_exe0_0;
@@ -1566,8 +1561,6 @@ module core_top(
             npc_exe0_exe1_0<=npc_reg_exe0_0;
             flushup_exe0_exe1_0<=flushup;
             brresult_exe0_exe1_0<=brresult_0;
-            pipeline_cache_opcode_reg<=pipeline_cache_opcode;
-            pipeline_l2cache_opflag_reg<=pipeline_l2cache_opflag;
         end
     end
 
@@ -1578,7 +1571,7 @@ module core_top(
             result_exe0_exe1_1<=0;
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
-            addr_pipeline_dcache_exe0_exe1<=0;
+            vaddr_exe0_exe1<=0;
             // paddr_exe0_exe1<=0;
             din_pipeline_dcache_exe0_exe1<=0;
             ir_valid_exe0_exe1_1<=0;
@@ -1592,6 +1585,8 @@ module core_top(
             npc_exe0_exe1_1<=0;
             brresult_exe0_exe1_1<=0;
             iopflag_exe0_exe1<=0;
+            opcode_exe0_exe1<=0;
+            l2opflag_exe0_exe1<=0;
         end
         else if(stall_exe0_exe1_1);
         else if(flush_exe0_exe1_1) begin
@@ -1600,7 +1595,7 @@ module core_top(
             result_exe0_exe1_1<=0;
             pc_exe0_exe1_1<=0;
             ir_exe0_exe1_1<=0;
-            addr_pipeline_dcache_exe0_exe1<=0;
+            vaddr_exe0_exe1<=0;
             // paddr_exe0_exe1<=0;
             din_pipeline_dcache_exe0_exe1<=0;
             ir_valid_exe0_exe1_1<=0;
@@ -1614,6 +1609,8 @@ module core_top(
             npc_exe0_exe1_1<=0;
             brresult_exe0_exe1_1<=0;
             iopflag_exe0_exe1<=0;
+            opcode_exe0_exe1<=0;
+            l2opflag_exe0_exe1<=0;
         end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
@@ -1621,7 +1618,7 @@ module core_top(
             result_exe0_exe1_1<=(ctr_reg_exe0_1_excp[3:0]==7)?countresult1:aluresult1;
             pc_exe0_exe1_1<=pc_reg_exe0_1;
             ir_exe0_exe1_1<=ir_reg_exe0_1;
-            addr_pipeline_dcache_exe0_exe1<=addr_pipeline_dcache;
+            vaddr_exe0_exe1<=addr_pipeline_dcache;
             // paddr_exe0_exe1<=MMU_pipeline_PADDR1;
             din_pipeline_dcache_exe0_exe1<=din_pipeline_dcache;
             ir_valid_exe0_exe1_1<=ir_valid_reg_exe0_1;
@@ -1635,6 +1632,8 @@ module core_top(
             npc_exe0_exe1_1<=npc_reg_exe0_1;
             brresult_exe0_exe1_1<=brresult_1;
             iopflag_exe0_exe1<=pipeline_icache_opflag;
+            opcode_exe0_exe1<=pipeline_cache_opcode;
+            l2opflag_exe0_exe1<=pipeline_l2cache_opflag;
         end
     end
 
@@ -1732,7 +1731,7 @@ module core_top(
             result_exe1_wb_1<=result1;
             pc_exe1_wb_1<=pc_exe0_exe1_1;
             ir_exe1_wb_1<=ir_exe0_exe1_1;
-            vaddr_exe1_wb<=addr_pipeline_dcache_exe0_exe1;
+            vaddr_exe1_wb<=vaddr_exe0_exe1;
             paddr_exe1_wb<=stall_exe1_wb_1_reg?MMU_pipeline_PADDR1_reg:MMU_pipeline_PADDR1;
             ir_valid_exe1_wb_1<=ir_valid_exe0_exe1_1;
             countresult_exe1_wb_1<=countresult_exe0_exe1_1;
@@ -1812,9 +1811,9 @@ module core_top(
         .SUC_pipeline_dcache            ( ~MMU_pipeline_memtype1[0] | dma),
 
         //  L2-pipeline
-        .addr_pipeline_l2cache          ( MMU_pipeline_PADDR1          ),
-        .pipeline_l2cache_opflag        ( pipeline_l2cache_opflag_reg       ),
-        .pipeline_l2cache_opcode        ( pipeline_cache_opcode_reg        ),
+        .addr_pipeline_l2cache          ( opcode_exe0_exe1[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe0_exe1          ),
+        .pipeline_l2cache_opflag        ( l2opflag_exe0_exe1       ),
+        .pipeline_l2cache_opcode        ( opcode_exe0_exe1        ),
 
         //  L2cache to Mem
         .addr_l2cache_mem_r             ( addr_l2cache_mem_r   ),
