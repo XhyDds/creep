@@ -213,9 +213,11 @@ module predictor #(
 
     `ifdef TEST
     reg [31:0] times_mis_npc    ;
+    reg [31:0] times_mis_npc_pure    ;
     reg [31:0] times_mis_kind   ;
     reg [31:0] times_mis_taken  ;
     reg [31:0] times_total_npc  ;
+    reg [31:0] times_total_npc_pure  ;
     reg [31:0] times_total_kind ;
     reg [31:0] times_total_taken;
 
@@ -227,9 +229,11 @@ module predictor #(
     always @(posedge clk) begin
         if(!rstn) begin
             times_mis_npc    <=0;
+            times_mis_npc_pure    <=0;
             times_mis_kind   <=0;
             times_mis_taken  <=0;
             times_total_npc  <=0;
+            times_total_npc_pure  <=0;
             times_total_kind <=0;
             times_total_taken<=0;
             times_mis_bh     <=0;
@@ -239,10 +243,13 @@ module predictor #(
         end
         else begin
             if(mis_pdc_npc&&update_en)  times_mis_npc    <=times_mis_npc    +1;
+            if(mis_pdc_npc&&~mis_pdc_taken&&update_en)  times_mis_npc_pure    <=times_mis_npc_pure    +1;
             if(mis_pdc_kind&&update_en) times_mis_kind   <=times_mis_kind   +1;
             if((kind_ex==DIRECT_JUMP)&&mis_pdc_taken&&update_en)
                                         times_mis_taken  <=times_mis_taken  +1;
             if(~mis_pdc_taken&&(kind_ex!=NOT_JUMP)&&update_en)
+                                        times_total_npc_pure  <=times_total_npc_pure  +1;
+            if((kind_ex!=NOT_JUMP)&&update_en)
                                         times_total_npc  <=times_total_npc  +1;
 
                                         times_total_kind <=times_total_kind +1;

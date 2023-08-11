@@ -173,6 +173,7 @@ module prefetching#(
     )u_data_pre(
         .clk(clk),
         .rstn(rstn),
+        .ip(pdc_pref_addr[ADDR_WIDTH-1:2]),
         
         .inst_pc(dcache_pref_pc[INST_WIDTH-1:0]),
         .inst_valid(dcache_pref_valid),
@@ -207,11 +208,11 @@ module prefetching#(
             req_pref=1;
             type_pref_l2cache_=1;
         end
-        if(valid_inst&req_inst) begin
-            addr_pref=naddr_inst;
-            req_pref=1;
-            type_pref_l2cache_=0;
-        end
+        // else if(valid_inst&req_inst) begin
+        //     addr_pref=naddr_inst;
+        //     req_pref=1;
+        //     type_pref_l2cache_=0;
+        // end
         else ;
     end
 
