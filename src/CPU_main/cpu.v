@@ -1800,7 +1800,7 @@ module core_top(
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
-        .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
+        .pipeline_dcache_opflag 		( pipeline_dcache_opflag&~flush_exe0_exe1_1),
         .dcache_pipeline_doneop         ( dcache_pipeline_doneop        ),
         .dcache_pipeline_stallop        ( stalldcacop       ),
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe1_wb_1,stall_to_dcache}),
