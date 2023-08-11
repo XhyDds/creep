@@ -108,7 +108,7 @@ module core_top(
     result_exe0_exe1_0, result_exe0_exe1_1,
     result_exe1_wb_0,   result_exe1_wb_1;
 
-    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,ifguess_pc,pipeline_l2cache_opflag_reg;
+    reg ir_valid_id_reg_0,ir_valid_id_reg_1,ir_valid_reg_exe0_0,ir_valid_reg_exe0_1,ir_valid_exe0_exe1_0,ir_valid_exe0_exe1_1,ir_valid_exe1_wb_0,ir_valid_exe1_wb_1,icache_valid_if1_fifo,flag_if1_fifo,LLbit_exe0_exe1,flush_pre_exe0_exe1_1,flush_pre_exe0_exe1_0,ifbr__exe0_exe1_0,ifbr__exe0_exe1_1,flushup_exe0_exe1_0,ifguess_pc,pipeline_l2cache_opflag_reg,iopflag_exe0_exe1;
 
     reg [1:0]PLV_if0_if1,PLV_if1_fifo;
     
@@ -147,7 +147,7 @@ module core_top(
     wire stall_div0,stall_div1,stall_fetch_buffer;
     wire stall_dcache,stall_icache;
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre,flush_if0_if1_left,flush_if0_if1_right;
-    wire stall_pc_,stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre,ifinteflush,stallicacop,stalldcacop,stallcacop;
+    wire stall_pc_,stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre,ifinteflush,stallicacop;
     reg ifnpc_pdc,ifguess;
 
     `ifndef two_pre
@@ -157,7 +157,7 @@ module core_top(
     assign flush_mispre=(pc!=npc_pdc_32)&ifguess_pc;
     `endif
 
-    assign stallcacop=stallicacop|stalldcacop;
+    assign stallicacop=pipeline_icache_opflag&stall_icache;
     assign ifbr0=ifbr0_&~flushup_exe0_exe1_0&~stall_exe0_exe1_0;
     assign ifbr1=ifbr1_&~stall_exe0_exe1_1;
     assign flushup =            flush_pre_1&ctr_reg_exe0_0[31];
@@ -174,25 +174,25 @@ module core_top(
     assign flush_reg_exe0_0 =   ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle;
     assign flush_reg_exe0_1 =   ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle|flushdown;
     assign flush_exe0_exe1_0 =  ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle|flushup;
-    assign flush_exe0_exe1_1 =  ifinteflush|ifpriv|ifmmu_excp1|ifbr1|ifbr0;
-    assign flush_exe1_wb_0 =    ifinteflush|ifpriv|ifmmu_excp1|ifbr1;
+    assign flush_exe0_exe1_1 =  ifinteflush|ifpriv|ifmmu_excp1|ifbr1|ifbr0|ifcacop_ibar;
+    assign flush_exe1_wb_0 =    ifinteflush|ifpriv|ifmmu_excp1|ifbr1|ifcacop_ibar;
     assign flush_exe1_wb_1 =    ifinteflush|ifmmu_excp1;
 
-    assign stall_pc_ =          break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|ifidle|stallcacop;
+    assign stall_pc_ =          break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|ifidle|stallicacop;
     assign stall_pc =           ~(!stall_pc_|ifbr0|ifbr1|ifpriv|ifcacop_ibar);
-    assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|stallcacop;
-    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache|stalldcacop;
-    assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache|stallcacop;
-    assign stall_fifo_id =      break_point|stall_div1|stall_dcache|stallcacop;
-    assign stall_id_reg0 =      break_point|stall_div1|stall_dcache|stallcacop;
-    assign stall_id_reg1 =      break_point|stall_div1|stall_dcache|stallcacop;
-    assign stall_reg_exe0_0 =   break_point|stall_div1|stall_dcache|stallcacop;
-    assign stall_reg_exe0_1 =   break_point|stall_div1|stall_dcache|stallcacop;
-    assign stall_exe0_exe1_0 =  break_point|stall_div1|stall_dcache|stallcacop;
-    assign stall_exe0_exe1_1 =  break_point|stall_div1|stall_dcache|stallcacop;
+    assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|stallicacop;
+    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;
+    assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache|stallicacop;
+    assign stall_fifo_id =      break_point|stall_div1|stall_dcache|stallicacop;
+    assign stall_id_reg0 =      break_point|stall_div1|stall_dcache|stallicacop;
+    assign stall_id_reg1 =      break_point|stall_div1|stall_dcache|stallicacop;
+    assign stall_reg_exe0_0 =   break_point|stall_div1|stall_dcache|stallicacop;
+    assign stall_reg_exe0_1 =   break_point|stall_div1|stall_dcache|stallicacop;
+    assign stall_exe0_exe1_0 =  break_point|stall_div1|stall_dcache|stallicacop;
+    assign stall_exe0_exe1_1 =  break_point|stall_div1|stall_dcache|stallicacop;
     assign stall_to_dcache =    break_point|stall_div1|stallicacop;
-    assign stall_exe1_wb_0 =    break_point|stall_div1|stall_dcache|stallcacop;
-    assign stall_exe1_wb_1 =    break_point|stall_div1|stall_dcache|stallcacop;
+    assign stall_exe1_wb_0 =    break_point|stall_div1|stall_dcache|stallicacop;
+    assign stall_exe1_wb_1 =    break_point|stall_div1|stall_dcache|stallicacop;
 
     //ICache Return Buffer
     wire        mem_icache_addrOK;
@@ -1591,6 +1591,7 @@ module core_top(
             ifbr__exe0_exe1_1<=0;
             npc_exe0_exe1_1<=0;
             brresult_exe0_exe1_1<=0;
+            iopflag_exe0_exe1<=0;
         end
         else if(stall_exe0_exe1_1);
         else if(flush_exe0_exe1_1) begin
@@ -1612,6 +1613,7 @@ module core_top(
             ifbr__exe0_exe1_1<=0;
             npc_exe0_exe1_1<=0;
             brresult_exe0_exe1_1<=0;
+            iopflag_exe0_exe1<=0;
         end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
@@ -1632,6 +1634,7 @@ module core_top(
             ifbr__exe0_exe1_1<=ifbr__1;
             npc_exe0_exe1_1<=npc_reg_exe0_1;
             brresult_exe0_exe1_1<=brresult_1;
+            iopflag_exe0_exe1<=pipeline_icache_opflag;
         end
     end
 
@@ -1775,7 +1778,7 @@ module core_top(
 
         //  Icache
         .addr_pipeline_icache   		( pipeline_icache_opflag?addr_pipeline_dcache:(|pc[1:0]?32'h1C000000:pc)    ),
-        .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
+        .paddr_pipeline_icache   		( iopflag_exe0_exe1?MMU_pipeline_PADDR1:((|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0)),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
         .pipeline_icache_valid  		( ~flush_if0_if1),
@@ -1783,7 +1786,7 @@ module core_top(
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
         .icache_pipeline_doneop         ( icache_pipeline_doneop        ),
-        .icache_pipeline_stallop        ( stallicacop       ),
+        // .icache_pipeline_stallop        ( stallicacop       ),
         .pipeline_icache_ctrl           ( {30'b0,1'b0,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
         .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0]     ),
@@ -1802,7 +1805,7 @@ module core_top(
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag&~flush_exe0_exe1_1),
         .dcache_pipeline_doneop         ( dcache_pipeline_doneop        ),
-        .dcache_pipeline_stallop        ( stalldcacop       ),
+        // .dcache_pipeline_stallop        ( stalldcacop       ),
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe1_wb_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
         .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
