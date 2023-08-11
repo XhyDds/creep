@@ -1760,7 +1760,7 @@ module core_top(
     wire l2cache_mem_SUC     ;
     wire icache_pipeline_doneop;
     wire dcache_pipeline_doneop;
-    wire ifcacop_ibar=icache_pipeline_doneop|dcache_pipeline_doneop;
+    assign ifcacop_ibar=icache_pipeline_doneop|dcache_pipeline_doneop;
 
     L1_L2cache #(
         .I_index_width  		( 7 		),
@@ -1778,7 +1778,7 @@ module core_top(
         .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_valid  		( ~flush_if0_if1&~pipeline_icache_opflag),
+        .pipeline_icache_valid  		( ~flush_if0_if1),
         .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
