@@ -30,7 +30,7 @@ module Dcache_FSMmain#(
 
     //上下游信号
     input       pipeline_dcache_valid,
-    output reg  dcache_pipeline_ready,
+    output      dcache_pipeline_ready1,
     input       [3:0]pipeline_dcache_wstrb,
     input       [31:0]pipeline_dcache_opcode,//好像不需要 用rbuf的即可
     input       pipeline_dcache_opflag,
@@ -72,7 +72,7 @@ module Dcache_FSMmain#(
     output reg  FSM_choose_return
     
     );
-
+reg dcache_pipeline_ready;
 assign dcache_pipeline_stall = ~ dcache_pipeline_ready;
 assign FSM_TagV_we=FSM_Data_we;
 wire hit0,hit1;
@@ -87,6 +87,7 @@ reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6,Miss_r_waitdata1=5'd7;
 localparam Flush=5'd8;
+assign dcache_pipeline_ready1 = dcache_pipeline_ready & !(next_state==Operation);
 always @(posedge clk) begin
     if(!rstn)state<=0;
     else state<=next_state;
