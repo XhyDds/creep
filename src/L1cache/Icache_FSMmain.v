@@ -33,9 +33,10 @@ module Icache_FSMmain#(
     output      icache_pipeline_valid1,
     input       [31:0]pipeline_icache_opcode,//好像不需要 用rbuf的即可
     input       pipeline_icache_opflag,
+    output      icache_pipeline_doneop,
     output reg  ack_op,
     input       [31:0]pipeline_icache_ctrl,//stall flush branch ...
-    output      icache_pipeline_stall1,//stall form icache
+    output reg  icache_pipeline_stall,//stall form icache
 
     output reg  icache_mem_req,
     input       mem_icache_dataOK,//返回的数据有效
@@ -69,7 +70,6 @@ module Icache_FSMmain#(
 //对字节和byte的选择暂未加入
 
 reg icache_pipeline_valid;
-reg icache_pipeline_stall;
 assign FSM_TagV_we=FSM_Data_we;
 wire hit0,hit1;
 assign hit0=FSM_hit[0];
@@ -88,7 +88,7 @@ wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 reg [4:0]state;
 reg [4:0]next_state;
 localparam Idle=5'd0,Lookup=5'd1,Miss_r_waitdata=5'd2,Operation=5'd3,Flush=5'd4;
-assign icache_pipeline_stall1 = icache_pipeline_stall | (next_state == Operation);
+assign icache_pipeline_doneop = (state == Operation);
 always @(posedge clk)begin
     if(!rstn)state<=0;
     else state<=next_state;

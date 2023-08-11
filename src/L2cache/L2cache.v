@@ -84,7 +84,10 @@ always @(*) begin
     from = 2'd0;
     addr_l1cache_l2cache = 0;
     pc_l1cache_l2cache = 0;
-    if(dcache_l2cache_req)begin
+    if(pipeline_l2cache_opflag)begin
+        addr_l1cache_l2cache = addr_pipeline_l2cache;
+    end
+    else if(dcache_l2cache_req)begin
         pc_l1cache_l2cache = pc_dcache_l2cache;
         if(!dcache_l2cache_wr)from = 2'd2;
         else from = 2'd3;

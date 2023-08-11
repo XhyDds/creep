@@ -1751,6 +1751,10 @@ module core_top(
     wire mem_l2cache_addrOK_w;
     wire mem_l2cache_dataOK  ;
     wire l2cache_mem_SUC     ;
+    wire icache_pipeline_doneop;
+    wire icache_pipeline_stallop;
+    wire dcache_pipeline_doneop;
+    wire dcache_pipeline_stallop;
 
     L1_L2cache #(
         .I_index_width  		( 7 		),
@@ -1772,6 +1776,8 @@ module core_top(
         .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_icache_opflag 		( pipeline_icache_opflag 		),
+        .icache_pipeline_doneop         ( icache_pipeline_doneop        ),
+        .icache_pipeline_stallop        ( icache_pipeline_stallop       ),
         .pipeline_icache_ctrl           ( {30'b0,1'b0,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
         .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0]     ),
@@ -1789,6 +1795,8 @@ module core_top(
         .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag 		),
+        .dcache_pipeline_doneop         ( dcache_pipeline_doneop        ),
+        .dcache_pipeline_stallop        ( dcache_pipeline_stallop       ),
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe1_wb_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
         .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
