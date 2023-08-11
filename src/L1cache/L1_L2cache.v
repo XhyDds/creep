@@ -23,7 +23,7 @@ module L1_L2cache#(
     input       [31:0]pipeline_icache_opcode,//cache操作
     input       pipeline_icache_opflag,//0-正常访存 1-cache操作    
     output      icache_pipeline_doneop,
-    output      icache_pipeline_stallop,
+    output reg  icache_pipeline_stallop,
     input       [31:0]pipeline_icache_ctrl,//stall flush branch ...
     output      icache_pipeline_stall,//stall form icache     不知道可不可以用ready代替，先留着    
 
@@ -44,7 +44,7 @@ module L1_L2cache#(
     input       [31:0]pipeline_dcache_opcode,//cache操作
     input       pipeline_dcache_opflag,//0-正常访存 1-cache操作    
     output      dcache_pipeline_doneop,
-    output      dcache_pipeline_stallop,
+    output reg  dcache_pipeline_stallop,
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
     output      dcache_pipeline_stall,//stall form dcache     不知道可不可以用ready代替，先留着
 
@@ -87,8 +87,18 @@ module L1_L2cache#(
     input       mem_l2cache_addrOK_w, 
     input       mem_l2cache_dataOK
      );
-assign icache_pipeline_stallop = pipeline_icache_opflag & ~icache_pipeline_doneop;
-assign dcache_pipeline_stallop = pipeline_dcache_opflag & ~dcache_pipeline_doneop;
+// assign icache_pipeline_stallop = pipeline_icache_opflag & ~icache_pipeline_doneop;
+// assign dcache_pipeline_stallop = pipeline_dcache_opflag & ~dcache_pipeline_doneop;
+// always @(posedge clk) begin
+//     if(pipeline_icache_opflag)icache_pipeline_stallop <= 1;
+//     else if(icache_pipeline_doneop)icache_pipeline_stallop <= 0;
+//     if(pipeline_dcache_opflag)dcache_pipeline_stallop <= 1;
+//     else if(dcache_pipeline_doneop)dcache_pipeline_stallop <= 0;
+// end
+always @(*) begin
+    icache_pipeline_stallop = pipeline_icache_opflag & ~icache_pipeline_doneop;
+    dcache_pipeline_stallop = 0;
+end
 
 assign dcache_pref_addr = addr_pipeline_dcache;
 assign dcache_pref_pc = pcin_pipeline_dcache;
