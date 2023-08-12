@@ -260,7 +260,9 @@ module Memory_Maping_Unit#(//stall frist
                             E[j]<=0;
                             end
                         end
-                
+                    default:
+                        begin
+                        end
                 endcase
                 end
         end
