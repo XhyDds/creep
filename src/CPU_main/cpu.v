@@ -865,7 +865,7 @@ module core_top(
         .pipeline_CSR_excp_arg1 		( MMU_pipeline_excp_arg1        ),
         .pipeline_CSR_evaddr1   		( vaddr_exe0_exe1		),
 
-        .pipeline_CSR_ESTAT     		( 0     		     ),
+        .pipeline_CSR_ESTAT     		( {1'b0,intrpt}      ),
         .CSR_pipeline_CRMD      		( CRMD      		 ),
         .CSR_pipeline_LLBit     		( LLbit     		 ),
         .CSR_pipeline_ASID      		( ASID      		 ),
