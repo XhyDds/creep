@@ -1763,6 +1763,26 @@ module core_top(
     wire icache_pipeline_doneop;
     wire dcache_pipeline_doneop;
     assign ifcacop_ibar=icache_pipeline_doneop|dcache_pipeline_doneop;
+    //pref
+    wire req_pref_l2cache;
+    wire type_pref_l2cache;
+    wire [31:0]addr_pref_l2cache;
+    wire addrOK_l2cache_pref;
+    wire complete_l2cache_pref;
+    wire hit_l2cache_pref;
+    wire miss_l2cache_pref;
+    wire missvalid_l2cacahe_pref;
+    wire [31:0]misspc_l2cache_pref;
+    wire [31:0]missaddr_l2cache_pref;
+    wire misstype_l2cache_pref_paddr;
+
+    wire [31:0] dcache_pref_addr;
+    wire [31:0] dcache_pref_pc;
+    wire        dcache_pref_valid;
+    wire [31:0] anneal_addr = missaddr_l2cache_pref;
+    wire [31:0] anneal_pc = misspc_l2cache_pref;
+    wire        anneal_unhit = missvalid_l2cacahe_pref;//脉冲
+    wire        anneal_type = misstype_l2cache_pref_paddr;
 
     L1_L2cache #(
         .I_index_width  		( 7 		),
@@ -1828,10 +1848,53 @@ module core_top(
         .l2cache_mem_size               ( l2cache_mem_size     ),
         .mem_l2cache_addrOK_r           ( mem_l2cache_addrOK_r ),
         .mem_l2cache_addrOK_w           ( mem_l2cache_addrOK_w ),
-        .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
+        .mem_l2cache_dataOK             ( mem_l2cache_dataOK   ),
+
+        // L2-prefetch
+        .req_pref_l2cache               ( req_pref_l2cache             ),
+        .type_pref_l2cache              ( type_pref_l2cache            ),
+        .addr_pref_l2cache              ( addr_pref_l2cache            ),
+        .addrOK_l2cache_pref            ( addrOK_l2cache_pref          ),
+        .complete_l2cache_pref          ( complete_l2cache_pref        ),
+        .hit_l2cache_pref               ( hit_l2cache_pref             ),
+        .miss_l2cache_pref              ( miss_l2cache_pref            ),
+        .missvalid_l2cacahe_pref        (missvalid_l2cacahe_pref       ),
+        .misspc_l2cache_pref            (misspc_l2cache_pref           ),
+        .missaddr_l2cache_pref          (missaddr_l2cache_pref         ),
+        .misstype_l2cache_pref_paddr    (misstype_l2cache_pref_paddr   ),
+        
+        // D-prefetch
+        .dcache_pref_addr(dcache_pref_addr),
+        .dcache_pref_pc(dcache_pref_pc),
+        .dcache_pref_valid(dcache_pref_valid)
     );
 
+    // prefetching#(
+    //     .ADDR_WIDTH(32),
+    //     .L2cache_width(offset_width)
+    // )u_prefetching(
+    //     .clk(clk),
+    //     .rstn(rstn),
+    //     //inst-port
+    //     .pdc_pref_addr(npc),
+    //     //data-port
+    //     .dcache_pref_addr(dcache_pref_addr),
+    //     .dcache_pref_pc(dcache_pref_pc),
+    //     .dcache_pref_valid(dcache_pref_valid),
+    //     //l2cache-port
+    //     .anneal_addr(anneal_addr),
+    //     .anneal_pc(anneal_pc),
+    //     .anneal_unhit(anneal_unhit),
+    //     .anneal_type(anneal_type),
 
+    //     .req_pref_l2cache(req_pref_l2cache),
+    //     .type_pref_l2cache(type_pref_l2cache),
+    //     .addr_pref_l2cache(addr_pref_l2cache),
+    //     .addrOK_l2cache_pref(addrOK_l2cache_pref),
+    //     .complete_l2cache_pref(complete_l2cache_pref),
+    //     .hit_l2cache_pref(hit_l2cache_pref),
+    //     .miss_l2cache_pref(miss_l2cache_pref)
+    // );
 
     l2_axi_package#(
         .offset_width(offset_width)
