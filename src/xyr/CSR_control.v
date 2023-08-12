@@ -291,7 +291,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     nclk_stall=clk_stall&~inte;
     
     nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
-    if((!flushin && exe)||force_run)//?
+    if((!flushin && !stallin && exe)||force_run)//?
         begin
         case(mode)
             ERTN:
@@ -503,7 +503,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         TCFG_change<=0;
         excp_flush<=0;ertn_flush<=0;
-            if(run_reg&!stallin)//?
+            if(run_reg&&!stallin)//?
                 begin
 //                if(mode_reg==IDLE && !clk_stall)
 //                    begin
