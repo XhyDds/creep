@@ -62,17 +62,20 @@ module core_top(
     output   [ 4:0] debug0_wb_rf_wnum,
     output   [31:0] debug0_wb_rf_wdata,
     output   [31:0] debug0_wb_inst,
-    output          debug0_stall_exe1_wb,
          
     output   [31:0] debug1_wb_pc,
     output   [ 3:0] debug1_wb_rf_wen,
     output   [ 4:0] debug1_wb_rf_wnum,
     output   [31:0] debug1_wb_rf_wdata,
-    output   [31:0] debug1_wb_inst,
-    output          debug1_stall_exe1_wb
+    output   [31:0] debug1_wb_inst
 );
     wire clk=aclk;
     wire rstn=aresetn;
+    reg break_point_reg;
+    always @(posedge clk) begin
+        if(~rstn) break_point_reg<=0;
+        else break_point_reg<=break_point;
+    end
     parameter offset_width = 3;
 
     reg [31:0]pc,npc,
@@ -175,21 +178,21 @@ module core_top(
     assign flush_exe1_wb_0 =    ifinteflush|ifpriv|ifmmu_excp1|ifbr1|ifcacop_ibar;
     assign flush_exe1_wb_1 =    ifinteflush|ifmmu_excp1;
 
-    assign stall_pc_ =          break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|ifidle|stallicacop;
+    assign stall_pc_ =          break_point_reg|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|ifidle|stallicacop;
     assign stall_pc =           ~(!stall_pc_|ifbr0|ifbr1|ifpriv|ifcacop_ibar);
-    assign stall_if0_if1 =      break_point|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|stallicacop;
-    assign stall_to_icache =    break_point|stall_fetch_buffer|stall_div1|stall_dcache;
-    assign stall_if1_fifo =     break_point|stall_fetch_buffer|stall_div1|stall_dcache|stallicacop;
-    assign stall_fifo_id =      break_point|stall_div1|stall_dcache|stallicacop;
-    assign stall_id_reg0 =      break_point|stall_div1|stall_dcache|stallicacop;
-    assign stall_id_reg1 =      break_point|stall_div1|stall_dcache|stallicacop;
-    assign stall_reg_exe0_0 =   break_point|stall_div1|stall_dcache|stallicacop;
-    assign stall_reg_exe0_1 =   break_point|stall_div1|stall_dcache|stallicacop;
-    assign stall_exe0_exe1_0 =  break_point|stall_div1|stall_dcache|stallicacop;
-    assign stall_exe0_exe1_1 =  break_point|stall_div1|stall_dcache|stallicacop;
-    assign stall_to_dcache =    break_point|stall_div1|stallicacop;
-    assign stall_exe1_wb_0 =    break_point|stall_div1|stall_dcache|stallicacop;
-    assign stall_exe1_wb_1 =    break_point|stall_div1|stall_dcache|stallicacop;
+    assign stall_if0_if1 =      break_point_reg|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|stallicacop;
+    assign stall_to_icache =    break_point_reg|stall_fetch_buffer|stall_div1|stall_dcache;
+    assign stall_if1_fifo =     break_point_reg|stall_fetch_buffer|stall_div1|stall_dcache|stallicacop;
+    assign stall_fifo_id =      break_point_reg|stall_div1|stall_dcache|stallicacop;
+    assign stall_id_reg0 =      break_point_reg|stall_div1|stall_dcache|stallicacop;
+    assign stall_id_reg1 =      break_point_reg|stall_div1|stall_dcache|stallicacop;
+    assign stall_reg_exe0_0 =   break_point_reg|stall_div1|stall_dcache|stallicacop;
+    assign stall_reg_exe0_1 =   break_point_reg|stall_div1|stall_dcache|stallicacop;
+    assign stall_exe0_exe1_0 =  break_point_reg|stall_div1|stall_dcache|stallicacop;
+    assign stall_exe0_exe1_1 =  break_point_reg|stall_div1|stall_dcache|stallicacop;
+    assign stall_to_dcache =    break_point_reg|stall_div1|stallicacop;
+    assign stall_exe1_wb_0 =    break_point_reg|stall_div1|stall_dcache|stallicacop;
+    assign stall_exe1_wb_1 =    break_point_reg|stall_div1|stall_dcache|stallicacop;
 
     //ICache Return Buffer
     wire        mem_icache_addrOK;
@@ -1170,7 +1173,7 @@ module core_top(
         assign dma = 1'b0;
     `endif
     assign ifsuc= ~MMU_pipeline_memtype0[0] & MMU_pipeline_PADDR_valid0;
-    assign [31:0]npc_pdc_32={npc_pdc,2'b0};
+    assign npc_pdc_32={npc_pdc,2'b0};
     always @(*) begin
         ifnpc_pdc=0;
         ifguess=0;
