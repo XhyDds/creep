@@ -2,8 +2,8 @@ module CSR_control#(
 parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 )(
     input clk,rstn,
-    input pipeline_CSR_stall,
-    input pipeline_CSR_flush,
+    input [1:0] pipeline_CSR_stall,
+    input [1:0] pipeline_CSR_flush,
     //output CSR_pipeline_stall,
     output CSR_pipeline_flush,
     output CSR_pipeline_inte_flush,
@@ -100,11 +100,11 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     FPE='H12,TLBR='H3F;
     localparam ADEF='H0,ADEM='H1,DEFAULT='H0;
     reg [4:0] mode;wire [31:0] din;reg [31:0]dout,mask;
-    wire [8:0] ESTATin;reg flushout;wire stallin,flushin;
+    wire [8:0] ESTATin;reg flushout;wire [1:0] stallin,flushin;
     wire exe,force_run;wire [15:0] excp_arg1;reg clk_stall,nclk_stall;
     reg [31:0] outpc;
     wire inte;wire [15:0] csr_num;reg [31:0] inpc;wire inpc_valid;reg [5:0]ecode;
-    reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl;wire [31:0]randnum;
+    reg [8:0] esubcode;reg [31:0] evaddr;wire [31:0]dwcsr;reg TI_cl,TI_cl_reg;wire [31:0]randnum;
     reg rand_en;reg inst_stop,inst_stop_reg;wire [31:0] jumpc;wire jumpc_valid;
     reg [31:0] TLBIDXout,TLBEHIout,TLBELO0out,TLBELO1out;
     wire [31:0] TLBIDXin,TLBEHIin,TLBELO0in,TLBELO1in;wire [9:0] ASIDin;
@@ -113,6 +113,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     reg [31:0] dout_reg;reg run_reg;
     reg [5:0] ecode_reg;reg [8:0] esubcode_reg;
     reg [4:0] mode_reg;reg [31:0] inpc_reg,evaddr_reg;reg [15:0] csr_num_reg;
+    reg clk_stall_reg;
     //reg [31:0] jumpc_reg;
     reg TCFG_change;reg nexcp_flush,nertn_flush,ntlbfill_en;
 
@@ -193,7 +194,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     
     always@(posedge(clk))
     begin
-    if(!rstn||(flushin && !stallin && !force_run))
+    if(!rstn||(flushin[0] && !stallin[0] && !force_run))
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
         inte_flush_reg<=0;
@@ -204,7 +205,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         csr_num_reg<=0;inst_stop_reg<=0;
         
         end
-    else if(!stallin)//?||force_run
+    else if(!stallin[0])//?||force_run
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
         inte_flush_reg<=inte&inpc_valid&~excp_arg1[15];
@@ -217,17 +218,28 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     end
     always@(posedge(clk))
     begin
+    if(!rstn||(flushin[0] && !stallin[0]))
+        begin
+        TI_cl_reg<=0;
+        clk_stall_reg<=0;
+        end
+    else if(!stallin[0])
+        begin
+        TI_cl_reg<=TI_cl;
+        clk_stall_reg<=nclk_stall;
+        end
+    end
+    always@(posedge(clk))
+    begin
     if(!rstn)
         begin
         //jumpc_reg<=0;
         clk_stall<=0;
         tlbfill_en<=0;
         end
-    else 
+    else
         begin
-        clk_stall<=nclk_stall;
-//        if(jumpc_valid)
-//            jumpc_reg<=jumpc;
+        clk_stall<=(clk_stall|(clk_stall_reg&~flushin[1] & ~stallin[1]))&~inte;
         tlbfill_en<=ntlbfill_en;
         end
     end
@@ -240,7 +252,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         end
     else
         begin
-        if(TI_cl)
+        if(TI_cl_reg & ~flushin[1] & ~stallin[1])
             begin
             TI_INTE<=0;
             end
@@ -290,10 +302,10 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     flushout=1;
     inst_stop=0;
     TI_cl=0;//TI_cl
-    nclk_stall=clk_stall&~inte;
+    nclk_stall=0;
     
     nexcp_flush=0;nertn_flush=0;ntlbfill_en=0;
-    if((!flushin && exe)||force_run)//?
+    if((!flushin[0] && exe)||force_run)//?
         begin
         case(mode)
             ERTN:
@@ -505,7 +517,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         begin
         TCFG_change<=0;
         excp_flush<=0;ertn_flush<=0;
-            if(run_reg&!stallin)//?
+            if(run_reg&&!stallin[1]&&!flushin[1])//?
                 begin
 //                if(mode_reg==IDLE && !clk_stall)
 //                    begin
