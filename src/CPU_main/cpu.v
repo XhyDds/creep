@@ -135,8 +135,7 @@ module core_top(
 
     wire LLbit;
     wire [1:0]PLV;
-    wire [31:0]pc_priv;
-    wire [31:0]privresult;
+    wire [31:0]pc_priv,privresult,npc_pdc_32;
     wire ifpriv,excp_flush;
     wire ifidle;
     wire [15:0]MMU_pipeline_excp_arg1;
@@ -156,7 +155,6 @@ module core_top(
     assign flush_mispre=(pc!=npc_pdc_32)&ifguess_pc;
     `endif
 
-    assign stallicacop=pipeline_icache_opflag&stall_icache;
     assign ifbr0=ifbr0_&~flushup_exe0_exe1_0&~stall_exe0_exe1_0;
     assign ifbr1=ifbr1_&~stall_exe0_exe1_1;
     assign flushup =            flush_pre_1&ctr_reg_exe0_0[31];
@@ -762,6 +760,7 @@ module core_top(
     wire    pipeline_icache_opflag;
     wire    pipeline_MMU_valid;
     wire [1:0]pipeline_dcache_size;
+    assign stallicacop=pipeline_icache_opflag&stall_icache;
 
     cache_ctr u_cache_ctr(
         //ports
@@ -1035,10 +1034,6 @@ module core_top(
 
 `ifdef predictor
     //已经处理过的信号
-    wire [2:0]mis_pdc;
-    wire [1:0]choice_real;
-    wire choice_real_btb_ras;
-    wire choice_real_g_h;
     parameter   NOT_JUMP = 3'd0,
                 DIRECT_JUMP = 3'd1,
                 //
@@ -1046,17 +1041,17 @@ module core_top(
                 INDIRECT_JUMP = 3'd5,
                 CALL = 3'd6,
                 JUMP=3'd7;
-    assign mis_pdc={(out_npc_ex!=out_npc_pdc),(out_kind_ex!=out_kind_pdc),(out_taken_ex!=out_taken_pdc)};
-    assign choice_real={choice_real_btb_ras,choice_real_g_h};
-    assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
-    assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
+
+    wire [2:0]mis_pdc;
+    wire [1:0]choice_real;
+    wire choice_real_btb_ras;
+    wire choice_real_g_h;
 
     wire [29:0] npc_test;//给ccr用的测试线，�???要左移两位使用，0,4交替
-
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
     wire [29:0] out_npc_pdc   ;
-    wire [bh_width-1:0] out_bh_ex     ;
+    wire [bh_width-1:0] out_bh_ex;
     wire        out_taken_ex  ;
     wire [2:0]  out_kind_ex   ;
     wire [29:0] out_npc_ex    ;
@@ -1064,12 +1059,14 @@ module core_top(
     wire [1:0]  out_choice_pdc;
     wire [29:0] ret_pc_ex     ;
     wire update_en;
-
-    wire[7:0] out_pdch;
+    wire [7:0] out_pdch;
     wire [7:0] pdch;
-
     wire [11:0]tage_pdch;
     wire [11:0]tage_pdch_ex;
+    assign mis_pdc={(out_npc_ex!=out_npc_pdc),(out_kind_ex!=out_kind_pdc),(out_taken_ex!=out_taken_pdc)};
+    assign choice_real={choice_real_btb_ras,choice_real_g_h};
+    assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
+    assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
 
     predictor #(
         .k_width       		( 14   		),
@@ -1173,7 +1170,7 @@ module core_top(
         assign dma = 1'b0;
     `endif
     assign ifsuc= ~MMU_pipeline_memtype0[0] & MMU_pipeline_PADDR_valid0;
-    wire [31:0]npc_pdc_32={npc_pdc,2'b0};
+    assign [31:0]npc_pdc_32={npc_pdc,2'b0};
     always @(*) begin
         ifnpc_pdc=0;
         ifguess=0;
