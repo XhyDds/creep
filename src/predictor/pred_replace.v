@@ -1,38 +1,33 @@
 module pred_replace#(//PLRU
-    parameter   addr_width=16,
+    parameter   addr_width=8,
                 way=4
 )
 (
     input       clk,
     input       [way-1:0]use1,
-    input       [way-1:0]valid,
+    input       update_en,
 
     input       [addr_width-1:0]addr,
-    output      [1:0]way_sel_i
+    output reg  [1:0]way_sel
     );
-reg [3:0]record[(1<<addr_width)-1:0];
-reg [1:0]i;
-assign way_sel_i = i;
+reg [2:0]record[(1<<addr_width)-1:0];
 //i_sel
 always @(posedge clk) begin
-    if(!valid[0])i <= 2'd0;
-    else if(!valid[1])i <= 2'd1;
-    else if(!valid[2])i <= 2'd2;
-    else if(!valid[3])i <= 2'd3;
+    begin
+    if(!record[addr][0])begin
+        if(!record[addr][1])way_sel <= 2'd0;
+        else way_sel <= 2'd1;
+    end
     else begin
-        if(!record[addr][0])begin
-            if(!record[addr][1])i <= 2'd0;
-            else i <= 2'd1;
-        end
-        else begin
-            if(!record[addr][2])i <= 2'd2;
-            else i <= 2'd3;
-        end
+        if(!record[addr][2])way_sel <= 2'd2;
+        else way_sel <= 2'd3;
+    end
     end
 end
 //Write
 always @(posedge clk) begin
-    if(use1[0])begin
+    if(~update_en) ;
+    else if(use1[0])begin
         record[addr][0] <= 1'b1;
         record[addr][1] <= 1'b1;
     end
