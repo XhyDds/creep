@@ -104,6 +104,18 @@ wire opflag=pipeline_l2cache_opflag;
 wire Hit = |FSM_hit;
 reg [4:0]state;
 reg [4:0]next_state;
+reg [31:0]hit_cnt,miss_cnt;
+reg we_hit_cnt,we_miss_cnt;
+always @(posedge clk) begin
+    if(!rstn)begin
+        hit_cnt <= 0;
+        miss_cnt <= 0;
+    end
+    else begin
+        if(we_hit_cnt)hit_cnt <= hit_cnt + 1;
+        if(we_miss_cnt)miss_cnt <= miss_cnt + 1;
+    end
+end
 reg flush;
 always @(posedge clk) begin
     flush <= icache_l2cache_flush;//迟一个周期撤销
@@ -289,6 +301,8 @@ always @(*) begin
     we_wbaddr = 0;
     num_we = 0;
     num_clear = 0;
+    we_hit_cnt = 0;
+    we_miss_cnt = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
@@ -347,6 +361,7 @@ always @(*) begin
                 FSM_inpref = 1;
                 if(Hit && ! FSM_SUC_pref)begin
                     num_clear = 1;
+                    we_hit_cnt = 1;
                     if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
                         FSM_choose_way = hit_pos;
                         if(FSM_from_pref[1])l2cache_dcache_dataOK =1;
@@ -385,6 +400,8 @@ always @(*) begin
         end
         Lookup:begin
             missvalid = ~Hit;
+            if(Hit)we_hit_cnt = 1;
+            else we_miss_cnt = 1;
             if(!(FSM_rbuf_from == 2'b01 && flush) && !FSM_rbuf_SUC)begin
                 if(Hit)begin
                     num_clear = 1;
