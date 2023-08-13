@@ -9,7 +9,8 @@ module dispatcher (
     output reg [15:0]excp_arg00,excp_arg11,
     output reg [75:0]pre00,pre11,
     (* MAX_FANOUT = 2 *)output reg if0,if1,
-    output reg valid00,valid11
+    output reg valid00,valid11,
+    output reg [31:0]lau_count
 );
     //上方alu div mul，下方全功能
     //可同时发射：不相关且有一条是算术指令
@@ -47,6 +48,11 @@ module dispatcher (
             twostates1_reg <= if1 ? twostates1:0;
             rd1_reg <= rd1; 
         end
+    end
+
+    always @(posedge clk) begin
+        if(~rstn) lau_count<=0;
+        else if(stall1|stall0) lau_count<=lau_count+1;
     end
 
     always @(*) begin

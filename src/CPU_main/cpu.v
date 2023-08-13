@@ -331,6 +331,7 @@ module core_top(
     wire [75:0]pre11;
     wire [31:0]npc00;
     wire [31:0]npc11;
+    wire [31:0]lau_count;
 
     dispatcher u_dispatcher(
         //ports
@@ -383,7 +384,8 @@ module core_top(
         .npc0               ( npc0              ),
         .npc1               ( npc1              ),
         .npc00              ( npc00             ),
-        .npc11              ( npc11             )
+        .npc11              ( npc11             ),
+        .lau_count          ( lau_count         )
     );
 
     wire [31:0]	rrk0_rf;
@@ -1943,25 +1945,42 @@ module core_top(
     assign debug1_wb_rf_wdata=(ws_valid1)?(ctr_exe1_wb_1[5]?din_pipeline_dcache_exe1_wb:wb_data1):wb_data0;
     assign debug0_wb_inst=(ws_valid1)?ir_exe1_wb_0:ir_exe1_wb_1;
     assign debug1_wb_inst=(ws_valid1)?ir_exe1_wb_1:ir_exe1_wb_0;
-    assign debug0_stall_exe1_wb=stall_exe1_wb_0;
-    assign debug1_stall_exe1_wb=stall_exe1_wb_1;
     assign ws_valid0=stall_exe1_wb_0?0:ir_valid_exe1_wb_0;
     assign ws_valid1=stall_exe1_wb_1?0:(ir_valid_exe1_wb_1&~excp_flush);
     assign ws_valid=ws_valid0|ws_valid1;
 
-    reg [31:0]pccount;
+    reg [31:0]up_count;
     always @(posedge clk) begin
-        if(!rstn) begin
-            pccount <= 0;
-        end
-        else case ({ws_valid0,ws_valid1})
-            2'b00: ;
-            2'b01: pccount <= pccount+1;
-            2'b10: pccount <= pccount+1;
-            2'b11: pccount <= pccount+2;
-            default: ;
-        endcase 
+        if(!rstn) up_count <= 0;
+        else if(ws_valid0) up_count <= up_count+1;
     end
+
+    reg [31:0]down_count;
+    always @(posedge clk) begin
+        if(!rstn) down_count <= 0;
+        else if(ws_valid1) down_count <= down_count+1;
+    end
+
+    reg [31:0]br0_count;
+    always @(posedge clk) begin
+        if(!rstn) br0_count <= 0;
+        else if(ifbr0) br0_count <= br0_count+1;
+    end
+
+    reg [31:0]br1_count;
+    always @(posedge clk) begin
+        if(!rstn) br1_count <= 0;
+        else if(ifbr1) br1_count <= br1_count+1;
+    end
+
+    reg [31:0]priv_count;
+    always @(posedge clk) begin
+        if(!rstn) priv_count <= 0;
+        else if(ifpriv) priv_count <= priv_count+1;
+    end
+
+    wire [63:0]clk_count=countresult;
+    wire [31:0]pc_count=up_count+down_count;
 
 //difftest begin here
 `ifdef DIFFTEST_EN
