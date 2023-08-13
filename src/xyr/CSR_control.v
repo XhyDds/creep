@@ -118,8 +118,8 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
 
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout_reg,CSR_pipeline_inte_flush=inte_flush_reg;
-    assign exe=(pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW||inte)&&inpc_valid||excp_arg1[15];
-    //assign force_run=0;//MMU>inte,inst MMU early
+    assign exe=(pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW||inte)&&inpc_valid||;
+    assign force_run=excp_arg1[15]&&!flushout_reg;//MMU>inte,inst MMU early,insideflush>mmu>outsideflush
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;//|nclk_stall
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
@@ -193,7 +193,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     
     always@(posedge(clk))
     begin
-    if(!rstn||(flushin && !stallin))//? && !force_run
+    if(!rstn||(flushin && !stallin && !force_run))
         begin   
         dwcsr_reg<=0;flushout_reg<=0;
         inte_flush_reg<=0;
@@ -204,12 +204,12 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
         csr_num_reg<=0;inst_stop_reg<=0;
         
         end
-    else if(!stallin)//?||force_run
+    else if(!stallin)
         begin
         dwcsr_reg<=dwcsr;flushout_reg<=flushout;
         inte_flush_reg<=inte&inpc_valid&~excp_arg1[15];
         outpc_reg<=outpc;dout_reg<=dout;
-        run_reg<=(!flushin && exe);//?||force_run
+        run_reg<=(!flushin && exe)||force_run;//?
         ecode_reg<=ecode;esubcode_reg<=esubcode;
         mode_reg<=mode;inpc_reg<=inpc;evaddr_reg<=evaddr;
         csr_num_reg<=csr_num;inst_stop_reg<=inst_stop;
@@ -291,7 +291,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     nclk_stall=clk_stall&~inte;
     
     nexcp_flush=0;nertn_flush=0;tlbfill_en=0;
-    if((!flushin && !stallin && exe))//?|| force_run
+    if(!stallin && ((!flushin && exe) || force_run))//?
         begin
         case(mode)
             ERTN:
