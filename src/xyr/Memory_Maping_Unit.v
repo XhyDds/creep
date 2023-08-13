@@ -336,7 +336,7 @@ module Memory_Maping_Unit#(//stall frist
     if(!rstn || flush0[1])//flush first
         begin
         PADDR0<=0;excp_arg0<=0;
-        memtype0<=0;PADDR_valid0=0;
+        memtype0<=0;PADDR_valid0<=0;
         end
     else if(~stall0[1])
         begin
