@@ -1,5 +1,3 @@
-`define hash_index
-`define multi_way
 module btb#(
     parameter h_width = 8,
               k_width = 12,
@@ -18,7 +16,6 @@ module btb#(
     input [ADDR_WIDTH-1:0]npc_real,
     input update_en
 );
-    `ifdef hash_index
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [k_width-1:0]hashed_pc;
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [k_width-1:0]hashed_pc_tag;
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0]hashed_bh_pc;
@@ -89,8 +86,5 @@ module btb#(
         .pc(pc_update),
         .pc_hashed(hashed_pc_upt)
     );
-    `endif
     
-    `ifdef multi_way
-    `endif
 endmodule
