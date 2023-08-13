@@ -1964,19 +1964,19 @@ module core_top(
     reg [31:0]br0_count;
     always @(posedge clk) begin
         if(!rstn) br0_count <= 0;
-        else if(ifbr0) br0_count <= br0_count+1;
+        else if(ifbr0&~stall_exe0_exe1_0) br0_count <= br0_count+1;
     end
 
     reg [31:0]br1_count;
     always @(posedge clk) begin
         if(!rstn) br1_count <= 0;
-        else if(ifbr1) br1_count <= br1_count+1;
+        else if(ifbr1&~stall_exe0_exe1_1) br1_count <= br1_count+1;
     end
 
     reg [31:0]priv_count;
     always @(posedge clk) begin
         if(!rstn) priv_count <= 0;
-        else if(ifpriv) priv_count <= priv_count+1;
+        else if(ifpriv&~stall_exe0_exe1_1) priv_count <= priv_count+1;
     end
 
     wire [63:0]clk_count=countresult;
