@@ -153,7 +153,11 @@ module core_top(
     ifbr__exe0_exe1_0,          ifbr__exe0_exe1_1,
     flushup_exe0_exe1_0,        if_guess_pc,
     dcache_valid_exe0_exe1,     type_dcache_exe0_exe1,
-    icache_opflag_exe0_exe1,    dcache_opflag_exe0_exe1,    l2cache_opflag_exe0_exe1;
+    icache_opflag_exe0_exe1,    dcache_opflag_exe0_exe1,    
+    l2cache_opflag_exe0_exe1,   l2cache_opflag_exe1_exe2;
+
+    reg  [1:0]dcache_size_exe0_exe1;
+    reg  [3:0]dcache_wstrb_exe0_exe1;
 
     reg [15:0]
     excp_arg_id_reg_1,                      excp_arg_reg_exe0_1,    
@@ -1042,12 +1046,12 @@ module core_top(
         //ports
         .ifwb0    		        ( ifwb0    		        ),
         .ifwb1    		        ( ifwb1    		        ),
-        .result0 		        ( result_exe1_exe2_0 		),
-        .result1 		        ( result_exe1_exe2_1 		),
-        .ctr0    		        ( ctr_exe1_exe2_0    		),
-        .ctr1    		        ( ctr_exe1_exe2_1    		),
-        .rd0     		        ( rd_exe1_exe2_0     		),
-        .rd1     		        ( rd_exe1_exe2_1     		),
+        .result0 		        ( result_exe2_wb_0 		),
+        .result1 		        ( result_exe2_wb_1 		),
+        .ctr0    		        ( ctr_exe2_wb_0    		),
+        .ctr1    		        ( ctr_exe2_wb_1    		),
+        .rd0     		        ( rd_exe2_wb_0     		),
+        .rd1     		        ( rd_exe2_wb_1     		),
         .wb_data0         		( wb_data0         		),
         .wb_data1         		( wb_data1         		),
         .wb_addr0         		( wb_addr0         		),
@@ -1583,6 +1587,8 @@ module core_top(
             icache_opflag_exe0_exe1<=0;
             l2cache_opflag_exe0_exe1<=0;
             type_dcache_exe0_exe1<=0;
+            dcache_size_exe0_exe1<=0;
+            dcache_wstrb_exe0_exe1<=0;
         end
         else if(stall_exe0_exe1_1);
         else if(flush_exe0_exe1_1) begin
@@ -1608,6 +1614,8 @@ module core_top(
             icache_opflag_exe0_exe1<=0;
             l2cache_opflag_exe0_exe1<=0;
             type_dcache_exe0_exe1<=0;
+            dcache_size_exe0_exe1<=0;
+            dcache_wstrb_exe0_exe1<=0;
         end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
@@ -1632,6 +1640,8 @@ module core_top(
             icache_opflag_exe0_exe1<=pipeline_icache_opflag;
             l2cache_opflag_exe0_exe1<=pipeline_l2cache_opflag;
             type_dcache_exe0_exe1<=type_pipeline_dcache;
+            dcache_size_exe0_exe1<=pipeline_dcache_size;
+            dcache_wstrb_exe0_exe1<=pipeline_dcache_wstrb;
         end
     end
 
@@ -1707,6 +1717,7 @@ module core_top(
             LLbit_exe1_exe2<=0;
             data_exe1_exe2<=0;
             cache_opcode_exe1_exe2<=0;
+            l2cache_opflag_exe1_exe2<=0;
         end
         else if(stall_exe1_exe2_1);
         else if(flush_exe1_exe2_1) begin
@@ -1723,6 +1734,7 @@ module core_top(
             LLbit_exe1_exe2<=0;
             data_exe1_exe2<=0;
             cache_opcode_exe1_exe2<=0;
+            l2cache_opflag_exe1_exe2<=0;
         end
         else begin
             ctr_exe1_exe2_1 <= ctr_exe0_exe1_1;
@@ -1738,14 +1750,15 @@ module core_top(
             LLbit_exe1_exe2<=LLbit;
             data_exe1_exe2<=data_exe0_exe1;
             cache_opcode_exe1_exe2<=cache_opcode_exe0_exe1;
+            l2cache_opflag_exe1_exe2<=l2cache_opflag_exe0_exe1;
         end
     end
 
 //EXE2_WB
     reg [31:0]result_exe2_1;
     always @(*) begin
-        result_exe2_1=result_exe0_exe1_1;
-        case (ctr_exe0_exe1_1[3:0])
+        result_exe2_1=result_exe1_exe2_1;
+        case (ctr_exe1_exe2_1[3:0])
             3: result_exe2_1=privresult;
             5: result_exe2_1=dcacheresult;
             6: result_exe2_1=dcacheresult;
@@ -1884,7 +1897,7 @@ module core_top(
 
         //  L2-pipeline
         .addr_pipeline_l2cache          ( vaddr_exe1_exe2               ),
-        .pipeline_l2cache_opflag        ( l2cache_opflag_exe0_exe1      ),
+        .pipeline_l2cache_opflag        ( l2cache_opflag_exe1_exe2      ),
         .pipeline_l2cache_opcode        ( cache_opcode_exe1_exe2        ),
 
         //  L2cache to Mem
@@ -1972,8 +1985,8 @@ module core_top(
     assign debug1_wb_rf_wnum=(ws_valid1)?wb_addr1:wb_addr0;
     assign debug0_wb_rf_wdata=(ws_valid1)?wb_data0:(ctr_exe2_wb_1[5]?data_exe2_wb:wb_data1);
     assign debug1_wb_rf_wdata=(ws_valid1)?(ctr_exe2_wb_1[5]?data_exe2_wb:wb_data1):wb_data0;
-    assign debug0_wb_inst=(ws_valid1)?ir_exe2_wb_0:ir_exe1_exe2_1;
-    assign debug1_wb_inst=(ws_valid1)?ir_exe1_exe2_1:ir_exe2_wb_0;
+    assign debug0_wb_inst=(ws_valid1)?ir_exe2_wb_0:ir_exe2_wb_1;
+    assign debug1_wb_inst=(ws_valid1)?ir_exe2_wb_1:ir_exe2_wb_0;
     assign ws_valid0=stall_exe2_wb_0?0:ir_valid_exe2_wb_0;
     assign ws_valid1=stall_exe2_wb_1?0:(ir_valid_exe2_wb_1&~excp_flush);
     assign ws_valid=ws_valid0|ws_valid1;
