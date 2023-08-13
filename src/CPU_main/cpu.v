@@ -433,8 +433,8 @@ module core_top(
 
     register_file u_register_file(
         //ports
-        .stall0(stall_exe1_exe2_0),
-        .stall1(stall_exe1_exe2_1),
+        .stall0         ( stall_exe1_exe2_0 ),
+        .stall1         ( stall_exe1_exe2_1 ),
         .clk      		( clk      		),
         .rstn      		( rstn      		),
         .ifwb0    		( ifwb0    		),
@@ -1773,13 +1773,13 @@ module core_top(
             countresult_exe2_wb_0<=0;
         end
         else begin
-            ctr_exe2_wb_0 <= ctr_exe0_exe1_0;
-            rd_exe2_wb_0<=rd_exe0_exe1_0;
+            ctr_exe2_wb_0 <= ctr_exe1_exe2_0;
+            rd_exe2_wb_0<=rd_exe1_exe2_0;
             result_exe2_wb_0<=result_exe1_exe2_0;
-            pc_exe2_wb_0<=pc_exe0_exe1_0;
-            ir_exe2_wb_0<=ir_exe0_exe1_0;
-            ir_valid_exe2_wb_0<=ir_valid_exe0_exe1_0;
-            countresult_exe2_wb_0<=countresult_exe0_exe1_0;
+            pc_exe2_wb_0<=pc_exe1_exe2_0;
+            ir_exe2_wb_0<=ir_exe1_exe2_0;
+            ir_valid_exe2_wb_0<=ir_valid_exe1_exe2_0;
+            countresult_exe2_wb_0<=countresult_exe1_exe2_0;
         end
     end
 
@@ -1812,17 +1812,17 @@ module core_top(
             data_exe2_wb<=0;
         end
         else begin
-            ctr_exe2_wb_1 <= ctr_exe0_exe1_1;
-            rd_exe2_wb_1<=rd_exe0_exe1_1;
+            ctr_exe2_wb_1 <= ctr_exe1_exe2_1;
+            rd_exe2_wb_1<=rd_exe1_exe2_1;
             result_exe2_wb_1<=result_exe2_1;
-            pc_exe2_wb_1<=pc_exe0_exe1_1;
-            ir_exe2_wb_1<=ir_exe0_exe1_1;
-            vaddr_exe2_wb<=vaddr_exe0_exe1;
+            pc_exe2_wb_1<=pc_exe1_exe2_1;
+            ir_exe2_wb_1<=ir_exe1_exe2_1;
+            vaddr_exe2_wb<=vaddr_exe1_exe2;
             paddr_exe2_wb<=MMU_pipeline_PADDR1;
-            ir_valid_exe2_wb_1<=ir_valid_exe0_exe1_1;
-            countresult_exe2_wb_1<=countresult_exe0_exe1_1;
-            rand_index_exe2_wb<=rand_index_exe0_exe1;
-            data_exe2_wb<=data_exe0_exe1;
+            ir_valid_exe2_wb_1<=ir_valid_exe1_exe2_1;
+            countresult_exe2_wb_1<=countresult_exe1_exe2_1;
+            rand_index_exe2_wb<=rand_index_exe1_exe2;
+            data_exe2_wb<=data_exe1_exe2;
         end
     end
 //L2Cache
