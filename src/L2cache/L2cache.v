@@ -43,14 +43,18 @@ module L2cache#(
     input       req_pref_l2cache,
     input       type_pref_l2cache,
     input       [31:0]addr_pref_l2cache,
-    output      hit_l2cache_pref,//ack时取走hit
-    output      miss_l2cache_pref,//dataOK时取走miss
+    output      hit_l2cache_pref,//
+    output      miss_l2cache_pref,
     output      addrOK_l2cache_pref,
     output      complete_l2cache_pref,
     output      missvalid_l2cacahe_pref,//valid
     output      [31:0]misspc_l2cache_pref,
     output      [31:0]missaddr_l2cache_pref,
     output      misstype_l2cache_pref_paddr,//0-I 1-D
+
+    input       [2:0]num_pref_l2cache,//预取类型
+    output      [2:0]num_l2cache_pref,
+    output      hitnum_l2cache_pref,
 
     //mem port(AXI bridge)
     output      [31:0]addr_l2cache_mem_r,
@@ -315,6 +319,26 @@ L2cache_TagV(
 
 );
 
+//prefnum table
+wire num_clear;
+assign hitnum_l2cache_pref = num_clear;
+wire [way-1:0]num_we;
+L2cache_prefnum #(//预取类型
+    .addr_width(index_width),
+    .data_width(3),
+    .way(way)
+)
+L2cache_prefnum(
+    .clk(clk),
+    .num_addr_read(index),
+    .num_addr_write(inpref ? index_pref : rbuf_index),
+    .num_din(num_pref_l2cache),
+    .num_dout(num_l2cache_pref),
+    .hit(hit),
+    .num_we(num_we),
+    .clear(num_clear)
+);
+
 //Dirtytable
 wire Dirty,Dirtytable_set0,Dirtytable_set1;
 wire [2:0]Dirtytable_way_select;
@@ -415,6 +439,8 @@ L2cache_FSMmain(
     .missvalid(missvalid_l2cacahe_pref),
 
     .we_wbaddr(we_wbaddr),
+    .num_clear(num_clear),
+    .num_we(num_we),
 
     //request buffer
     .FSM_rbuf_we(rbuf_we),

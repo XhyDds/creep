@@ -73,6 +73,8 @@ module L2cache_FSMmain#(
     input       FSM_icache_req,
 
     output reg  we_wbaddr,
+    output reg  [way-1:0]num_we,
+    output reg  num_clear,
     
     //PLRU
     output reg  [way-1:0]FSM_use,
@@ -285,6 +287,8 @@ always @(*) begin
     outpref = 0;
     missvalid = 0;
     we_wbaddr = 0;
+    num_we = 0;
+    num_clear = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
@@ -335,12 +339,14 @@ always @(*) begin
                 FSM_Data_replace = 1;
                 FSM_use[sel] = 1;
                 FSM_Data_we[sel] = 1;
+                num_we[sel] = 1;
                 FSM_Dirtytable_way_select = sel;
                 FSM_Dirtytable_set0 = 1;
             end
             else begin//req for L1
                 FSM_inpref = 1;
                 if(Hit && ! FSM_SUC_pref)begin
+                    num_clear = 1;
                     if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
                         FSM_choose_way = hit_pos;
                         if(FSM_from_pref[1])l2cache_dcache_dataOK =1;
@@ -366,6 +372,7 @@ always @(*) begin
                 FSM_Data_replace = 1;
                 FSM_use[sel] = 1;
                 FSM_Data_we[sel] = 1;
+                num_we[sel] = 1;
                 FSM_Dirtytable_way_select = sel;
                 FSM_Dirtytable_set0 = 1;
             end
@@ -380,6 +387,7 @@ always @(*) begin
             missvalid = ~Hit;
             if(!(FSM_rbuf_from == 2'b01 && flush) && !FSM_rbuf_SUC)begin
                 if(Hit)begin
+                    num_clear = 1;
                     if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
                         FSM_use[hit_pos] = 1;
                         FSM_choose_way = hit_pos;

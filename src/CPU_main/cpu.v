@@ -1764,6 +1764,26 @@ module core_top(
     wire dcache_pipeline_doneop;
     assign ifcacop_ibar=icache_pipeline_doneop|dcache_pipeline_doneop;
 
+    //L2-prefetch port
+    wire req_pref_l2cache;    
+    wire type_pref_l2cache;//指令或数据 0-指令 1-数据
+    wire [31:0]addr_pref_l2cache;    
+    wire complete_l2cache_pref;
+    wire hit_l2cache_pref;//预取请求的Hit
+    wire miss_l2cache_pref;//预取过程中来自L1访问的Miss 
+    wire missvalid_l2cacahe_pref;//valid
+    wire [31:0]misspc_l2cache_pref;
+    wire [31:0]missaddr_l2cache_pref;
+    wire misstype_l2cache_pref_paddr;//0-I 1-D
+    wire [2:0]num_pref_l2cache;//预取类型
+    wire [2:0]num_l2cache_pref;
+    wire hitnum_l2cache_pref;
+
+    //D-prefetch port
+    wire [31:0]dcache_pref_addr;
+    wire [31:0]dcache_pref_pc;
+    wire dcache_pref_valid;
+
     L1_L2cache #(
         .I_index_width  		( 7 		),
         .D_index_width  		( 7 		),
@@ -1785,7 +1805,6 @@ module core_top(
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_icache_opflag 		( pipeline_icache_opflag&~flush_exe0_exe1_1),
         .icache_pipeline_doneop         ( icache_pipeline_doneop        ),
-        // .icache_pipeline_stallop        ( stallicacop       ),
         .pipeline_icache_ctrl           ( {30'b0,1'b0,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
         .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0]     ),
@@ -1804,7 +1823,6 @@ module core_top(
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
         .pipeline_dcache_opflag 		( pipeline_dcache_opflag&~flush_exe0_exe1_1),
         .dcache_pipeline_doneop         ( dcache_pipeline_doneop        ),
-        // .dcache_pipeline_stallop        ( stalldcacop       ),
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe1_wb_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
         .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
@@ -1814,6 +1832,26 @@ module core_top(
         .addr_pipeline_l2cache          ( opcode_exe0_exe1[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe0_exe1          ),
         .pipeline_l2cache_opflag        ( l2opflag_exe0_exe1            ),
         .pipeline_l2cache_opcode        ( opcode_exe0_exe1              ),
+
+        //L2-prefetch port
+        .req_pref_l2cache               ( req_pref_l2cache              ),
+        .type_pref_l2cache              ( type_pref_l2cache             ),
+        .addr_pref_l2cache              ( addr_pref_l2cache             ),
+        .complete_l2cache_pref          ( complete_l2cache_pref         ),
+        .hit_l2cache_pref               ( hit_l2cache_pref              ),
+        .miss_l2cache_pref              ( miss_l2cache_pref             ),
+        .missvalid_l2cacahe_pref        ( missvalid_l2cacahe_pref       ),
+        .misspc_l2cache_pref            ( misspc_l2cache_pref           ),
+        .missaddr_l2cache_pref          ( missaddr_l2cache_pref         ),
+        .misstype_l2cache_pref_paddr    ( misstype_l2cache_pref_paddr   ),
+        .num_pref_l2cache               ( num_pref_l2cache              ),
+        .num_l2cache_pref               ( num_l2cache_pref              ),
+        .hitnum_l2cache_pref            ( hitnum_l2cache_pref           ),
+
+        //D-prefetch port
+        .dcache_pref_addr               ( dcache_pref_addr              ),
+        .dcache_pref_pc                 ( dcache_pref_pc                ),
+        .dcache_pref_valid              ( dcache_pref_valid             ),
 
         //  L2cache to Mem
         .addr_l2cache_mem_r             ( addr_l2cache_mem_r   ),
