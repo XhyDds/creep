@@ -65,10 +65,14 @@ module L1_L2cache#(
     output      [31:0]missaddr_l2cache_pref,
     output      misstype_l2cache_pref_paddr,//0-I 1-D
 
+    input       [2:0]num_pref_l2cache,//预取类型
+    output      [2:0]num_l2cache_pref,
+    output      hitnum_l2cache_pref,
+
     //D-prefetch port
     output     [31:0]dcache_pref_addr,
     output     [31:0]dcache_pref_pc,
-    output      dcache_pref_valid,
+    output     dcache_pref_valid,
     
     //L2-Mem port
     output      [31:0]addr_l2cache_mem_r,
@@ -306,6 +310,9 @@ L2cache(
     .misspc_l2cache_pref(misspc_l2cache_pref),
     .missaddr_l2cache_pref(missaddr_l2cache_pref),
     .misstype_l2cache_pref_paddr(misstype_l2cache_pref_paddr),
+    .num_pref_l2cache(num_pref_l2cache),
+    .num_l2cache_pref(num_l2cache_pref),
+    .hitnum_l2cache_pref(hitnum_l2cache_pref),
 
     .addr_l2cache_mem_r(addr_l2cache_mem_r),
     .addr_l2cache_mem_w(addr_l2cache_mem_w),
