@@ -1,11 +1,11 @@
 module dcache_extend (
-    input [31:0]ctr_exe0_exe1_1,dout_dcache_pipeline,din_pipeline_dcache,
+    input [31:0]ctr,dout_dcache_pipeline,din_pipeline_dcache,
     input [31:0]addr_pipeline_dcache,
     input llbit,
     output reg [31:0]dout_dcache_pipeline_extend
 );
-    wire [3:0]type_=ctr_exe0_exe1_1[3:0];
-    wire [4:0]subtype=ctr_exe0_exe1_1[11:7];
+    wire [3:0]type_=ctr[3:0];
+    wire [4:0]subtype=ctr[11:7];
     wire [15:0]dout16=addr_pipeline_dcache[1]?dout_dcache_pipeline[31:16]:dout_dcache_pipeline[15:0];
     reg [7:0]dout8;
     always @(*) begin
