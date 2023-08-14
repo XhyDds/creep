@@ -451,6 +451,9 @@ always @(*) begin
             FSM_choose_way = sel;
             FSM_TagV_way_select = sel;
             we_wbaddr = 1;
+
+            FSM_Dirtytable_way_select = sel;
+            FSM_Dirtytable_set0 = 1;
             // if(sel == 3'd0)FSM_TagV_unvalid = 8'b00000001;
             // else if(sel == 3'd1)FSM_TagV_unvalid = 8'b00000010;
             // else if(sel == 3'd2)FSM_TagV_unvalid = 8'b00000100;
