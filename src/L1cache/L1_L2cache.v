@@ -251,7 +251,7 @@ wire [3:0]dcache_l2cache_wstrb;
 wire l2cache_dcache_addrOK;
 wire l2cache_dcache_dataOK;
 wire dcache_l2cache_SUC;
-wire dcache_l2cache_size;
+wire [1:0]dcache_l2cache_size;
 
 assign addr_dcache_l2cache = addr_dcache_mem;
 assign din_dcache_l2cache = dout_dcache_mem;
