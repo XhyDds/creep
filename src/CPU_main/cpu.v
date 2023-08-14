@@ -1814,7 +1814,7 @@ module core_top(
         .icache_pipeline_doneop         ( icache_pipeline_doneop        ),
         .pipeline_icache_ctrl           ( {30'b0,1'b0,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
-        .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0]     ),
+        .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0] | dma),
         .pc_icache_pipeline             ( pc_icache_pipeline    ),
 
         //  Dcache
