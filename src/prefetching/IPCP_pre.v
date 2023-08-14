@@ -3,14 +3,15 @@ module IPCP_pre(
     input [31:0] IPaddr,
     input [31:0] visitaddr,
     input visitaddr_valid,
-    output [31:0] preaddr,
-    output preaddr_valid
+    output [31:5] baseaddr,
+    output [7:0] strideout,
+    output [1:0] typeout
 
 );
     localparam NL=0,CS=1,CPLX=2,GS=3;
-     reg [1:0] ntype0,type0,ntype1,type1,ntype2,type2;
+     reg [1:0] type0,type1,type2;
     //reg [26:0] npreaddr0,preaddr0,npreaddr1,preaddr1,npreaddr2,preaddr2;
-    reg [7:0] nstride0,stride0,nstride1,stride1;
+    reg [7:0] stride0,stride1,stride2;
     reg [31:5] visitaddr0,visitaddr1;reg vaddrvalid0,vaddrvalid1;
     reg [31:0] IPaddr0,IPaddr1;
     wire [31:0] IP_dout,IP_din;
@@ -29,11 +30,14 @@ module IPCP_pre(
     assign IP_raddr=IPaddr[7:2],IP_waddr=IPaddr0[7:2];
     
     wire [5:0] IP_sig_waddr;
-    wire [6:0] IP_sigout;reg [6:0] IP_sigin;
-    wire IP_sig_we;
+    wire [6:0] IP_sigin,IP_sigout;reg [6:0] IP_sig1;
+    reg IP_sig_we;
     bram #(.DATA_WIDTH(7),.ADDR_WIDTH(6))IP_sigtable(.clk(clk),.raddr(IP_raddr),
                     .waddr(IP_sig_waddr),.din(IP_sigin),.dout(IP_sigout),.we(IP_sig_we));
-    assign IP_sig_we=type1==CPLX&&vaddrvalid1;
+    //assign IP_sig_we=type2==CPLX&&vaddrvalid1;
+    //wire [7:0] CSPT_strout;
+    assign IP_sigin={IP_sig1[6:1],1'b0}^stride2;
+    assign IP_sig_waddr=IPaddr1[7:2];
     
     wire [99:0] RST_din,RST_dout; wire [3:0] RST_raddr,RST_waddr;reg RST_we;
     wire [9:0] RST_tagout; wire [5:0] RST_vout,RST_lloffsetout,RST_pncout,RST_deout; wire [63:0] RST_bvout;
@@ -46,37 +50,46 @@ module IPCP_pre(
     assign RST_din={RST_tagin,RST_vin,RST_lloffsetin,RST_bvin,RST_pncin,RST_dein,RST_trin,RST_drin};
     assign RST_raddr=visitaddr[14:11],RST_waddr=visitaddr0[14:11];
     
-    wire [6:0] CSPT_raddr;reg [6:0] CSPT_waddr;wire [9:0]CSPT_din,CSPT_dout;wire CSPT_we;
-    wire [7:0] CSPT_strout;wire [1:0] CSPT_confout;
+    wire [6:0] CSPT_raddr;reg [6:0] CSPT_waddr;wire [9:0]CSPT_din,CSPT_dout;reg CSPT_we;
+    wire [7:0] CSPT_strout;
+    wire [1:0] CSPT_confout;
     reg [7:0] CSPT_strin;reg [1:0] CSPT_confin;
     bram #(.DATA_WIDTH(10),.ADDR_WIDTH(7))CSPT_table(.clk(clk),.raddr(CSPT_raddr),
             .waddr(CSPT_waddr),.din(CSPT_din),.dout(CSPT_dout),.we(CSPT_we));
     assign {CSPT_strout,CSPT_confout}=CSPT_dout;
     assign CSPT_din={CSPT_strin,CSPT_confin};
-    assign CSPT_we=type1==CPLX&&vaddrvalid1;
+    //assign CSPT_we=type2==CPLX&&vaddrvalid1;
     assign CSPT_raddr=IPaddr0==IPaddr1?IP_sigin:IP_sigout;
+    
+    assign baseaddr=visitaddr1,typeout=type2,strideout=stride2;
     
     always@(posedge(clk))
     begin
     if(!rstn)
         begin
         visitaddr0<=0;
+        visitaddr1<=0;
         IPaddr0<=0;
         IPaddr1<=0;
-        stride1<=0;
         vaddrvalid0<=0;
         vaddrvalid1<=0;
         CSPT_waddr<=0;
+        IP_sig1<=0;
+        type1<=NL;
+        stride1<=0;
         end
     else
         begin
         visitaddr0<=visitaddr[31:5];
+        visitaddr1<=visitaddr0;
         IPaddr0<=IPaddr;
         IPaddr1<=IPaddr0;
         vaddrvalid0<=visitaddr_valid;
         vaddrvalid1<=vaddrvalid0;
-        stride1<=nstride1;
         CSPT_waddr<=CSPT_raddr;
+        IP_sig1<=IP_sigout;
+        type1<=type0;
+        stride1<=stride0;
         end
     end
     //IP_table
@@ -86,7 +99,7 @@ module IPCP_pre(
     IP_lloffsetin=IP_lloffsetout;IP_strin=IP_strout;IP_confin=IP_confout;
     IP_svin=IP_svout;IP_tein=IP_teout;IP_drin=IP_drout;type0=NL;
     stride0=visitaddr0[13:5]-{IP_lvpout,IP_lloffsetout};//7:0=8:0
-    if(IP_tagout!=IPaddr0[16:8])
+    if(IP_tagout!=IPaddr0[16:8])//IP not same
         begin
         if(IP_vout)
             IP_vin=0;
@@ -95,7 +108,7 @@ module IPCP_pre(
             IP_tagin=IPaddr0[16:8];
             IP_vin=0;IP_lvpin=visitaddr0[13:12];
             IP_lloffsetin=visitaddr0[11:5];IP_strin=0;IP_confin=0;
-            IP_svin=0;IP_drin=0;
+            IP_svin=0;IP_tein=0;IP_drin=0;
             end
         end
      else
@@ -173,7 +186,28 @@ module IPCP_pre(
     //CSPT
     always@(*)
     begin
-    
+    type2=type1;stride2=stride1;
+    CSPT_we=0;IP_sig_we=0;
+    CSPT_strin=CSPT_strout;CSPT_confin=CSPT_confout;
+    if(type1==CPLX)
+        begin
+        CSPT_we=vaddrvalid1;IP_sig_we=vaddrvalid1;
+        if(CSPT_confout==0)
+            begin
+            type2=NL;
+            CSPT_strin=stride1;
+            end
+        else
+            begin
+            stride2=CSPT_strout;
+            end
+        if(stride1==CSPT_strout&&~(&CSPT_confout))
+            begin
+            CSPT_confin=CSPT_confout+1;
+            end
+        else if(stride1!=CSPT_strout&&CSPT_confout!=0)
+            CSPT_confin=CSPT_confout-1;
+        end
     end
     
 endmodule
