@@ -54,9 +54,9 @@ reg [data_width-1:0]Data_din;
 wire [offset_width+1:0]Data_offset_2 = {2'b0,Data_offset} << 2;
 wire [offset_width+4:0]Data_offset_5 = {5'b0,Data_offset} << 5;
 
-wire [data_width/8-1:0] we = Data_choose_byte;
+wire [data_width/8-1:0] we = {{(data_width/8 - 4){1'b0}},Data_choose_byte};
 
-wire [data_width-1:0]Data_din_1 = Data_din_write_32;
+wire [data_width-1:0]Data_din_1 = {{(data_width - 32){1'b0}},Data_din_write_32};
 
 always @(*) begin
     if(!Data_we[0])we0 = 0;

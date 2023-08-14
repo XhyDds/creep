@@ -164,7 +164,7 @@ L2cache_rbuf L2cache_rbuf(
     .size(l1cache_l2cache_size),
     .rbuf_size(rbuf_size),
 
-    .SUC(l1cache_l2cache_SUC && from),//
+    .SUC(l1cache_l2cache_SUC && |from),//
     .rbuf_SUC(rbuf_SUC),
 
     .opaddr(addr_pipeline_l2cache),
@@ -393,7 +393,7 @@ end
 //Mem
 assign addr_l2cache_mem_r = rbuf_SUC ? rbuf_addr : {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
 assign addr_l2cache_mem_w = rbuf_SUC ? rbuf_addr : {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
-assign dout_l2cache_mem = rbuf_SUC ? rbuf_data : line;//
+assign dout_l2cache_mem = rbuf_SUC ? {{(32*(1<<offset_width) - 32){1'b0}},rbuf_data} : line;//
 assign l2cache_mem_SUC = rbuf_SUC;
 assign l2cache_mem_wstrb = rbuf_wstrb;
 assign l2cache_mem_size = rbuf_size;

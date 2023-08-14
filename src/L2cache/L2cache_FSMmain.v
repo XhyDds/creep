@@ -139,7 +139,7 @@ always @(*) begin
     case (state)
         Idle:begin
             if(opflag)next_state = Operation;
-            else if(from)next_state = Lookup;
+            else if(|from)next_state = Lookup;
             else if(req_pref_l2cache)next_state = prefetch_check;
             else next_state = Idle;
         end 
@@ -149,7 +149,7 @@ always @(*) begin
         end
         prefetch_wait:begin
             if(mem_l2cache_dataOK)next_state = Idle;
-            else if((~Hit&&FSM_from_pref) || FSM_SUC_pref)next_state = prefetch_wait_miss;
+            else if((~Hit && |FSM_from_pref) || FSM_SUC_pref)next_state = prefetch_wait_miss;
             else next_state = prefetch_wait;
         end
         prefetch_wait_miss:begin
