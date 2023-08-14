@@ -244,7 +244,7 @@ always @(*) begin
         'd5: data_out = data_line[191:160];
         'd6: data_out = data_line[223:192];
         'd7: data_out = data_line[255:224];
-        default: data_out = 32'h1234ABCD;
+        default: data_out = 0;
     endcase
 end
 
