@@ -1810,7 +1810,7 @@ module core_top(
         .pipeline_icache_valid  		( ~flush_if0_if1),
         .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
-        .pipeline_icache_opflag 		( pipeline_icache_opflag&~flush_exe0_exe1_1),
+        .pipeline_icache_opflag 		( pipeline_icache_opflag&~flush_exe0_exe1_1&~stall_id_exe0_1),
         .icache_pipeline_doneop         ( icache_pipeline_doneop        ),
         .pipeline_icache_ctrl           ( {30'b0,1'b0,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
@@ -1823,12 +1823,12 @@ module core_top(
         .din_pipeline_dcache    		( din_pipeline_dcache    		),
         .dout_dcache_pipeline   		( dout_dcache_pipeline   		),
         .type_pipeline_dcache   		( type_pipeline_dcache   		),
-        .pipeline_dcache_valid  		( pipeline_dcache_valid&~flush_exe0_exe1_1&~stall_exe0_exe1_1     ),
+        .pipeline_dcache_valid  		( pipeline_dcache_valid&~flush_exe0_exe1_1&~stall_id_exe0_1     ),
         .dcache_pipeline_ready  		( dcache_pipeline_ready  		),
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
-        .pipeline_dcache_opflag 		( pipeline_dcache_opflag&~flush_exe0_exe1_1),
+        .pipeline_dcache_opflag 		( pipeline_dcache_opflag&~flush_exe0_exe1_1&~stall_id_exe0_1),
         .dcache_pipeline_doneop         ( dcache_pipeline_doneop        ),
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe1_wb_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
@@ -1837,7 +1837,7 @@ module core_top(
 
         //  L2-pipeline
         .addr_pipeline_l2cache          ( opcode_exe0_exe1[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe0_exe1          ),
-        .pipeline_l2cache_opflag        ( l2opflag_exe0_exe1            ),
+        .pipeline_l2cache_opflag        ( l2opflag_exe0_exe1&~flush_exe1_exe2_1&~stall_exe0_exe1_1),
         .pipeline_l2cache_opcode        ( opcode_exe0_exe1              ),
 
         //L2-prefetch port
