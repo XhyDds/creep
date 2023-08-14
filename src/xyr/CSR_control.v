@@ -120,7 +120,7 @@ parameter TLB_n=7,TLB_PALEN=32,TIMER_n=32
     assign stallin=pipeline_CSR_stall,flushin=pipeline_CSR_flush;
     assign CSR_pipeline_flush=flushout_reg,CSR_pipeline_inte_flush=inte_flush_reg;
     assign exe=(pipeline_CSR_type==PRIV||pipeline_CSR_type==PRIV_MMU||pipeline_CSR_type==LLSCW||inte)&&inpc_valid;
-    assign force_run=excp_arg1[15];//MMU>inte,inst MMU early
+    assign force_run=excp_arg1[15]&~inte_flush_reg;//MMU>inte,inst MMU early
     assign din=pipeline_CSR_din,CSR_pipeline_dout=dout_reg;
     assign excp_arg1=pipeline_CSR_excp_arg1,CSR_pipeline_clk_stall=clk_stall;//|nclk_stall
     assign CSR_pipeline_outpc=outpc_reg,ESTATin=pipeline_CSR_ESTAT;
