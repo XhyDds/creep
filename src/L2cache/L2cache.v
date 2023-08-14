@@ -348,6 +348,7 @@ L2cache_Dirtytable #(
 L2cache_Dirtytable(
     .clk(clk),
     
+    .valid(valid),
     .Dirtytable_addr(rbuf_index),
     .Dirtytable_addrw(inpref ? index_pref : rbuf_index),
     .Dirtytable_way_select(Dirtytable_way_select),
