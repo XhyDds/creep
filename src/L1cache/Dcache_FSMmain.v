@@ -78,7 +78,7 @@ assign FSM_TagV_we=FSM_Data_we;
 wire hit0,hit1;
 assign hit0=FSM_hit[0];
 assign hit1=FSM_hit[1];
-wire fStall_outside=0;
+wire fStall_outside=pipeline_dcache_ctrl[0];
 wire opflag;
 assign opflag=pipeline_dcache_opflag;
 wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
@@ -108,6 +108,7 @@ always @(*) begin
     next_state = Idle;
     case (state)
         Idle:begin
+            // if(fStall_outside)next_state = Lookup;
             if(opflag)next_state=Operation;
             else if(pipeline_dcache_valid)next_state=Lookup;
         end
@@ -126,6 +127,7 @@ always @(*) begin
                 end
                 else begin//hit
                     if(flush_outside)next_state = Flush;
+                    // else if(fStall_outside)next_state = Lookup;
                     else if(!FSM_rbuf_type)begin//r
                         if(opflag)next_state=Operation;
                         else if(pipeline_dcache_valid)next_state=Lookup;

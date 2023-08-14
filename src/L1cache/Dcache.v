@@ -99,11 +99,11 @@ assign rbuf_offset = rbuf_addr[offset_width+1:2];
 assign rbuf_index = rbuf_addr[offset_width+index_width+1:offset_width+2];
 assign rbuf_index1 = rbuf_tag[index_width-1:0];
 assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
-wire fStall_outside=pipeline_dcache_ctrl[0];//dcache好像不需要stall？？
 
+wire rbuf_stall = pipeline_dcache_ctrl[0];
 Dcache_rbuf Dcache_rbuf(
     .clk(clk),
-    .rbuf_we(rbuf_we),//dcache好像不需要stall？？
+    .rbuf_we(rbuf_we),// & ~rbuf_stall
 
     .pc(pcin_pipeline_dcache),
     .rbuf_pc(rbuf_pc),
@@ -248,7 +248,15 @@ always @(*) begin
     endcase
 end
 
-assign dout_dcache_pipeline = choose_return_reg ? data_out_reg : data_out;
+wire [31:0]dout_dcache_pipeline1;
+assign dout_dcache_pipeline1 = choose_return_reg ? data_out_reg : data_out;
+reg choose_stall;
+reg [31:0]data_out_reg_stall;
+always @(posedge clk) begin
+    choose_stall <= rbuf_stall;
+    data_out_reg_stall <= dout_dcache_pipeline;
+end
+assign dout_dcache_pipeline = choose_stall ? data_out_reg_stall : dout_dcache_pipeline1;
 
 //Mem
 wire [1+offset_width:0]temp;
