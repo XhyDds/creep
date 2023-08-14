@@ -42,7 +42,7 @@ module WriteBuffer #(
     output reg [31:0] pointer,
     input  dma_sign
 );
-    localparam WORD = (1<<offset_width)*32;
+    parameter WORD = (1<<offset_width)*32;
     reg [31:0] buffer_addr[length-1:0];
     reg [WORD-1:0] buffer_data[0:length-1];
 
@@ -53,7 +53,7 @@ module WriteBuffer #(
 
     //pull(->axi)
     //state machine
-    localparam IDLE_L = 5'd0,
+    parameter IDLE_L = 5'd0,
             PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,_SEND=5'd13;
     //外部输入
     //组合action
@@ -187,31 +187,31 @@ module WriteBuffer #(
     //时序action
     always @(posedge clk)begin
         if(!rstn) begin
-            buffer_addr[32'd0]<=0;
-            buffer_data[32'd0]<=0;
-            buffer_addr[32'd1]<=0;
-            buffer_data[32'd1]<=0;
-            buffer_addr[32'd2]<=0;
-            buffer_data[32'd2]<=0;
-            buffer_addr[32'd3]<=0;
-            buffer_data[32'd3]<=0;
-            buffer_addr[32'd4]<=0;
-            buffer_data[32'd4]<=0;
+            buffer_addr[0]<=0;
+            buffer_data[0]<=0;
+            buffer_addr[1]<=0;
+            buffer_data[1]<=0;
+            buffer_addr[2]<=0;
+            buffer_data[2]<=0;
+            buffer_addr[3]<=0;
+            buffer_data[3]<=0;
+            buffer_addr[4]<=0;
+            buffer_data[4]<=0;
         end
         else begin
             case (crt_push)
                 IDLE_H: begin
                     if(nxt_push==PUSH) begin
-                        buffer_addr[32'd0]<=in_addr;
-                        buffer_data[32'd0]<=in_data;
-                        buffer_addr[32'd1]<=buffer_addr[32'd0];
-                        buffer_data[32'd1]<=buffer_data[32'd0];
-                        buffer_addr[32'd2]<=buffer_addr[32'd1];
-                        buffer_data[32'd2]<=buffer_data[32'd1];
-                        buffer_addr[32'd3]<=buffer_addr[32'd2];
-                        buffer_data[32'd3]<=buffer_data[32'd2];
-                        buffer_addr[32'd4]<=buffer_addr[32'd3];
-                        buffer_data[32'd4]<=buffer_data[32'd3];
+                        buffer_addr[0]<=in_addr;
+                        buffer_data[0]<=in_data;
+                        buffer_addr[1]<=buffer_addr[0];
+                        buffer_data[1]<=buffer_data[0];
+                        buffer_addr[2]<=buffer_addr[1];
+                        buffer_data[2]<=buffer_data[1];
+                        buffer_addr[3]<=buffer_addr[2];
+                        buffer_data[3]<=buffer_data[2];
+                        buffer_addr[4]<=buffer_addr[3];
+                        buffer_data[4]<=buffer_data[3];
                     end
                     else ;
                 end
@@ -236,19 +236,19 @@ module WriteBuffer #(
     //query
     reg res[length-1:0];
     always @(*) begin
-        res[32'd0]=(query_addr==buffer_addr[32'd0]);
-        res[32'd1]=(query_addr==buffer_addr[32'd1]);
-        res[32'd2]=(query_addr==buffer_addr[32'd2]);
-        res[32'd3]=(query_addr==buffer_addr[32'd3]);
-        res[32'd4]=(query_addr==buffer_addr[32'd4]);
+        res[0]=(query_addr==buffer_addr[0]);
+        res[1]=(query_addr==buffer_addr[1]);
+        res[2]=(query_addr==buffer_addr[2]);
+        res[3]=(query_addr==buffer_addr[3]);
+        res[4]=(query_addr==buffer_addr[4]);
     end
 
     always @(*) begin
-             if(res[3'd0]==1'b1) begin query_ok=1;query_data=buffer_data[32'd0]; end
-        else if(res[3'd1]==1'b1) begin query_ok=1;query_data=buffer_data[32'd1]; end
-        else if(res[3'd2]==1'b1) begin query_ok=1;query_data=buffer_data[32'd2]; end
-        else if(res[3'd3]==1'b1) begin query_ok=1;query_data=buffer_data[32'd3]; end
-        else if(res[3'd4]==1'b1) begin query_ok=1;query_data=buffer_data[32'd4]; end
+             if(res[0]==1'b1) begin query_ok=1;query_data=buffer_data[0]; end
+        else if(res[1]==1'b1) begin query_ok=1;query_data=buffer_data[1]; end
+        else if(res[2]==1'b1) begin query_ok=1;query_data=buffer_data[2]; end
+        else if(res[3]==1'b1) begin query_ok=1;query_data=buffer_data[3]; end
+        else if(res[4]==1'b1) begin query_ok=1;query_data=buffer_data[4]; end
         else                     begin query_ok=0;query_data=0                 ; end
     end
 
