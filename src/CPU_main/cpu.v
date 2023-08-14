@@ -681,6 +681,7 @@ module core_top(
     );
 
     wire [31:0]	pc_br0;
+    wire [31:0] pc_br_pdc0;
 
     br_pre u_br_pre0(
         //ports
@@ -691,7 +692,8 @@ module core_top(
         .pre      		( pre_exe0_exe1_0      		),
         .ifbr_    		( ifbr__exe0_exe1_0    		),
         .ifbr     		( ifbr0_     	    ),
-        .pc_br    		( pc_br0    		)
+        .pc_br    		( pc_br0    		),
+        .pc_br_pdc      ( pc_br_pdc0        )
     );
 
     wire 	ifbr__1;
@@ -712,6 +714,7 @@ module core_top(
     );
 
     wire [31:0]	pc_br1;
+    wire [31:0] pc_br_pdc1;
 
     br_pre u_br_pre1(
         //ports
@@ -722,7 +725,8 @@ module core_top(
         .pre      		( pre_exe0_exe1_1      		),
         .ifbr_    		( ifbr__exe0_exe1_1    		),
         .ifbr     		( ifbr1_    	),
-        .pc_br    		( pc_br1    		)
+        .pc_br    		( pc_br1    		),
+        .pc_br_pdc      ( pc_br_pdc1        )
     );
 `endif
 `ifndef predictor
@@ -1127,7 +1131,7 @@ module core_top(
         .in_choice_pdc_0(pre_exe0_exe1_0[36:35]),
         .in_taken_ex_0(ifbr__exe0_exe1_0),
         .in_kind_ex_0(ctr_exe0_exe1_0[26:24]),
-        .in_npc_ex_0(pc_br0[31:2]),
+        .in_npc_ex_0(pc_br_pdc0[31:2]),
         .in_pc_ex_0(pc_exe0_exe1_0[31:2]),
         .in_flush_pre_0(flush_pre_exe0_exe1_0 | ifbr0),
         .in_bh_pdc_0(pre_exe0_exe1_0[59+bh_width:60]),
@@ -1141,7 +1145,7 @@ module core_top(
         .in_choice_pdc_1(pre_exe0_exe1_1[36:35]),
         .in_taken_ex_1(ifbr__exe0_exe1_1),
         .in_kind_ex_1(ctr_exe0_exe1_1[26:24]),
-        .in_npc_ex_1(pc_br1[31:2]),
+        .in_npc_ex_1(pc_br_pdc1[31:2]),
         .in_pc_ex_1(pc_exe0_exe1_1[31:2]),
         .in_flush_pre_1(flush_pre_exe0_exe1_1 | ifbr1),
         .in_bh_pdc_1(pre_exe0_exe1_1[59+bh_width:60]),
@@ -2000,11 +2004,11 @@ module core_top(
     wire            cnt_inst_diff1      =   (ws_valid1)?ctr_exe1_wb_1[23]:ctr_exe1_wb_0[23];
     wire    [63:0]  ws_timer_64_diff    =   countresult_exe1_wb_1;
 
-    wire     [7:0]  inst_ld_en_diff     =   ctr_exe1_wb_1[4];
+    wire     [7:0]  inst_ld_en_diff     =   {3'b0,ctr_exe1_wb_1[4]};
     wire    [31:0]  ld_paddr_diff       =   paddr_exe1_wb;
     wire    [31:0]  ld_vaddr_diff       =   vaddr_exe1_wb;
 
-    wire    [ 7:0]  inst_st_en_diff     =   ctr_exe1_wb_1[5];
+    wire    [ 7:0]  inst_st_en_diff     =   {3'b0,ctr_exe1_wb_1[5]};
     wire    [31:0]  st_paddr_diff       =   paddr_exe1_wb;
     wire    [31:0]  st_vaddr_diff       =   vaddr_exe1_wb;
     wire    [31:0]  st_data_diff        =   debug1_wb_rf_wdata;
@@ -2161,7 +2165,7 @@ module core_top(
         end else if (~trap) begin
             cmt_valid0       <= inst_valid_diff0          ;
             cmt_cnt_inst0    <= cnt_inst_diff0            ;
-            cmt_wen0     <=  debug0_wb_rf_wen            ;
+            cmt_wen0     <=  debug0_wb_rf_wen[0]          ;
             cmt_wdest0   <=  {3'd0, debug0_wb_rf_wnum}   ;
             cmt_wdata0   <=  debug0_wb_rf_wdata          ;
             cmt_pc0      <=  debug0_wb_pc                ;
@@ -2169,7 +2173,7 @@ module core_top(
 
             cmt_valid1       <= inst_valid_diff1          ;
             cmt_cnt_inst1    <= cnt_inst_diff1            ;
-            cmt_wen1     <=  debug1_wb_rf_wen            ;
+            cmt_wen1     <=  debug1_wb_rf_wen[0]         ;
             cmt_wdest1   <=  {3'd0, debug1_wb_rf_wnum}   ;
             cmt_wdata1   <=  debug1_wb_rf_wdata          ;
             cmt_pc1      <=  debug1_wb_pc                ;
@@ -2196,7 +2200,7 @@ module core_top(
             trap            <= 0                        ;
             trap_code       <= regs[10][7:0]            ;
             cycleCnt        <= cycleCnt + 1             ;
-            instrCnt        <= instrCnt + inst_valid_diff1;
+            instrCnt        <= instrCnt + {63'b0,inst_valid_diff1};
         end
     end
 
@@ -2208,6 +2212,8 @@ module core_top(
         .pc                 (cmt_pc0         ),
         .instr              (cmt_inst0       ),
         .skip               (0               ),
+        .is_TLBFILL         (0               ),
+        .TLBFILL_index      (0               ),
         .is_CNTinst         (cmt_cnt_inst0   ),
         .timer_64_value     (cmt_timer_64    ),
         .wen                (cmt_wen0        ),

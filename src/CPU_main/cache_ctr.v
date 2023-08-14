@@ -7,7 +7,6 @@ module cache_ctr (
     output  reg  type_pipeline_dcache, //0-read 1-write
     output  reg  pipeline_dcache_valid,
     output  reg  pipeline_MMU_valid,
-    output  reg  ifcacop_ibar,
     output  reg  [3:0]pipeline_dcache_wstrb, //字节处理位
     output  reg  [1:0]pipeline_dcache_size,
     output  reg  [31:0]pipeline_cache_opcode, //cache操作//?????
@@ -29,7 +28,6 @@ module cache_ctr (
         pipeline_icache_opflag=0;
         pipeline_l2cache_opflag=0;
         pipeline_dcache_size=0;
-        ifcacop_ibar=0;
         if(type_==5)
             case (subtype)//for dcache, 0~2:load, 3~5:store, 6~7:load, 8:ibar
                 0: 
@@ -123,7 +121,6 @@ module cache_ctr (
                         2: pipeline_l2cache_opflag=1;
                     endcase
                     pipeline_cache_opcode={1'b0,15'b0,excp_arg};
-                    ifcacop_ibar=stall?0:1;
                 end
             endcase
         else if(type_==6)
@@ -143,7 +140,6 @@ module cache_ctr (
         else if(type_==9) begin //ibar
             pipeline_cache_opcode={1'b1,31'b0};
             pipeline_icache_opflag=1;
-            ifcacop_ibar=1;
         end
     end
 endmodule
