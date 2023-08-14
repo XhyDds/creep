@@ -33,7 +33,7 @@ module L2cache_replace#(//PLRU
     output      [2:0]way_sel_d,
     output      [1:0]way_sel_i
     );
-reg [(1<<addr_width)-1:0]record[6:0];
+reg [6:0]record[(1<<addr_width)-1:0];
 reg [2:0]d;
 reg [1:0]i;
 assign way_sel_d = d;
