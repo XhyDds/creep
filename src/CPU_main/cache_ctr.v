@@ -118,7 +118,7 @@ module cache_ctr (
                 end
                 8: begin //cacop
                     case (excp_arg[2:0])
-                        0: pipeline_icache_opflag=1;
+                        0: begin pipeline_icache_opflag=1;pipeline_l2cache_opflag=1; end
                         1: begin pipeline_dcache_opflag=1;pipeline_l2cache_opflag=1; end
                         2: pipeline_l2cache_opflag=1;
                     endcase
