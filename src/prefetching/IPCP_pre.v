@@ -1,11 +1,15 @@
-module IPCP_pre(
+module IPCP_launch(
     input clk,rstn,
     input [31:0] IPaddr,
     input [31:0] visitaddr,
     input visitaddr_valid,
     output [31:5] baseaddr,
     output [7:0] strideout,
-    output [1:0] typeout
+    output [1:0] typeout,
+    output [6:0] IPsigout,
+    
+    input [6:0] CSPT_lookaddr,
+    output [9:0] CSPT_dataout
 
 );
     localparam NL=0,CS=1,CPLX=2,GS=3;
@@ -61,7 +65,10 @@ module IPCP_pre(
     //assign CSPT_we=type2==CPLX&&vaddrvalid1;
     assign CSPT_raddr=IPaddr0==IPaddr1?IP_sigin:IP_sigout;
     
-    assign baseaddr=visitaddr1,typeout=type2,strideout=stride2;
+    //output
+    bram #(.DATA_WIDTH(10),.ADDR_WIDTH(7))CSPT_tableout(.clk(clk),.raddr(CSPT_lookaddr),
+            .waddr(CSPT_waddr),.din(CSPT_din),.dout(CSPT_dataout),.we(CSPT_we));
+    assign baseaddr=visitaddr1,typeout=type2,strideout=stride2,IPsigout=IP_sigin;
     
     always@(posedge(clk))
     begin
@@ -122,7 +129,7 @@ module IPCP_pre(
             IP_svin=1;
             IP_drin=RST_drout;
             end
-        else if(visitaddr0[13:12]!=IP_lvpout&&IP_teout)
+        else if(visitaddr0[13:11]!={IP_lvpout,IP_lloffsetin[6]}&&IP_teout)
             begin
             IP_svin=0;
             end
@@ -142,6 +149,7 @@ module IPCP_pre(
             if(IP_confout[1])//CS,conf>1
                 begin
                 type0=CS;
+                stride0=IP_strout;
                 end
             else
                 type0=CPLX;//CPLX
