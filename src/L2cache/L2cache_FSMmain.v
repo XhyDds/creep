@@ -306,7 +306,10 @@ always @(*) begin
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
-            if(FSM_dcache_req)begin
+            if(opflag)begin
+                
+            end
+            else if(FSM_dcache_req)begin
                 if(!FSM_dcache_wr)l2cache_dcache_addrOK = 1;//读请求
                 else l2cache_dcache_addrOK = ~ FSM_dSUC;//强序写时先不发addrOK
             end
