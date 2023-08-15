@@ -199,6 +199,7 @@ Dcache(
     .dout_dcache_pipeline(dout_dcache_pipeline),
     .type_pipeline_dcache(type_pipeline_dcache),
     .SUC_pipeline_dcache(SUC_pipeline_dcache),
+    .pipeline_dcache_size(pipeline_dcache_size),
 
     .pipeline_dcache_valid(pipeline_dcache_valid/* | op_d*/),
     .dcache_pipeline_ready(dcache_pipeline_ready),

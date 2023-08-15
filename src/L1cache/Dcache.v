@@ -43,6 +43,7 @@ module Dcache#(
     output      [31:0]dout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
     input       SUC_pipeline_dcache,
+    input       [1:0]pipeline_dcache_size,
 
     input       pipeline_dcache_valid,
     output      dcache_pipeline_ready,
@@ -132,7 +133,7 @@ Dcache_rbuf Dcache_rbuf(
     .paddr(paddr_pipeline_dcache),
     .rbuf_paddr(rbuf_paddr),
 
-    .size(dcache_mem_size),
+    .size(pipeline_dcache_size),
     .rbuf_size(rbuf_size)
 );
 
