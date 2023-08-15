@@ -73,6 +73,8 @@ module L2cache_FSMmain#(
     input       FSM_icache_req,
 
     output reg  we_wbaddr,
+    output reg  [way-1:0]num_we,
+    output reg  num_clear,
     
     //PLRU
     output reg  [way-1:0]FSM_use,
@@ -102,6 +104,18 @@ wire opflag=pipeline_l2cache_opflag;
 wire Hit = |FSM_hit;
 reg [4:0]state;
 reg [4:0]next_state;
+reg [31:0]hit_cnt,miss_cnt;
+reg we_hit_cnt,we_miss_cnt;
+always @(posedge clk) begin
+    if(!rstn)begin
+        hit_cnt <= 0;
+        miss_cnt <= 0;
+    end
+    else begin
+        if(we_hit_cnt)hit_cnt <= hit_cnt + 1;
+        if(we_miss_cnt)miss_cnt <= miss_cnt + 1;
+    end
+end
 reg flush;
 always @(posedge clk) begin
     flush <= icache_l2cache_flush;//迟一个周期撤销
@@ -112,7 +126,7 @@ always @(posedge clk) begin
     if(inpref)FSM_rbuf_prefetch <= 1;
     else if(outpref)FSM_rbuf_prefetch <= 0;
 end
-localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,send=5'd3,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
+localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
 localparam checkDirty=5'd7,writeback=5'd8,SUC_w=5'd9,checkDirty1=5'd10,SUC_w1=5'd11;
 localparam prefetch_check=5'd12,prefetch_wait=5'd13,prefetch_wait_miss=5'd14;
 localparam replace_write1=5'd15;
@@ -125,7 +139,7 @@ always @(*) begin
     case (state)
         Idle:begin
             if(opflag)next_state = Operation;
-            else if(from)next_state = Lookup;
+            else if(|from)next_state = Lookup;
             else if(req_pref_l2cache)next_state = prefetch_check;
             else next_state = Idle;
         end 
@@ -135,7 +149,7 @@ always @(*) begin
         end
         prefetch_wait:begin
             if(mem_l2cache_dataOK)next_state = Idle;
-            else if((~Hit&&FSM_from_pref) || FSM_SUC_pref)next_state = prefetch_wait_miss;
+            else if((~Hit && |FSM_from_pref) || FSM_SUC_pref)next_state = prefetch_wait_miss;
             else next_state = prefetch_wait;
         end
         prefetch_wait_miss:begin
@@ -274,7 +288,7 @@ always @(*) begin
     FSM_TagV_init = 0;
     hit_record_we = 0;
     FSM_TagV_unvalid = 0;
-    ack_op = 0;
+    ack_op = (next_state == Operation);
     hit_l2cache_pref = 0;
     complete_l2cache_pref = 0;
     addrOK_l2cache_pref = 0;
@@ -285,10 +299,17 @@ always @(*) begin
     outpref = 0;
     missvalid = 0;
     we_wbaddr = 0;
+    num_we = 0;
+    num_clear = 0;
+    we_hit_cnt = 0;
+    we_miss_cnt = 0;
     case (state)//如果强序，如果脏了先不处理，直接置无效
         Idle:begin
             FSM_rbuf_we = 1;
-            if(FSM_dcache_req)begin
+            if(opflag)begin
+                
+            end
+            else if(FSM_dcache_req)begin
                 if(!FSM_dcache_wr)l2cache_dcache_addrOK = 1;//读请求
                 else l2cache_dcache_addrOK = ~ FSM_dSUC;//强序写时先不发addrOK
             end
@@ -297,7 +318,6 @@ always @(*) begin
             end
         end
         Operation:begin
-            ack_op = 1;
             if(FSM_rbuf_opcode[4:3] == 2'd0)begin//Tag、valid置零
                 FSM_TagV_init = {1'b1,FSM_rbuf_opaddr[2:0]};
             end
@@ -313,14 +333,7 @@ always @(*) begin
             end
             else if(FSM_rbuf_opcode[4:3] == 2'd2)begin
                 hit_record_we = 1;
-                if(FSM_hit[0])FSM_TagV_unvalid = 8'b00000001;
-                else if(FSM_hit[1])FSM_TagV_unvalid = 8'b00000010;
-                else if(FSM_hit[2])FSM_TagV_unvalid = 8'b00000100;
-                else if(FSM_hit[3])FSM_TagV_unvalid = 8'b00001000;
-                else if(FSM_hit[4])FSM_TagV_unvalid = 8'b00010000;
-                else if(FSM_hit[5])FSM_TagV_unvalid = 8'b00100000;
-                else if(FSM_hit[6])FSM_TagV_unvalid = 8'b01000000;
-                else if(FSM_hit[7])FSM_TagV_unvalid = 8'b10000000;
+                FSM_TagV_unvalid = FSM_hit;
             end
         end
         prefetch_check:begin
@@ -343,12 +356,15 @@ always @(*) begin
                 FSM_Data_replace = 1;
                 FSM_use[sel] = 1;
                 FSM_Data_we[sel] = 1;
+                num_we[sel] = 1;
                 FSM_Dirtytable_way_select = sel;
                 FSM_Dirtytable_set0 = 1;
             end
             else begin//req for L1
                 FSM_inpref = 1;
                 if(Hit && ! FSM_SUC_pref)begin
+                    num_clear = 1;
+                    we_hit_cnt = 1;
                     if(FSM_from_pref == 2'b01 || FSM_from_pref == 2'b10)begin
                         FSM_choose_way = hit_pos;
                         if(FSM_from_pref[1])l2cache_dcache_dataOK =1;
@@ -374,6 +390,7 @@ always @(*) begin
                 FSM_Data_replace = 1;
                 FSM_use[sel] = 1;
                 FSM_Data_we[sel] = 1;
+                num_we[sel] = 1;
                 FSM_Dirtytable_way_select = sel;
                 FSM_Dirtytable_set0 = 1;
             end
@@ -386,21 +403,27 @@ always @(*) begin
         end
         Lookup:begin
             missvalid = ~Hit;
+            if(Hit)we_hit_cnt = 1;
+            else we_miss_cnt = 1;
             if(!(FSM_rbuf_from == 2'b01 && flush) && !FSM_rbuf_SUC)begin
-            if(Hit)begin
-                if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
-                    FSM_use[hit_pos] = 1;
-                    FSM_choose_way = hit_pos;
-                    if(FSM_rbuf_from[1])l2cache_dcache_dataOK =1;
-                    else l2cache_icache_dataOK = 1;
-                end
-                else begin//写命中
-                    FSM_Dirtytable_set1 = 1;
-                    FSM_use[hit_pos] = 1;
-                    FSM_Data_we[hit_pos] = 1;
-                    FSM_Dirtytable_way_select = hit_pos;
+                if(Hit)begin
+                    num_clear = 1;
+                    if(FSM_rbuf_from == 2'b01 || FSM_rbuf_from == 2'b10)begin//读命中
+                        FSM_use[hit_pos] = 1;
+                        FSM_choose_way = hit_pos;
+                        if(FSM_rbuf_from[1])l2cache_dcache_dataOK =1;
+                        else l2cache_icache_dataOK = 1;
+                    end
+                    else begin//写命中
+                        FSM_Dirtytable_set1 = 1;
+                        FSM_use[hit_pos] = 1;
+                        FSM_Data_we[hit_pos] = 1;
+                        FSM_Dirtytable_way_select = hit_pos;
+                    end
                 end
             end
+            if(FSM_rbuf_SUC)begin
+                FSM_TagV_unvalid = FSM_hit;
             end
         end
         checkDirty:begin
@@ -431,6 +454,9 @@ always @(*) begin
             FSM_choose_way = sel;
             FSM_TagV_way_select = sel;
             we_wbaddr = 1;
+
+            FSM_Dirtytable_way_select = sel;
+            FSM_Dirtytable_set0 = 1;
             // if(sel == 3'd0)FSM_TagV_unvalid = 8'b00000001;
             // else if(sel == 3'd1)FSM_TagV_unvalid = 8'b00000010;
             // else if(sel == 3'd2)FSM_TagV_unvalid = 8'b00000100;

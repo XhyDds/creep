@@ -43,13 +43,15 @@ module Dcache#(
     output      [31:0]dout_dcache_pipeline,
     input       type_pipeline_dcache,//0-read 1-write
     input       SUC_pipeline_dcache,
+    input       [1:0]pipeline_dcache_size,
 
     input       pipeline_dcache_valid,
     output      dcache_pipeline_ready,
     
     input       [3:0]pipeline_dcache_wstrb,//字节处理位
     input       [31:0]pipeline_dcache_opcode,//cache操作
-    input       pipeline_dcache_opflag,//0-正常访存 1-cache操作   
+    input       pipeline_dcache_opflag,//0-正常访存 1-cache操作  
+    output      dcache_pipeline_doneop, 
     output      ack_op, 
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
     output      dcache_pipeline_stall,//stall form dcache     不知道可不可以用ready代替，先留着
@@ -98,11 +100,11 @@ assign rbuf_offset = rbuf_addr[offset_width+1:2];
 assign rbuf_index = rbuf_addr[offset_width+index_width+1:offset_width+2];
 assign rbuf_index1 = rbuf_tag[index_width-1:0];
 assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
-wire fStall_outside=pipeline_dcache_ctrl[0];//dcache好像不需要stall？？
 
+wire rbuf_stall = pipeline_dcache_ctrl[0];
 Dcache_rbuf Dcache_rbuf(
-    .clk(clk),
-    .rbuf_we(rbuf_we),//dcache好像不需要stall？？
+    .clk(clk),.rstn(rstn),
+    .rbuf_we(rbuf_we & ~rbuf_stall),// & ~rbuf_stall
 
     .pc(pcin_pipeline_dcache),
     .rbuf_pc(rbuf_pc),
@@ -131,7 +133,7 @@ Dcache_rbuf Dcache_rbuf(
     .paddr(paddr_pipeline_dcache),
     .rbuf_paddr(rbuf_paddr),
 
-    .size(dcache_mem_size),
+    .size(pipeline_dcache_size),
     .rbuf_size(rbuf_size)
 );
 
@@ -243,11 +245,19 @@ always @(*) begin
         'd5: data_out = data_line[191:160];
         'd6: data_out = data_line[223:192];
         'd7: data_out = data_line[255:224];
-        default: data_out = 32'h1234ABCD;
+        default: data_out = 0;
     endcase
 end
 
-assign dout_dcache_pipeline = choose_return_reg ? data_out_reg : data_out;
+wire [31:0]dout_dcache_pipeline1;
+assign dout_dcache_pipeline1 = choose_return_reg ? data_out_reg : data_out;
+reg choose_stall;
+reg [31:0]data_out_reg_stall;
+always @(posedge clk) begin
+    choose_stall <= rbuf_stall & dcache_pipeline_ready;
+    data_out_reg_stall <= dout_dcache_pipeline;
+end
+assign dout_dcache_pipeline = choose_stall ? data_out_reg_stall : dout_dcache_pipeline1;
 
 //Mem
 wire [1+offset_width:0]temp;
@@ -278,6 +288,7 @@ Dcache_FSMmain1(
     .pipeline_dcache_wstrb(pipeline_dcache_wstrb),
     .pipeline_dcache_opcode(pipeline_dcache_opcode),
     .pipeline_dcache_opflag(pipeline_dcache_opflag),
+    .dcache_pipeline_doneop(dcache_pipeline_doneop),
     .ack_op(ack_op),
     .pipeline_dcache_ctrl(pipeline_dcache_ctrl),
     .dcache_pipeline_stall(dcache_pipeline_stall),

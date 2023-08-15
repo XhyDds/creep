@@ -26,6 +26,7 @@ module L2cache_Dirtytable#(
 )
 (   
     input       clk,
+    // input       [way-1:0]valid,
     input       [addr_width-1:0]Dirtytable_addr,
     input       [addr_width-1:0]Dirtytable_addrw,
     input       [2:0]Dirtytable_way_select,

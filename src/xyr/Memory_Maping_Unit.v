@@ -33,6 +33,7 @@ module Memory_Maping_Unit#(//stall frist
     output [31:0] MMU_pipeline_PADDR0,
     output [15:0] MMU_pipeline_excp_arg0,//valid,subcode,code
     output [1:0] MMU_pipeline_memtype0,
+   
     
     input [1:0] pipeline_MMU_stall1,
     input [1:0] pipeline_MMU_flush1,
@@ -43,7 +44,6 @@ module Memory_Maping_Unit#(//stall frist
     output [31:0] MMU_pipeline_PADDR1,
     output [15:0] MMU_pipeline_excp_arg1,
     output [1:0] MMU_pipeline_memtype1
-    
 );
     localparam TLB_nex=(1<<TLB_n)-1;
     localparam MMU=11,PRIV_MMU=10;
@@ -287,7 +287,9 @@ module Memory_Maping_Unit#(//stall frist
                             E[j]<=0;
                             end
                         end
-                
+                    default:
+                        begin
+                        end
                 endcase
                 end
         end
@@ -449,6 +451,7 @@ module Memory_Maping_Unit#(//stall frist
         begin
         PADDR1<=0;excp_arg1<=0;
         memtype1<=0;
+        PADDR_valid1<=0;
         end
     else if(~stall1[1])
         begin
@@ -456,6 +459,7 @@ module Memory_Maping_Unit#(//stall frist
         memtype1<=found_mat1;
         PADDR_valid1<=VADDR_valid1_reg;
         excp_arg1<=0;
+        PADDR_valid1<=VADDR_valid1;
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
             PADDR1<=0;

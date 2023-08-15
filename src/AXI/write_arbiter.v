@@ -44,6 +44,10 @@ module write_arbiter#(
     input    [4:0]crt,
     input    [4:0]nxt
 );
+    reg [3:0] l2cache_axi_wstrb_;
+    reg [31:0]addr_l2cache_mem_w_;
+    reg [31:0]dout_l2cache_mem_;
+
     localparam IDLE = 5'd0,DMA_AW=5'd1 , DMA_W=5'd2 , DMA_R=5'd3;
 
     always @(*) begin
@@ -68,13 +72,12 @@ module write_arbiter#(
         case (crt)
             IDLE: begin
                 mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
-                
+                addr_l2cache_wrt_w=addr_l2cache_mem_w;
+                dout_l2cache_wrt=dout_l2cache_mem;
+
                 l2_len=(1<<offset_width)-1;
                 l2_wstrb=4'hF;
                 l2_wsize=3'd2;
-
-                addr_l2cache_wrt_w=addr_l2cache_mem_w;
-                dout_l2cache_wrt=dout_l2cache_mem;
 
                 l2_waddr=wrt_axi_addr;
                 l2_wdata=wrt_axi_data;
@@ -89,28 +92,38 @@ module write_arbiter#(
             end
             DMA_AW: begin
                 l2_wstrb=l2cache_axi_wstrb;
-                l2_len=8'd0;
-                l2_wsize=3'd1;
                 l2_waddr=addr_l2cache_mem_w;
                 l2_wdata=dout_l2cache_mem[31:0];
+                l2_len=8'd0;
+                l2_wsize=3'd1;
+
                 l2_wvalid=1;
             end
             DMA_W: begin
-                l2_wstrb=l2cache_axi_wstrb;
+                mem_l2cache_addrOK_w=1;
+                l2_wstrb=l2cache_axi_wstrb_;
+                l2_waddr=addr_l2cache_mem_w_;
+                l2_wdata=dout_l2cache_mem_;
                 l2_len=8'd0;
                 l2_wsize=3'd1;
-                l2_waddr=addr_l2cache_mem_w;
-                l2_wdata=dout_l2cache_mem[31:0];
+
                 l2_wvalid=1;
                 l2_wwvalid=1;
                 l2_wlast=1;
             end
             DMA_R: begin
-                mem_l2cache_addrOK_w=l2_bvalid;
-                l2_wstrb=l2cache_axi_wstrb;
+                l2_wstrb=l2cache_axi_wstrb_;
+                l2_waddr=addr_l2cache_mem_w_;
+                l2_wdata=dout_l2cache_mem_;
+
                 l2_len=8'd0;
                 l2_wsize=3'd1;
                 l2_bready=1;
+
+                //for 抢的周期(wrt与l2的交互)
+                mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
+                addr_l2cache_wrt_w=addr_l2cache_mem_w;
+                dout_l2cache_wrt=dout_l2cache_mem;
             end
             default: begin  //WRT_W
                 mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
@@ -136,5 +149,16 @@ module write_arbiter#(
         endcase
     end
 
-
+    always @(posedge clk) begin
+        if(!rstn) begin
+            l2cache_axi_wstrb_<=0;
+            addr_l2cache_mem_w_<=0;
+            dout_l2cache_mem_<=0;
+        end
+        else if(crt==DMA_AW) begin
+            l2cache_axi_wstrb_<=l2cache_axi_wstrb;
+            addr_l2cache_mem_w_<=addr_l2cache_mem_w;
+            dout_l2cache_mem_<=dout_l2cache_mem[31:0];
+        end
+    end
 endmodule

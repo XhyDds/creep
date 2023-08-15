@@ -45,6 +45,7 @@ module Icache#(
     
     input       [31:0]pipeline_icache_opcode,//cache操作
     input       pipeline_icache_opflag,//0-正常访存 1-cache操作    
+    output      icache_pipeline_doneop,
     output      ack_op,
     input       [31:0]pipeline_icache_ctrl,//stall flush branch ...
     output      icache_pipeline_stall,//stall form icache     不知道可不可以用ready代替，先留着
@@ -85,7 +86,7 @@ assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 assign rbuf_stall = pipeline_icache_ctrl[0];//icache需要stall
 
 Icache_rbuf Icache_rbuf(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .rbuf_we(rbuf_we),
     .rbuf_stall(rbuf_stall),
 
@@ -264,6 +265,7 @@ Icache_FSMmain(
     .icache_pipeline_valid1(icache_pipeline_valid),
     .pipeline_icache_opcode(pipeline_icache_opcode),
     .pipeline_icache_opflag(pipeline_icache_opflag),
+    .icache_pipeline_doneop(icache_pipeline_doneop),
     .ack_op(ack_op),
     .pipeline_icache_ctrl(pipeline_icache_ctrl),
     .icache_pipeline_stall(icache_pipeline_stall),

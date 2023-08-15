@@ -24,7 +24,7 @@ module Icache_rbuf#(
     parameter   offset_width=2
 )//MMU的数据迟一拍写并且需要写优先：rbuf_paddr、rbuf_SUC
 (
-    input clk,rbuf_we,rbuf_stall,
+    input clk,rbuf_we,rbuf_stall,rstn,
     input [31:0]addr,paddr,opcode,
     output reg [31:0]rbuf_addr,rbuf_opcode,rbuf_paddr,
     input opflag,SUC,
@@ -35,15 +35,25 @@ reg we_reg;
 reg [31:0]rbuf_paddr1;
 reg rbuf_SUC1;
 always @(posedge clk) begin
-    we_reg <= we;
-    if(we)begin
-        rbuf_addr <= addr;
-        rbuf_opcode <= opcode;
-        rbuf_opflag <= opflag;
+    if(!rstn)begin
+        we_reg <= 0;
+        rbuf_addr <= 0;
+        rbuf_opcode <= 0;
+        rbuf_opflag <= 0;
+        rbuf_paddr1 <= 0;
+        rbuf_SUC1 <= 0;
     end
-    if(we_reg)begin
-        rbuf_paddr1 <= paddr;
-        rbuf_SUC1 <= SUC; 
+    else begin
+        we_reg <= we;
+        if(we)begin
+            rbuf_addr <= addr;
+            rbuf_opcode <= opcode;
+            rbuf_opflag <= opflag;
+        end
+        if(we_reg)begin
+            rbuf_paddr1 <= paddr;
+            rbuf_SUC1 <= SUC; 
+        end
     end
 end
 always @(*) begin
