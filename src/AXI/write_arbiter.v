@@ -72,13 +72,12 @@ module write_arbiter#(
         case (crt)
             IDLE: begin
                 mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
-                
+                addr_l2cache_wrt_w=addr_l2cache_mem_w;
+                dout_l2cache_wrt=dout_l2cache_mem;
+
                 l2_len=(1<<offset_width)-1;
                 l2_wstrb=4'hF;
                 l2_wsize=3'd2;
-
-                addr_l2cache_wrt_w=addr_l2cache_mem_w;
-                dout_l2cache_wrt=dout_l2cache_mem;
 
                 l2_waddr=wrt_axi_addr;
                 l2_wdata=wrt_axi_data;
@@ -120,6 +119,11 @@ module write_arbiter#(
                 l2_len=8'd0;
                 l2_wsize=3'd1;
                 l2_bready=1;
+
+                //for 抢的周期(wrt与l2的交互)
+                mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
+                addr_l2cache_wrt_w=addr_l2cache_mem_w;
+                dout_l2cache_wrt=dout_l2cache_mem;
             end
             default: begin  //WRT_W
                 mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
