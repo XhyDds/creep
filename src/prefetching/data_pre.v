@@ -61,7 +61,7 @@ module data_pre#(
     wire ip_kind;
     wire [INST_WIDTH-1:0] ip_;
     wire [HASH_WIDTH-1:0] ip_hashed;
-    wire [INST_WIDTH-1:0] ip_reg;
+    reg  [INST_WIDTH-1:0] ip_reg;
 
     sp_bram#(
         .ADDR_WIDTH(HASH_WIDTH),
