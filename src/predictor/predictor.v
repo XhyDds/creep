@@ -213,9 +213,13 @@ module predictor #(
 
     `ifdef TEST
     reg [31:0] times_mis_npc    ;
+    reg [31:0] times_mis_npc_pure;
     reg [31:0] times_mis_kind   ;
     reg [31:0] times_mis_taken  ;
+    reg [31:0] times_nojump_mis_taken;
+    reg [31:0] times_otherjump_mis_taken;
     reg [31:0] times_total_npc  ;
+    reg [31:0] times_total_npc_pure;
     reg [31:0] times_total_kind ;
     reg [31:0] times_total_taken;
 
@@ -224,26 +228,44 @@ module predictor #(
     reg [31:0] times_mis_btb    ;
     reg [31:0] times_mis_ras    ;
 
+    reg [31:0] times_jump;
+    reg [31:0] times_otherjump;
+    reg [31:0] times_nojump;
+
     always @(posedge clk) begin
         if(!rstn) begin
             times_mis_npc    <=0;
+            times_mis_npc_pure    <=0;
             times_mis_kind   <=0;
             times_mis_taken  <=0;
+            times_nojump_mis_taken  <=0;
+            times_otherjump_mis_taken<=0;
             times_total_npc  <=0;
+            times_total_npc_pure  <=0;
             times_total_kind <=0;
             times_total_taken<=0;
             times_mis_bh     <=0;
             times_mis_gh     <=0;
             times_mis_btb    <=0;
             times_mis_ras    <=0;
+            times_jump       <=0;
+            times_otherjump  <=0;
+            times_nojump     <=0;
         end
         else begin
             if(mis_pdc_npc&&update_en)  times_mis_npc    <=times_mis_npc    +1;
+            if(~mis_pdc_taken&&mis_pdc_npc&&update_en)  times_mis_npc_pure    <=times_mis_npc_pure    +1;
             if(mis_pdc_kind&&update_en) times_mis_kind   <=times_mis_kind   +1;
             if((kind_ex==DIRECT_JUMP)&&mis_pdc_taken&&update_en)
                                         times_mis_taken  <=times_mis_taken  +1;
-            if(~mis_pdc_taken&&(kind_ex!=NOT_JUMP)&&update_en)
+            if((kind_ex==NOT_JUMP)&&mis_pdc_taken&&update_en)
+                                        times_nojump_mis_taken  <=times_nojump_mis_taken  +1;
+            if((kind_ex!=NOT_JUMP)&&(kind_ex!=DIRECT_JUMP)&&mis_pdc_taken&&update_en)
+                                        times_otherjump_mis_taken  <=times_otherjump_mis_taken  +1;
+            if((kind_ex!=NOT_JUMP)&&update_en)
                                         times_total_npc  <=times_total_npc  +1;
+            if(~mis_pdc_taken&&(kind_ex!=NOT_JUMP)&&update_en)
+                                        times_total_npc_pure  <=times_total_npc_pure  +1;
 
                                         times_total_kind <=times_total_kind +1;
             if((kind_ex==DIRECT_JUMP)&&update_en)
@@ -258,6 +280,10 @@ module predictor #(
                 if(choice_real_btb_ras) times_mis_ras    <=times_mis_ras    +1;
                 else                    times_mis_btb    <=times_mis_btb    +1;
             end
+
+            if((kind_ex==DIRECT_JUMP)&&update_en) times_jump       <=times_jump       +1;
+            if((kind_ex!=DIRECT_JUMP)&&(kind_ex!=NOT_JUMP)&&update_en) times_otherjump  <=times_otherjump  +1;
+            if((kind_ex==NOT_JUMP)&&update_en)    times_nojump     <=times_nojump     +1;
         end
     end
     `endif
