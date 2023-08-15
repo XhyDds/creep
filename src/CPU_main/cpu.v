@@ -1,5 +1,5 @@
 `define predictor
-`define DMA
+// `define DMA
 `define two_pre
 // module mycpu_top(
 module core_top(
@@ -1588,6 +1588,9 @@ module core_top(
             type_dcache_exe0_exe1<=0;
             dcache_size_exe0_exe1<=0;
             dcache_wstrb_exe0_exe1<=0;
+            rrd_exe0_exe1_1<=0;
+            rrj_exe0_exe1_1<=0;
+            excp_arg_exe0_exe1<=0;
         end
         else if(stall_exe0_exe1_1);
         else if(flush_exe0_exe1_1) begin
@@ -1615,6 +1618,9 @@ module core_top(
             type_dcache_exe0_exe1<=0;
             dcache_size_exe0_exe1<=0;
             dcache_wstrb_exe0_exe1<=0;
+            rrd_exe0_exe1_1<=0;
+            rrj_exe0_exe1_1<=0;
+            excp_arg_exe0_exe1<=0;
         end
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
@@ -1641,6 +1647,9 @@ module core_top(
             type_dcache_exe0_exe1<=type_pipeline_dcache;
             dcache_size_exe0_exe1<=pipeline_dcache_size;
             dcache_wstrb_exe0_exe1<=pipeline_dcache_wstrb;
+            rrd_exe0_exe1_1<=rrd1_forward;
+            rrj_exe0_exe1_1<=rrj1_forward;
+            excp_arg_exe0_exe1<=excp_arg_reg_exe0_1_excp;
         end
     end
 
