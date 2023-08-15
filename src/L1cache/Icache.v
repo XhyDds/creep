@@ -86,7 +86,7 @@ assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 assign rbuf_stall = pipeline_icache_ctrl[0];//icache需要stall
 
 Icache_rbuf Icache_rbuf(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .rbuf_we(rbuf_we),
     .rbuf_stall(rbuf_stall),
 

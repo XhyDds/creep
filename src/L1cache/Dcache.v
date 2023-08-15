@@ -102,7 +102,7 @@ assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 
 wire rbuf_stall = pipeline_dcache_ctrl[0];
 Dcache_rbuf Dcache_rbuf(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .rbuf_we(rbuf_we & ~rbuf_stall),// & ~rbuf_stall
 
     .pc(pcin_pipeline_dcache),
