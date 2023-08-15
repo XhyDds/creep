@@ -123,7 +123,8 @@ module IPCP_launch(
         IP_vin=1;
         IP_lvpin=visitaddr0[13:12];
         IP_lloffsetin=visitaddr0[11:5];
-        IP_tein=~RST_trout;
+        if(RST_tagout==visitaddr0[24:15])
+            IP_tein=~RST_trout;
         if(RST_trout&&RST_tagout==visitaddr0[24:15])//GS update,RST effective
             begin
             IP_svin=1;
