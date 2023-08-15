@@ -150,6 +150,40 @@ module core_top(
     wire flush_if0_if1,flush_if1_fifo,flush_fifo_id,flush_id_reg0,flush_id_reg1,flush_reg_exe0_0,flush_reg_exe0_1,flush_exe0_exe1_0,flush_exe0_exe1_1,flush_exe1_wb_0,flush_exe1_wb_1,flushup,flushdown,flushdownpre,flush_if0_if1_left,flush_if0_if1_right;
     wire stall_pc_,stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre,ifinteflush,stallicacop;
     reg ifnpc_pdc,ifguess;
+    //test for 上板
+    reg icache_dead,dcache_dead;
+    reg [31:0]istall_times,dstall_times;
+    always @(posedge clk) begin
+        if(!rstn) begin
+            icache_dead<=0;
+            istall_times<=0;
+            dcache_dead<=0;
+            dstall_times<=0;
+        end
+        else begin
+            if(~stall_dcache) begin
+                dcache_dead<=0;
+                dstall_times<=0;
+            end
+            else if(dstall_times==32'd50) begin
+                dcache_dead<=1;
+            end
+            else begin
+                dstall_times<=dstall_times+1;
+            end
+
+            if(~stall_icache) begin
+                icache_dead<=0;
+                istall_times<=0;
+            end
+            else if(istall_times==32'd50) begin
+                icache_dead<=1;
+            end
+            else begin
+                istall_times<=istall_times+1;
+            end
+        end
+    end
 
     `ifndef two_pre
     assign flush_mispre=0;
