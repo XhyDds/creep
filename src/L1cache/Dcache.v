@@ -103,7 +103,7 @@ assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 wire rbuf_stall = pipeline_dcache_ctrl[0];
 Dcache_rbuf Dcache_rbuf(
     .clk(clk),
-    .rbuf_we(rbuf_we),// & ~rbuf_stall
+    .rbuf_we(rbuf_we & ~rbuf_stall),// & ~rbuf_stall
 
     .pc(pcin_pipeline_dcache),
     .rbuf_pc(rbuf_pc),
@@ -253,7 +253,7 @@ assign dout_dcache_pipeline1 = choose_return_reg ? data_out_reg : data_out;
 reg choose_stall;
 reg [31:0]data_out_reg_stall;
 always @(posedge clk) begin
-    choose_stall <= rbuf_stall;
+    choose_stall <= rbuf_stall & dcache_pipeline_ready;
     data_out_reg_stall <= dout_dcache_pipeline;
 end
 assign dout_dcache_pipeline = choose_stall ? data_out_reg_stall : dout_dcache_pipeline1;

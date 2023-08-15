@@ -108,8 +108,8 @@ always @(*) begin
     next_state = Idle;
     case (state)
         Idle:begin
-            // if(fStall_outside)next_state = Lookup;
-            if(opflag)next_state=Operation;
+            if(fStall_outside)next_state = Idle;
+            else if(opflag)next_state=Operation;
             else if(pipeline_dcache_valid)next_state=Lookup;
         end
         Lookup:begin
