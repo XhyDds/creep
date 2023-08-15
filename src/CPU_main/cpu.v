@@ -1,6 +1,6 @@
 `define predictor
 `define DMA
-// `define two_pre
+`define two_pre
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -823,7 +823,6 @@ module core_top(
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_cache_opcode 		    ( pipeline_cache_opcode 		),
-        .ifcacop_ibar                   ( ifcacop_ibar                  ),
         .pipeline_l2cache_opflag        ( pipeline_l2cache_opflag       ),
         .pipeline_dcache_opflag         ( pipeline_dcache_opflag        ),
         .pipeline_icache_opflag         ( pipeline_icache_opflag        )
