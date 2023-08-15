@@ -69,6 +69,7 @@ module l2_axi_interface#(
     output reg          wvalid,     //w: arbiter->axi
     input               wready,     //w: axi->arbiter
     output reg          wlast,
+    output   [ 3:0]     wid,
 
     // B
     input [1:0]         bresp,
@@ -85,6 +86,8 @@ module l2_axi_interface#(
     assign awlock=0;
     assign awcache=0;
     assign awprot=0;
+
+    assign wid=1;
     
     // assign  l2_rsize=3'd2;
     // assign  l2_rlen =8'd3;
