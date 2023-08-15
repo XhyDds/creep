@@ -329,6 +329,7 @@ module l2_axi_package #(
         .wvalid   		( wvalid   		),
         .wready   		( wready   		),
         .wlast    		( wlast    		),
+        .wid            ( wid           ),
         .bresp    		( bresp    		),
         .bvalid   		( bvalid   		),
         .bready   		( bready   		)
