@@ -238,7 +238,7 @@ L2cache_replace #(
     .addr_width(index_width)
 )
 L2cache_replace(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .use1(use1),
     .valid(valid),
     .addr(rbuf_index),
@@ -301,7 +301,7 @@ L2cache_TagV #(
     .data_width(32-2-index_width-offset_width)
 )
 L2cache_TagV(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .TagV_addr_read(Data_writeback ? rbuf_index : index),
     // .TagV_din_compare(inpref ? tag_pref : rbuf_tag),
@@ -329,7 +329,7 @@ L2cache_prefnum #(//预取类型
     .way(way)
 )
 L2cache_prefnum(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .num_addr_read(index),
     .num_addr_write(inpref ? index_pref : rbuf_index),
     .num_din(num_pref_l2cache),
@@ -346,7 +346,7 @@ L2cache_Dirtytable #(
     .addr_width(index_width)
 )
 L2cache_Dirtytable(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     
     // .valid(valid),
     .Dirtytable_addr(rbuf_index),

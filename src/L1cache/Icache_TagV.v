@@ -94,7 +94,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way0(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),//写口
     .din((TagV_init == 2'b10) ? zero:TagV_din_write),
@@ -111,7 +111,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way1(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),//写口
     .din((TagV_init == 2'b11) ? zero:TagV_din_write),

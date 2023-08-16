@@ -25,7 +25,7 @@ module L2cache_replace#(//PLRU
                 way=8
 )
 (
-    input       clk,
+    input       clk,rstn,
     input       [way-1:0]use1,
     input       [way-1:0]valid,
 
@@ -40,7 +40,8 @@ assign way_sel_d = d;
 assign way_sel_i = i;
 //d_sel
 always @(posedge clk) begin
-    if(!valid[7])d <= 3'd7;
+    if(!rstn)d <= 0;
+    else if(!valid[7])d <= 3'd7;
     else if(!valid[6])d <= 3'd6;
     else if(!valid[5])d <= 3'd5;
     else if(!valid[4])d <= 3'd4;
@@ -71,7 +72,8 @@ always @(posedge clk) begin
 end
 //i_sel
 always @(posedge clk) begin
-    if(!valid[0])i <= 2'd0;
+    if(!rstn)i <= 0;
+    else if(!valid[0])i <= 2'd0;
     else if(!valid[1])i <= 2'd1;
     else if(!valid[2])i <= 2'd2;
     else if(!valid[3])i <= 2'd3;
@@ -129,4 +131,10 @@ always @(posedge clk) begin
         record[addr][6] <= 1'b0;
     end
 end
+    integer ii;
+    initial begin
+        for (ii = 0; ii < (1 << addr_width); ii = ii + 1) begin
+            record[ii] = 0;
+        end
+    end
 endmodule

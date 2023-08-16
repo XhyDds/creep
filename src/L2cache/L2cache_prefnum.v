@@ -4,7 +4,7 @@ module L2cache_prefnum#(
                 way=8
 )
 (
-    input       clk,
+    input       clk,rstn,
     input       [addr_width-1:0]num_addr_read,
     input       [addr_width-1:0]num_addr_write,
     input       [data_width-1:0]num_din,
@@ -21,7 +21,7 @@ L2cache_prefnum_lut #(
     .ADDR_WIDTH(addr_width)
 )
 way0(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(num_addr_write),
     .din(num_din),
@@ -37,7 +37,7 @@ L2cache_prefnum_lut #(
     .ADDR_WIDTH(addr_width)
 )
 way1(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(num_addr_write),
     .din(num_din),
@@ -53,7 +53,7 @@ L2cache_prefnum_lut #(
     .ADDR_WIDTH(addr_width)
 )
 way2(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(num_addr_write),
     .din(num_din),
@@ -69,7 +69,7 @@ L2cache_prefnum_lut #(
     .ADDR_WIDTH(addr_width)
 )
 way3(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(num_addr_write),
     .din(num_din),
@@ -85,7 +85,7 @@ L2cache_prefnum_lut #(
     .ADDR_WIDTH(addr_width)
 )
 way4(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(num_addr_write),
     .din(num_din),
@@ -101,7 +101,7 @@ L2cache_prefnum_lut #(
     .ADDR_WIDTH(addr_width)
 )
 way5(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(num_addr_write),
     .din(num_din),
@@ -117,7 +117,7 @@ L2cache_prefnum_lut #(
     .ADDR_WIDTH(addr_width)
 )
 way6(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(num_addr_write),
     .din(num_din),
@@ -133,7 +133,7 @@ L2cache_prefnum_lut #(
     .ADDR_WIDTH(addr_width)
 )
 way7(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(num_addr_write),
     .din(num_din),

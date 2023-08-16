@@ -146,7 +146,7 @@ Dcache_lru #(
     .way(way)
 )
 Dcache_lru(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .use0(use0),.use1(use1),
     .addr(rbuf_index ),//^ rbuf_index1
     .way_sel(way_sel_lru)
@@ -188,7 +188,7 @@ Dcache_TagV #(
     .way(way)
 )
 Dcache_TagV(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .TagV_addr_read(index ),//^ index1
     // .TagV_din_compare(tag),
