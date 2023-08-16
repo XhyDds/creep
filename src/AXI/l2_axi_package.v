@@ -334,4 +334,12 @@ module l2_axi_package #(
         .bvalid   		( bvalid   		),
         .bready   		( bready   		)
     );
+
+    wire allow;
+    IO_mask r_mask(
+    .addr(addr_l2cache_mem_r),
+    .widthin(9'd128),
+    .allow(allow)// 1:yes 0:no
+    );
+    wire addr_unvalid=~(allow&(~dma_sign)&(l2cache_mem_req_r|l2cache_mem_req_w));
 endmodule
