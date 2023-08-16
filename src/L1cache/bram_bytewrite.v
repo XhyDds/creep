@@ -25,7 +25,7 @@ module bram_bytewrite#(
               ADDR_WIDTH = 8
             //   INIT_FILE = ""
 )(
-    input                   clk,   // Clock
+    input                   clk,rstn,   // Clock
     input [ADDR_WIDTH-1:0]  raddr, // read Address
     input [ADDR_WIDTH-1:0]  waddr, // write Address
     input [DATA_WIDTH-1:0]  din,   // Data Input
@@ -36,9 +36,15 @@ wire [DATA_WIDTH-1:0]dout1;
 reg [DATA_WIDTH-1:0]din_reg;
 reg [DATA_WIDTH/8-1:0]choose;
 always @(posedge clk)begin
-    din_reg <= din;
-    if(raddr == waddr)choose <= we;
-    else choose <= 0;
+    if(!rstn)begin
+        din_reg <= 0;
+        choose <= 0;
+    end
+    else begin
+        din_reg <= din;
+        if(raddr == waddr)choose <= we;
+        else choose <= 0;
+    end
 end
 generate
     genvar i;

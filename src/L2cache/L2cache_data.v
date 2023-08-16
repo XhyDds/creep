@@ -27,7 +27,7 @@ module L2cache_Data#(
                 way=8
 )
 (
-    input       clk,
+    input       clk,rstn,
     
     input       [addr_width-1:0]Data_addr_read,
     output      [data_width-1:0]Data_dout0,
@@ -124,7 +124,7 @@ bram_bytewrite #(
     .ADDR_WIDTH(addr_width)
 )
 way0(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),
@@ -139,7 +139,7 @@ bram_bytewrite #(
     .ADDR_WIDTH(addr_width)
 )
 way1(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),
@@ -154,7 +154,7 @@ bram_bytewrite #(
     .ADDR_WIDTH(addr_width)
 )
 way2(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),
@@ -169,7 +169,7 @@ bram_bytewrite #(
     .ADDR_WIDTH(addr_width)
 )
 way3(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),
@@ -184,7 +184,7 @@ bram_bytewrite #(
     .ADDR_WIDTH(addr_width)
 )
 way4(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),
@@ -199,7 +199,7 @@ bram_bytewrite #(
     .ADDR_WIDTH(addr_width)
 )
 way5(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),
@@ -214,7 +214,7 @@ bram_bytewrite #(
     .ADDR_WIDTH(addr_width)
 )
 way6(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),
@@ -229,7 +229,7 @@ bram_bytewrite #(
     .ADDR_WIDTH(addr_width)
 )
 way7(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),

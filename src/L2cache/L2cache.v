@@ -263,7 +263,7 @@ L2cache_Data #(
     .data_width((1<<offset_width)*32)
 )
 L2cache_Data(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     
     .Data_addr_read(Data_writeback ? rbuf_index : index),//pref不用改
     .Data_dout0(data0),

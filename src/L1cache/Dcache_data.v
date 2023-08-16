@@ -27,7 +27,7 @@ module Dcache_Data#(
                 way=2
 )
 (
-    input       clk,
+    input       clk,rstn,
     
     input       [addr_width-1:0]Data_addr_read,
     output      [data_width-1:0]Data_dout0,
@@ -75,7 +75,7 @@ bram_bytewrite #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width))
 way0(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),
@@ -89,7 +89,7 @@ bram_bytewrite #(
     .DATA_WIDTH(data_width),
     .ADDR_WIDTH(addr_width))
 way1(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(Data_addr_write),
     .din(Data_din),
