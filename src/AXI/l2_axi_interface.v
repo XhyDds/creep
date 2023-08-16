@@ -166,6 +166,7 @@ module l2_axi_interface#(
             l2_rlast    = rlast;
             l2_raddrOK  = 1;
             l2_rdata    = rdata;
+            arsize      = l2_rsize;
         end
         E_AR: begin
             araddr      = l2_raddr;
@@ -181,6 +182,7 @@ module l2_axi_interface#(
             l2_rlast    = 1;
             l2_raddrOK  = 1;
             l2_rdata    = 32'hABCD1234;
+            arsize      = l2_rsize;
         end
         default:;
         endcase
