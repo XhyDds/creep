@@ -937,8 +937,8 @@ assign stallicacop=pipeline_icache_opflag&stall_icache;
         //ports
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
-        .pipeline_CSR_flush     		( {1'b0,flush_exe1_exe2_1}      ),
-        .pipeline_CSR_stall     		( {stall_exe1_exe2_1,stall_exe1_exe2_1}     	),
+        .pipeline_CSR_flush     		( {1'b0,flush_exe1_exe2_1}             ),
+        .pipeline_CSR_stall     		( {stall_exe1_exe2_1,stall_exe1_exe2_1}),
         .CSR_pipeline_clk_stall     	( ifidle                        ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
         .CSR_pipeline_inte_flush        ( ifinteflush                   ),
@@ -1030,8 +1030,8 @@ assign stallicacop=pipeline_icache_opflag&stall_icache;
         .pipeline_MMU_flush0            ( {flush_if0_if1,flush_if0_if1} ),
         .pipeline_MMU_stall1            ( {stall_exe1_exe2_1,stall_exe0_exe1_1}),//!!
         .pipeline_MMU_flush1            ( {flush_exe1_exe2_1,flush_exe0_exe1_1}),//!!
-        .pipeline_MMU_stallw            ( stall_exe1_exe2_1             ),
-        .pipeline_MMU_flushw            ( flush_exe1_exe2_1             ),
+        .pipeline_MMU_stallw            ( {stall_exe1_exe2_1,stall_exe1_exe2_1}),
+        .pipeline_MMU_flushw            ( {1'b0,flush_exe1_exe2_1}             ),
         .pipeline_MMU_type              ( ctr_exe0_exe1_1[3:0]      ),
         .pipeline_MMU_subtype           ( ctr_exe0_exe1_1[11:7]     ),
         .pipeline_MMU_excp_arg		    ( excp_arg_exe0_exe1      ),
