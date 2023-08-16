@@ -117,10 +117,10 @@ module write_arbiter#(
                 l2_wsize=l2cache_mem_size;
                 l2_bready=1;
 
-                //for 抢的周期(wrt与l2的交互)
-                mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
-                addr_l2cache_wrt_w=addr_l2cache_mem_w;
-                dout_l2cache_wrt=dout_l2cache_mem;
+                // //for 抢的周期(wrt与l2的交互)
+                // mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
+                // addr_l2cache_wrt_w=addr_l2cache_mem_w;
+                // dout_l2cache_wrt=dout_l2cache_mem;
             end
             default: begin  //WRT_W
                 mem_l2cache_addrOK_w=wrt_l2cache_addrOK_w;
