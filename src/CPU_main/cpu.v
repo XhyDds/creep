@@ -1,7 +1,7 @@
 `define predictor
 `define two_pre
 // `define invalidl2  //还不能用 留个接口
-// `define DMA
+`define DMA
 // module mycpu_top(
 module core_top(
     input           aclk,
