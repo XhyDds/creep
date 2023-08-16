@@ -98,7 +98,8 @@ module Memory_Maping_Unit#(//stall frist
     
     wire [8:0]CRMDin;wire [9:0]ASIDin;wire [31:0] DMW0in,DMW1in;
     wire [1:0] stallw,flushw,stall0,flush0,stall1,flush1;
-    wire [3:0] type_;wire [4:0] subtype; wire [31:0] rj,rk;wire [4:0] op;
+    wire [3:0] type_;wire [4:0] subtype;reg [4:0] subtype_reg;wire [31:0] rj,rk;
+    reg [31:0] rj_reg,rk_reg;wire [4:0] op;reg [4:0] op_reg;
     assign CRMDin=pipeline_MMU_CRMD,ASIDin=pipeline_MMU_ASID;
     assign DMW0in=pipeline_MMU_DMW0,DMW1in=pipeline_MMU_DMW1;
     assign DMW0_plvOK=(DMW0in[0]==1&&CRMDin[1:0]==0)||(DMW0in[3]==1&&CRMDin[1:0]==3);
@@ -130,12 +131,18 @@ module Memory_Maping_Unit#(//stall frist
         TLBIDXout<=0;TLBEHIout<=0;
         TLBELO0out<=0;TLBELO1out<=0;
         ASIDout<=0;exe_reg<=0;
+        subtype_reg<=0;
+        rj_reg<=0;rk_reg<=0;
+        op_reg<=0;
         end
     else if(~stallw[0])
         begin
         TLBIDXout<=TLBIDX;TLBEHIout<=TLBEHI;
         TLBELO0out<=TLBELO0;TLBELO1out<=TLBELO1;
         ASIDout<=ASIDrd;exe_reg<=exe; 
+        subtype_reg<=subtype;
+        rj_reg<=rj;rk_reg<=rk;
+        op_reg<=op;
         end
     end
     always@(posedge(clk))
@@ -228,9 +235,9 @@ module Memory_Maping_Unit#(//stall frist
     
     always@(posedge(clk))
     begin
-    if(exe_reg && ~stallw[1] && ~flushw[1] && (subtype==TLBWR || subtype==TLBFILL))
+    if(exe_reg && ~stallw[1] && ~flushw[1] && (subtype_reg==TLBWR || subtype_reg==TLBFILL))
         begin
-        PS_ex[Index]<=~0<<TLBIDXin[29:24]-6'd12;//*
+        PS_ex[Index]<=~0<<(TLBIDXin[29:24]-6'd12);//*
         VPPN[Index]<=TLBEHIin[31:13];
         {MAT0[Index],PLV0[Index],D0[Index],V0[Index]}<=TLBELO0in[5:0];
         PPN0[Index]<=TLBELO0in[TLB_PALEN-5:8];
@@ -247,13 +254,13 @@ module Memory_Maping_Unit#(//stall frist
         always@(posedge(clk))
         begin
         if(exe_reg && ~stallw[1] && ~flushw[1])
-            if(Index==j && (subtype==TLBWR || subtype==TLBFILL))
+            if(Index==j && (subtype_reg==TLBWR || subtype_reg==TLBFILL))
                 begin
                 E[j]<=~TLBIDXin[31];
                 end
-            else if(subtype==INVTLB)
+            else if(subtype_reg==INVTLB)
                 begin
-                case(op)
+                case(op_reg)
                     5'h0,5'h1:
                         begin
                         E[j]<=0;
@@ -274,21 +281,21 @@ module Memory_Maping_Unit#(//stall frist
                         end
                     5'h4:
                         begin
-                        if(~G[j] && ASID[j]==rj[9:0])//G[j]==0
+                        if(~G[j] && ASID[j]==rj_reg[9:0])//G[j]==0
                             begin
                             E[j]<=0;
                             end
                         end
                     5'h5:
                         begin
-                        if(~G[j] && ASID[j]==rj[9:0] && !((VPPN[j]^rk[31:13])&PS_ex[j][TLB_VALEN-13:1]))//G[j]==0
+                        if(~G[j] && ASID[j]==rj_reg[9:0] && !((VPPN[j]^rk_reg[31:13])&PS_ex[j][TLB_VALEN-13:1]))//G[j]==0
                             begin
                             E[j]<=0;
                             end
                         end
                     5'h6:
                         begin
-                        if((G[j] || ASID[j]==rj[9:0]) && !((VPPN[j]^rk[31:13])&PS_ex[j][TLB_VALEN-13:1]))//G[j]==1
+                        if((G[j] || ASID[j]==rj_reg[9:0]) && !((VPPN[j]^rk_reg[31:13])&PS_ex[j][TLB_VALEN-13:1]))//G[j]==1
                             begin
                             E[j]<=0;
                             end
