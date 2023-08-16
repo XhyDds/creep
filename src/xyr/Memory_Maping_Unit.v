@@ -54,7 +54,8 @@ module Memory_Maping_Unit#(//stall frist
     FPE=6'H12,TLBR=6'H3F;
     localparam ADEF=9'H0,ADEM=9'H1,DEFAULT=9'H0;
     
-    reg [TLB_VALEN-14:0] VPPN[0:TLB_nex];reg [5:0] PS[0:TLB_nex];
+    reg [TLB_VALEN-14:0] VPPN[0:TLB_nex];//reg [5:0] PS[0:TLB_nex];
+    reg [TLB_VALEN-13:0] PS_ex[0:TLB_nex];//ps->11111...0000
     reg G[0:TLB_nex];reg [9:0] ASID[0:TLB_nex];reg E[0:TLB_nex];
     reg [TLB_PALEN-13:0] PPN0[0:TLB_nex],PPN1[0:TLB_nex];
     reg [1:0] PLV0[0:TLB_nex],PLV1[0:TLB_nex];
@@ -68,11 +69,13 @@ module Memory_Maping_Unit#(//stall frist
     reg VADDR_valid0_reg,VADDR_valid1_reg;
     reg PADDR_valid0,PADDR_valid1;
     //reg VADDR_valid0_reg,VADDR_valid1_reg;//reg [31:0]temp0,temp1;
-    reg TLB_found0,TLB_found1;reg [5:0] found_ps0,found_ps1;
+    reg TLB_found0,TLB_found1;//reg [5:0] found_ps0,found_ps1;
+    reg [TLB_VALEN-13:0] found_ps_ex0,found_ps_ex1;
     reg found_v0,found_d0,found_v1,found_d1;
     reg [1:0] found_mat0,found_plv0,found_mat1,found_plv1;
     reg [TLB_PALEN-13:0] found_ppn0,found_ppn1;
-    wire [31:0] addrmask0,addrmask1;wire DMW0_plvOK,DMW1_plvOK;   
+    //wire [31:0] addrmask0,addrmask1;
+    wire DMW0_plvOK,DMW1_plvOK;   
     assign VADDR0=pipeline_MMU_VADDR0,optype0=pipeline_MMU_optype0;
     assign MMU_pipeline_PADDR0=PADDR0,MMU_pipeline_excp_arg0=excp_arg0;
     assign MMU_pipeline_memtype0=memtype0,VADDR_valid0=pipeline_MMU_VADDR_valid0;
@@ -107,15 +110,18 @@ module Memory_Maping_Unit#(//stall frist
     assign rj=pipeline_MMU_rj,rk=pipeline_MMU_rk;
     assign op=pipeline_MMU_excp_arg[4:0];
     
-    wire exe;reg exe_reg;
+    wire exe;reg exe_reg;wire [5:0] TLB_PS;
     wire [TLB_n-1:0] Index,Index_tlbsch,Index_look0,Index_look1;
     reg [TLB_nex:0] found_tlbsch,look0,look1;
     assign exe=(type_==MMU||type_==PRIV_MMU);
     assign Index=TLBIDXin[TLB_n-1:0];
     
+    encoder_2n_n  #(6)encoder_ps(.din({{64-(TLB_VALEN-12){1'b0}},~PS_ex[Index]}),.dout(TLB_PS));
     encoder_2n_n  #(TLB_n)encoder_tlbsch(.din(found_tlbsch),.dout(Index_tlbsch));
     encoder_2n_n  #(TLB_n)encoder_look0(.din(look0),.dout(Index_look0));
     encoder_2n_n  #(TLB_n)encoder_look1(.din(look1),.dout(Index_look1));
+    
+    
     
     always@(posedge(clk))
     begin
@@ -170,7 +176,7 @@ module Memory_Maping_Unit#(//stall frist
         always@(*)
         begin
         found_tlbsch[i]=1'b0;
-        if((ASID[i]==ASIDin || G[i]==1) && ({VPPN[i],12'b0}>>PS[i])==(TLBEHIin[31:1]>>PS[i]) && E[i]==1)//VPPNlow
+        if((ASID[i]==ASIDin || G[i]==1) && !((VPPN[i]^TLBEHIin[31:13])&PS_ex[i][TLB_VALEN-13:1]) && E[i]==1)//VPPNlow
             found_tlbsch[i]=1'b1;
         else
             found_tlbsch[i]=1'b0;
@@ -204,7 +210,7 @@ module Memory_Maping_Unit#(//stall frist
                    TLBELO0[TLB_PALEN-5:8]=PPN0[Index];
                    TLBELO1[6:0]={G[Index],MAT1[Index],PLV1[Index],D1[Index],V1[Index]};
                    TLBELO1[TLB_PALEN-5:8]=PPN1[Index];
-                   TLBIDX[29:24]=PS[Index];
+                   TLBIDX[29:24]=TLB_PS+6'd12;//?
                    ASIDrd=ASID[Index];
                    end
                else
@@ -224,7 +230,7 @@ module Memory_Maping_Unit#(//stall frist
     begin
     if(exe_reg && ~stallw[1] && ~flushw[1] && (subtype==TLBWR || subtype==TLBFILL))
         begin
-        PS[Index]<=TLBIDXin[29:24];
+        PS_ex[Index]<=~0<<TLBIDXin[29:24]-6'd12;//*
         VPPN[Index]<=TLBEHIin[31:13];
         {MAT0[Index],PLV0[Index],D0[Index],V0[Index]}<=TLBELO0in[5:0];
         PPN0[Index]<=TLBELO0in[TLB_PALEN-5:8];
@@ -275,14 +281,14 @@ module Memory_Maping_Unit#(//stall frist
                         end
                     5'h5:
                         begin
-                        if(~G[j] && ASID[j]==rj[9:0] && ({1'b0,VPPN[j],12'b0}>>PS[j])==(rk>>PS[j]+1))//G[j]==0
+                        if(~G[j] && ASID[j]==rj[9:0] && !((VPPN[j]^rk[31:13])&PS_ex[j][TLB_VALEN-13:1]))//G[j]==0
                             begin
                             E[j]<=0;
                             end
                         end
                     5'h6:
                         begin
-                        if((G[j] || ASID[j]==rj[9:0]) && ({1'b0,VPPN[j],12'b0}>>PS[j])==(rk>>PS[j]+1))//G[j]==1
+                        if((G[j] || ASID[j]==rj[9:0]) && !((VPPN[j]^rk[31:13])&PS_ex[j][TLB_VALEN-13:1]))//G[j]==1
                             begin
                             E[j]<=0;
                             end
@@ -303,7 +309,7 @@ module Memory_Maping_Unit#(//stall frist
         always@(*)
         begin
         look0[i]=1'b0;
-        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR0_reg[31:1]>>PS[i]))//ȥ��λ�Ƚϣ�VPPNҪ��13λΪ��ȷ��ַ
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&& !((VPPN[i]^VADDR0_reg[31:13])&PS_ex[i][TLB_VALEN-13:1]))//ȥ��λ�Ƚϣ�VPPNҪ��13λΪ��ȷ��ַ
             look0[i]=1'b1;
         else
             look0[i]=1'b0;
@@ -318,8 +324,8 @@ module Memory_Maping_Unit#(//stall frist
 //    found_mat0=0;found_plv0=0;
 //    found_ppn0=0;found_ps0=0;
     TLB_found0=|look0;       
-    found_ps0=PS[Index_look0];
-    if(|((VADDR0_reg>>found_ps0)&32'b1))//VLow==1
+    found_ps_ex0=PS_ex[Index_look0];
+    if(|(VADDR0_reg[31:12]&({1'b1,found_ps_ex0}^{found_ps_ex0,1'b0})))//VLow==1
         begin
         found_v0=V1[Index_look0];found_d0=D1[Index_look0];
         found_mat0=MAT1[Index_look0];found_plv0=PLV1[Index_look0];
@@ -332,7 +338,7 @@ module Memory_Maping_Unit#(//stall frist
         found_ppn0=PPN0[Index_look0];
         end
     end
-    assign addrmask0=(~0)<<found_ps0;
+    //assign addrmask0=(~0)<<found_ps0;//
     always@(*)
     begin
 //    if(!rstn || flush0[1])//flush first
@@ -342,7 +348,8 @@ module Memory_Maping_Unit#(//stall frist
 //        end
 //    else if(~stall0[1])
         begin
-        PADDR0=({found_ppn0,12'b0}&addrmask0)|(VADDR0_reg&~addrmask0);
+        PADDR0[11:0]=VADDR0_reg[11:0];
+        PADDR0[31:12]=(found_ppn0&found_ps_ex0)|(VADDR0_reg[31:12]&~found_ps_ex0);//?
         memtype0=found_mat0;
         excp_arg0=0;
         PADDR_valid0=VADDR_valid0_reg;
@@ -415,7 +422,7 @@ module Memory_Maping_Unit#(//stall frist
         always@(*)
         begin
         look1[i]=1'b0;
-        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR1_reg[31:1]>>PS[i]))//ȥ��λ�Ƚϣ�VPPNҪ��13λΪ��ȷ��ַ
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&!((VPPN[i]^VADDR1_reg[31:13])&PS_ex[i][TLB_VALEN-13:1]))//ȥ��λ�Ƚϣ�VPPNҪ��13λΪ��ȷ��ַ
             look1[i]=1'b1;
         else
             look1[i]=1'b0;
@@ -430,8 +437,8 @@ module Memory_Maping_Unit#(//stall frist
 //    found_mat1=0;found_plv1=0;
 //    found_ppn1=0;found_ps1=0;
     TLB_found1=|look1;       
-    found_ps1=PS[Index_look1];
-    if(|((VADDR1_reg>>found_ps1)&32'b1))//VLow==1
+    found_ps_ex1=PS_ex[Index_look1];
+    if(|(VADDR1_reg[31:12]&({1'b1,found_ps_ex1}^{found_ps_ex1,1'b0})))//VLow==1
         begin
         found_v1=V1[Index_look1];found_d1=D1[Index_look1];
         found_mat1=MAT1[Index_look1];found_plv1=PLV1[Index_look1];
@@ -444,7 +451,7 @@ module Memory_Maping_Unit#(//stall frist
         found_ppn1=PPN0[Index_look1];
         end
     end
-    assign addrmask1=(~0)<<found_ps1;
+    //assign addrmask1=(~0)<<found_ps1;
     always@(posedge(clk))
     begin
     if(!rstn || (flush1[1]&&!stall1[1]))
@@ -455,7 +462,8 @@ module Memory_Maping_Unit#(//stall frist
         end
     else if(~stall1[1])
         begin
-        PADDR1<=({found_ppn1,12'b0}&addrmask1)|(VADDR1_reg&~addrmask1);
+        PADDR1[11:0]<=VADDR1_reg[11:0];
+        PADDR1[31:12]<=(found_ppn1&found_ps_ex1)|(VADDR1_reg[31:12]&~found_ps_ex1);//?
         memtype1<=found_mat1;
         PADDR_valid1<=VADDR_valid1_reg;
         excp_arg1<=0;
@@ -528,19 +536,29 @@ module encoder_2n_n#(
     parameter n=7
 )(
     input [(1<<n)-1:0] din,
-    output reg [n-1:0] dout
+    output [n-1:0] dout
 );
-    integer i;
-    always@(*)
-    begin
-    dout=0;
-    for(i=0;i<(1<<n);i=i+1)
-        begin
-        if(din[i])
-            dout=i;
-        end
+//    integer i;
+//    always@(*)
+//    begin
+//    dout=0;
+//    for(i=0;i<(1<<n);i=i+1)
+//        begin
+//        if(din[i])
+//            dout=i;
+//        end
+//    end
+    wire [(1<<n)-1:0]temp[0:n];
+    assign temp[n]=din;
+    genvar i;
+    generate
+    for(i=n-1;i>=0;i=i-1)
+    begin:gen_encode
+    assign dout[i]=|temp[i+1][(1<<i+1)-1:(1<<i)];
+    assign temp[i][(1<<i)-1:0]=dout[i]?temp[i+1][(1<<i+1)-1:(1<<i)]:temp[i+1][(1<<i)-1:0];
     end
-
+    endgenerate
+    
 endmodule
 
 
