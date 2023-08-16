@@ -1,4 +1,4 @@
-module div #(parameter WIDTH=32)
+module divider #(parameter WIDTH=32)
 (
     input clk,rstn,                         
     input [3:0] pipeline_divider_type,      
