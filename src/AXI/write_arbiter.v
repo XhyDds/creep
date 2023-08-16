@@ -145,17 +145,4 @@ module write_arbiter#(
             end
         endcase
     end
-
-    always @(posedge clk) begin
-        if(!rstn) begin
-            l2cache_axi_wstrb_<=0;
-            addr_l2cache_mem_w_<=0;
-            dout_l2cache_mem_<=0;
-        end
-        else if(crt==DMA_AW) begin
-            l2cache_axi_wstrb_<=l2cache_axi_wstrb;
-            addr_l2cache_mem_w_<=addr_l2cache_mem_w;
-            dout_l2cache_mem_<=dout_l2cache_mem[31:0];
-        end
-    end
 endmodule
