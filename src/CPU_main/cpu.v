@@ -1852,7 +1852,7 @@ module core_top(
         .pipeline_icache_valid  		( ~flush_if0_if1),
         .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( pipeline_cache_opcode 		),
-        .pipeline_icache_opflag 		( pipeline_icache_opflag&~flush_exe0_exe1_1),
+        .pipeline_icache_opflag 		( ~dma & pipeline_icache_opflag&~flush_exe0_exe1_1),
         .icache_pipeline_doneop         ( icache_pipeline_doneop        ),
         .pipeline_icache_ctrl           ( {30'b0,1'b0,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
@@ -1870,7 +1870,7 @@ module core_top(
         .pipeline_dcache_wstrb  		( pipeline_dcache_wstrb  		),
         .pipeline_dcache_size           ( pipeline_dcache_size          ),
         .pipeline_dcache_opcode 		( pipeline_cache_opcode 		),
-        .pipeline_dcache_opflag 		( pipeline_dcache_opflag&~flush_exe0_exe1_1),
+        .pipeline_dcache_opflag 		( ~dma & pipeline_dcache_opflag&~flush_exe0_exe1_1),
         .dcache_pipeline_doneop         ( dcache_pipeline_doneop        ),
         .pipeline_dcache_ctrl   		( {30'b0,flush_exe1_wb_1,stall_to_dcache}),
         .dcache_pipeline_stall  		( stall_dcache  		        ),
@@ -1879,7 +1879,7 @@ module core_top(
 
         //  L2-pipeline
         .addr_pipeline_l2cache          ( opcode_exe0_exe1[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe0_exe1          ),
-        .pipeline_l2cache_opflag        ( l2opflag_exe0_exe1&~flush_exe1_exe2_1&~stall_exe0_exe1_1),
+        .pipeline_l2cache_opflag        ( ~dma & l2opflag_exe0_exe1&~flush_exe1_exe2_1&~stall_exe0_exe1_1),
         .pipeline_l2cache_opcode        ( opcode_exe0_exe1              ),
         .invalid_l2                     ( invalid_l2                         ),
 
