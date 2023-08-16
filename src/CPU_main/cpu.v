@@ -1,6 +1,6 @@
 `define predictor
 `define two_pre
-// `define DMA
+`define DMA
 // module mycpu_top(
 module core_top(
     input           aclk,
