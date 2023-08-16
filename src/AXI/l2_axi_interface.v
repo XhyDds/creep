@@ -52,7 +52,7 @@ module l2_axi_interface#(
     input               rlast,
 
     // AW
-    output [31:0]       awaddr,
+    output reg[31:0]    awaddr,
     output reg          awvalid,    //aw: arbiter->axi
     input               awready,    //aw: axi->arbiter
     output [7:0]        awlen,
@@ -189,12 +189,13 @@ module l2_axi_interface#(
         default :                   w_nxt = W_IDLE;    
         endcase
     end
-    assign awaddr   = l2_waddr;
     assign awlen    = l2_wlen;
     assign awsize   = l2_wsize;
     assign awburst  = 2'b01;
     assign wdata    = l2_wdata;
     assign wstrb    = l2_wstrb;
+
+    reg [31:0] l2_waddr_;
 
     always @(*) begin
         l2_wready   = 0;
@@ -204,22 +205,43 @@ module l2_axi_interface#(
         wvalid      = 0;
         wlast       = 0;
         l2_waddrOK  = 0;
+        awaddr      = 0;
 
         case(w_crt)
         D_AW: begin
+            awaddr      = l2_waddr;
             awvalid     = 1;
         end
         D_W: begin
+            awaddr      = l2_waddr_;
             wvalid      = l2_wwvalid;
             wlast       = l2_wlast;
             l2_wready   = wready;
             l2_waddrOK  = 1;
         end
         D_B: begin
+            awaddr      = l2_waddr_;
             bready      = l2_bready;
             l2_bvalid   = bvalid;
         end
         default:;
         endcase
+    end
+
+    always @(posedge clk) begin
+        if(!rstn) begin
+            l2_waddr_<=0;
+        end
+        else begin
+            case(w_crt)
+            W_IDLE: begin
+                l2_waddr_<=0;
+            end
+            D_AW: begin
+                l2_waddr_<=l2_waddr;
+            end
+            default:;
+            endcase
+        end
     end
 endmodule
