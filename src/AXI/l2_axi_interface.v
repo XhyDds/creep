@@ -127,7 +127,7 @@ module l2_axi_interface#(
         end
         D_R: begin
             if(rvalid && rlast)     r_nxt = R_IDLE;
-            else if(rerror)         r_nxt = D_R;
+            else if(rerror)         r_nxt = E_R;
             else                    r_nxt = D_R;
         end
         E_IDLE:                     r_nxt = E_AR;
