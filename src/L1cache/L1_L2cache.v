@@ -136,7 +136,8 @@ wire [1:0]icache_mem_size;
 wire mem_icache_dataOK;
 reg op_i_reg;
 always @(posedge clk) begin
-    op_i_reg <= op_i;
+    if(~rstn) op_i_reg <= 1'b0;
+    else op_i_reg <= op_i;
 end
 Icache #(
     .index_width(I_index_width),
