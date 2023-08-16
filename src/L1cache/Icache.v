@@ -116,7 +116,7 @@ Icache_lru #(
     .way(way)
 )
 Icache_lru(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .use0(use0),.use1(use1),
     .addr(rbuf_index),
     .way_sel(way_sel_lru)

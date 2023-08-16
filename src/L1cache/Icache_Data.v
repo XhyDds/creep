@@ -53,7 +53,10 @@ way0(
     .dout(Data_dout0)
 );
 
-bram #()way1(
+bram #(
+    .DATA_WIDTH(data_width),
+    .ADDR_WIDTH(addr_width)
+)way1(
     .clk(clk),
 
     .waddr(Data_addr_write),
@@ -63,5 +66,4 @@ bram #()way1(
     .raddr(Data_addr_read),
     .dout(Data_dout1)
 );
-defparam way1.DATA_WIDTH=data_width,way1.ADDR_WIDTH=addr_width;
 endmodule

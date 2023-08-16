@@ -5,7 +5,7 @@ module L2cache_prefnum_lut #(
             //   INIT_FILE = "C:\Users\lenovo\Desktop\data_init.coe"
 )
 (
-    input clk,                    // Clock
+    input clk,rstn,                    // Clock
     input [ADDR_WIDTH-1:0] raddr,  // Read Address
     input [ADDR_WIDTH-1:0] waddr,
     input [DATA_WIDTH-1:0] din,   // Data Input
@@ -26,7 +26,8 @@ module L2cache_prefnum_lut #(
     assign dout = dout_r;
 
     always @(posedge clk) begin
-        dout_r <= (waddr == raddr && we) ? din : ram[raddr];
+        if(!rstn)dout_r <= 0;
+        else dout_r <= (waddr == raddr && we) ? din : ram[raddr];
         if (we) ram[waddr] <= din;
         else if(clear) ram[waddr] <= {DATA_WIDTH{1'b0}};
     end

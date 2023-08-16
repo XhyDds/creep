@@ -27,7 +27,7 @@ module lutram #(
             //   INIT_FILE = "C:\Users\lenovo\Desktop\data_init.coe"
 )
 (
-    input clk,                    // Clock
+    input clk,rstn,                    // Clock
     input [ADDR_WIDTH-1:0] raddr,  // Read Address
     input [ADDR_WIDTH-1:0] waddr,
     input [DATA_WIDTH-1:0] din,   // Data Input
@@ -49,9 +49,15 @@ module lutram #(
     assign dout = dout_r;
 
     always @(posedge clk) begin
-        hit <=  din_comp == ((waddr == raddr && we) ? din : ram[raddr]);
-        dout_r <= (waddr == raddr && we) ? din : ram[raddr];
         if (we) ram[waddr] <= din;
+        if(!rstn)begin
+            hit <= 0;
+            dout_r <= 0;
+        end
+        else begin
+            hit <=  din_comp == ((waddr == raddr && we) ? din : ram[raddr]);
+            dout_r <= (waddr == raddr && we) ? din : ram[raddr];
+        end
     end
 
 endmodule
