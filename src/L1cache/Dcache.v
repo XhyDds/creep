@@ -215,9 +215,16 @@ always @(*) begin
     else data_line = data1;
 end
 always @(posedge clk) begin
-    din_reg <= din_mem_dcache;
-    choose_return_reg <= choose_return;
-    data_out_reg <= data_return;
+    if(!rstn)begin
+        din_reg <= 0;
+        data_out_reg <= 0;
+        choose_return_reg <= 0;
+    end
+    else begin
+        din_reg <= din_mem_dcache;
+        choose_return_reg <= choose_return;
+        data_out_reg <= data_return;
+    end
 end
 always @(*) begin
     if(rbuf_SUC)data_return = din_mem_dcache[31:0];
@@ -254,8 +261,14 @@ assign dout_dcache_pipeline1 = choose_return_reg ? data_out_reg : data_out;
 reg choose_stall;
 reg [31:0]data_out_reg_stall;
 always @(posedge clk) begin
-    choose_stall <= rbuf_stall & dcache_pipeline_ready;
-    data_out_reg_stall <= dout_dcache_pipeline;
+    if(!rstn)begin
+        choose_stall <= 0;
+        data_out_reg_stall <= 0;
+    end
+    else begin
+        choose_stall <= rbuf_stall & dcache_pipeline_ready;
+        data_out_reg_stall <= dout_dcache_pipeline;
+    end
 end
 assign dout_dcache_pipeline = choose_stall ? data_out_reg_stall : dout_dcache_pipeline1;
 

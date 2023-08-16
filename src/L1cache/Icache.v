@@ -232,9 +232,16 @@ reg choose_stall;
 reg [63:0]data_out_reg;
 reg data_flag_reg;
 always @(posedge clk) begin
-    data_out_reg <= dout_icache_pipeline;
-    data_flag_reg <= flag_icache_pipeline;
-    choose_stall <= rbuf_stall & icache_pipeline_valid;
+    if(!rstn)begin
+        data_out_reg <= 0;
+        data_flag_reg <= 0;
+        choose_stall <= 0;
+    end
+    else begin
+        data_out_reg <= dout_icache_pipeline;
+        data_flag_reg <= flag_icache_pipeline;
+        choose_stall <= rbuf_stall & icache_pipeline_valid;
+    end
 end
 assign dout_icache_pipeline = (choose_stall) ? data_out_reg : data_out;
 assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : data_flag;
