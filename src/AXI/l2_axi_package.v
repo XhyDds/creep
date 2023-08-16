@@ -341,5 +341,5 @@ module l2_axi_package #(
     .widthin(9'd128),
     .allow(allow)// 1:yes 0:no
     );
-    wire addr_unvalid=(~allow)&(~dma_sign)&(l2cache_mem_req_r|l2cache_mem_req_w);
+    (* MARK_DEBUG = "true" *)wire addr_unvalid=(~allow)&(~dma_sign)&(l2cache_mem_req_r|l2cache_mem_req_w);
 endmodule
