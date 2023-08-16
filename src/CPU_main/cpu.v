@@ -1926,7 +1926,7 @@ module core_top(
         .l2cache_mem_req_w(l2cache_mem_req_w),
         .l2cache_mem_rdy(l2cache_mem_rdy),
         .l2cache_axi_wstrb(l2cache_mem_wstrb),
-        .l2cache_mem_size(l2cache_mem_size),
+        .l2cache_mem_size({1'b0,l2cache_mem_size}),
         .mem_l2cache_addrOK_r(mem_l2cache_addrOK_r),
         .mem_l2cache_addrOK_w(mem_l2cache_addrOK_w),
         .mem_l2cache_dataOK(mem_l2cache_dataOK),
