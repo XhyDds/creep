@@ -50,6 +50,7 @@ module write_arbiter#(
     reg [31:0]l2_wdata_;
     reg [3:0] l2_wstrb_;
     always @(*) begin
+        l2_wdata_=dout_l2cache_mem[31:0];
         l2_wstrb_=0;
         if(l2_wsize==3'b0) begin
             if(l2_waddr[1:0]==2'b00) begin
@@ -122,9 +123,9 @@ module write_arbiter#(
             end
             DMA_AW: begin
                 // l2_wstrb=l2cache_axi_wstrb;
-                // l2_wstrb=l2_wstrb_;
+                l2_wstrb=l2_wstrb_;
                 l2_waddr=addr_l2cache_mem_w;
-                // l2_wdata=l2_wdata_;
+                l2_wdata=l2_wdata_;
 
                 l2_len=8'd0;
                 l2_wsize=l2cache_mem_size;
