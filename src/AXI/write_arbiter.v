@@ -95,7 +95,7 @@ module write_arbiter#(
                 l2_waddr=addr_l2cache_mem_w;
                 l2_wdata=dout_l2cache_mem[31:0];
                 l2_len=8'd0;
-                l2_wsize=3'd1;
+                l2_wsize=l2cache_mem_size;
 
                 l2_wvalid=1;
             end
@@ -105,7 +105,7 @@ module write_arbiter#(
                 l2_waddr=addr_l2cache_mem_w_;
                 l2_wdata=dout_l2cache_mem_;
                 l2_len=8'd0;
-                l2_wsize=3'd1;
+                l2_wsize=l2cache_mem_size;
 
                 l2_wvalid=1;
                 l2_wwvalid=1;
@@ -117,7 +117,7 @@ module write_arbiter#(
                 l2_wdata=dout_l2cache_mem_;
 
                 l2_len=8'd0;
-                l2_wsize=3'd1;
+                l2_wsize=l2cache_mem_size;
                 l2_bready=1;
 
                 //for 抢的周期(wrt与l2的交互)

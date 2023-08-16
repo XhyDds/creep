@@ -25,16 +25,21 @@ module Dcache_lru#(
                 way=2
 )
 (
-    input       clk,
+    input       clk,rstn,
     input       use0,use1,
     input       [addr_width-1:0]addr,
     output reg  way_sel
     );
-wire [way:0]useparam1 = 0; 
 reg [(1<<addr_width)-1:0]record;
 always @(posedge clk) begin
-    way_sel <= record[addr];
-    if(use0)record[addr]<=1;//下一次用1
-    else if(use1)record[addr]<=0;//下一次用0
-end   
+    if(!rstn)begin
+        record <= 0;
+        way_sel <= 0;
+    end
+    else begin
+        way_sel <= record[addr];
+        if(use0)record[addr]<=1;//下一次用1
+        else if(use1)record[addr]<=0;//下一次用0
+    end
+end
 endmodule
