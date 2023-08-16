@@ -975,8 +975,8 @@ module core_top(
         .pipeline_MMU_flush0            ( {flush_if0_if1,flush_if0_if1} ),
         .pipeline_MMU_stall1            ( {stall_exe1_exe2_1,stall_exe0_exe1_1}),//!!
         .pipeline_MMU_flush1            ( {flush_exe1_exe2_1,flush_exe0_exe1_1}),//!!
-        .pipeline_MMU_stallw            ( stall_exe0_exe1_1             ),
-        .pipeline_MMU_flushw            ( flush_exe0_exe1_1             ),
+        .pipeline_MMU_stallw            ( stall_exe1_exe2_1             ),
+        .pipeline_MMU_flushw            ( flush_exe1_exe2_1             ),
         .pipeline_MMU_type              ( ctr_reg_exe0_1_excp[3:0]      ),
         .pipeline_MMU_subtype           ( ctr_reg_exe0_1_excp[11:7]     ),
         .pipeline_MMU_excp_arg		    ( excp_arg_reg_exe0_1_excp      ),
