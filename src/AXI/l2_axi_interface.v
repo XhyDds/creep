@@ -78,8 +78,8 @@ module l2_axi_interface#(
 
     //error(默认返回ABCD1234)
 );
-    wire rerror=rresp[1];
-    wire werror=bresp[1];
+    wire rerror=rresp[1]&rresp[0];
+    wire werror=bresp[1]&bresp[0];
     //信号位
     assign arid=0;
     assign arlock=0;
