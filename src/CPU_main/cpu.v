@@ -886,7 +886,7 @@ module core_top(
         .clk                    		( clk                    		),
         .rstn                   		( rstn                   		),
         .pipeline_CSR_flush     		( {1'b0,flush_exe1_exe2_1}      ),
-        .pipeline_CSR_stall     		( {1'b0,stall_exe1_exe2_1}     	),
+        .pipeline_CSR_stall     		( {stall_exe1_exe2_1,stall_exe1_exe2_1}     	),
         .CSR_pipeline_clk_stall     	( ifidle                        ),
         .CSR_pipeline_flush     		( ifpriv     		            ),
         .CSR_pipeline_inte_flush        ( ifinteflush                   ),
@@ -1082,7 +1082,7 @@ module core_top(
     assign choice_real_btb_ras=mis_pdc[2]?~out_choice_pdc[1]:out_choice_pdc[1];
     assign choice_real_g_h=mis_pdc[0]?~out_choice_pdc[1]:out_choice_pdc[1];
 
-    wire [29:0] npc_test;//给ccr用的测试线，�????要左移两位使用，0,4交替
+    wire [29:0] npc_test;//给ccr用的测试线，�????要左移两位使用，0,4交替
 
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
@@ -1476,13 +1476,13 @@ module core_top(
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�?????测访存地�?????是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?????
+    always @(*) begin//�?????测访存地�?????是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?????
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
         if(ctr_reg_exe0_1[22]&(|PLV)) begin 
             ctr_reg_exe0_1_excp=liwai;
             excp_arg_reg_exe0_1_excp=excp_argIPE; 
-        end//用户态访问越�?????
+        end//用户态访问越�?????
         else if(ctr_reg_exe0_1[3:0]==5&ctr_reg_exe0_1[11:7]!=8)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1873,11 +1873,11 @@ module core_top(
         .rstn                   		( rstn                   		),
 
         //  Icache
-        .addr_pipeline_icache   		( pc                       		),
+        .addr_pipeline_icache   		( |pc[1:0]?32'h1C000000:pc      ),
         .paddr_pipeline_icache   		( (|MMU_pipeline_PADDR0[1:0])?0:MMU_pipeline_PADDR0),
         .dout_icache_pipeline   		( dout_icache_pipeline   		),//
         .flag_icache_pipeline   		( flag_icache_pipeline   		),//
-        .pipeline_icache_valid  		( |pc[1:0]?0:1  		),
+        .pipeline_icache_valid  		( 1  		                    ),
         .icache_pipeline_valid  		( icache_pipeline_valid  		),//
         .pipeline_icache_opcode 		( cache_opcode_exe0_exe1 		),
         .pipeline_icache_opflag 		( icache_opflag_exe0_exe1 		),
