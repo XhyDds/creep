@@ -47,6 +47,40 @@ module write_arbiter#(
 
     localparam IDLE = 5'd0,DMA_AW=5'd1 , DMA_W=5'd2 , DMA_R=5'd3;
 
+    reg [31:0]l2_wdata_;
+    reg [3:0] l2_wstrb_;
+    always @(*) begin
+        l2_wdata_=dout_l2cache_mem[31:0];
+        l2_wstrb_=0;
+        if(l2_wsize==3'b0) begin
+            if(l2_waddr[1:0]==2'b00) begin
+                l2_wstrb_=4'b0001;
+            end
+            else if(l2_waddr[1:0]==2'b01) begin
+                l2_wstrb_=4'b0010;
+            end
+            else if(l2_waddr[1:0]==2'b10)begin
+                l2_wstrb_=4'b0100;
+            end
+            else if(l2_waddr[1:0]==2'b11)begin
+                l2_wstrb_=4'b1000;
+            end
+            else ;
+        end
+        else if(l2_wsize==3'b1) begin
+            if(l2_waddr[1:0]==2'b00) begin
+                l2_wstrb_=4'b0011;
+            end
+            else if(l2_waddr[1:0]==2'b10)begin
+                l2_wstrb_=4'b1100;
+            end
+        end
+        else if(l2_wsize==3'b10) begin
+            l2_wstrb_=4'b1111;
+        end
+        else ;
+    end
+
     always @(*) begin
         mem_l2cache_addrOK_w=0;
 
@@ -88,18 +122,22 @@ module write_arbiter#(
                 axi_wrt_bvalid=l2_bvalid;
             end
             DMA_AW: begin
-                l2_wstrb=l2cache_axi_wstrb;
+                // l2_wstrb=l2cache_axi_wstrb;
+                l2_wstrb=l2_wstrb_;
                 l2_waddr=addr_l2cache_mem_w;
-                l2_wdata=dout_l2cache_mem[31:0];
+                l2_wdata=l2_wdata_;
+
                 l2_len=8'd0;
                 l2_wsize=l2cache_mem_size;
 
                 l2_wvalid=1;
             end
             DMA_W: begin
-                l2_wstrb=l2cache_axi_wstrb;
+                // l2_wstrb=l2cache_axi_wstrb;
+                l2_wstrb=l2_wstrb_;
                 l2_waddr=addr_l2cache_mem_w;
-                l2_wdata=dout_l2cache_mem[31:0];
+                l2_wdata=l2_wdata_;
+
                 l2_len=8'd0;
                 l2_wsize=l2cache_mem_size;
 
@@ -109,9 +147,10 @@ module write_arbiter#(
             end
             DMA_R: begin
                 mem_l2cache_addrOK_w=l2_bvalid;
-                l2_wstrb=l2cache_axi_wstrb;
+                // l2_wstrb=l2cache_axi_wstrb;
+                l2_wstrb=l2_wstrb_;
                 l2_waddr=addr_l2cache_mem_w;
-                l2_wdata=dout_l2cache_mem[31:0];
+                l2_wdata=l2_wdata_;
 
                 l2_len=8'd0;
                 l2_wsize=l2cache_mem_size;
