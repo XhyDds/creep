@@ -1032,8 +1032,8 @@ assign stallicacop=pipeline_icache_opflag&stall_icache;
         .pipeline_MMU_flush1            ( {flush_exe1_exe2_1,flush_exe0_exe1_1}),//!!
         .pipeline_MMU_stallw            ( stall_exe1_exe2_1             ),
         .pipeline_MMU_flushw            ( flush_exe1_exe2_1             ),
-        .pipeline_MMU_type              ( ctr_exe0_exe1_1_excp[3:0]      ),
-        .pipeline_MMU_subtype           ( ctr_exe0_exe1_1_excp[11:7]     ),
+        .pipeline_MMU_type              ( ctr_exe0_exe1_1[3:0]      ),
+        .pipeline_MMU_subtype           ( ctr_exe0_exe1_1[11:7]     ),
         .pipeline_MMU_excp_arg		    ( excp_arg_exe0_exe1      ),
         .pipeline_MMU_rj                ( rrj1_forward                  ),
         .pipeline_MMU_rk                ( rrk1_forward                  ),
@@ -2027,8 +2027,8 @@ else if(fflush_if0_if1_left) begin
         .SUC_pipeline_dcache            ( ~MMU_pipeline_memtype1[0] | dma),
 
         //  L2-pipeline
-        .addr_pipeline_l2cache          ( opcode_exe1_exe2[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe1_exe2               ),
-        .pipeline_l2cache_opflag        ( l2cache_opflag_exe1_exe2&~flush_exe1_exe2_1      ),
+        .addr_pipeline_l2cache          ( cache_opcode_exe1_exe2[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe1_exe2               ),
+        .pipeline_l2cache_opflag        ( l2cache_opflag_exe1_exe2&~flush_exe1_exe2_1&~stall_exe1_exe2_1      ),
         .pipeline_l2cache_opcode        ( cache_opcode_exe1_exe2        ),
         .invalid_l2                     ( invalid_l2                         ),
 
