@@ -12,6 +12,7 @@ module L2cache#(
     input       clk,rstn,
     
     //op port
+    input       invalid_l2,
     input       pipeline_l2cache_opflag,
     input       [31:0]pipeline_l2cache_opcode,
     input       [31:0]addr_pipeline_l2cache,
@@ -424,6 +425,7 @@ L2cache_FSMmain(
     //req for L1(pipe)
     .from(from),
     .pipeline_l2cache_opflag(pipeline_l2cache_opflag),
+    .invalid_l2(invalid_l2),
     .ack_op(ack_op),
     .l2cache_icache_addrOK(l2cache_icache_addrOK),
     .l2cache_icache_dataOK(l2cache_icache_dataOK),

@@ -50,6 +50,7 @@ module L1_L2cache#(
     input       [31:0]addr_pipeline_l2cache,
     input       pipeline_l2cache_opflag,
     input       [31:0]pipeline_l2cache_opcode,
+    input       invalid_l2,
 
     //L2-prefetch port
     input       req_pref_l2cache,    
@@ -118,7 +119,7 @@ cache_opctr cache_opctr(
     .opcode_d(opcode_d),
     .addr_d(addr_d),
 
-    .opin_l2(pipeline_l2cache_opflag),
+    .opin_l2(pipeline_l2cache_opflag & ~invalid_l2),
     .addrin_l2(addr_pipeline_l2cache),
     .opcodein_l2(pipeline_l2cache_opcode),
     .ack_l2(ack_l2),
@@ -277,6 +278,7 @@ L2cache(
     .rstn(rstn),
 
     .pipeline_l2cache_opflag(op_l2),
+    .invalid_l2(invalid_l2),
     .pipeline_l2cache_opcode(opcode_l2),
     .addr_pipeline_l2cache(addr_l2),
     .ack_op(ack_l2),

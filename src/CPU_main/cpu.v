@@ -1,5 +1,6 @@
 `define predictor
 `define two_pre
+// `define invalidl2  //还不能用 留个接口
 // `define DMA
 // module mycpu_top(
 module core_top(
@@ -1213,6 +1214,13 @@ module core_top(
     `ifndef DMA
         assign dma = 1'b0;
     `endif
+    wire invalid_l2;
+    `ifdef invalidl2
+        assign invalid_l2 = 1'b1;
+    `endif
+    `ifndef invalidl2
+        assign invalid_l2 = 1'b0;
+    `endif
     assign ifsuc= ~MMU_pipeline_memtype0[0] & MMU_pipeline_PADDR_valid0;
     assign npc_pdc_32={npc_pdc,2'b0};
     always @(*) begin
@@ -1873,6 +1881,7 @@ module core_top(
         .addr_pipeline_l2cache          ( opcode_exe0_exe1[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe0_exe1          ),
         .pipeline_l2cache_opflag        ( l2opflag_exe0_exe1&~flush_exe1_exe2_1&~stall_exe0_exe1_1),
         .pipeline_l2cache_opcode        ( opcode_exe0_exe1              ),
+        .invalid_l2                     ( invalid_l2                         ),
 
         //L2-prefetch port
         .req_pref_l2cache               ( req_pref_l2cache              ),

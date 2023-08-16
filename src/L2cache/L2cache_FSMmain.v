@@ -31,6 +31,7 @@ module L2cache_FSMmain#(
     //上下游信号
     input       [1:0]from,
     input       pipeline_l2cache_opflag,
+    input       invalid_l2,
     output reg  ack_op,
     output reg  l2cache_icache_addrOK,
     output reg  l2cache_icache_dataOK,
