@@ -164,7 +164,7 @@ Dcache_Data #(
     .way(way)
 )
 Dcache_Data(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     
     .Data_addr_read(index ),//^ index1
     .Data_dout0(data0),

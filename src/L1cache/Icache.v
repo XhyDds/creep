@@ -132,7 +132,7 @@ Icache_Data #(
     .way(way)
 )
 Icache_Data(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     
     .Data_addr_read(index),
     .Data_dout0(data0),
