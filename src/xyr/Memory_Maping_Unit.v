@@ -309,7 +309,7 @@ module Memory_Maping_Unit#(//stall frist
         always@(*)
         begin
         look0[i]=1'b0;
-        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&& !((VPPN[i]^VADDR0_reg[31:13])&PS_ex[i][TLB_VALEN-13:1]))//ȥ��λ�Ƚϣ�VPPNҪ��13λΪ��ȷ��ַ
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&& !((VPPN[i]^VADDR0[31:13])&PS_ex[i][TLB_VALEN-13:1]))//ȥ��λ�Ƚϣ�VPPNҪ��13λΪ��ȷ��ַ
             look0[i]=1'b1;
         else
             look0[i]=1'b0;
@@ -325,7 +325,7 @@ module Memory_Maping_Unit#(//stall frist
 //    found_ppn0=0;found_ps0=0;
     TLB_found0=|look0;       
     found_ps_ex0=PS_ex[Index_look0];
-    if(|(VADDR0_reg[31:12]&({1'b1,found_ps_ex0}^{found_ps_ex0,1'b0})))//VLow==1
+    if(|(VADDR0[31:12]&({1'b1,found_ps_ex0}^{found_ps_ex0,1'b0})))//VLow==1
         begin
         found_v0=V1[Index_look0];found_d0=D1[Index_look0];
         found_mat0=MAT1[Index_look0];found_plv0=PLV1[Index_look0];
@@ -339,79 +339,79 @@ module Memory_Maping_Unit#(//stall frist
         end
     end
     //assign addrmask0=(~0)<<found_ps0;//
-    always@(*)
+    always@(posedge(clk))
     begin
-//    if(!rstn || flush0[1])//flush first
-//        begin
-//        PADDR0<=0;excp_arg0<=0;
-//        memtype0<=0;PADDR_valid0=0;
-//        end
-//    else if(~stall0[1])
+    if(!rstn || flush0[1])//flush first
+       begin
+       PADDR0<=0;excp_arg0<=0;
+       memtype0<=0;PADDR_valid0<=0;
+       end
+    else if(~stall0[1])
         begin
-        PADDR0[11:0]=VADDR0_reg[11:0];
-        PADDR0[31:12]=(found_ppn0&found_ps_ex0)|(VADDR0_reg[31:12]&~found_ps_ex0);//?
-        memtype0=found_mat0;
-        excp_arg0=0;
-        PADDR_valid0=VADDR_valid0_reg;
+        PADDR0[11:0]<=VADDR0[11:0];
+        PADDR0[31:12]<=(found_ppn0&found_ps_ex0)|(VADDR0[31:12]&~found_ps_ex0);//?
+        memtype0<=found_mat0;
+        excp_arg0<=0;
+        PADDR_valid0<=VADDR_valid0;
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
-            PADDR0=0;
-            PADDR0=VADDR0_reg;
-            excp_arg0=0;
-            if(optype0_reg==FETCH)
-                memtype0=CRMDin[6:5];
+            PADDR0<=0;
+            PADDR0<=VADDR0;
+            excp_arg0<=0;
+            if(optype0==FETCH)
+                memtype0<=CRMDin[6:5];
             else
-                memtype0=CRMDin[8:7];
+                memtype0<=CRMDin[8:7];
             end
-        else if(DMW0_plvOK && DMW0in[31:29]==VADDR0_reg[31:29])
+        else if(DMW0_plvOK && DMW0in[31:29]==VADDR0[31:29])
             begin
-            PADDR0={DMW0in[27:25],VADDR0_reg[28:0]};
-            memtype0=DMW0in[5:4];
-            excp_arg0=0;
+            PADDR0<={DMW0in[27:25],VADDR0[28:0]};
+            memtype0<=DMW0in[5:4];
+            excp_arg0<=0;
             end
-        else if(DMW1_plvOK && DMW1in[31:29]==VADDR0_reg[31:29])
+        else if(DMW1_plvOK && DMW1in[31:29]==VADDR0[31:29])
             begin
-            PADDR0={DMW1in[27:25],VADDR0_reg[28:0]};
-            memtype0=DMW1in[5:4];
-            excp_arg0=0;
+            PADDR0<={DMW1in[27:25],VADDR0[28:0]};
+            memtype0<=DMW1in[5:4];
+            excp_arg0<=0;
             end
-        else if(CRMDin[1:0]!=0 && VADDR0_reg[31]==1)
+        else if(CRMDin[1:0]!=0 && VADDR0[31]==1)
             begin
-            PADDR_valid0=0;
-            if(optype0_reg==FETCH)
-                excp_arg0={VADDR_valid0_reg,ADEF,ADE}; 
+            PADDR_valid0<=0;
+            if(optype0==FETCH)
+                excp_arg0<={VADDR_valid0,ADEF,ADE}; 
             else
-                excp_arg0={VADDR_valid0_reg,ADEM,ADE}; 
+                excp_arg0<={VADDR_valid0,ADEM,ADE}; 
             end
         else if(TLB_found0==0)
             begin
-            PADDR_valid0=0;
-            excp_arg0={VADDR_valid0_reg,DEFAULT,TLBR};
+            PADDR_valid0<=0;
+            excp_arg0<={VADDR_valid0,DEFAULT,TLBR};
             end
         else if(found_v0==0)
             begin
-            PADDR_valid0=0;
-            case(optype0_reg)
+            PADDR_valid0<=0;
+            case(optype0)
                 FETCH:
-                   excp_arg0={VADDR_valid0_reg,DEFAULT,PIF}; 
+                   excp_arg0<={VADDR_valid0,DEFAULT,PIF}; 
                 LOAD:
-                    excp_arg0={VADDR_valid0_reg,DEFAULT,PIL};
+                    excp_arg0<={VADDR_valid0,DEFAULT,PIL};
                 STORE:
-                    excp_arg0={VADDR_valid0_reg,DEFAULT,PIS};
+                    excp_arg0<={VADDR_valid0,DEFAULT,PIS};
             endcase
             end
         else if(CRMDin[1:0]>found_plv0)
             begin
-            PADDR_valid0=0;
-            excp_arg0={VADDR_valid0_reg,DEFAULT,PPI};
+            PADDR_valid0<=0;
+            excp_arg0<={VADDR_valid0,DEFAULT,PPI};
             end
-        else if(optype0_reg==STORE&&found_d0==0)
+        else if(optype0==STORE&&found_d0==0)
             begin
-            PADDR_valid0=0;
-            excp_arg0={VADDR_valid0_reg,DEFAULT,PME};
+            PADDR_valid0<=0;
+            excp_arg0<={VADDR_valid0,DEFAULT,PME};
             end
         else
-            excp_arg0=0;
+            excp_arg0<=0;
        end 
     end
     
