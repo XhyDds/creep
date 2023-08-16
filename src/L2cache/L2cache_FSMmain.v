@@ -31,6 +31,7 @@ module L2cache_FSMmain#(
     //上下游信号
     input       [1:0]from,
     input       pipeline_l2cache_opflag,
+    input       invalid_l2,
     output reg  ack_op,
     output reg  l2cache_icache_addrOK,
     output reg  l2cache_icache_dataOK,
@@ -118,12 +119,14 @@ always @(posedge clk) begin
 end
 reg flush;
 always @(posedge clk) begin
-    flush <= icache_l2cache_flush;//迟一个周期撤销
+    if(!rstn)flush <= 0;
+    else flush <= icache_l2cache_flush;//迟一个周期撤销
 end
 reg FSM_rbuf_prefetch;
 reg inpref,outpref;
 always @(posedge clk) begin
-    if(inpref)FSM_rbuf_prefetch <= 1;
+    if(!rstn)FSM_rbuf_prefetch <= 0;
+    else if(inpref)FSM_rbuf_prefetch <= 1;
     else if(outpref)FSM_rbuf_prefetch <= 0;
 end
 localparam Idle=5'd0,Lookup=5'd1,Operation=5'd2,replace1=5'd4,replace2=5'd5,replace_write=5'd6;
@@ -243,9 +246,8 @@ end
 reg [2:0]sel;
 reg we_sel;
 always @(posedge clk) begin
-    if(we_sel)begin
-        sel <= FSM_Dirtytable_way_select;
-    end
+    if(!rstn)sel <= 0;
+    else if(we_sel)sel <= FSM_Dirtytable_way_select;
 end
 reg hit_record_we;
 reg [2:0]hit_record;
@@ -262,9 +264,8 @@ always @(*) begin
     else hit_pos = 3'd0;
 end
 always @(posedge clk) begin
-    if(hit_record_we)begin
-        hit_record <= hit_pos;
-    end
+    if(!rstn)hit_record <= 0;
+    else if(hit_record_we)hit_record <= hit_pos;
 end
 always @(*) begin
     l2cache_icache_addrOK = 0;

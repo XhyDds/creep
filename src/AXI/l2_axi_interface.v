@@ -12,7 +12,7 @@ module l2_axi_interface#(
     output reg          l2_raddrOK,   //arbiter->l2:addrOK
     output reg          l2_rready,   //r: arbiter->l2:dataOK
     input [31:0]        l2_raddr,
-    output [31:0]       l2_rdata,    
+    output reg[31:0]    l2_rdata,    
     output reg          l2_rlast,     
     input  [7:0]        l2_rlen,
     input  [2:0]        l2_rsize,
@@ -75,7 +75,13 @@ module l2_axi_interface#(
     input [1:0]         bresp,
     input               bvalid,     //b: axi->arbiter
     output reg          bready      //b: arbiter->axi
+
+    //error(默认返回ABCD1234)
 );
+    wire rerror=(rresp==2'b11);
+    wire werror=(bresp==2'b11);
+    wire rbad=(rresp==2'b10);
+    wire wbad=(bresp==2'b10);
     //信号位
     assign arid=0;
     assign arlock=0;
@@ -95,10 +101,13 @@ module l2_axi_interface#(
     // assign  l2_wlen =8'd3;
     //读通道
     localparam 
-        R_IDLE  = 2'd0,
-        D_AR    = 2'd1,
-        D_R     = 2'd2;
-    reg [1:0] r_crt, r_nxt;
+        R_IDLE  = 3'd0,
+        D_AR    = 3'd1,
+        D_R     = 3'd2,
+        E_IDLE  = 3'd3,
+        E_AR    = 3'd4,
+        E_R     = 3'd5;
+    reg [2:0] r_crt, r_nxt;
     always @(posedge clk) begin
         if(!rstn) begin
             r_crt <= R_IDLE;
@@ -110,21 +119,26 @@ module l2_axi_interface#(
         case(r_crt)
         R_IDLE: begin
             if(l2_rvalid)           r_nxt = D_AR;   //优先Dcache
+            else if(rerror)         r_nxt = E_IDLE;
             else                    r_nxt = R_IDLE;
         end
         D_AR: begin
             if(arready)             r_nxt = D_R;
+            else if(rerror)         r_nxt = E_AR;
             else                    r_nxt = D_AR;
         end
         D_R: begin
             if(rvalid && rlast)     r_nxt = R_IDLE;
+            else if(rerror)         r_nxt = E_R;
             else                    r_nxt = D_R;
         end
+        E_IDLE:                     r_nxt = E_AR;
+        E_AR:                       r_nxt = E_R;
+        E_R:                        r_nxt = R_IDLE;
         default :                   r_nxt = R_IDLE;    
         endcase
     end
     
-    assign l2_rdata = rdata;
     assign arburst  = 2'b01;
 
     always @(*) begin
@@ -136,12 +150,14 @@ module l2_axi_interface#(
         araddr      = 0;
         rready      = 0;
         l2_raddrOK  = 0;
+        l2_rdata    = 0;
         case(r_crt) 
         D_AR: begin
             araddr      = l2_raddr;
             arvalid     = l2_rvalid;
             arlen       = l2_rlen;
             arsize      = l2_rsize;
+            l2_rdata    = rdata;
         end
         D_R: begin
             araddr      = l2_raddr;
@@ -149,6 +165,22 @@ module l2_axi_interface#(
             l2_rready   = rvalid;
             l2_rlast    = rlast;
             l2_raddrOK  = 1;
+            l2_rdata    = rdata;
+        end
+        E_AR: begin
+            araddr      = l2_raddr;
+            arvalid     = 1;
+            arlen       = l2_rlen;
+            arsize      = l2_rsize;
+            l2_rdata    = 32'hABCD1234;
+        end
+        E_R: begin
+            araddr      = l2_raddr;
+            rready      = 1;
+            l2_rready   = 1;
+            l2_rlast    = 1;
+            l2_raddrOK  = 1;
+            l2_rdata    = 32'hABCD1234;
         end
         default:;
         endcase
@@ -159,7 +191,11 @@ module l2_axi_interface#(
         W_IDLE  = 3'd0,
         D_AW    = 3'd1,
         D_W     = 3'd2,
-        D_B     = 3'd3;
+        D_B     = 3'd3,
+        EW_IDLE = 3'd4,
+        E_AW    = 3'd5,
+        E_W     = 3'd6,
+        E_B     = 3'd7;
     reg [2:0] w_crt, w_nxt;
     always @(posedge clk) begin
         if(!rstn) begin
@@ -172,20 +208,28 @@ module l2_axi_interface#(
         case(w_crt)
         W_IDLE: begin
             if(l2_wvalid)           w_nxt = D_AW;
+            else if(werror)         w_nxt = EW_IDLE;
             else                    w_nxt = W_IDLE;
         end
         D_AW: begin
             if(awready)             w_nxt = D_W;
+            else if(werror)         w_nxt = E_AW;
             else                    w_nxt = D_AW;
         end
         D_W: begin
             if(wready && wlast)     w_nxt = D_B;
+            else if(werror)         w_nxt = E_W;
             else                    w_nxt = D_W;
         end
         D_B: begin
             if(bvalid)              w_nxt = W_IDLE;
+            else if(werror)         w_nxt = E_B;
             else                    w_nxt = D_B;
         end
+        EW_IDLE:                    w_nxt = E_AW;
+        E_AW:                       w_nxt = E_W;
+        E_W:                        w_nxt = E_B;
+        E_B:                        w_nxt = W_IDLE;
         default :                   w_nxt = W_IDLE;    
         endcase
     end
@@ -224,7 +268,23 @@ module l2_axi_interface#(
             bready      = l2_bready;
             l2_bvalid   = bvalid;
         end
-        default:;
+        E_AW: begin
+            awaddr      = l2_waddr;
+            awvalid     = 1;
+        end
+        E_W: begin
+            awaddr      = l2_waddr_;
+            wvalid      = 1;
+            wlast       = 1;
+            l2_wready   = 1;
+            l2_waddrOK  = 1;
+        end
+        E_B: begin
+            awaddr      = l2_waddr_;
+            bready      = 1;
+            l2_bvalid   = 1;
+        end
+        default ;
         endcase
     end
 

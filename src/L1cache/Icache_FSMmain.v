@@ -80,7 +80,8 @@ wire opflag;
 assign opflag=pipeline_icache_opflag;
 reg rstn_reg;
 always @(posedge clk) begin
-    rstn_reg <= rstn;
+    if(~rstn) rstn_reg <= 0;
+    else rstn_reg <= rstn;
 end
 reg [31:0]hit_cnt,miss_cnt;
 reg we_hit_cnt,we_miss_cnt;
