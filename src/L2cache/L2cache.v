@@ -197,7 +197,8 @@ end
 wire we_wbaddr;
 reg [32:0]wbaddr;//写回地址
 always @(posedge clk) begin
-    if(we_wbaddr)wbaddr <= {1'b0,addr_l2cache_mem_w};
+    if(!rstn)wbaddr <= 0;
+    else if(we_wbaddr)wbaddr <= {1'b0,addr_l2cache_mem_w};
 end
 reg [1:0]from_tt;
 always @(*) begin
@@ -284,9 +285,16 @@ L2cache_Data(
     // .Data_replace(Data_replace)
 );
 always @(posedge clk) begin
-    din_reg <= din_mem_l2cache;
-    Data_replace_reg <= Data_replace;
-    Data_we_reg <= Data_we;
+    if(!rstn)begin
+        din_reg <= 0;
+        Data_replace_reg <= 0;
+        Data_we_reg <= 0;
+    end
+    else begin
+        din_reg <= din_mem_l2cache;
+        Data_replace_reg <= Data_replace;
+        Data_we_reg <= Data_we;
+    end
 end
 
 //Tag
