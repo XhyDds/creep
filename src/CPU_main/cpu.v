@@ -151,8 +151,8 @@ module core_top(
     wire stall_pc_,stall_pc,stall_if0_if1,stall_if1_fifo,stall_fifo_id,stall_id_reg0,stall_id_reg1,stall_reg_exe0_0,stall_reg_exe0_1,stall_exe0_exe1_0,stall_exe0_exe1_1,stall_exe1_wb_0,stall_exe1_wb_1,stall_to_icache,stall_to_dcache,flush_pre_0,flush_pre_1,ifbr0_,ifbr1_,flush_mispre,ifinteflush,stallicacop;
     reg ifnpc_pdc,ifguess;
     //test for 上板
-    reg icache_dead,dcache_dead;
-    reg [31:0]istall_times,dstall_times;
+    (* MARK_DEBUG = "true" *)reg icache_dead,dcache_dead;
+    (* MARK_DEBUG = "true" *)reg [31:0]istall_times,dstall_times;
     always @(posedge clk) begin
         if(!rstn) begin
             icache_dead<=0;
