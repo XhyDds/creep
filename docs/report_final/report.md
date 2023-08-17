@@ -445,6 +445,103 @@ L1cache均采用流水式访存，可以做到当cache连续命中时不阻塞�
   
   ![Vivado 2019.2](D:\Loongarch\creep\docs\report\Vivado 2019.2.png)
 
+## 操作系统与应用
+
+### PMON
+
+#### cache参数配置
+
+path:`pmom/arch/loongarch32/cache.S:CPU_ConfigCache`
+
+```assembly
+LEAF(CPU_ConfigCache)
+    li.w      t0, 32 
+    la      t1, CpuPrimaryInstCacheLSize 
+    st.w    t0, t1, 0  
+    la      t1, CpuPrimaryDataCacheLSize 
+    st.w    t0, t1, 0
+    li.w      t0, 4096 
+    la      t1, CpuPrimaryInstSetSize 
+    st.w    t0, t1, 0 
+    la      t1, CpuPrimaryDataSetSize 
+    st.w    t0, t1, 0 
+    li.w      t0, 8192 
+    la      t1, CpuPrimaryDataCacheSize 
+    st.w    t0, t1, 0 
+    la      t1, CpuPrimaryInstCacheSize 
+    st.w    t0, t1, 0 
+    la      t1, CpuCacheAliasMask  
+    li.w      t0, 0 
+    st.w    t0, t1, 0 
+    li.w      t0, 32768 
+    la      t1, CpuSecondaryCacheSize 
+    st.w    t0, t1, 0 
+    li.w      t0, 0 
+    la      t1, CpuTertiaryCacheSize 
+    st.w    t0, t1, 0 
+    la      t1, CpuNWayCache 
+    li.w      t0, 2 
+    st.w    t0, t1, 0  
+    jirl    zero, ra, 0
+```
+
+### LINUX
+
+#### cache参数配置
+
+path:`arch/loongarch/mm/cache.c:probe_pcache(void)`
+
+```c++
+static void probe_pcache(void)
+{
+	struct cpuinfo_loongarch *c = &current_cpu_data;
+
+	c->icache.linesz = 128;
+	c->icache.sets = 32;
+	c->icache.ways = 2;
+	icache_size = c->icache.sets *
+                                          c->icache.ways *
+                                          c->icache.linesz;
+	c->icache.waysize = icache_size / c->icache.ways;
+
+
+	c->dcache.linesz = 128;
+	c->dcache.sets = 32;
+	c->dcache.ways = 2;
+	dcache_size = c->dcache.sets *
+                                          c->dcache.ways *
+                                          c->dcache.linesz;
+	c->dcache.waysize = dcache_size / c->dcache.ways;
+
+	c->scache.linesz = 128;
+	c->scache.sets = 32;
+	c->scache.ways = 8;
+	scache_size = c->scache.sets *
+                                          c->scache.ways *
+                                          c->scache.linesz;
+	c->scache.waysize = scache_size / c->scache.ways;
+
+	c->options |= LOONGARCH_CPU_PREFETCH;
+
+	pr_info("Primary instruction cache %ldkB, %s, %s, linesize %d bytes.\n",
+		icache_size >> 10, way_string[c->icache.ways], "VIPT", c->icache.linesz);
+
+	pr_info("Primary data cache %ldkB, %s, %s, %s, linesize %d bytes\n",
+		dcache_size >> 10, way_string[c->dcache.ways], "VIPT", "no aliases", c->dcache.linesz);
+
+	pr_info("l2cache %ldkB, %s, %s, %s, linesize %d bytes\n",
+		scache_size >> 10, way_string[c->scache.ways], "PIPT", "no aliases", c->scache.linesz);
+		
+#ifdef CONFIG_32BIT
+    _dma_cache_wback_inv    = la32_dma_cache_wback_inv;
+    _dma_cache_wback    = la32_dma_cache_wback_inv;
+    _dma_cache_inv      = la32_dma_cache_inv;
+#endif
+
+}
+
+```
+
 ## 参考
 
 [^0]: 龙芯中科技术股份有限公司 芯片研发部. *龙芯架构 32 位精简版参考手册*[S/OL]. 北京: 龙芯中科技术股份有限公司. 2022, v1.02. https://web.archive.org/web/20220526105711/https://www.loongson.cn/FileShow
