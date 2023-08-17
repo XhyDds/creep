@@ -45,7 +45,8 @@ module aim_predictor#(
                 JUMP=3'd7;
 
     wire taken_b;
-    wire taken_g;       
+    wire taken_g;   
+    wire taken_bc;    
 
     wire try_to_pdc=(kind_ex==DIRECT_JUMP);
 
@@ -68,12 +69,31 @@ module aim_predictor#(
         .bh_update(bh_ex)
     );
 
+    bpht_cache#(              //pc+bh
+        .bh_width(4),
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .k_width(6)
+    )
+    bpht_cache_b(
+        .clk(clk),
+        .stall(stall),
+        .pc(pc_reg),
+        .bh(bh_reg[3:0]),
+        .b_taken_pdc(taken_bc),
+        .taken_pdch_b(),
+        .b_taken_real(taken_real),
+        .update_en(try_to_pdc&&update_en),
+        .pc_update(pc_ex),
+        .bh_update(bh_ex[3:0])
+    );
+
     wire taken_tage;
+    assign taken_pdch_g={taken_tage,1'b0};
 
     tage #(
         .gh_width(gh_width),
         .ADDR_WIDTH(ADDR_WIDTH),
-        .h_width(h_width),
+        .h_width(6),
         .DATA_WIDTH(27)
     )u_tage(
         .clk(clk),
@@ -82,6 +102,7 @@ module aim_predictor#(
         .pc(pc),
         .gh(gh),
         .taken_bh(taken_b),
+        // .taken_bh(0),
         .pc_ex(pc_ex),
         .taken_pdc_ex(taken_pdc_ex),
         .taken_ex(taken_real),

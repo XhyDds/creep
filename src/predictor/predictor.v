@@ -172,7 +172,7 @@ module predictor #(
         .gh_ex(gh_ex),
         .taken_pdc(taken_pdc),
         .taken_ex(taken_real),
-        .mis_pdc(taken_pdch_ex_g[1]!=taken_real),
+        .mis_pdc(mis_pdc_taken),
         .is_jump_pdc(kind_pdc!=NOT_JUMP),
         .is_jump_ex(kind_ex!=NOT_JUMP),
         .is_jump_pdc_ex(kind_pdc_ex!=NOT_JUMP),
@@ -236,11 +236,17 @@ module predictor #(
         if(!rstn) begin
             times_mis_npc    <=0;
             times_mis_npc_pure    <=0;
+            times_mis_npc_pure    <=0;
+            times_mis_npc_pure    <=0;
             times_mis_kind   <=0;
             times_mis_taken  <=0;
             times_nojump_mis_taken  <=0;
             times_otherjump_mis_taken<=0;
+            times_nojump_mis_taken  <=0;
+            times_otherjump_mis_taken<=0;
             times_total_npc  <=0;
+            times_total_npc_pure  <=0;
+            times_total_npc_pure  <=0;
             times_total_npc_pure  <=0;
             times_total_kind <=0;
             times_total_taken<=0;
@@ -251,9 +257,13 @@ module predictor #(
             times_jump       <=0;
             times_otherjump  <=0;
             times_nojump     <=0;
+            times_jump       <=0;
+            times_otherjump  <=0;
+            times_nojump     <=0;
         end
         else begin
             if(mis_pdc_npc&&update_en)  times_mis_npc    <=times_mis_npc    +1;
+            if(~mis_pdc_taken&&mis_pdc_npc&&update_en)  times_mis_npc_pure    <=times_mis_npc_pure    +1;
             if(~mis_pdc_taken&&mis_pdc_npc&&update_en)  times_mis_npc_pure    <=times_mis_npc_pure    +1;
             if(mis_pdc_kind&&update_en) times_mis_kind   <=times_mis_kind   +1;
             if((kind_ex==DIRECT_JUMP)&&mis_pdc_taken&&update_en)
