@@ -6,6 +6,7 @@ module pred_ram #(
 )
 (
     input clk,                    // Clock
+    input stall,
 
     input  [ADDR_WIDTH-1:0] raddr,  // Read Address
     output reg [1:0]taken_pdch,
@@ -28,6 +29,7 @@ module pred_ram #(
 
     reg  [ADDR_WIDTH-1:0]   waddr_reg;
     reg  [TAG_WIDTH-1:0] tag_upt_reg;
+    reg [H_WIDTH-1:0] h_reg;
 
     integer i;
     initial begin
@@ -40,7 +42,9 @@ module pred_ram #(
         waddr_reg   <= waddr   ;
         tag_upt_reg <= tag_upt ;
 
-        dout_r <= ram[raddr];
+        if(~stall)h_reg       <= h       ;
+
+        if(~stall)dout_r <= ram[raddr];
         dout_w <= ram[waddr];
         if (update_en_reg) ram[waddr_reg] <= din_w_reg;
     end
@@ -49,6 +53,6 @@ module pred_ram #(
     assign  valid = dout_r[(1<<H_WIDTH)*2];
     assign  valid_w = dout_w[(1<<H_WIDTH)*2];
 
-    assign  taken_pdch=(hit&valid)?{ram[raddr][2*h+1],ram[raddr][2*h]}:2'b0;
+    assign  taken_pdch=(hit&valid)?{dout_r[2*h_reg+1],dout_r[2*h_reg]}:2'b0;
 
 endmodule

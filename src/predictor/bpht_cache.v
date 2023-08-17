@@ -36,6 +36,7 @@ module bpht_cache#(
         .way(4)
     )u_cache(
         .clk(clk),
+        .stall(stall),
         .update_en_reg(update_en_reg),
         .raddr(hashed_pc),
         .taken_pdch(taken_pdch_b),

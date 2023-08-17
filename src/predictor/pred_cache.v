@@ -6,6 +6,7 @@ module pred_cache#(
 )
 (
     input       clk,
+    input       stall,
     input       update_en_reg,
 
     input       [addr_width-1:0]raddr,
@@ -45,6 +46,7 @@ generate
     )
     eachway(
         .clk(clk),
+        .stall(stall),
 
         .raddr(raddr),
         .taken_pdch(taken_pdchs[2*i+1:2*i]),
