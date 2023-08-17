@@ -26,6 +26,8 @@ module bpht_cache#(
         update_en_reg<=update_en;
     end
 
+    assign b_taken_pdc=taken_pdch_b[1];
+
     //store
     pred_cache#(
         .addr_width(k_width),

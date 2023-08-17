@@ -61,9 +61,9 @@ generate
         .valid_w(valid_ws[i]),
         .update_en_reg(we_s[i])
     );
-    end
     assign hits[i]=(hit_rs[i])&&(valid_rs[i]);
     assign hits_w[i]=(hit_ws[i])&&(valid_ws[i]);
+    end
 endgenerate
 //pdc
     always @(*) begin

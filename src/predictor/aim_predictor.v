@@ -45,7 +45,8 @@ module aim_predictor#(
                 JUMP=3'd7;
 
     wire taken_b;
-    wire taken_g;       
+    wire taken_g;   
+    wire taken_bc;    
 
     wire try_to_pdc=(kind_ex==DIRECT_JUMP);
 
@@ -60,12 +61,30 @@ module aim_predictor#(
         .pc(pc_reg),
         .bh(bh_reg),
         .b_taken_pdc(taken_b),
-        .taken_pdch_b(taken_pdch_b),
+        .taken_pdch_b(),
         .b_taken_real(taken_real),
         .taken_pdch_ex_b(taken_pdch_ex_b),
         .update_en(try_to_pdc&&update_en),
         .pc_update(pc_ex),
         .bh_update(bh_ex)
+    );
+
+    bpht_cache#(              //pc+bh
+        .bh_width(4),
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .k_width(k_width)
+    )
+    bpht_cache_b(
+        .clk(clk),
+        .stall(stall),
+        .pc(pc_reg),
+        .bh(bh_reg[3:0]),
+        .b_taken_pdc(taken_bc),
+        .taken_pdch_b(taken_pdch_b),
+        .b_taken_real(taken_real),
+        .update_en(try_to_pdc&&update_en),
+        .pc_update(pc_ex),
+        .bh_update(bh_ex[3:0])
     );
 
     wire taken_tage;
@@ -93,8 +112,8 @@ module aim_predictor#(
         .pdch(tage_pdch)
     );
 
-    assign taken_pdc= kind_pdc[2]
-                    | ( kind_pdc[0] & taken_tage );    
     // assign taken_pdc= kind_pdc[2]
-    //                 | ( kind_pdc[0] & taken_b );
+    //                 | ( kind_pdc[0] & taken_tage );    
+    assign taken_pdc= kind_pdc[2]
+                    | ( kind_pdc[0] & taken_bc );
 endmodule
