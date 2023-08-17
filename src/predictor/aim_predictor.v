@@ -93,7 +93,7 @@ module aim_predictor#(
     tage #(
         .gh_width(gh_width),
         .ADDR_WIDTH(ADDR_WIDTH),
-        .h_width(h_width),
+        .h_width(6),
         .DATA_WIDTH(27)
     )u_tage(
         .clk(clk),
