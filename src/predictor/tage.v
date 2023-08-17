@@ -23,12 +23,12 @@ module tage#(
     output reg taken_pdc,
     output [11:0]pdch
 );
-    wire pred_pdch_8;
-    wire pred_pdch_16;
-    wire pred_pdch_32;
-    wire [1:0]u_pdch_8;
-    wire [1:0]u_pdch_16;
-    wire [1:0]u_pdch_32;
+    reg pred_pdch_8;
+    reg pred_pdch_16;
+    reg pred_pdch_32;
+    reg [1:0]u_pdch_8;
+    reg [1:0]u_pdch_16;
+    reg [1:0]u_pdch_32;
     reg [1:0]choice_pdch;
     reg taken_altpdc;
     assign pdch={choice_pdch,taken_altpdc,u_pdch_32,u_pdch_16,u_pdch_8,pred_pdch_32,pred_pdch_16,pred_pdch_8};
@@ -38,8 +38,8 @@ module tage#(
     wire [1:0]u_pdch_ex_8=pdch_ex[4:3];
     wire [1:0]u_pdch_ex_16=pdch_ex[6:5];
     wire [1:0]u_pdch_ex_32=pdch_ex[8:7];
-    wire [1:0]choice_pdch_ex=pdch_ex[10:9];
-    wire taken_altpdc_ex=pdch_ex[11];
+    wire taken_altpdc_ex=pdch_ex[9];
+    wire [1:0]choice_pdch_ex=pdch_ex[11:10];
 
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_8;
     (* EQUIVALENT_REGISTER_REMOVAL="NO" ,MAX_FANOUT = 3 *)wire [h_width-1:0] hashed_pc_gh_upt_8;
@@ -59,8 +59,8 @@ module tage#(
     wire pred_8_;
     reg [1:0] u_upt_8;
     reg pred_upt_8;
-    wire [DATA_WIDTH-4:0] _pc_8;
-    wire hit_8_=(_pc_8==pc_reg[23:0]);
+    wire [DATA_WIDTH-4:0] pc_8_;
+    wire hit_8_=(pc_8_==pc_reg[23:0]);
     reg update_en_8;
     sp_bram#(
         .ADDR_WIDTH(h_width),
@@ -69,7 +69,7 @@ module tage#(
     bpht_regs_8(
         .clk(clk),
         .raddr(hashed_pc_gh_8),
-        .dout({pred_8_,_pc_8,u_8_}),
+        .dout({pred_8_,pc_8_,u_8_}),
         .enb(~stall),
         .waddr(hashed_pc_gh_upt_8),
         .din({pred_upt_8,pc_ex[23:0],u_upt_8}),
@@ -90,8 +90,8 @@ module tage#(
     wire pred_16_;
     reg [1:0] u_upt_16;
     reg pred_upt_16;
-    wire [DATA_WIDTH-4:0] _pc_16;
-    wire hit_16_=(_pc_16==pc_reg[23:0]);
+    wire [DATA_WIDTH-4:0] pc_16_;
+    wire hit_16_=(pc_16_==pc_reg[23:0]);
     reg update_en_16;
     sp_bram#(
         .ADDR_WIDTH(h_width),
@@ -100,7 +100,7 @@ module tage#(
     bpht_regs_16(
         .clk(clk),
         .raddr(hashed_pc_gh_16),
-        .dout({pred_16_,_pc_16,u_16_}),
+        .dout({pred_16_,pc_16_,u_16_}),
         .enb(~stall),
         .waddr(hashed_pc_gh_upt_16),
         .din({pred_upt_16,pc_ex[23:0],u_upt_16}),
@@ -121,8 +121,8 @@ module tage#(
     wire pred_32_;
     reg [1:0] u_upt_32;
     reg pred_upt_32;
-    wire [DATA_WIDTH-4:0] _pc_32;
-    wire hit_32_=(_pc_32==pc_reg[23:0]);
+    wire [DATA_WIDTH-4:0] pc_32_;
+    wire hit_32_=(pc_32_==pc_reg[23:0]);
     reg update_en_32;
     sp_bram#(
         .ADDR_WIDTH(h_width),
@@ -131,7 +131,7 @@ module tage#(
     bpht_regs_32(
         .clk(clk),
         .raddr(hashed_pc_gh_32),
-        .dout({pred_32_,_pc_32,u_32_}),
+        .dout({pred_32_,pc_32_,u_32_}),
         .enb(~stall),
         .waddr(hashed_pc_gh_upt_32),
         .din({pred_upt_32,pc_ex[23:0],u_upt_32}),
@@ -147,7 +147,24 @@ module tage#(
             hit_32<=hit_32_;
         end
     end
-
+//历史
+    always @(*) begin
+        u_pdch_32=u_32;
+        u_pdch_16=u_16;
+        u_pdch_8=u_8;
+        pred_pdch_32=0;
+        pred_pdch_16=0;
+        pred_pdch_8=0;
+        if(hit_32&u_32[1]) begin
+            pred_pdch_32=pred_32;
+        end
+        if(hit_16&u_16[1]) begin
+            pred_pdch_16=pred_16;
+        end
+        if(hit_8&u_8[1]) begin
+            pred_pdch_8=pred_8;
+        end
+    end
 //pred
     always @(*) begin
         if(hit_32&u_32[1]) begin
@@ -195,10 +212,10 @@ module tage#(
         update_en_8=0;
         update_en_16=0;
         update_en_32=0;
-        pred_upt_8=pred_pdch_8;
-        pred_upt_16=pred_pdch_16;
-        pred_upt_32=pred_pdch_32;
-        if(update_en) ;
+        pred_upt_8=pred_pdch_ex_8;
+        pred_upt_16=pred_pdch_ex_16;
+        pred_upt_32=pred_pdch_ex_32;
+        if(~update_en) ;
         else if(taken_pdc_ex==taken_ex) begin//预测正确
             if(taken_altpdc_ex!=taken_pdc_ex) begin
                 case (choice_pdch_ex)
@@ -239,17 +256,17 @@ module tage#(
                 2'b00: ;
             endcase
             //分配
-            if(u_pdch_8==0) begin
+            if(u_pdch_ex_8==0) begin
                 u_upt_8=2'b10;
                 pred_upt_8=taken_ex;
                 update_en_8=1;
             end
-            else if(u_pdch_16==0) begin
+            else if(u_pdch_ex_16==0) begin
                 u_upt_16=2'b10;
                 pred_upt_16=taken_ex;
                 update_en_16=1;
             end
-            else if(u_pdch_32==0) begin
+            else if(u_pdch_ex_32==0) begin
                 u_upt_32=2'b10;
                 pred_upt_32=taken_ex;
                 update_en_32=1;

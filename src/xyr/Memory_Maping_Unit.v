@@ -500,19 +500,29 @@ module encoder_2n_n#(
     parameter n=7
 )(
     input [(1<<n)-1:0] din,
-    output reg [n-1:0] dout
+    output [n-1:0] dout
 );
-    integer i;
-    always@(*)
-    begin
-    dout=0;
-    for(i=0;i<(1<<n);i=i+1)
-        begin
-        if(din[i])
-            dout=i;
-        end
+//    integer i;
+//    always@(*)
+//    begin
+//    dout=0;
+//    for(i=0;i<(1<<n);i=i+1)
+//        begin
+//        if(din[i])
+//            dout=i;
+//        end
+//    end
+    wire [(1<<n)-1:0]temp[0:n];
+    assign temp[n]=din;
+    genvar i;
+    generate
+    for(i=n-1;i>=0;i=i-1)
+    begin:gen_encode
+    assign dout[i]=|temp[i+1][(1<<i+1)-1:(1<<i)];
+    assign temp[i][(1<<i)-1:0]=dout[i]?temp[i+1][(1<<i+1)-1:(1<<i)]:temp[i+1][(1<<i)-1:0];
     end
-
+    endgenerate
+    
 endmodule
 
 

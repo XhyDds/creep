@@ -6,14 +6,15 @@ module data_pre#(
     input         clk,
     input         rstn,
     //预测
-    input [INST_WIDTH-1:0]  inst_pc,
-    input                   inst_valid,
-    input [addr_width-1:0]  addr,
+    input  [INST_WIDTH-1:0] ip,
     output reg[addr_width-1:0]naddr_pdc,
     output reg              naddr_valid,
     output reg              req,
     output [5:0]            pdch,
     //更新
+    input [INST_WIDTH-1:0]  inst_pc,
+    input                   inst_valid,
+    input [addr_width-1:0]  addr,
     input  [INST_WIDTH-1:0] inst_pc_upt,
     input  [addr_width-1:0] addr_upt,
     input  [addr_width-1:0] naddr_upt,
@@ -54,50 +55,86 @@ module data_pre#(
     wire [1:0] hit_upt;
     wire [1:0] spare_upt;
     reg [1:0] choice_upt;
-    //数组型
-    //以inst_pc为索引，存储 上一次访存的地址+valid
+
+    // 直接寻址
+    wire [addr_width-1:0] naddr_pdc_dir;
+    wire ip_kind;
+    wire [INST_WIDTH-1:0] ip_;
+    wire [HASH_WIDTH-1:0] ip_hashed;
+    reg  [INST_WIDTH-1:0] ip_reg;
+
+    sp_bram#(
+        .ADDR_WIDTH(HASH_WIDTH),
+        .DATA_WIDTH(addr_width+INST_WIDTH+1),
+        .INIT_NUM(0)
+    )u_direct(
+        .clk(clk),
+        .raddr(ip_hashed),
+        .dout({naddr_pdc_dir,ip_,ip_kind}),
+        .enb(1),
+        .waddr(inst_pc_hashed),
+        .din({addr,inst_pc,inst_valid}),
+        .we(1'b1)
+    );
+
+    wire valid_naddr_dir=ip_kind&(ip_==ip_reg);
+    always @(posedge clk) begin
+        ip_reg<=ip;
+    end
+
+    //hash
+    single_hash#(
+        .DATA_width(INST_WIDTH),
+        .HASH_width(HASH_WIDTH)
+    )u_ip(
+        .data_raw(ip),
+        .data_hashed(ip_hashed)
+    ) ;
+
+    // //数组型
+    // //以inst_pc为索引，存储 上一次访存的地址+valid
     wire [addr_width-1:0] paddr_pdc_off;
     wire [addr_width-1:0] naddr_pdc_off;
     wire [INST_WIDTH-1:0] inst_pc_;
     wire offset_valid;
-    sp_bram#(
-        .ADDR_WIDTH(HASH_WIDTH),
-        .DATA_WIDTH(addr_width+1+INST_WIDTH),
-        .INIT_NUM(0)
-    )u_offset(
-        .clk(clk),
-        .raddr(inst_pc_hashed),
-        .dout({paddr_pdc_off,offset_valid,inst_pc_}),
-        .enb(1),
-        .waddr(inst_pc_hashed),
-        .din({addr,1'b1,inst_pc}),
-        .we(inst_valid)
-    );
+    // sp_bram#(
+    //     .ADDR_WIDTH(HASH_WIDTH),
+    //     .DATA_WIDTH(addr_width+1+INST_WIDTH),
+    //     .INIT_NUM(0)
+    // )u_offset(
+    //     .clk(clk),
+    //     .raddr(inst_pc_hashed),
+    //     .dout({paddr_pdc_off,offset_valid,inst_pc_}),
+    //     .enb(1),
+    //     .waddr(inst_pc_hashed),
+    //     .din({addr,1'b1,inst_pc}),
+    //     .we(inst_valid)
+    // );
 
-    assign naddr_pdc_off=addr+(addr-paddr_pdc_off);
+    // assign naddr_pdc_off=addr+(addr-paddr_pdc_off);
 
-    //指针型
-    //以addr为索引，存储 访存的地址
+    // //指针型
+    // //以addr为索引，存储 访存的地址
     wire [addr_width-1:0] naddr_pdc_ptr;
     reg  [addr_width-1:0] paddr_pdc_ptr;
     wire ptr_valid;
     wire [addr_width-1:0] ptr_addr_;
-    sp_bram#(
-        .ADDR_WIDTH(HASH_WIDTH),
-        .DATA_WIDTH(addr_width+1+addr_width),
-        .INIT_NUM(0)
-    )u_pointer(
-        .clk(clk),
-        .raddr(addr_hashed),
-        .dout({naddr_pdc_ptr,ptr_valid,ptr_addr_}),
-        .enb(1),
-        .waddr(paddr_pdc_ptr_hashed),
-        .din({addr,1'b1,paddr_pdc_ptr}),
-        .we((paddr_pdc_ptr!=addr))
-    );
-    always @(posedge clk) begin
-        paddr_pdc_ptr<=addr;
-    end
+    // sp_bram#(
+    //     .ADDR_WIDTH(HASH_WIDTH),
+    //     .DATA_WIDTH(addr_width+1+addr_width),
+    //     .INIT_NUM(0)
+    // )u_pointer(
+    //     .clk(clk),
+    //     .raddr(addr_hashed),
+    //     .dout({naddr_pdc_ptr,ptr_valid,ptr_addr_}),
+    //     .enb(1),
+    //     .waddr(paddr_pdc_ptr_hashed),
+    //     .din({addr,1'b1,paddr_pdc_ptr}),
+    //     .we((paddr_pdc_ptr!=addr))
+    // );
+    // always @(posedge clk) begin
+    //     paddr_pdc_ptr<=addr;
+    // end
 
     //以inst_pc为索引，存储 数据类型(choice:0:数组,1:指针)+空闲(spare)
     wire [1:0] choice_pdc;
@@ -157,20 +194,25 @@ module data_pre#(
         naddr_pdc=0;
         naddr_valid=0;
         req=0;
-        if(anneal_unhit_reg) ;
-        else if(~hit_pdc[1]&spare_pdc[1]) 
-            // if(choice_pdc[1]&ptr_valid&allow_ptr) begin
-            if(choice_pdc[1]&ptr_valid&(addr==ptr_addr_)&allow_ptr) begin
-                naddr_pdc=naddr_pdc_ptr;
-                naddr_valid=1;
-                req=1;
-            end
-            // else if(~choice_pdc[1]&offset_valid&allow_off) begin
-            else if(~choice_pdc[1]&offset_valid&(inst_pc==inst_pc_)&allow_off) begin
-                naddr_pdc=naddr_pdc_off;
-                naddr_valid=1;
-                req=1;
-            end
+        // if(anneal_unhit_reg) ;
+        // else if(~hit_pdc[1]&spare_pdc[1]) ;
+        //     if(choice_pdc[1]&ptr_valid&allow_ptr) begin
+        //     if(choice_pdc[1]&ptr_valid&(addr==ptr_addr_)&allow_ptr) begin
+        //         naddr_pdc=naddr_pdc_ptr;
+        //         naddr_valid=1;
+        //         req=1;
+        //     end
+        //     // else if(~choice_pdc[1]&offset_valid&allow_off) begin
+        //     else if(~choice_pdc[1]&offset_valid&(inst_pc==inst_pc_)&allow_off) begin
+        //         naddr_pdc=naddr_pdc_off;
+        //         naddr_valid=1;
+        //         req=1;
+        //     end
+        if(valid_naddr_dir) begin
+            naddr_pdc=naddr_pdc_dir;
+            naddr_valid=1;
+            req=1;
+        end
     end
 
     //退火

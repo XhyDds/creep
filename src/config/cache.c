@@ -110,21 +110,7 @@ static void la32_dma_cache_inv(unsigned long addr, unsigned long size)
 static void probe_pcache(void)
 {
 	struct cpuinfo_loongarch *c = &current_cpu_data;
-	// unsigned int lsize, sets, ways;
-	// unsigned int config;
 
-	// config = 0xfe994cd3;
-
-	// lsize = (config >> 19) & 7;
-	// sets  = 1 << ((config & CPUCFG17_L1I_SETS_M) >> CPUCFG17_L1I_SETS);
-	// ways  = ((config & CPUCFG17_L1I_WAYS_M) >> CPUCFG17_L1I_WAYS) + 1;
-
-	// if (lsize)
-    //                     c->icache.linesz = 2 << lsize;
-    //             else
-    //                     c->icache.linesz = 0;
-	// c->icache.sets = 64 << ((config >> 22) & 7);
-	// c->icache.ways = 1 + ((config >> 16) & 7);
 	c->icache.linesz = 128;
 	c->icache.sets = 32;
 	c->icache.ways = 2;
@@ -134,18 +120,6 @@ static void probe_pcache(void)
 	c->icache.waysize = icache_size / c->icache.ways;
 
 
-	// lsize = (config >> 10) & 7;
-	// sets  = 1 << ((config & CPUCFG18_L1D_SETS_M) >> CPUCFG18_L1D_SETS);
-	// ways  = ((config & CPUCFG18_L1D_WAYS_M) >> CPUCFG18_L1D_WAYS) + 1;
-
-	// if (lsize) {
-    //     c->dcache.linesz = 2 << lsize;
-    // }
-    // else {
-    //     c->dcache.linesz = 0;
-    // }
-	// c->dcache.sets = 64 << ((config >> 13) & 7);
-	// c->dcache.ways = 1 + ((config >> 7) & 7);
 	c->dcache.linesz = 128;
 	c->dcache.sets = 32;
 	c->dcache.ways = 2;
