@@ -1688,6 +1688,7 @@ else if(flush_if0_if1_left) begin
             dcache_wstrb_exe0_exe1<=0;
             rrd_exe0_exe1_1<=0;
             rrj_exe0_exe1_1<=0;
+            rrk_exe0_exe1_1<=0;
             excp_arg_exe0_exe1<=0;
         end
         else if(stall_exe0_exe1_1);
@@ -1718,6 +1719,7 @@ else if(flush_if0_if1_left) begin
             dcache_wstrb_exe0_exe1<=0;
             rrd_exe0_exe1_1<=0;
             rrj_exe0_exe1_1<=0;
+            rrk_exe0_exe1_1<=0;
             excp_arg_exe0_exe1<=0;
         end
         else begin
@@ -1747,6 +1749,7 @@ else if(flush_if0_if1_left) begin
             dcache_wstrb_exe0_exe1<=pipeline_dcache_wstrb;
             rrd_exe0_exe1_1<=rrd1_forward;
             rrj_exe0_exe1_1<=rrj1_forward;
+            rrk_exe0_exe1_1<=rrk1_forward;
             excp_arg_exe0_exe1<=excp_arg_reg_exe0_1_excp;
         end
     end
