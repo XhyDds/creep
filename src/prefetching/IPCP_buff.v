@@ -37,10 +37,20 @@ module IPCP_buff#(
     if(!rstn)
         begin
         cs<=Idle;
+        prenum<=0;
+        typenow<=NL;
+        addrnow<=0;
+        stridenow<=0;
+        IPsignow<=0;
         end
     else
         begin
         cs<=ns;
+        prenum<=nprenum;
+        typenow<=ntypenow;
+        addrnow<=naddrnow;
+        stridenow<=nstridenow;
+        IPsignow<=nIPsignow;
         end
     end
     always@(*)
@@ -190,7 +200,9 @@ module IPCP_buff#(
         
         end
     else 
+        begin
         tailp<=ntailp;
+        end
     end
     //buffer
     always@(posedge(clk))
