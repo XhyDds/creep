@@ -129,7 +129,7 @@ module core_top(
     result_exe1_exe2_0,     result_exe1_exe2_1,
     result_exe2_wb_0,       result_exe2_wb_1;
 
-    reg [63:0]
+    reg [75:0]
     pre_mmu_if0,    pre_pc,         pre_if0_if1,    pre_if1_fifo,
     pre_id_reg_0,   pre_id_reg_1,   pre_reg_exe0_0, pre_reg_exe0_1,
     pre_exe0_exe1_0,                pre_exe0_exe1_1;
@@ -2031,9 +2031,9 @@ else if(flush_if0_if1_left) begin
 
         //  L2-pipeline
         .addr_pipeline_l2cache          ( cache_opcode_exe1_exe2[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe1_exe2               ),
-        .pipeline_l2cache_opflag        ( l2cache_opflag_exe1_exe2&~flush_exe1_exe2_1&~stall_exe1_exe2_1      ),
+        .pipeline_l2cache_opflag        ( l2cache_opflag_exe1_exe2&~flush_exe2_wb_1&~stall_exe1_exe2_1      ),
         .pipeline_l2cache_opcode        ( cache_opcode_exe1_exe2        ),
-        .invalid_l2                     ( invalid_l2                         ),
+        .invalid_l2                     ( invalid_l2                    ),
 
         //L2-prefetch port
         .req_pref_l2cache               ( req_pref_l2cache              ),
