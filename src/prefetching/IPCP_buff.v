@@ -23,7 +23,7 @@ module IPCP_buff#(
     localparam NL=0,CS=1,CPLX=2,GS=3;
     localparam CS_max=3,CPLX_max=3,GS_max=6;
     localparam Idle=0,Req=1,Getnaddr=2;
-    reg [Bufferlen-1:0] headp,tailp,ntailp;reg [43:0] buffer[0:Bufferlen-1];
+    reg [Bufferlen-1:0] headp,tailp,ntailp;reg [43:0] buffer[0:(1<<Bufferlen)-1];
     wire [43:0] buff_din,buff_dout;reg [3:0] ns,cs;reg [3:0] prenum,nprenum;
     reg [1:0] typenow,ntypenow;reg [31:5] addrnow,naddrnow;
     reg [7:0] stridenow,nstridenow;reg [6:0] IPsignow,nIPsignow;
@@ -31,7 +31,7 @@ module IPCP_buff#(
     assign buff_dout=buffer[tailp];
     
     reg [7:0] tcoun_CS,hcoun_CS,tcoun_CPLX,hcoun_CPLX,tcoun_GS,hcoun_GS;
-    reg [3:0] CS_num,CPLX_num,GS_num;
+    reg [3:0] CS_num,CPLX_num,GS_num;reg req_reg;
     always@(posedge(clk))
     begin
     if(!rstn)
@@ -42,6 +42,7 @@ module IPCP_buff#(
         addrnow<=0;
         stridenow<=0;
         IPsignow<=0;
+        req_reg<=0;
         end
     else
         begin
@@ -51,6 +52,7 @@ module IPCP_buff#(
         addrnow<=naddrnow;
         stridenow<=nstridenow;
         IPsignow<=nIPsignow;
+        req_reg<=req;
         end
     end
     always@(*)
@@ -65,7 +67,7 @@ module IPCP_buff#(
     reqaddr={addrnow,5'b0};
     case(cs)
         Idle:
-            if(|buff_dout[43:42])
+            if(|buff_dout[43:42]&&headp!=tailp)
                 begin
                 ns=Req;
                 {ntypenow,nIPsignow,nstridenow}=buff_dout[43:27];
@@ -91,7 +93,7 @@ module IPCP_buff#(
             if(reqcomp)
                 begin
                 req=0;//?
-                if(prenum)
+                if(prenum>1)
                     ns=Getnaddr;
                 else
                     ns=Idle;
@@ -108,11 +110,11 @@ module IPCP_buff#(
                 nIPsignow={IPsignow[5:0],1'b0}^CSPT_datain[9:2];
                 if(!CSPT_datain[1:0])
                     begin
-                    ns=Getnaddr;
-                    nprenum=prenum;
+                    if(|prenum)
+                        ns=Getnaddr;
+                    else
+                        ns=Idle;
                     end
-                else
-                    ns=Req;
                 end
             else
                 begin
@@ -121,7 +123,33 @@ module IPCP_buff#(
             end
     endcase
     end
-    
+    //total_counter
+    always@(posedge(clk))
+    begin
+    if(!rstn)
+        begin
+        tcoun_CS<=0;
+        tcoun_CPLX<=0;
+        tcoun_GS<=0;
+        end
+    else if(&tcoun_CS)
+        tcoun_CS<=0;
+    else if(tcoun_CPLX)
+        tcoun_CPLX<=0;
+    else if(tcoun_GS)
+        tcoun_GS<=0;
+    else if(req&~req_reg)
+        begin
+        case(reqtype)
+            CS:
+               tcoun_CS<=tcoun_CS+1;
+            CPLX:
+               tcoun_CPLX<=tcoun_CPLX+1;
+            GS:
+                tcoun_GS<=tcoun_GS;
+        endcase
+        end
+    end
     
     //hit_counter
     always@(posedge(clk))
@@ -131,9 +159,9 @@ module IPCP_buff#(
         hcoun_CS<=0;
         hcoun_CPLX<=0;
         hcoun_GS<=0;
-        CS_num<=0;
-        CPLX_num<=0;
-        GS_num<=0;
+        CS_num<=1;
+        CPLX_num<=1;
+        GS_num<=1;
         end
     else
         begin
@@ -165,11 +193,11 @@ module IPCP_buff#(
             begin
             case(hitype)
                 CS:
-                    hcoun_CS<=hcoun_CS+{7'b0,~(&hcoun_CS)};
+                    hcoun_CS<=hcoun_CS+1;
                 CPLX:
-                    hcoun_CPLX<=hcoun_CPLX+{7'b0,~(&hcoun_CPLX)};
+                    hcoun_CPLX<=hcoun_CPLX+1;
                 GS:
-                    hcoun_GS<=hcoun_GS+{7'b0,~(&hcoun_GS)};
+                    hcoun_GS<=hcoun_GS+1;
                 default
                     begin
                     end
@@ -186,7 +214,7 @@ module IPCP_buff#(
         begin
         headp<=0;
         end
-    else if(|typein)
+    else if(|typein&&buffer[headp-1]!=buff_din)
         begin
         headp<=headp+1;
         end
@@ -207,7 +235,7 @@ module IPCP_buff#(
     //buffer
     always@(posedge(clk))
     begin
-    if(|typein)
+    if(|typein&&buffer[headp-1]!=buff_din)
         buffer[headp]<=buff_din;
     end
     
