@@ -6,7 +6,8 @@
 module core_top(
     input           aclk,
     input           aresetn,
-    input    [ 7:0] ext_int, 
+    // input    [ 7:0] ext_int, 
+    input       [ 7:0] intrpt,
 
     //AXI interface 
     //read reqest
@@ -76,7 +77,7 @@ module core_top(
     output   [31:0] debug1_wb_rf_wdata,
     output   [31:0] debug1_wb_inst
 );
-    wire [7:0] intrpt=ext_int;
+    // wire [7:0] intrpt=ext_int;
     wire clk=aclk;
     wire rstn=aresetn;
     reg break_point_reg;
@@ -1835,6 +1836,12 @@ module core_top(
     wire [2:0]num_l2cache_pref;
     wire hitnum_l2cache_pref;
 
+    //new op
+    wire newop;//别发valid
+    wire [31:0]addr1_newop;
+    wire [31:0]addr2_newop;
+    wire [31:0]data_newop;
+
     //D-prefetch port
     wire [31:0]dcache_pref_addr;
     wire [31:0]dcache_pref_pc;
@@ -1883,6 +1890,12 @@ module core_top(
         .dcache_pipeline_stall  		( stall_dcache  		        ),
         .pcin_pipeline_dcache           ( pc_reg_exe0_1                 ),
         .SUC_pipeline_dcache            ( ~MMU_pipeline_memtype1[0] | dma),
+
+        // new op
+        .newop                          ( newop                         ),
+        .addr1                          ( addr1_newop                   ),
+        .addr2                          ( addr2_newop                   ),
+        .data                           ( data_newop                   ),
 
         //  L2-pipeline
         .addr_pipeline_l2cache          ( opcode_exe0_exe1[4:3]==2?MMU_pipeline_PADDR1:vaddr_exe0_exe1          ),

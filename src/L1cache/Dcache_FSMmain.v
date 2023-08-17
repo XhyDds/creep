@@ -44,6 +44,17 @@ module Dcache_FSMmain#(
     input       mem_dcache_addrOK,//发送的地址和数据都被接收
     input       mem_dcache_dataOK,//返回的数据有效
 
+    //newop
+    input       newop,
+    input       [31:0]addr1_new,
+    input       [31:0]addr2_new,
+    input       [31:0]data_new,
+    input       [31:0]din_mem,
+
+    output reg  choose_new,
+    output reg  [31:0]data_out,
+    output reg  [31:0]addr_out,
+
     //模块间信号
     
     //reqbuf
@@ -99,6 +110,7 @@ always @(posedge clk) begin
 end
 localparam Idle=5'd0,Lookup=5'd1,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6,Miss_r_waitdata1=5'd7;
 localparam Flush=5'd8;
+localparam New1 = 5'd9,New2 = 5'd10,New3 = 5'd11;
 assign dcache_pipeline_doneop = (state == Operation);
 always @(posedge clk) begin
     if(!rstn)state<=0;
@@ -107,8 +119,22 @@ end
 always @(*) begin
     next_state = Idle;
     case (state)
+        New1:begin//read read mul
+            if(mem_dcache_dataOK)next_state = New2;
+            else next_state = New1;
+        end
+        New2:begin
+            if(mem_dcache_dataOK)next_state = New3;
+            else next_state = New2;
+        end
+        New3:begin
+            if(opflag)next_state=Operation;
+            else if(pipeline_dcache_valid)next_state=Lookup;
+            else next_state=Idle;
+        end
         Idle:begin
             if(fStall_outside)next_state = Idle;
+            else if(newop)next_state = New1;
             else if(opflag)next_state=Operation;
             else if(pipeline_dcache_valid)next_state=Lookup;
         end
@@ -193,6 +219,7 @@ always @(*) begin
         default:next_state = Idle;
     endcase
 end
+reg [31:0]record_data1,record_data2;
 always @(*) begin
     dcache_pipeline_ready = 0;
     dcache_mem_req = 0;
@@ -209,7 +236,28 @@ always @(*) begin
     ack_op = (next_state == Operation);
     we_hit_cnt = 0;
     we_miss_cnt = 0;
+    choose_new = 0;
+    data_out = 0;
+    addr_out = 0;
     case (state)
+        New1:begin
+            choose_new = 1;
+            addr_out = addr1_new;
+            dcache_mem_req = 1; dcache_mem_wr = 0;
+            if(mem_dcache_dataOK)record_data1 <= din_mem;
+        end
+        New2:begin
+            choose_new = 1;
+            addr_out = addr2_new;
+            dcache_mem_req = 1; dcache_mem_wr = 0;
+            if(mem_dcache_dataOK)record_data2 <= din_mem;
+        end
+        New3:begin
+            choose_new = 1;
+            dcache_pipeline_ready=1;
+            FSM_rbuf_we=1;
+            data_out = record_data1 * record_data2;
+        end
         Idle:begin
             dcache_pipeline_ready=1;
             FSM_rbuf_we=1;
