@@ -34,14 +34,14 @@ module dispatcher (
     wire two1=((type1==4|type1==2)&regwrite1);
     // wire three0=((type0==5|type0==3)&regwrite0);
     wire three1=((type1==5|type1==3)&regwrite1);
-    wire stall0=((two0_reg)&(rd0_reg==rk0|rd0_reg==rj0|rd0==rd0_reg&userd0))
-               |((two1_reg|three1_reg)&(rd1_reg==rk0|rd1_reg==rj0|rd0==rd1_reg&userd0))
-            // |(three0_reg_reg&(rd0_reg_reg==rk0|rd0_reg_reg==rj0|rd0_reg_reg==rd0&userd1))
-               |(three1_reg_reg&(rd1_reg_reg==rk0|rd1_reg_reg==rj0|rd0_reg_reg==rd1&userd1));
-    wire stall1=((two0_reg)&(rd0_reg==rk1|rd0_reg==rj1|rd1==rd0_reg&userd1))
-               |((two1_reg|three1_reg)&(rd1_reg==rk1|rd1_reg==rj1|rd1==rd1_reg&userd1))
-            // |(three0_reg_reg&(rd0_reg_reg==rk1|rd0_reg_reg==rj1|rd1_reg_reg==rd0&userd1))
-               |(three1_reg_reg&(rd1_reg_reg==rk1|rd1_reg_reg==rj1|rd1_reg_reg==rd1&userd1));
+    wire stall0=((two0_reg)           &(rd0_reg    ==rk0|rd0_reg    ==rj0|rd0_reg    ==rd0&userd0))
+               |((two1_reg|three1_reg)&(rd1_reg    ==rk0|rd1_reg    ==rj0|rd1_reg    ==rd0&userd0))
+            // |(three0_reg_reg       &(rd0_reg_reg==rk0|rd0_reg_reg==rj0|rd0_reg_reg==rd0&userd0))
+               |(three1_reg_reg       &(rd1_reg_reg==rk0|rd1_reg_reg==rj0|rd1_reg_reg==rd0&userd0));
+    wire stall1=((two0_reg)           &(rd0_reg    ==rk1|rd0_reg    ==rj1|rd0_reg    ==rd1&userd1))
+               |((two1_reg|three1_reg)&(rd1_reg    ==rk1|rd1_reg    ==rj1|rd1_reg    ==rd1&userd1))
+            // |(three0_reg_reg       &(rd0_reg_reg==rk1|rd0_reg_reg==rj1|rd0_reg_reg==rd1&userd1))
+               |(three1_reg_reg       &(rd1_reg_reg==rk1|rd1_reg_reg==rj1|rd1_reg_reg==rd1&userd1));
 
     always @(posedge clk )begin
         if(!rstn|flush) begin
