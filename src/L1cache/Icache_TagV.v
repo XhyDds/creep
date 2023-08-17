@@ -45,7 +45,11 @@ reg [(1<<addr_width)-1:0]valid0;
 reg [(1<<addr_width)-1:0]valid1;
 
 always @(posedge clk) begin
-    if(TagV_ibar)begin
+    if(!rstn)begin
+        valid0<=0;
+        valid1<=0;
+    end
+    else if(TagV_ibar)begin
         valid0<=0;
         valid1<=0;
     end
@@ -63,7 +67,11 @@ end
 
 reg v0,v1;
 always @(posedge clk) begin
-    if(TagV_addr_write != TagV_addr_read)begin
+    if(!rstn)begin
+        v0 <= 0;
+        v1 <= 0;
+    end
+    else if(TagV_addr_write != TagV_addr_read)begin
         v0 <= valid0[TagV_addr_read];
         v1 <= valid1[TagV_addr_read];
     end
@@ -94,7 +102,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way0(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),//写口
     .din((TagV_init == 2'b10) ? zero:TagV_din_write),
@@ -111,7 +119,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way1(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),//写口
     .din((TagV_init == 2'b11) ? zero:TagV_din_write),

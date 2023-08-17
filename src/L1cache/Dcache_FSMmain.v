@@ -78,13 +78,25 @@ assign FSM_TagV_we=FSM_Data_we;
 wire hit0,hit1;
 assign hit0=FSM_hit[0];
 assign hit1=FSM_hit[1];
-wire fStall_outside=0;
+wire fStall_outside=pipeline_dcache_ctrl[0];
 wire opflag;
 assign opflag=pipeline_dcache_opflag;
 wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
 wire flush_outside = pipeline_dcache_ctrl[1];
 reg [4:0]state;
 reg [4:0]next_state;
+reg [31:0]hit_cnt,miss_cnt;
+reg we_hit_cnt,we_miss_cnt;
+always @(posedge clk) begin
+    if(!rstn)begin
+        hit_cnt <= 0;
+        miss_cnt <= 0;
+    end
+    else begin
+        if(we_hit_cnt)hit_cnt <= hit_cnt + 1;
+        if(we_miss_cnt)miss_cnt <= miss_cnt + 1;
+    end
+end
 localparam Idle=5'd0,Lookup=5'd1,Miss_r_waitdata=5'd3,Miss_w=5'd4,Operation=5'd5,Hit_w=5'd6,Miss_r_waitdata1=5'd7;
 localparam Flush=5'd8;
 assign dcache_pipeline_doneop = (state == Operation);
@@ -96,7 +108,8 @@ always @(*) begin
     next_state = Idle;
     case (state)
         Idle:begin
-            if(opflag)next_state=Operation;
+            if(fStall_outside)next_state = Idle;
+            else if(opflag)next_state=Operation;
             else if(pipeline_dcache_valid)next_state=Lookup;
         end
         Lookup:begin
@@ -114,6 +127,7 @@ always @(*) begin
                 end
                 else begin//hit
                     if(flush_outside)next_state = Flush;
+                    // else if(fStall_outside)next_state = Lookup;
                     else if(!FSM_rbuf_type)begin//r
                         if(opflag)next_state=Operation;
                         else if(pipeline_dcache_valid)next_state=Lookup;
@@ -193,12 +207,16 @@ always @(*) begin
     FSM_Data_replace = 0;
     FSM_TagV_init = 0;
     ack_op = (next_state == Operation);
+    we_hit_cnt = 0;
+    we_miss_cnt = 0;
     case (state)
         Idle:begin
             dcache_pipeline_ready=1;
             FSM_rbuf_we=1;
         end
         Lookup:begin
+            if(~Miss)we_hit_cnt = 1;
+            else we_miss_cnt = 1;
             if(!flush_outside)begin
                 if(FSM_rbuf_SUC)begin
                     if(hit0)FSM_TagV_unvalid = 2'b01;

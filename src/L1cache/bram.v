@@ -27,7 +27,7 @@ module bram #(
             //   INIT_FILE = "C:\Users\lenovo\Desktop\data_init.coe"
 )
 (
-    input clk,                    // Clock
+    input clk,rstn,                    // Clock
     input [ADDR_WIDTH-1:0] raddr,  // Read Address
     input [ADDR_WIDTH-1:0] waddr,
     input [DATA_WIDTH-1:0] din,   // Data Input
@@ -39,8 +39,14 @@ wire [DATA_WIDTH-1:0]dout_1;
 reg [DATA_WIDTH-1:0]din_reg;
 reg choose;
 always @(posedge clk)begin
-    din_reg <= din;
-    choose <= we && (raddr == waddr);
+    if(!rstn)begin
+        din_reg <= 0;
+        choose <= 0;
+    end
+    else begin
+        din_reg <= din;
+        choose <= we && (raddr == waddr);
+    end
 end
 assign dout = choose ? din_reg : dout_1;
 

@@ -86,7 +86,7 @@ assign rbuf_tag = rbuf_addr[31:offset_width+index_width+2];
 assign rbuf_stall = pipeline_icache_ctrl[0];//icache需要stall
 
 Icache_rbuf Icache_rbuf(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .rbuf_we(rbuf_we),
     .rbuf_stall(rbuf_stall),
 
@@ -116,7 +116,7 @@ Icache_lru #(
     .way(way)
 )
 Icache_lru(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .use0(use0),.use1(use1),
     .addr(rbuf_index),
     .way_sel(way_sel_lru)
@@ -132,7 +132,7 @@ Icache_Data #(
     .way(way)
 )
 Icache_Data(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     
     .Data_addr_read(index),
     .Data_dout0(data0),
@@ -232,9 +232,16 @@ reg choose_stall;
 reg [63:0]data_out_reg;
 reg data_flag_reg;
 always @(posedge clk) begin
-    data_out_reg <= dout_icache_pipeline;
-    data_flag_reg <= flag_icache_pipeline;
-    choose_stall <= rbuf_stall & icache_pipeline_valid;
+    if(!rstn)begin
+        data_out_reg <= 0;
+        data_flag_reg <= 0;
+        choose_stall <= 0;
+    end
+    else begin
+        data_out_reg <= dout_icache_pipeline;
+        data_flag_reg <= flag_icache_pipeline;
+        choose_stall <= rbuf_stall & icache_pipeline_valid;
+    end
 end
 assign dout_icache_pipeline = (choose_stall) ? data_out_reg : data_out;
 assign flag_icache_pipeline = (choose_stall) ? data_flag_reg : data_flag;

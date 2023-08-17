@@ -12,6 +12,7 @@ module L2cache#(
     input       clk,rstn,
     
     //op port
+    input       invalid_l2,
     input       pipeline_l2cache_opflag,
     input       [31:0]pipeline_l2cache_opcode,
     input       [31:0]addr_pipeline_l2cache,
@@ -43,14 +44,18 @@ module L2cache#(
     input       req_pref_l2cache,
     input       type_pref_l2cache,
     input       [31:0]addr_pref_l2cache,
-    output      hit_l2cache_pref,//ack时取走hit
-    output      miss_l2cache_pref,//dataOK时取走miss
+    output      hit_l2cache_pref,//
+    output      miss_l2cache_pref,
     output      addrOK_l2cache_pref,
     output      complete_l2cache_pref,
     output      missvalid_l2cacahe_pref,//valid
     output      [31:0]misspc_l2cache_pref,
     output      [31:0]missaddr_l2cache_pref,
     output      misstype_l2cache_pref_paddr,//0-I 1-D
+
+    input       [2:0]num_pref_l2cache,//预取类型
+    output      [2:0]num_l2cache_pref,
+    output      hitnum_l2cache_pref,
 
     //mem port(AXI bridge)
     output      [31:0]addr_l2cache_mem_r,
@@ -160,7 +165,7 @@ L2cache_rbuf L2cache_rbuf(
     .size(l1cache_l2cache_size),
     .rbuf_size(rbuf_size),
 
-    .SUC(l1cache_l2cache_SUC && from),//
+    .SUC(l1cache_l2cache_SUC && |from),//
     .rbuf_SUC(rbuf_SUC),
 
     .opaddr(addr_pipeline_l2cache),
@@ -193,7 +198,8 @@ end
 wire we_wbaddr;
 reg [32:0]wbaddr;//写回地址
 always @(posedge clk) begin
-    if(we_wbaddr)wbaddr <= {1'b0,addr_l2cache_mem_w};
+    if(!rstn)wbaddr <= 0;
+    else if(we_wbaddr)wbaddr <= {1'b0,addr_l2cache_mem_w};
 end
 reg [1:0]from_tt;
 always @(*) begin
@@ -234,7 +240,7 @@ L2cache_replace #(
     .addr_width(index_width)
 )
 L2cache_replace(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     .use1(use1),
     .valid(valid),
     .addr(rbuf_index),
@@ -257,7 +263,7 @@ L2cache_Data #(
     .data_width((1<<offset_width)*32)
 )
 L2cache_Data(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     
     .Data_addr_read(Data_writeback ? rbuf_index : index),//pref不用改
     .Data_dout0(data0),
@@ -280,9 +286,16 @@ L2cache_Data(
     // .Data_replace(Data_replace)
 );
 always @(posedge clk) begin
-    din_reg <= din_mem_l2cache;
-    Data_replace_reg <= Data_replace;
-    Data_we_reg <= Data_we;
+    if(!rstn)begin
+        din_reg <= 0;
+        Data_replace_reg <= 0;
+        Data_we_reg <= 0;
+    end
+    else begin
+        din_reg <= din_mem_l2cache;
+        Data_replace_reg <= Data_replace;
+        Data_we_reg <= Data_we;
+    end
 end
 
 //Tag
@@ -297,7 +310,7 @@ L2cache_TagV #(
     .data_width(32-2-index_width-offset_width)
 )
 L2cache_TagV(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .TagV_addr_read(Data_writeback ? rbuf_index : index),
     // .TagV_din_compare(inpref ? tag_pref : rbuf_tag),
@@ -315,6 +328,26 @@ L2cache_TagV(
 
 );
 
+//prefnum table
+wire num_clear;
+assign hitnum_l2cache_pref = num_clear;
+wire [way-1:0]num_we;
+L2cache_prefnum #(//预取类型
+    .addr_width(index_width),
+    .data_width(3),
+    .way(way)
+)
+L2cache_prefnum(
+    .clk(clk),.rstn(rstn),
+    .num_addr_read(index),
+    .num_addr_write(inpref ? index_pref : rbuf_index),
+    .num_din(num_pref_l2cache),
+    .num_dout(num_l2cache_pref),
+    .hit(hit),
+    .num_we(num_we),
+    .clear(num_clear)
+);
+
 //Dirtytable
 wire Dirty,Dirtytable_set0,Dirtytable_set1;
 wire [2:0]Dirtytable_way_select;
@@ -322,8 +355,9 @@ L2cache_Dirtytable #(
     .addr_width(index_width)
 )
 L2cache_Dirtytable(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
     
+    // .valid(valid),
     .Dirtytable_addr(rbuf_index),
     .Dirtytable_addrw(inpref ? index_pref : rbuf_index),
     .Dirtytable_way_select(Dirtytable_way_select),
@@ -369,7 +403,7 @@ end
 //Mem
 assign addr_l2cache_mem_r = rbuf_SUC ? rbuf_addr : {rbuf_addr[31:offset_width+2],{(offset_width+2){1'b0}}};//对齐
 assign addr_l2cache_mem_w = rbuf_SUC ? rbuf_addr : {TagV_dout,rbuf_index,{(offset_width+2){1'b0}}};
-assign dout_l2cache_mem = rbuf_SUC ? rbuf_data : line;//
+assign dout_l2cache_mem = rbuf_SUC ? {{(32*(1<<offset_width) - 32){1'b0}},rbuf_data} : line;//
 assign l2cache_mem_SUC = rbuf_SUC;
 assign l2cache_mem_wstrb = rbuf_wstrb;
 assign l2cache_mem_size = rbuf_size;
@@ -391,6 +425,7 @@ L2cache_FSMmain(
     //req for L1(pipe)
     .from(from),
     .pipeline_l2cache_opflag(pipeline_l2cache_opflag),
+    .invalid_l2(invalid_l2),
     .ack_op(ack_op),
     .l2cache_icache_addrOK(l2cache_icache_addrOK),
     .l2cache_icache_dataOK(l2cache_icache_dataOK),
@@ -415,6 +450,8 @@ L2cache_FSMmain(
     .missvalid(missvalid_l2cacahe_pref),
 
     .we_wbaddr(we_wbaddr),
+    .num_clear(num_clear),
+    .num_we(num_we),
 
     //request buffer
     .FSM_rbuf_we(rbuf_we),

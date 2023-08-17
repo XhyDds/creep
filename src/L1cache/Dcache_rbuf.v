@@ -22,7 +22,7 @@
 
 module Dcache_rbuf
 (
-    input clk,rbuf_we,
+    input clk,rbuf_we,rstn,
     input [31:0]addr,data,opcode,pc,paddr,
     output reg [31:0]rbuf_addr,rbuf_data,rbuf_opcode,rbuf_pc,rbuf_paddr,
     input opflag,type1,SUC,
@@ -36,20 +36,35 @@ reg [31:0]rbuf_paddr1;
 reg rbuf_SUC1;
 reg we_reg;
 always @(posedge clk) begin
-    we_reg <= rbuf_we;
-    if(rbuf_we)begin
-        rbuf_addr<=addr;
-        rbuf_data<=data;
-        rbuf_opcode<=opcode;
-        rbuf_opflag<=opflag;
-        rbuf_wstrb<=wstrb;
-        rbuf_type<=type1;
-        rbuf_pc<=pc;
-        rbuf_size <= size;
+    if(!rstn)begin
+        we_reg <= 0;
+        rbuf_addr <= 0;
+        rbuf_data <= 0;
+        rbuf_opcode <= 0;
+        rbuf_opflag <= 0;
+        rbuf_wstrb <= 0;
+        rbuf_type <= 0;
+        rbuf_pc <= 0;
+        rbuf_size <= 0;
+        rbuf_paddr1 <= 0;
+        rbuf_SUC1 <= 0;
     end
-    if(we_reg)begin
-        rbuf_paddr1 <= paddr;
-        rbuf_SUC1 <= SUC; 
+    else begin
+        we_reg <= rbuf_we;
+        if(rbuf_we)begin
+            rbuf_addr<=addr;
+            rbuf_data<=data;
+            rbuf_opcode<=opcode;
+            rbuf_opflag<=opflag;
+            rbuf_wstrb<=wstrb;
+            rbuf_type<=type1;
+            rbuf_pc<=pc;
+            rbuf_size <= size;
+        end
+        if(we_reg)begin
+            rbuf_paddr1 <= paddr;
+            rbuf_SUC1 <= SUC; 
+        end
     end
 end
 always @(*) begin

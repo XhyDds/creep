@@ -175,20 +175,20 @@ code+='''
         if(!rstn) begin'''
 for i in range(len):
     code+='''
-            buffer_addr[32'd'''+str(i)+''']<=0;
-            buffer_data[32'd'''+str(i)+''']<=0;'''
+            buffer_addr['''+str(i)+''']<=0;
+            buffer_data['''+str(i)+''']<=0;'''
 code+='''
         end
         else begin
             case (crt_push)
                 IDLE_H: begin
                     if(nxt_push==PUSH) begin
-                        buffer_addr[32'd0]<=in_addr;
-                        buffer_data[32'd0]<=in_data;'''
+                        buffer_addr[0]<=in_addr;
+                        buffer_data[0]<=in_data;'''
 for i in range(0,len-1):
     code+='''
-                        buffer_addr[32'd'''+str(i+1)+''']<=buffer_addr[32'd'''+str(i)+'''];
-                        buffer_data[32'd'''+str(i+1)+''']<=buffer_data[32'd'''+str(i)+'''];'''
+                        buffer_addr['''+str(i+1)+''']<=buffer_addr['''+str(i)+'''];
+                        buffer_data['''+str(i+1)+''']<=buffer_data['''+str(i)+'''];'''
 code+='''
                     end
                     else ;
@@ -216,15 +216,15 @@ code+='''
     always @(*) begin'''
 for i in range(len):
     code+='''
-        res[32'd'''+str(i)+''']=(query_addr==buffer_addr[32'd'''+str(i)+''']);'''
+        res['''+str(i)+''']=(query_addr==buffer_addr['''+str(i)+''']);'''
 code+='''
     end
 
     always @(*) begin
-             if(res[3'd0]==1'b1) begin query_ok=1;query_data=buffer_data[32'd0]; end'''
+             if(res[0]==1'b1) begin query_ok=1;query_data=buffer_data[0]; end'''
 for i in range(1,len):
     code+='''
-        else if(res[3'd'''+str(i)+''']==1'b1) begin query_ok=1;query_data=buffer_data[32'd'''+str(i)+''']; end'''
+        else if(res['''+str(i)+''']==1'b1) begin query_ok=1;query_data=buffer_data['''+str(i)+''']; end'''
 code+='''
         else                     begin query_ok=0;query_data=0                 ; end
     end

@@ -10,8 +10,8 @@
 // push时
 
 module WriteBuffer #(
-    parameter   length=10,
-                offset_width=4
+    parameter   length=5,
+                offset_width=3
 ) (
     input  clk,
     input  rstn,
@@ -54,7 +54,7 @@ module WriteBuffer #(
     //pull(->axi)
     //state machine
     parameter IDLE_L = 5'd0,
-            PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,SEND_8=5'd13,SEND_9=5'd14,SEND_10=5'd15,SEND_11=5'd16,SEND_12=5'd17,SEND_13=5'd18,SEND_14=5'd19,SEND_15=5'd20,_SEND=5'd21;
+            PULL=5'd4,SEND_0=5'd5,SEND_1=5'd6,SEND_2=5'd7,SEND_3=5'd8,SEND_4=5'd9,SEND_5=5'd10,SEND_6=5'd11,SEND_7=5'd12,_SEND=5'd13;
     //外部输入
     //组合action
     reg pointer_minus;
@@ -115,48 +115,8 @@ module WriteBuffer #(
             end
             SEND_7: begin
                 out_valid=1;
-                out_data=_out_data[255:224];
-                out_wvalid=1;
-            end
-            SEND_8: begin
-                out_valid=1;
-                out_data=_out_data[287:256];
-                out_wvalid=1;
-            end
-            SEND_9: begin
-                out_valid=1;
-                out_data=_out_data[319:288];
-                out_wvalid=1;
-            end
-            SEND_10: begin
-                out_valid=1;
-                out_data=_out_data[351:320];
-                out_wvalid=1;
-            end
-            SEND_11: begin
-                out_valid=1;
-                out_data=_out_data[383:352];
-                out_wvalid=1;
-            end
-            SEND_12: begin
-                out_valid=1;
-                out_data=_out_data[415:384];
-                out_wvalid=1;
-            end
-            SEND_13: begin
-                out_valid=1;
-                out_data=_out_data[447:416];
-                out_wvalid=1;
-            end
-            SEND_14: begin
-                out_valid=1;
-                out_data=_out_data[479:448];
-                out_wvalid=1;
-            end
-            SEND_15: begin
-                out_valid=1;
                 out_last=1;
-                out_data=_out_data[511:480];
+                out_data=_out_data[255:224];
                 out_wvalid=1;
             end
             _SEND: begin
@@ -227,51 +187,31 @@ module WriteBuffer #(
     //时序action
     always @(posedge clk)begin
         if(!rstn) begin
-            buffer_addr[32'd0]<=0;
-            buffer_data[32'd0]<=0;
-            buffer_addr[32'd1]<=0;
-            buffer_data[32'd1]<=0;
-            buffer_addr[32'd2]<=0;
-            buffer_data[32'd2]<=0;
-            buffer_addr[32'd3]<=0;
-            buffer_data[32'd3]<=0;
-            buffer_addr[32'd4]<=0;
-            buffer_data[32'd4]<=0;
-            buffer_addr[32'd5]<=0;
-            buffer_data[32'd5]<=0;
-            buffer_addr[32'd6]<=0;
-            buffer_data[32'd6]<=0;
-            buffer_addr[32'd7]<=0;
-            buffer_data[32'd7]<=0;
-            buffer_addr[32'd8]<=0;
-            buffer_data[32'd8]<=0;
-            buffer_addr[32'd9]<=0;
-            buffer_data[32'd9]<=0;
+            buffer_addr[0]<=0;
+            buffer_data[0]<=0;
+            buffer_addr[1]<=0;
+            buffer_data[1]<=0;
+            buffer_addr[2]<=0;
+            buffer_data[2]<=0;
+            buffer_addr[3]<=0;
+            buffer_data[3]<=0;
+            buffer_addr[4]<=0;
+            buffer_data[4]<=0;
         end
         else begin
             case (crt_push)
                 IDLE_H: begin
                     if(nxt_push==PUSH) begin
-                        buffer_addr[32'd0]<=in_addr;
-                        buffer_data[32'd0]<=in_data;
-                        buffer_addr[32'd1]<=buffer_addr[32'd0];
-                        buffer_data[32'd1]<=buffer_data[32'd0];
-                        buffer_addr[32'd2]<=buffer_addr[32'd1];
-                        buffer_data[32'd2]<=buffer_data[32'd1];
-                        buffer_addr[32'd3]<=buffer_addr[32'd2];
-                        buffer_data[32'd3]<=buffer_data[32'd2];
-                        buffer_addr[32'd4]<=buffer_addr[32'd3];
-                        buffer_data[32'd4]<=buffer_data[32'd3];
-                        buffer_addr[32'd5]<=buffer_addr[32'd4];
-                        buffer_data[32'd5]<=buffer_data[32'd4];
-                        buffer_addr[32'd6]<=buffer_addr[32'd5];
-                        buffer_data[32'd6]<=buffer_data[32'd5];
-                        buffer_addr[32'd7]<=buffer_addr[32'd6];
-                        buffer_data[32'd7]<=buffer_data[32'd6];
-                        buffer_addr[32'd8]<=buffer_addr[32'd7];
-                        buffer_data[32'd8]<=buffer_data[32'd7];
-                        buffer_addr[32'd9]<=buffer_addr[32'd8];
-                        buffer_data[32'd9]<=buffer_data[32'd8];
+                        buffer_addr[0]<=in_addr;
+                        buffer_data[0]<=in_data;
+                        buffer_addr[1]<=buffer_addr[0];
+                        buffer_data[1]<=buffer_data[0];
+                        buffer_addr[2]<=buffer_addr[1];
+                        buffer_data[2]<=buffer_data[1];
+                        buffer_addr[3]<=buffer_addr[2];
+                        buffer_data[3]<=buffer_data[2];
+                        buffer_addr[4]<=buffer_addr[3];
+                        buffer_data[4]<=buffer_data[3];
                     end
                     else ;
                 end
@@ -296,29 +236,19 @@ module WriteBuffer #(
     //query
     reg res[length-1:0];
     always @(*) begin
-        res[32'd0]=(query_addr==buffer_addr[32'd0]);
-        res[32'd1]=(query_addr==buffer_addr[32'd1]);
-        res[32'd2]=(query_addr==buffer_addr[32'd2]);
-        res[32'd3]=(query_addr==buffer_addr[32'd3]);
-        res[32'd4]=(query_addr==buffer_addr[32'd4]);
-        res[32'd5]=(query_addr==buffer_addr[32'd5]);
-        res[32'd6]=(query_addr==buffer_addr[32'd6]);
-        res[32'd7]=(query_addr==buffer_addr[32'd7]);
-        res[32'd8]=(query_addr==buffer_addr[32'd8]);
-        res[32'd9]=(query_addr==buffer_addr[32'd9]);
+        res[0]=(query_addr==buffer_addr[0]);
+        res[1]=(query_addr==buffer_addr[1]);
+        res[2]=(query_addr==buffer_addr[2]);
+        res[3]=(query_addr==buffer_addr[3]);
+        res[4]=(query_addr==buffer_addr[4]);
     end
 
     always @(*) begin
-             if(res[3'd0]==1'b1) begin query_ok=1;query_data=buffer_data[32'd0]; end
-        else if(res[3'd1]==1'b1) begin query_ok=1;query_data=buffer_data[32'd1]; end
-        else if(res[3'd2]==1'b1) begin query_ok=1;query_data=buffer_data[32'd2]; end
-        else if(res[3'd3]==1'b1) begin query_ok=1;query_data=buffer_data[32'd3]; end
-        else if(res[3'd4]==1'b1) begin query_ok=1;query_data=buffer_data[32'd4]; end
-        else if(res[3'd5]==1'b1) begin query_ok=1;query_data=buffer_data[32'd5]; end
-        else if(res[3'd6]==1'b1) begin query_ok=1;query_data=buffer_data[32'd6]; end
-        else if(res[3'd7]==1'b1) begin query_ok=1;query_data=buffer_data[32'd7]; end
-        else if(res[3'd8]==1'b1) begin query_ok=1;query_data=buffer_data[32'd8]; end
-        else if(res[3'd9]==1'b1) begin query_ok=1;query_data=buffer_data[32'd9]; end
+             if(res[0]==1'b1) begin query_ok=1;query_data=buffer_data[0]; end
+        else if(res[1]==1'b1) begin query_ok=1;query_data=buffer_data[1]; end
+        else if(res[2]==1'b1) begin query_ok=1;query_data=buffer_data[2]; end
+        else if(res[3]==1'b1) begin query_ok=1;query_data=buffer_data[3]; end
+        else if(res[4]==1'b1) begin query_ok=1;query_data=buffer_data[4]; end
         else                     begin query_ok=0;query_data=0                 ; end
     end
 

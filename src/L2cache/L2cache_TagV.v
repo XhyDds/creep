@@ -26,7 +26,7 @@ module L2cache_TagV#(
                 way=8
 )
 (
-    input       clk,
+    input       clk,rstn,
     input       [addr_width-1:0]TagV_addr_read,
     input       [data_width-1:0]TagV_din_compare,//用于比较
     input       [2:0]TagV_way_select,
@@ -53,7 +53,17 @@ reg [(1<<addr_width)-1:0]valid7;
 assign TagV_dout=TagV_data[TagV_way_select];
 
 always @(posedge clk) begin
-    if(TagV_init[3])begin
+    if(!rstn)begin
+        valid0 <= 0;
+        valid1 <= 0;
+        valid2 <= 0;
+        valid3 <= 0;
+        valid4 <= 0;
+        valid5 <= 0;
+        valid6 <= 0;
+        valid7 <= 0;
+    end
+    else if(TagV_init[3])begin
         if(TagV_init[2:0] == 3'd0)valid0[TagV_addr_write] <= 0;
         else if(TagV_init[2:0] == 3'd1)valid1[TagV_addr_write] <= 0;
         else if(TagV_init[2:0] == 3'd2)valid2[TagV_addr_write] <= 0;
@@ -87,7 +97,17 @@ end
 reg v0,v1,v2,v3,v4,v5,v6,v7;
 assign valid={v7,v6,v5,v4,v3,v2,v1,v0};
 always @(posedge clk) begin
-    if(TagV_addr_write != TagV_addr_read)begin
+    if(!rstn)begin
+        v0 <= 0;
+        v1 <= 0;
+        v2 <= 0;
+        v3 <= 0;
+        v4 <= 0;
+        v5 <= 0;
+        v6 <= 0;
+        v7 <= 0;
+    end
+    else if(TagV_addr_write != TagV_addr_read)begin
         v0 <= valid0[TagV_addr_read];
         v1 <= valid1[TagV_addr_read];
         v2 <= valid2[TagV_addr_read];
@@ -143,7 +163,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way0(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),
     .din((TagV_init == {1'b1,3'd0}) ? {(data_width){1'b0}}:TagV_din_write),
@@ -160,7 +180,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way1(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),
     .din((TagV_init == {1'b1,3'd1}) ? {(data_width){1'b0}}:TagV_din_write),
@@ -177,7 +197,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way2(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),
     .din((TagV_init == {1'b1,3'd2}) ? {(data_width){1'b0}}:TagV_din_write),
@@ -194,7 +214,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way3(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),
     .din((TagV_init == {1'b1,3'd3}) ? {(data_width){1'b0}}:TagV_din_write),
@@ -211,7 +231,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way4(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),
     .din((TagV_init == {1'b1,3'd4}) ? {(data_width){1'b0}}:TagV_din_write),
@@ -228,7 +248,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way5(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),
     .din((TagV_init == {1'b1,3'd5}) ? {(data_width){1'b0}}:TagV_din_write),
@@ -245,7 +265,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way6(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),
     .din((TagV_init == {1'b1,3'd6}) ? {(data_width){1'b0}}:TagV_din_write),
@@ -262,7 +282,7 @@ lutram #(
     .ADDR_WIDTH(addr_width)
 )
 way7(
-    .clk(clk),
+    .clk(clk),.rstn(rstn),
 
     .waddr(TagV_addr_write),
     .din((TagV_init == {1'b1,3'd7}) ? {(data_width){1'b0}}:TagV_din_write),

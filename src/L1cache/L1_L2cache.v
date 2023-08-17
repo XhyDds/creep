@@ -50,6 +50,7 @@ module L1_L2cache#(
     input       [31:0]addr_pipeline_l2cache,
     input       pipeline_l2cache_opflag,
     input       [31:0]pipeline_l2cache_opcode,
+    input       invalid_l2,
 
     //L2-prefetch port
     input       req_pref_l2cache,    
@@ -65,10 +66,14 @@ module L1_L2cache#(
     output      [31:0]missaddr_l2cache_pref,
     output      misstype_l2cache_pref_paddr,//0-I 1-D
 
+    input       [2:0]num_pref_l2cache,//预取类型
+    output      [2:0]num_l2cache_pref,
+    output      hitnum_l2cache_pref,
+
     //D-prefetch port
     output     [31:0]dcache_pref_addr,
     output     [31:0]dcache_pref_pc,
-    output      dcache_pref_valid,
+    output     dcache_pref_valid,
     
     //L2-Mem port
     output      [31:0]addr_l2cache_mem_r,
@@ -114,7 +119,7 @@ cache_opctr cache_opctr(
     .opcode_d(opcode_d),
     .addr_d(addr_d),
 
-    .opin_l2(pipeline_l2cache_opflag),
+    .opin_l2(pipeline_l2cache_opflag & ~invalid_l2),
     .addrin_l2(addr_pipeline_l2cache),
     .opcodein_l2(pipeline_l2cache_opcode),
     .ack_l2(ack_l2),
@@ -132,7 +137,8 @@ wire [1:0]icache_mem_size;
 wire mem_icache_dataOK;
 reg op_i_reg;
 always @(posedge clk) begin
-    op_i_reg <= op_i;
+    if(~rstn) op_i_reg <= 1'b0;
+    else op_i_reg <= op_i;
 end
 Icache #(
     .index_width(I_index_width),
@@ -195,6 +201,7 @@ Dcache(
     .dout_dcache_pipeline(dout_dcache_pipeline),
     .type_pipeline_dcache(type_pipeline_dcache),
     .SUC_pipeline_dcache(SUC_pipeline_dcache),
+    .pipeline_dcache_size(pipeline_dcache_size),
 
     .pipeline_dcache_valid(pipeline_dcache_valid/* | op_d*/),
     .dcache_pipeline_ready(dcache_pipeline_ready),
@@ -247,7 +254,7 @@ wire [3:0]dcache_l2cache_wstrb;
 wire l2cache_dcache_addrOK;
 wire l2cache_dcache_dataOK;
 wire dcache_l2cache_SUC;
-wire dcache_l2cache_size;
+wire [1:0]dcache_l2cache_size;
 
 assign addr_dcache_l2cache = addr_dcache_mem;
 assign din_dcache_l2cache = dout_dcache_mem;
@@ -271,6 +278,7 @@ L2cache(
     .rstn(rstn),
 
     .pipeline_l2cache_opflag(op_l2),
+    .invalid_l2(invalid_l2),
     .pipeline_l2cache_opcode(opcode_l2),
     .addr_pipeline_l2cache(addr_l2),
     .ack_op(ack_l2),
@@ -306,6 +314,9 @@ L2cache(
     .misspc_l2cache_pref(misspc_l2cache_pref),
     .missaddr_l2cache_pref(missaddr_l2cache_pref),
     .misstype_l2cache_pref_paddr(misstype_l2cache_pref_paddr),
+    .num_pref_l2cache(num_pref_l2cache),
+    .num_l2cache_pref(num_l2cache_pref),
+    .hitnum_l2cache_pref(hitnum_l2cache_pref),
 
     .addr_l2cache_mem_r(addr_l2cache_mem_r),
     .addr_l2cache_mem_w(addr_l2cache_mem_w),

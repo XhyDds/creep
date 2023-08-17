@@ -78,10 +78,22 @@ wire fStall_outside=pipeline_icache_ctrl[0];//注意编号
 wire flush_outside=pipeline_icache_ctrl[1];
 wire opflag;
 assign opflag=pipeline_icache_opflag;
-
 reg rstn_reg;
 always @(posedge clk) begin
-    rstn_reg <= rstn;
+    if(~rstn) rstn_reg <= 0;
+    else rstn_reg <= rstn;
+end
+reg [31:0]hit_cnt,miss_cnt;
+reg we_hit_cnt,we_miss_cnt;
+always @(posedge clk) begin
+    if(!rstn)begin
+        hit_cnt <= 0;
+        miss_cnt <= 0;
+    end
+    else begin
+        if(we_hit_cnt)hit_cnt <= hit_cnt + 1;
+        if(we_miss_cnt)miss_cnt <= miss_cnt + 1;
+    end
 end
 assign icache_pipeline_valid1=icache_pipeline_valid&rstn_reg;//初始态不能给ready
 wire Miss = ((!hit0)&&(!hit1)) || FSM_rbuf_SUC;
@@ -147,12 +159,16 @@ always @(*) begin
     FSM_TagV_unvalid = 2'b0;
     ack_op = (next_state == Operation);
     icache_pipeline_stall = 1;
+    we_hit_cnt = 0;
+    we_miss_cnt = 0;
     case (state)
         Idle:begin
             icache_pipeline_stall = 0;
             FSM_rbuf_we=1;
         end
         Lookup:begin
+            if(~Miss)we_hit_cnt = 1;
+            else we_miss_cnt = 1;
             if(~Miss & ~flush_outside)icache_pipeline_valid = 1;
             if(Miss)icache_mem_req = 1;//flush去l2撤销
             else begin

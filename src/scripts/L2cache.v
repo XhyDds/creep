@@ -2,7 +2,7 @@
 
 module L2cache#(
     parameter   index_width=2,
-                offset_width=4,
+                offset_width=3,
                 L1_offset_width=2,//两者相等
                 way=4
 )
@@ -235,13 +235,11 @@ always @(*) begin
     end
 end
 
-wire [2 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
+wire [1 : 0]choose_word = rbuf_offset[offset_width -1 : L1_offset_width];
 always @(*) begin
     case (choose_word)
-        2'd0: dout_l2cache_l1cache = line[127:0];
-        2'd1: dout_l2cache_l1cache = line[255:128];
-        2'd2: dout_l2cache_l1cache = line[383:256];
-        2'd3: dout_l2cache_l1cache = line[511:384];
+        1'd0: dout_l2cache_l1cache = line[127:0];
+        1'd1: dout_l2cache_l1cache = line[255:128];
         default: dout_l2cache_l1cache = line;
     endcase
 end

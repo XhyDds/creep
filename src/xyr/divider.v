@@ -54,7 +54,7 @@ module divider#(//din1/din2
         counter<=ncounter;
         mode_reg<=nmode;
         din2_reg<=ndin2_reg;
-        din1_reg1<=din1;din2_reg1<=din2;           
+        din1_reg1<=din1;din2_reg1<=din2;         
         if(mode_reg==DIVW||mode_reg==DIVWU)
             dout<=quotient;
         else
@@ -85,10 +85,10 @@ module divider#(//din1/din2
     case(cs)
         Wait:
             begin
-            nmode=mode;
             busy=0;
             if(exe)
                 begin
+                nmode=mode;
                 ns=Datain;
                 end
             else

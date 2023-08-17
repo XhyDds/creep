@@ -146,7 +146,7 @@ module l2_axi_package #(
     );
 
     WriteBuffer#(
-        .length         (10),
+        .length         (5),
         .offset_width   (offset_width)
     )
     l2cache_writebuffer(
@@ -329,8 +329,17 @@ module l2_axi_package #(
         .wvalid   		( wvalid   		),
         .wready   		( wready   		),
         .wlast    		( wlast    		),
+        .wid            ( wid           ),
         .bresp    		( bresp    		),
         .bvalid   		( bvalid   		),
         .bready   		( bready   		)
     );
+
+    wire allow;
+    IO_mask r_mask(
+    .addr(addr_l2cache_mem_r),
+    .widthin(9'd128),
+    .allow(allow)// 1:yes 0:no
+    );
+    (* MARK_DEBUG = "true" *)wire addr_unvalid=(~allow)&(~dma_sign)&(l2cache_mem_req_r|l2cache_mem_req_w);
 endmodule
