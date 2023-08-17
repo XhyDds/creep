@@ -166,7 +166,7 @@ module core_top(
                 dcache_dead<=0;
                 dstall_times<=0;
             end
-            else if(dstall_times==32'd50) begin
+            else if(dstall_times==32'd1000) begin
                 dcache_dead<=1;
             end
             else begin
@@ -177,7 +177,7 @@ module core_top(
                 icache_dead<=0;
                 istall_times<=0;
             end
-            else if(istall_times==32'd50) begin
+            else if(istall_times==32'd1000) begin
                 icache_dead<=1;
             end
             else begin
