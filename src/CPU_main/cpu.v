@@ -6,7 +6,7 @@
 module core_top(
     input           aclk,
     input           aresetn,
-    input    [ 7:0] intrpt, 
+    input    [ 7:0] ext_int, 
 
     //AXI interface 
     //read reqest
@@ -58,8 +58,12 @@ module core_top(
     output          ws_valid,
     output   [31:0] rf_rdata,
     
+    output   [31:0] debug_wb_pc,
+    output   [ 3:0] debug_wb_rf_we,
+    output   [ 4:0] debug_wb_rf_wnum,
+    output   [31:0] debug_wb_rf_wdata,
+    output   [31:0] debug_wb_inst,
 
-    
     output   [31:0] debug0_wb_pc,
     output   [ 3:0] debug0_wb_rf_wen,
     output   [ 4:0] debug0_wb_rf_wnum,
@@ -72,6 +76,7 @@ module core_top(
     output   [31:0] debug1_wb_rf_wdata,
     output   [31:0] debug1_wb_inst
 );
+    wire [7:0] intrpt=ext_int;
     wire clk=aclk;
     wire rstn=aresetn;
     reg break_point_reg;
