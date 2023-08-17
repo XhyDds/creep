@@ -40,7 +40,7 @@ module IPCP_launch(
                     .waddr(IP_sig_waddr),.din(IP_sigin),.dout(IP_sigout),.we(IP_sig_we));
     //assign IP_sig_we=type2==CPLX&&vaddrvalid1;
     //wire [7:0] CSPT_strout;
-    assign IP_sigin={IP_sig1[6:1],1'b0}^stride2;
+    assign IP_sigin={IP_sig1[5:0],1'b0}^stride2;
     assign IP_sig_waddr=IPaddr1[7:2];
     
     wire [99:0] RST_din,RST_dout; wire [3:0] RST_raddr,RST_waddr;reg RST_we;
