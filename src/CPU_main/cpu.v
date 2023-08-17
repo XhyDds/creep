@@ -57,7 +57,9 @@ module core_top(
     input    [ 4:0] reg_num,
     output          ws_valid,
     output   [31:0] rf_rdata,
-     
+    
+
+    
     output   [31:0] debug0_wb_pc,
     output   [ 3:0] debug0_wb_rf_wen,
     output   [ 4:0] debug0_wb_rf_wnum,
