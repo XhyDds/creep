@@ -7,7 +7,7 @@
 module core_top(
     input           aclk,
     input           aresetn,
-    input    [ 7:0] ext_int, 
+    input    [ 7:0] intrpt, 
 
     //AXI interface 
     //read reqest
@@ -77,7 +77,7 @@ module core_top(
     output   [31:0] debug1_wb_rf_wdata,
     output   [31:0] debug1_wb_inst
 );
-    wire [7:0] intrpt=ext_int;
+    //wire [7:0] intrpt=ext_int;
     wire clk=aclk;
     wire rstn=aresetn;
     reg break_point_reg;
@@ -1841,25 +1841,6 @@ module core_top(
     wire        anneal_unhit = missvalid_l2cacahe_pref;//脉冲
     wire        anneal_type = misstype_l2cache_pref_paddr;
 
-    //L2-prefetch port
-    wire req_pref_l2cache;    
-    wire type_pref_l2cache;//指令或数�? 0-指令 1-数据
-    wire [31:0]addr_pref_l2cache;    
-    wire complete_l2cache_pref;
-    wire hit_l2cache_pref;//预取请求的Hit
-    wire miss_l2cache_pref;//预取过程中来自L1访问的Miss 
-    wire missvalid_l2cacahe_pref;//valid
-    wire [31:0]misspc_l2cache_pref;
-    wire [31:0]missaddr_l2cache_pref;
-    wire misstype_l2cache_pref_paddr;//0-I 1-D
-    wire [2:0]num_pref_l2cache;//预取类型
-    wire [2:0]num_l2cache_pref;
-    wire hitnum_l2cache_pref;
-
-    //D-prefetch port
-    wire [31:0]dcache_pref_addr;
-    wire [31:0]dcache_pref_pc;
-    wire dcache_pref_valid;
 
     L1_L2cache #(
         .I_index_width  		( 7 		),
