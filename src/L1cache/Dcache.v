@@ -56,6 +56,11 @@ module Dcache#(
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
     output      dcache_pipeline_stall,//stall form dcache     不知道可不可以用ready代替，先留着
 
+    input       newop,
+    input       [31:0]addr1,
+    input       [31:0]addr2,
+    input       [31:0]data,
+
     //mem prot
     output      [31:0]addr_dcache_mem,
     output      [31:0]pc_dcache_mem,
@@ -136,6 +141,20 @@ Dcache_rbuf Dcache_rbuf(
     .size(pipeline_dcache_size),
     .rbuf_size(rbuf_size)
 );
+
+reg [31:0]addr1_new,addr2_new,data_new;
+always @(posedge clk) begin
+    if(!rstn)begin
+        addr1_new <= 0;
+        addr2_new <= 0;
+        data_new <= 0;
+    end
+    else if(rbuf_we)begin
+        addr1_new <= addr1;
+        addr2_new <= addr2;
+        data_new <= data;
+    end
+end
 
 //LRU
 wire use0,use1;
@@ -270,19 +289,17 @@ always @(posedge clk) begin
         data_out_reg_stall <= dout_dcache_pipeline;
     end
 end
-assign dout_dcache_pipeline = choose_stall ? data_out_reg_stall : dout_dcache_pipeline1;
+assign dout_dcache_pipeline = choose_new ? data_out :(choose_stall ? data_out_reg_stall : dout_dcache_pipeline1);
 
 //Mem
+wire choose_new;
+wire [31:0]addr_out,data_out_new;
 wire [1+offset_width:0]temp;
 assign temp=0;
-assign dout_dcache_mem = rbuf_data;
+assign dout_dcache_mem = choose_new ? data_out_new : rbuf_data;
 assign dcache_mem_SUC = rbuf_SUC;
-`ifdef MMU
-assign addr_dcache_mem = rbuf_SUC ? rbuf_paddr : (dcache_mem_wr ? rbuf_paddr:{rbuf_paddr[31:2+offset_width],temp});
-`else 
-assign addr_dcache_mem = rbuf_SUC ? rbuf_addr :(dcache_mem_wr ? rbuf_addr:{rbuf_addr[31:2+offset_width],temp});
-`endif
-assign dcache_mem_size = rbuf_size;
+assign addr_dcache_mem = choose_new ? addr_out : rbuf_SUC ? rbuf_paddr : (dcache_mem_wr ? rbuf_paddr:{rbuf_paddr[31:2+offset_width],temp});
+assign dcache_mem_size = choose_new ? 2'd2 : rbuf_size;
 assign dcache_mem_wstrb = rbuf_wstrb;
 assign pc_dcache_mem = rbuf_pc;
 
@@ -294,6 +311,17 @@ Dcache_FSMmain #(
 Dcache_FSMmain1(
 
     .clk(clk),.rstn(rstn),
+
+    //newop
+    .newop(newop),
+    .addr1_new(addr1_new),
+    .addr2_new(addr2_new),
+    .data_new(data_new),
+
+    .choose_new(choose_new),
+    .din_mem(din_mem_dcache[31:0]),
+    .addr_out(addr_out),//to mem
+    .data_out(data_out_new),//to pipeline or mem
 
     //pipeline  dcache
     .pipeline_dcache_valid(pipeline_dcache_valid),
