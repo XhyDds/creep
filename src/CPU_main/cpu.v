@@ -1,5 +1,6 @@
 `define predictor
 `define two_pre
+`define prefetcher
 // `define invalidl2  //还不能用 留个接口
 //`define DMA
 // module mycpu_top(
@@ -1948,7 +1949,12 @@ module core_top(
     );
     wire [31:5] baseaddr;wire [7:0] stridepre;wire [1:0] typepre;
     wire [6:0] IPsigpre;wire [6:0]CSPT_lookaddr;wire [9:0] CSPT_dataout;
-
+    assign type_pref_l2cache=1'b1;
+    `ifndef prefetcher
+    assign req_pref_l2cache=0;
+    `endif
+    
+    `ifdef prefetcher
     IPCP_launch pre_lauch(
     .clk(clk),
     .rstn(rstn),
@@ -1988,6 +1994,7 @@ module core_top(
     .reqcomp(complete_l2cache_pref)
     
 );
+    `endif
     // prefetching#(
     //     .ADDR_WIDTH(32),
     //     .L2cache_width(offset_width)
