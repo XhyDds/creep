@@ -254,8 +254,8 @@ module core_top(
     assign flush_exe0_exe1_0 =  ifinteflush|ifpriv|ifbr1|ifbr0|ifcacop_ibar|ifmmu_excp1|ifidle|flushup;
     assign flush_exe0_exe1_1 =  ifinteflush|ifpriv|ifmmu_excp1|ifbr1|ifbr0|ifcacop_ibar|ifidle;
     assign flush_exe1_exe2_0 =  ifinteflush|ifpriv|ifmmu_excp1|ifbr1|ifcacop_ibar|ifidle;
-    assign flush_exe1_exe2_1 =  ifinteflush|ifpriv|ifmmu_excp1;
-    assign flush_exe2_wb_0 =    ifinteflush|ifpriv|ifmmu_excp1;
+    assign flush_exe1_exe2_1 =  ifinteflush|ifpriv|ifmmu_excp1|ifcacop_ibar;
+    assign flush_exe2_wb_0 =    ifinteflush|ifpriv|ifmmu_excp1|ifcacop_ibar;
     assign flush_exe2_wb_1 =    ifinteflush|ifmmu_excp1;
 
     assign stall_pc_ =          break_point_reg|stall_fetch_buffer|stall_div1|stall_dcache|stall_icache|ifidle|stallicacop;
@@ -1275,7 +1275,7 @@ wire [29:0] npc_test;//给ccr用的测试线，�???要左移两位使用，0,4
         ifnpc_pdc=0;
         ifguess=0;
         if(ifpriv) npc=pc_priv;
-        else if(ifcacop_ibar) npc=pc_reg_exe0_1+4;
+        else if(ifcacop_ibar) npc=pc_exe1_exe2_1+4;
         else if(ifbr1) npc=pc_br1;
         else if(ifbr0) npc=pc_br0;
         else if(ifsuc) npc=pc_if0_if1+4;
