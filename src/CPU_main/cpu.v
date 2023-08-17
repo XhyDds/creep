@@ -1035,8 +1035,8 @@ assign stallicacop=pipeline_icache_opflag&stall_icache;
         .pipeline_MMU_type              ( ctr_exe0_exe1_1[3:0]      ),
         .pipeline_MMU_subtype           ( ctr_exe0_exe1_1[11:7]     ),
         .pipeline_MMU_excp_arg		    ( excp_arg_exe0_exe1      ),
-        .pipeline_MMU_rj                ( rrj1_forward                  ),
-        .pipeline_MMU_rk                ( rrk1_forward                  ),
+        .pipeline_MMU_rj                ( rrj_exe0_exe1_1               ),
+        .pipeline_MMU_rk                ( rrk_exe0_wxe1_1               ),
         .pipeline_MMU_CRMD              ( CRMD                          ),
         .pipeline_MMU_ASID              ( ASID                          ),
         .pipeline_MMU_DMW0              ( DMW0                          ),
@@ -1053,7 +1053,7 @@ assign stallicacop=pipeline_icache_opflag&stall_icache;
         .pipeline_MMU_TLBELO1   		( CSR_MMU_TLBELO1               ),
 
         .pipeline_MMU_optype0   		( 2'b0 	                        ),//fetch
-        .pipeline_MMU_VADDR_valid0      ( ~|pc[1:0]            ),
+        .pipeline_MMU_VADDR_valid0      ( ~|pc[1:0]                         ),
         .pipeline_MMU_VADDR0    		( pc                            ),
         .MMU_pipeline_PADDR0    		( MMU_pipeline_PADDR0	        ),
         .MMU_pipeline_excp_arg0 		( MMU_pipeline_excp_arg0        ),
