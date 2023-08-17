@@ -1361,7 +1361,7 @@ else if(flush_if0_if1_left) begin
             MMU_pipeline_excp_arg0_if1_fifo<=0;
         end
         else if(stall_if1_fifo);
-else if(fflush_if0_if1_left) begin
+        else if(fflush_if0_if1_left) begin
             pc_if1_fifo<=0;
             ir_if1_fifo<=0;
             icache_valid_if1_fifo<=0;
@@ -2003,7 +2003,7 @@ else if(fflush_if0_if1_left) begin
         .pipeline_icache_opcode 		( cache_opcode_exe0_exe1 		),
         .pipeline_icache_opflag 		( icache_opflag_exe0_exe1&~flush_exe1_exe2_1 		),
         .icache_pipeline_doneop         ( icache_pipeline_doneop        ),
-        .pipeline_icache_ctrl           ( {30'b0,flush_if0_if1,stall_to_icache} ),
+        .pipeline_icache_ctrl           ( {30'b0,1'b0,stall_to_icache} ),
         .icache_pipeline_stall  		( stall_icache  		),//
         .SUC_pipeline_icache            ( ~MMU_pipeline_memtype0[0] | dma),
         .pc_icache_pipeline             ( pc_icache_pipeline    ),
