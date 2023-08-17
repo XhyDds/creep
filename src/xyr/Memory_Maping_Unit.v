@@ -497,32 +497,40 @@ module Memory_Maping_Unit#(//stall frist
 endmodule
 
 module encoder_2n_n#(
-    parameter n=7
+    parameter n=6
 )(
-    input [(1<<n)-1:0] din,
-    output [n-1:0] dout
+    //input [(1<<n)-1:0] din,
+    //output [n-1:0] dout
+    input [(1<<6)-1:0] din,
+    output [5:0] dout
 );
-//    integer i;
-//    always@(*)
-//    begin
-//    dout=0;
-//    for(i=0;i<(1<<n);i=i+1)
-//        begin
-//        if(din[i])
-//            dout=i;
-//        end
+
+//    wire [(1<<n)-1:0]temp[0:n];
+//    assign temp[n]=din;
+//    genvar i;
+//    generate
+//    for(i=n-1;i>=0;i=i-1)
+//    begin:gen_encode
+//    assign dout[i]=|temp[i+1][(1<<i+1)-1:(1<<i)];
+//    assign temp[i][(1<<i)-1:0]=dout[i]?temp[i+1][(1<<i+1)-1:(1<<i)]:temp[i+1][(1<<i)-1:0];
 //    end
-    wire [(1<<n)-1:0]temp[0:n];
-    assign temp[n]=din;
-    genvar i;
-    generate
-    for(i=n-1;i>=0;i=i-1)
-    begin:gen_encode
-    assign dout[i]=|temp[i+1][(1<<i+1)-1:(1<<i)];
-    assign temp[i][(1<<i)-1:0]=dout[i]?temp[i+1][(1<<i+1)-1:(1<<i)]:temp[i+1][(1<<i)-1:0];
-    end
-    endgenerate
-    
+//    endgenerate
+    wire [(1<<6)-1:0] temp0,temp1,temp2,temp3,temp4,temp5,temp6;
+    assign temp6=din;
+
+    assign dout[5]=|temp6[(1<<6)-1:(1<<5)];
+    assign temp5[(1<<5)-1:0]=|temp6[(1<<6)-1:(1<<5)]?temp6[(1<<6)-1:(1<<5)]:temp6[(1<<5)-1:0];
+    assign dout[4]=|temp5[(1<<5)-1:(1<<4)];
+    assign temp4[(1<<4)-1:0]=|temp5[(1<<5)-1:(1<<4)]?temp5[(1<<5)-1:(1<<4)]:temp5[(1<<4)-1:0];
+    assign dout[3]=|temp4[(1<<4)-1:(1<<3)];
+    assign temp3[(1<<3)-1:0]=|temp4[(1<<4)-1:(1<<3)]?temp4[(1<<4)-1:(1<<3)]:temp4[(1<<3)-1:0];
+    assign dout[2]=|temp3[(1<<3)-1:(1<<2)];
+    assign temp2[(1<<2)-1:0]=|temp3[(1<<3)-1:(1<<2)]?temp3[(1<<3)-1:(1<<2)]:temp3[(1<<2)-1:0];
+    assign dout[1]=|temp2[(1<<2)-1:(1<<1)];
+    assign temp1[(1<<1)-1:0]=|temp2[(1<<2)-1:(1<<1)]?temp2[(1<<2)-1:(1<<1)]:temp2[(1<<1)-1:0];
+    assign dout[0]=|temp1[(1<<1)-1:(1<<0)];
+    assign temp0[(1<<0)-1:0]=|temp1[(1<<1)-1:(1<<0)]?temp1[(1<<1)-1:(1<<0)]:temp1[(1<<0)-1:0];
+
 endmodule
 
 
