@@ -128,7 +128,7 @@ static void probe_pcache(void)
                                           c->dcache.linesz;
 	c->dcache.waysize = dcache_size / c->dcache.ways;
 
-	c->scache.linesz = 128;
+	c->scache.linesz = 256;
 	c->scache.sets = 32;
 	c->scache.ways = 8;
 	scache_size = c->scache.sets *
