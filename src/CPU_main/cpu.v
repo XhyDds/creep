@@ -1099,7 +1099,7 @@ module core_top(
     wire choice_real_btb_ras;
     wire choice_real_g_h;
 
-    wire [29:0] npc_test;//给ccr用的测试线，�???要左移两位使用，0,4交替
+    wire [29:0] npc_test;//给ccr用的测试线，�????要左移两位使用，0,4交替
     wire        out_taken_pdc ;
     wire [2:0]  out_kind_pdc  ;
     wire [29:0] out_npc_pdc   ;
@@ -1534,13 +1534,13 @@ module core_top(
     localparam liwai = 32'd3,excp_argALE='b001001,excp_argIPE='b0_001110;
     wire [1:0]addr_2=rrj1_forward[1:0]+imm_reg_exe0_1[1:0];
 
-    always @(*) begin//�????测访存地�????是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�????
+    always @(*) begin//�?????测访存地�?????是否对齐，特权指令是否内核�?�，否则将访存指令变为例外指�?????
         ctr_reg_exe0_1_excp=ctr_reg_exe0_1;
         excp_arg_reg_exe0_1_excp=excp_arg_reg_exe0_1;
         if(ctr_reg_exe0_1[22]&(|PLV)) begin 
             ctr_reg_exe0_1_excp=liwai;
             excp_arg_reg_exe0_1_excp=excp_argIPE; 
-        end//用户态访问越�????
+        end//用户态访问越�?????
         else if(ctr_reg_exe0_1[3:0]==5&ctr_reg_exe0_1[11:7]!=8)
             case (ctr_reg_exe0_1[11:7])
                 1: if(addr_2[0]  ) begin ctr_reg_exe0_1_excp=liwai;excp_arg_reg_exe0_1_excp=excp_argALE; end
@@ -1842,7 +1842,7 @@ module core_top(
 
     //L2-prefetch port
     wire req_pref_l2cache;    
-    wire type_pref_l2cache;//指令或数据 0-指令 1-数据
+    wire type_pref_l2cache;//指令或数�? 0-指令 1-数据
     wire [31:0]addr_pref_l2cache;    
     wire complete_l2cache_pref;
     wire hit_l2cache_pref;//预取请求的Hit
@@ -1943,27 +1943,51 @@ module core_top(
         .l2cache_mem_size               ( l2cache_mem_size     ),
         .mem_l2cache_addrOK_r           ( mem_l2cache_addrOK_r ),
         .mem_l2cache_addrOK_w           ( mem_l2cache_addrOK_w ),
-        .mem_l2cache_dataOK             ( mem_l2cache_dataOK   ),
+        .mem_l2cache_dataOK             ( mem_l2cache_dataOK   )
 
-        // L2-prefetch
-        .req_pref_l2cache               ( req_pref_l2cache             ),
-        .type_pref_l2cache              ( type_pref_l2cache            ),
-        .addr_pref_l2cache              ( addr_pref_l2cache            ),
-        .addrOK_l2cache_pref            ( addrOK_l2cache_pref          ),
-        .complete_l2cache_pref          ( complete_l2cache_pref        ),
-        .hit_l2cache_pref               ( hit_l2cache_pref             ),
-        .miss_l2cache_pref              ( miss_l2cache_pref            ),
-        .missvalid_l2cacahe_pref        (missvalid_l2cacahe_pref       ),
-        .misspc_l2cache_pref            (misspc_l2cache_pref           ),
-        .missaddr_l2cache_pref          (missaddr_l2cache_pref         ),
-        .misstype_l2cache_pref_paddr    (misstype_l2cache_pref_paddr   ),
-        
-        // D-prefetch
-        .dcache_pref_addr(dcache_pref_addr),
-        .dcache_pref_pc(dcache_pref_pc),
-        .dcache_pref_valid(dcache_pref_valid)
     );
+    wire [31:5] baseaddr;wire [7:0] stridepre;wire [1:0] typepre;
+    wire [6:0] IPsigpre;wire [6:0]CSPT_lookaddr;wire [9:0] CSPT_dataout;
 
+    IPCP_launch pre_lauch(
+    .clk(clk),
+    .rstn(rstn),
+    .IPaddr(dcache_pref_pc),
+    .visitaddr(dcache_pref_addr),
+    .visitaddr_valid(dcache_pref_valid),
+    .baseaddr(baseaddr),
+    .strideout(stridepre),
+    .typeout(typepre),
+    .IPsigout(IPsigpre),
+    
+    .CSPT_lookaddr(CSPT_lookaddr),
+    .CSPT_dataout(CSPT_dataout)
+
+);
+
+    IPCP_buff #(
+        .Bufferlen(3)
+    ) pre_buff(
+    //lauch
+    .clk(clk),
+    .rstn(rstn),
+    .baseaddr(baseaddr),
+    .stridein(stridepre),
+    .typein(typepre),
+    .IPsigin(IPsigpre),
+    //lookup
+    .CSPT_lookaddr(CSPT_lookaddr),
+    .CSPT_datain(CSPT_datain),
+    //hitcount
+    .visithit(hitnum_l2cache_pref),
+    .hitype(num_l2cache_pref),
+    //cache
+    .req(req_pref_l2cache),
+    .reqtype(num_pref_l2cache),
+    .reqaddr(addr_pref_l2cache),
+    .reqcomp(complete_l2cache_pref)
+    
+);
     // prefetching#(
     //     .ADDR_WIDTH(32),
     //     .L2cache_width(offset_width)
