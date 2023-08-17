@@ -1036,7 +1036,7 @@ assign stallicacop=pipeline_icache_opflag&stall_icache;
         .pipeline_MMU_subtype           ( ctr_exe0_exe1_1[11:7]     ),
         .pipeline_MMU_excp_arg		    ( excp_arg_exe0_exe1      ),
         .pipeline_MMU_rj                ( rrj_exe0_exe1_1               ),
-        .pipeline_MMU_rk                ( rrk_exe0_wxe1_1               ),
+        .pipeline_MMU_rk                ( rrk_exe0_exe1_1               ),
         .pipeline_MMU_CRMD              ( CRMD                          ),
         .pipeline_MMU_ASID              ( ASID                          ),
         .pipeline_MMU_DMW0              ( DMW0                          ),
