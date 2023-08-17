@@ -9,7 +9,7 @@ module pred_ram #(
     input stall,
 
     input  [ADDR_WIDTH-1:0] raddr,  // Read Address
-    output reg [1:0]taken_pdch,
+    output [1:0]taken_pdch,
     input  [H_WIDTH-1:0] h,
     input  [TAG_WIDTH-1:0] tag,
     output hit,
