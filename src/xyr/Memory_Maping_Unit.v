@@ -61,12 +61,12 @@ module Memory_Maping_Unit#(//stall frist
     reg [1:0] MAT0[0:TLB_nex],MAT1[0:TLB_nex];
     reg D0[0:TLB_nex],D1[0:TLB_nex];reg V0[0:TLB_nex],V1[0:TLB_nex];
     
-    wire [31:0]VADDR0,VADDR1;
-    wire [1:0]optype0,optype1;//reg [1:0] optype0_reg,optype1_reg;
+    wire [31:0]VADDR0,VADDR1;reg [31:0]VADDR0_reg,VADDR1_reg;
+    wire [1:0]optype0,optype1;reg [1:0] optype0_reg,optype1_reg;
     reg [31:0]PADDR0,PADDR1;reg [15:0]excp_arg0,excp_arg1;
     reg [1:0]memtype0,memtype1;wire VADDR_valid0,VADDR_valid1;
     reg PADDR_valid0,PADDR_valid1;
-    //reg VADDR_valid0_reg,VADDR_valid1_reg;//reg [31:0]temp0,temp1;
+    reg VADDR_valid0_reg,VADDR_valid1_reg;//reg [31:0]temp0,temp1;
     reg TLB_found0,TLB_found1;reg [5:0] found_ps0,found_ps1;
     reg found_v0,found_d0,found_v1,found_d1;
     reg [1:0] found_mat0,found_plv0,found_mat1,found_plv1;
@@ -135,6 +135,21 @@ module Memory_Maping_Unit#(//stall frist
         //PADDR_valid0<=VADDR_valid0;PADDR_valid1<=VADDR_valid1;
         end
     end
+    always@(posedge(clk))
+    begin
+    if(!rstn || (flush1 && !stall1))
+        begin
+        optype1_reg<=0;
+        VADDR1_reg<=0;
+        VADDR_valid1_reg<=0;
+        end
+    else if(~stall1)
+        begin
+        optype1_reg<=optype1;
+        VADDR1_reg<=VADDR1;
+        VADDR_valid1_reg<=VADDR_valid1;
+        end
+    end 
     
     genvar i;
     generate
@@ -388,7 +403,7 @@ module Memory_Maping_Unit#(//stall frist
         always@(*)
         begin
         look1[i]=1'b0;
-        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR1[31:1]>>PS[i]))//ȥ��λ�Ƚϣ�VPPNҪ��13λΪ��ȷ��ַ
+        if(E[i]==1&&(G[i]==1||ASID[i]==ASIDin)&&({VPPN[i],12'b0}>>PS[i])==(VADDR1_reg[31:1]>>PS[i]))//ȥ��λ�Ƚϣ�VPPNҪ��13λΪ��ȷ��ַ
             look1[i]=1'b1;
         else
             look1[i]=1'b0;
@@ -404,7 +419,7 @@ module Memory_Maping_Unit#(//stall frist
 //    found_ppn1=0;found_ps1=0;
     TLB_found1=|look1;       
     found_ps1=PS[Index_look1];
-    if(|((VADDR1>>found_ps1)&32'b1))//VLow==1
+    if(|((VADDR1_reg>>found_ps1)&32'b1))//VLow==1
         begin
         found_v1=V1[Index_look1];found_d1=D1[Index_look1];
         found_mat1=MAT1[Index_look1];found_plv1=PLV1[Index_look1];
@@ -418,79 +433,79 @@ module Memory_Maping_Unit#(//stall frist
         end
     end
     assign addrmask1=(~0)<<found_ps1;
-    always@(posedge(clk))
+    always@(*)
     begin
-    if(!rstn || (flush1&&!stall1))
+//    if(!rstn || (flush1&&!stall1))
+//        begin
+//        PADDR1<=0;excp_arg1<=0;
+//        memtype1<=0;
+//        PADDR_valid1<=0;
+//        end
+//    else if(~stall1)
         begin
-        PADDR1<=0;excp_arg1<=0;
-        memtype1<=0;
-        PADDR_valid1<=0;
-        end
-    else if(~stall1)
-        begin
-        PADDR1<=({found_ppn1,12'b0}&addrmask1)|(VADDR1&~addrmask1);
-        memtype1<=found_mat1;
-        excp_arg1<=0;
-        PADDR_valid1<=VADDR_valid1;
+        PADDR1=({found_ppn1,12'b0}&addrmask1)|(VADDR1_reg&~addrmask1);
+        memtype1=found_mat1;
+        excp_arg1=0;
+        PADDR_valid1=VADDR_valid1_reg;
         if(CRMDin[4:3]==2'b01)//DA==1,PG==0
             begin
-            PADDR1<=0;
-            PADDR1<=VADDR1;
-            excp_arg1<=0;
-            if(optype1==FETCH)
-                memtype1<=CRMDin[6:5];
+            PADDR1=0;
+            PADDR1=VADDR1_reg;
+            excp_arg1=0;
+            if(optype1_reg==FETCH)
+                memtype1=CRMDin[6:5];
             else
-                memtype1<=CRMDin[8:7];
+                memtype1=CRMDin[8:7];
             end
-        else if(DMW0_plvOK && DMW0in[31:29]==VADDR1[31:29])
+        else if(DMW0_plvOK && DMW0in[31:29]==VADDR1_reg[31:29])
             begin
-            PADDR1<={DMW0in[27:25],VADDR1[28:0]};
-            memtype1<=DMW0in[5:4];
-            excp_arg1<=0;
+            PADDR1={DMW0in[27:25],VADDR1_reg[28:0]};
+            memtype1=DMW0in[5:4];
+            excp_arg1=0;
             end
-        else if(DMW1_plvOK && DMW1in[31:29]==VADDR1[31:29])
+        else if(DMW1_plvOK && DMW1in[31:29]==VADDR1_reg[31:29])
             begin
-            PADDR1<={DMW1in[27:25],VADDR1[28:0]};
-            memtype1<=DMW1in[5:4];
-            excp_arg1<=0;
+            PADDR1={DMW1in[27:25],VADDR1_reg[28:0]};
+            memtype1=DMW1in[5:4];
+            excp_arg1=0;
             end
-        else if(CRMDin[1:0]!=0 && VADDR1[31]==1)
+        else if(CRMDin[1:0]!=0 && VADDR1_reg[31]==1)
             begin
-            PADDR_valid1<=0;
-            if(optype1==FETCH)
-                excp_arg1<={VADDR_valid1,ADEF,ADE}; 
+            PADDR_valid1=0;
+            if(optype1_reg==FETCH)
+                excp_arg1={VADDR_valid1_reg,ADEF,ADE}; 
             else
-                excp_arg1<={VADDR_valid1,ADEM,ADE}; 
+                excp_arg1={VADDR_valid1_reg,ADEM,ADE}; 
             end
         else if(TLB_found1==0)
             begin
-            PADDR_valid1<=0;
-            excp_arg1<={VADDR_valid1,DEFAULT,TLBR};
+            PADDR_valid1=0;
+            excp_arg1={VADDR_valid1_reg,DEFAULT,TLBR};
             end
         else if(found_v1==0)
             begin
-            PADDR_valid1<=0;
-            case(optype1)
+            PADDR_valid1=0;
+            case(optype1_reg)
                 FETCH:
-                   excp_arg1<={VADDR_valid1,DEFAULT,PIF}; 
+                   excp_arg1={VADDR_valid1_reg,DEFAULT,PIF}; 
                 LOAD:
-                    excp_arg1<={VADDR_valid1,DEFAULT,PIL};
+                    excp_arg1={VADDR_valid1_reg,DEFAULT,PIL};
                 STORE:
-                    excp_arg1<={VADDR_valid1,DEFAULT,PIS};
+                    excp_arg1={VADDR_valid1_reg,DEFAULT,PIS};
             endcase
             end
         else if(CRMDin[1:0]>found_plv1)
             begin
-            PADDR_valid1<=0;
-            excp_arg1<={VADDR_valid1,DEFAULT,PPI};
+            PADDR_valid1=0;
+            excp_arg1={VADDR_valid1_reg,DEFAULT,PPI};
             end
-        else if(optype1==STORE&&found_d1==0)
+        else if(optype1_reg==STORE&&found_d1==0)
             begin
-            PADDR_valid1<=0;
-            excp_arg1<={VADDR_valid1,DEFAULT,PME};
+            PADDR_valid1=0;
+            excp_arg1={VADDR_valid1_reg,DEFAULT,PME};
             end
         else 
-            excp_arg1<=0;    
+            excp_arg1=0;    
         
         end
     end
@@ -500,19 +515,29 @@ module encoder_2n_n#(
     parameter n=7
 )(
     input [(1<<n)-1:0] din,
-    output reg [n-1:0] dout
+    output [n-1:0] dout
 );
-    integer i;
-    always@(*)
-    begin
-    dout=0;
-    for(i=0;i<(1<<n);i=i+1)
-        begin
-        if(din[i])
-            dout=i;
-        end
+//    integer i;
+//    always@(*)
+//    begin
+//    dout=0;
+//    for(i=0;i<(1<<n);i=i+1)
+//        begin
+//        if(din[i])
+//            dout=i;
+//        end
+//    end
+    wire [(1<<n)-1:0]temp[0:n];
+    assign temp[n]=din;
+    genvar i;
+    generate
+    for(i=n-1;i>=0;i=i-1)
+    begin:gen_encode
+    assign dout[i]=|temp[i+1][(1<<i+1)-1:(1<<i)];
+    assign temp[i][(1<<i)-1:0]=dout[i]?temp[i+1][(1<<i+1)-1:(1<<i)]:temp[i+1][(1<<i)-1:0];
     end
-
+    endgenerate
+    
 endmodule
 
 
