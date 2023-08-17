@@ -131,7 +131,7 @@ module core_top(
     rj_id_reg_0,rj_id_reg_1,
     rd_exe0_exe1_0,rd_exe0_exe1_1;
 
-    localparam TLB_n=5,TLB_PALEN=32;
+    localparam TLB_n=4,TLB_PALEN=32;
 
     reg [TLB_n-1:0] rand_index_exe0_exe1,rand_index_exe1_wb;
 
@@ -1836,7 +1836,7 @@ module core_top(
     L1_L2cache #(
         .I_index_width  		( 7 		),
         .D_index_width  		( 7 		),
-        .L2_index_width  		( 7 		),
+        .L2_index_width  		( 8 		),
         .L1_offset_width 		( 3 		),
         .L2_offset_width 		( 3 		))
     u_L1_L2cache(
