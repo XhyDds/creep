@@ -61,7 +61,7 @@ module aim_predictor#(
         .pc(pc_reg),
         .bh(bh_reg),
         .b_taken_pdc(taken_b),
-        .taken_pdch_b(),
+        .taken_pdch_b(taken_pdch_b),
         .b_taken_real(taken_real),
         .taken_pdch_ex_b(taken_pdch_ex_b),
         .update_en(try_to_pdc&&update_en),
@@ -72,7 +72,7 @@ module aim_predictor#(
     bpht_cache#(              //pc+bh
         .bh_width(4),
         .ADDR_WIDTH(ADDR_WIDTH),
-        .k_width(k_width)
+        .k_width(6)
     )
     bpht_cache_b(
         .clk(clk),
@@ -80,7 +80,7 @@ module aim_predictor#(
         .pc(pc_reg),
         .bh(bh_reg[3:0]),
         .b_taken_pdc(taken_bc),
-        .taken_pdch_b(taken_pdch_b),
+        .taken_pdch_b(),
         .b_taken_real(taken_real),
         .update_en(try_to_pdc&&update_en),
         .pc_update(pc_ex),
@@ -101,8 +101,8 @@ module aim_predictor#(
         .update_en(try_to_pdc&&update_en),
         .pc(pc),
         .gh(gh),
-        // .taken_bh(taken_b),
-        .taken_bh(0),
+        .taken_bh(taken_b),
+        // .taken_bh(0),
         .pc_ex(pc_ex),
         .taken_pdc_ex(taken_pdc_ex),
         .taken_ex(taken_real),

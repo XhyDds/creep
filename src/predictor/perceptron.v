@@ -1,11 +1,11 @@
 //暂时不做替换
 //h_width:16
 module perceptron #(
-    parameter   hash_width = 14,
+    parameter   hash_width = 8,
                 h_width = 16,
-                weight_width = 7,
-                tag_width = 30,
-                threshold = 11'h78
+                weight_width = 3,
+                tag_width = 24,
+                threshold = 7'h10
 
 ) (
     input  clk,
