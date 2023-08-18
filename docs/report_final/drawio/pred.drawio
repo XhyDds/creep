@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="IpS5HXJOFRtNgtyYNwFA" name="第 1 页">
-        <mxGraphModel dx="823" dy="423" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="576" dy="296" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -111,7 +111,7 @@
                         <mxPoint x="300" y="347.5" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="39" value="全部历史表" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                <mxCell id="39" value="全局历史队列" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="120" y="315" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="45" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="53" target="5" edge="1">
@@ -152,10 +152,10 @@
                         <mxPoint x="560" y="150" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="53" value="hash" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                <mxCell id="53" value="hash" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
                     <mxGeometry x="295" y="330" width="50" height="50" as="geometry"/>
                 </mxCell>
-                <mxCell id="55" value="hash" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                <mxCell id="55" value="hash" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
                     <mxGeometry x="295" y="185" width="50" height="50" as="geometry"/>
                 </mxCell>
             </root>
