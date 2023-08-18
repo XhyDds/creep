@@ -8,7 +8,7 @@
 
 ## 设计简介
 
-我们设计的 CPU 采用顺序双发射八级流水，实现了 63 条指令、26 种 CSR 寄存器、16 种例外[^0]。采用 AXI-4 总线。使用 2 路组相联 16KB Icache 和 2 路组相联 16KB Dcache，采用写直达，非写分配策略；8 路组相联L2cache，采用写回、写分配策略。使用二级流水的分支预测器以减少分支失败带来的性能损失。
+我们设计的 CPU 采用顺序双发射八级流水，实现了 63 条指令、26 种 CSR 寄存器、16 种例外[^0]。采用 AXI-4 总线。使用 2 路组相联 16KB Icache 和 2 路组相联 16KB Dcache，采用写直达，非写分配策略；8 路组相联L2cache，采用写回、写分配策略。使用二级流水的分支预测器以减少分支失败带来的性能损失。为L2 Cache适配了IPCP预取[^7]，以提高L2 Cache的命中率。
 
 ### 指令列表
 
@@ -543,3 +543,4 @@ static void probe_pcache(void)
 [^4]: 汪文祥 and 刑金璋. *CPU 设计实战*[M]. 北京: 机械工业出版社. 2021.
 [^5]: Jiménez D A, Lin C. Dynamic branch prediction with perceptrons[C]//Proceedings HPCA Seventh International Symposium on High-Performance Computer Architecture. IEEE, 2001: 197-206.
 [^6]: Seznec A, Michaud P. A case for (partially) TAgged GEometric history length branch prediction[J]. The Journal of Instruction-Level Parallelism, 2006, 8: 23.
+[^7]: Pakalapati S, Panda B. Bouquet of instruction pointers: Instruction pointer classifier-based spatial hardware prefetching[C]//2020 ACM/IEEE 47th Annual International Symposium on Computer Architecture (ISCA). IEEE, 2020: 118-131.
