@@ -133,8 +133,7 @@
 
 CPU 采用顺序双发射八级流水结构，流水线分为 IF0、IF1、FIFO、ID、REG、EXE0、EXE1、WB 八级。
 
-
-![数据通路](./flow.svg)
+![flow](C:\Users\lenovo\Desktop\git\creep\docs\report_pri\flow.png)
 
 图中， 除了 AXI interconnect 借鉴了以 MIT license 分发的 verilog-axi [^2]并修改、所有BRAM生成代码均使用 Xilinx 标准生成代码以增加灵活性，其余所有模块都由我们独立实现。
 
