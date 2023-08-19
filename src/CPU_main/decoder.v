@@ -352,6 +352,15 @@ module decoder (
             begin
                 imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;ifbr=1;
             end
+        /*
+        'b011100:
+            if(ir[20:16]==5'b00000 & ir[10:0]==11'b11100110111)
+                begin
+                    userd=1;type_=12;regwrite=1;rk=ir[25:21];rd=ir[15:11];
+                end
+            else begin type_=liwai;subtype=0;excp_arg='b001101; end
+        */
+        //assign control=(valid)?{1'b1,ifbr,userd,ifibar_cacop,iftlbfill,kind,ifrdc,priv,aluop,pcsrc,alusrc1,alusrc2,subtype,regwrite,memwrite,memread,type_}:0;//顺序可调换
         default: begin type_=liwai;subtype=0;excp_arg='b001101; end
         endcase
     end
