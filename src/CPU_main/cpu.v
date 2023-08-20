@@ -4,7 +4,7 @@ module mycpu_top(
 //module core_top(
     input           aclk,
     input           aresetn,
-    input    [ 7:0] ext_int, 
+    input    [ 7:0] intrpt, 
 
     //AXI interface 
     //read reqest
@@ -56,21 +56,20 @@ module mycpu_top(
     output          ws_valid,
     output   [31:0] rf_rdata,
      
-    output   [31:0] debug_wb_pc,
-    output   [ 3:0] debug_wb_rf_we,
-    output   [ 4:0] debug_wb_rf_wnum,
-    output   [31:0] debug_wb_rf_wdata,
-    output   [31:0] debug_wb_inst,
-    output          debug_stall_exe1_wb
+    output   [31:0] debug0_wb_pc,
+    output   [ 3:0] debug0_wb_rf_wen,
+    output   [ 4:0] debug0_wb_rf_wnum,
+    output   [31:0] debug0_wb_rf_wdata,
+    output   [31:0] debug0_wb_inst,
+    output          debug0_stall_exe1_wb,
          
-//    output   [31:0] debug1_wb_pc,
-//    output   [ 3:0] debug1_wb_rf_wen,
-//    output   [ 4:0] debug1_wb_rf_wnum,
-//    output   [31:0] debug1_wb_rf_wdata,
-//    output   [31:0] debug1_wb_inst,
-//    output          debug1_stall_exe1_wb
+   output   [31:0] debug1_wb_pc,
+   output   [ 3:0] debug1_wb_rf_wen,
+   output   [ 4:0] debug1_wb_rf_wnum,
+   output   [31:0] debug1_wb_rf_wdata,
+   output   [31:0] debug1_wb_inst,
+   output          debug1_stall_exe1_wb
 );
-    assign intrpt=ext_int;
     wire clk=aclk;
     wire rstn=aresetn;
     parameter offset_width = 3;
@@ -1639,6 +1638,7 @@ module mycpu_top(
             6: result1=dcacheresult;
             7: result1=result_exe0_exe1_1;
             8: result1=result_exe0_exe1_1;
+            12:result1=result_exe0_exe1_1;
         endcase
     end
 
