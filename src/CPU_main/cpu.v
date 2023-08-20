@@ -792,9 +792,7 @@ module mycpu_top(
         .rrj     		( rrj1_forward  ),
         .ctr     		( ctr_reg_exe0_1_excp),
         .excp_arg       ( excp_arg_reg_exe0_1_excp),
-        .result  		( newopresult   ),
-        .ifwrite 		( ifwritenewop	),
-        .stall          ( stallnewop    )
+        .result  		( newopresult   )
     );
 
     wire [31:0]	addr_pipeline_dcache;
