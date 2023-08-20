@@ -782,7 +782,6 @@ module mycpu_top(
     );
 
     wire [31:0]	newopresult;
-    wire 	ifwritenewop;
 
     newop u_newop(
         //ports
