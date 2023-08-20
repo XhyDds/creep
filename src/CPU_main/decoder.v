@@ -352,6 +352,12 @@ module decoder (
             begin
                 imm={{14{ir[25]}},ir[25:10],2'b0};rj=ir[9:5];rd=ir[4:0];type_=tiao;subtype=6;pcsrc=1;aluop=xiaoyu;alusrc2=2;kind=DIRECT_JUMP;userd=1;ifbr=1;
             end
+        'b110000:
+            if(ir[25]==1'b1)
+                begin
+                    type_=12;regwrite=1;rj=ir[9:5];rd=ir[4:0];excp_arg={1'b0,ir[24:10]};
+                end
+            else begin type_=liwai;subtype=0;excp_arg='b001101; end
         default: begin type_=liwai;subtype=0;excp_arg='b001101; end
         endcase
     end
