@@ -46,11 +46,6 @@ module L1_L2cache#(
     input       [31:0]pipeline_dcache_ctrl,//stall flush branch ...
     output      dcache_pipeline_stall,//stall form dcache     不知道可不可以用ready代替，先留着
 
-    input       newop,
-    input       [31:0]addr1,
-    input       [31:0]addr2,
-    input       [31:0]data,
-
     //L2-pipeline port
     input       [31:0]addr_pipeline_l2cache,
     input       pipeline_l2cache_opflag,
@@ -218,11 +213,6 @@ Dcache(
     .ack_op(ack_d),
     .pipeline_dcache_ctrl(pipeline_dcache_ctrl),
     .dcache_pipeline_stall(dcache_pipeline_stall),
-
-    .newop(newop),
-    .addr1(addr1),
-    .addr2(addr2),
-    .data(data),
 
     .addr_dcache_mem(addr_dcache_mem),
     .pc_dcache_mem(pc_dcache_mem),
