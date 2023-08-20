@@ -220,6 +220,19 @@ always @(*) begin
     endcase
 end
 reg [31:0]record_data1,record_data2;
+always @(posedge clk) begin
+    case (state)
+        New1:begin
+            if(mem_dcache_dataOK)record_data1 <= din_mem;
+        end 
+        New2:begin
+            if(mem_dcache_dataOK)record_data2 <= din_mem;
+        end
+        default:begin
+            
+        end
+    endcase
+end
 always @(*) begin
     dcache_pipeline_ready = 0;
     dcache_mem_req = 0;
@@ -243,14 +256,12 @@ always @(*) begin
         New1:begin
             choose_new = 1;
             addr_out = addr1_new;
-            dcache_mem_req = 1; dcache_mem_wr = 0;
-            if(mem_dcache_dataOK)record_data1 <= din_mem;
+            dcache_mem_req = 1; dcache_mem_wr = 0;  
         end
         New2:begin
             choose_new = 1;
             addr_out = addr2_new;
             dcache_mem_req = 1; dcache_mem_wr = 0;
-            if(mem_dcache_dataOK)record_data2 <= din_mem;
         end
         New3:begin
             choose_new = 1;
