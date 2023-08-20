@@ -1,8 +1,8 @@
 `define two_pre
 // `define invalidl2  //还不能用 留个接口
 `define DMA
-// module mycpu_top(
-module core_top(
+module mycpu_top(
+// module core_top(
     input           aclk,
     input           aresetn,
     // input    [ 7:0] ext_int, 
@@ -789,8 +789,9 @@ module core_top(
         .clk     		( clk     		),
         .rstn    		( rstn    		),
         .rrd     		( rrd1_forward  ),
-        .rrk     		( rrk1_forward  ),
+        .rrj     		( rrj1_forward  ),
         .ctr     		( ctr_reg_exe0_1_excp),
+        .excp_arg       ( excp_arg_reg_exe0_1_excp),
         .result  		( newopresult   ),
         .ifwrite 		( ifwritenewop	),
         .stall          ( stallnewop    )
@@ -1650,7 +1651,7 @@ module core_top(
         else begin
             ctr_exe0_exe1_1 <= ctr_reg_exe0_1_excp;
             rd_exe0_exe1_1<=rd_reg_exe0_1;
-            result_exe0_exe1_1<=(ctr_reg_exe0_1_excp[3:0]==7)?countresult1:aluresult1;
+            result_exe0_exe1_1<=(ctr_reg_exe0_1_excp[3:0]==7)?countresult1:(ctr_reg_exe0_1_excp[3:0]==12)?newopresult:aluresult1;
             pc_exe0_exe1_1<=pc_reg_exe0_1;
             ir_exe0_exe1_1<=ir_reg_exe0_1;
             vaddr_exe0_exe1<=addr_pipeline_dcache;
@@ -1696,7 +1697,6 @@ module core_top(
             6: result1=dcacheresult;
             7: result1=result_exe0_exe1_1;
             8: result1=result_exe0_exe1_1;
-            12:result1=newopresult;
         endcase
     end
 
@@ -1762,7 +1762,6 @@ module core_top(
             din_pipeline_dcache_exe1_wb<=0;
         end
         else begin
-            //ctr_exe1_wb_1 <= ctr_exe0_exe1_1[3:0]==12&ifwritenewop?ctr_exe0_exe1_1:{ctr_exe0_exe1_1[31:7],1'b0,ctr_exe0_exe1_1[5:0]};
             ctr_exe1_wb_1<=ctr_exe0_exe1_1;
             rd_exe1_wb_1<=rd_exe0_exe1_1;
             result_exe1_wb_1<=result1;

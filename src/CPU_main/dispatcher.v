@@ -28,8 +28,8 @@ module dispatcher (
     // wire suanshu1=(type1==0|type1==2|type1==4);
     // wire suanshubr1=(suanshu1|type1==1|type1==8);
     // wire jiaohuan=(type0==5)&suanshu1;//3000是alu，3004是dcache
-    wire twostates0=((type0==4|type0==5|type0==2|type0==3|type0==12)&regwrite0);
-    wire twostates1=((type1==4|type1==5|type1==2|type1==3|type1==12)&regwrite1);
+    wire twostates0=((type0==4|type0==5|type0==2|type0==3)&regwrite0);
+    wire twostates1=((type1==4|type1==5|type1==2|type1==3)&regwrite1);
     
     wire stall1=(twostates0_reg&(rd0_reg==rk1|rd0_reg==rj1|rd1==rd0_reg&control1[29]))
                |(twostates1_reg&(rd1_reg==rk1|rd1_reg==rj1|rd1==rd1_reg&control1[29]));
