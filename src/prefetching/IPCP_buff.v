@@ -21,7 +21,7 @@ module IPCP_buff#(
     
 );
     localparam NL=0,CS=1,CPLX=2,GS=3;
-    localparam CS_max=3,CPLX_max=3,GS_max=6;
+    localparam CS_max=6,CPLX_max=6,GS_max=9;
     localparam Idle=0,Req=1,Getnaddr=2;
     reg [Bufferlen-1:0] headp,tailp,ntailp;reg [43:0] buffer[0:(1<<Bufferlen)-1];
     wire [43:0] buff_din,buff_dout;reg [3:0] ns,cs;reg [3:0] prenum,nprenum;
@@ -108,7 +108,7 @@ module IPCP_buff#(
                 //nstridenow=CSPT_datain[9:2];
                 naddrnow=addrnow+{{19{CSPT_datain[9]}},CSPT_datain[8:2]};
                 nIPsignow={IPsignow[5:0],1'b0}^CSPT_datain[9:2];
-                if(!CSPT_datain[1:0])
+                if(~CSPT_datain[1])
                     begin
                     if(|prenum)
                         ns=Getnaddr;
@@ -134,9 +134,9 @@ module IPCP_buff#(
         end
     else if(&tcoun_CS)
         tcoun_CS<=0;
-    else if(tcoun_CPLX)
+    else if(&tcoun_CPLX)
         tcoun_CPLX<=0;
-    else if(tcoun_GS)
+    else if(&tcoun_GS)
         tcoun_GS<=0;
     else if(req&~req_reg)
         begin
@@ -146,7 +146,7 @@ module IPCP_buff#(
             CPLX:
                tcoun_CPLX<=tcoun_CPLX+1;
             GS:
-                tcoun_GS<=tcoun_GS;
+                tcoun_GS<=tcoun_GS+1;
         endcase
         end
     end
@@ -159,9 +159,9 @@ module IPCP_buff#(
         hcoun_CS<=0;
         hcoun_CPLX<=0;
         hcoun_GS<=0;
-        CS_num<=1;
-        CPLX_num<=1;
-        GS_num<=1;
+        CS_num<=CS_max;
+        CPLX_num<=CPLX_max;
+        GS_num<=GS_max;
         end
     else
         begin
@@ -193,11 +193,11 @@ module IPCP_buff#(
             begin
             case(hitype)
                 CS:
-                    hcoun_CS<=hcoun_CS+1;
+                    hcoun_CS<=hcoun_CS+{7'b0,~(&hcoun_CS)};
                 CPLX:
-                    hcoun_CPLX<=hcoun_CPLX+1;
+                    hcoun_CPLX<=hcoun_CPLX+{7'b0,~(&hcoun_CPLX)};
                 GS:
-                    hcoun_GS<=hcoun_GS+1;
+                    hcoun_GS<=hcoun_GS+{7'b0,~(&hcoun_GS)};
                 default
                     begin
                     end
