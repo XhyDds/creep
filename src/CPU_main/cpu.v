@@ -139,7 +139,7 @@ module core_top(
     rj_id_reg_0,rj_id_reg_1,
     rd_exe0_exe1_0,rd_exe0_exe1_1;
 
-    localparam TLB_n=4,TLB_PALEN=32;
+    localparam TLB_n=5,TLB_PALEN=32;
 
     reg [TLB_n-1:0] rand_index_exe0_exe1,rand_index_exe1_wb;
 
