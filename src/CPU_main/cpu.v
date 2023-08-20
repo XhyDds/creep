@@ -1694,6 +1694,7 @@ module mycpu_top(
             6: result1=dcacheresult;
             7: result1=result_exe0_exe1_1;
             8: result1=result_exe0_exe1_1;
+            12:result1=result_exe0_exe1_1;
         endcase
     end
 
