@@ -1,7 +1,6 @@
-`define predictor
 `define two_pre
 // `define invalidl2  //还不能用 留个接口
-//`define DMA
+`define DMA
 // module mycpu_top(
 module core_top(
     input           aclk,
@@ -86,6 +85,13 @@ module core_top(
         else break_point_reg<=break_point;
     end
     parameter offset_width = 3;
+    wire dma;
+    `ifdef DMA
+        assign dma = 1'b1;
+    `endif
+    `ifndef DMA
+        assign dma = 1'b0;
+    `endif
 
     reg [31:0]pc,npc,
     ctr_id_reg_0,       ctr_id_reg_1,       
@@ -705,7 +711,6 @@ module core_top(
         .divider_pipeline_dout    		( divresult1    		)
     );
 
-`ifdef predictor
     wire 	ifbr__0;
     wire [31:0]	brresult_0;
 
@@ -720,7 +725,8 @@ module core_top(
         .pre       		( pre_reg_exe0_0       		),
         .flush_pre 		( flush_pre_0 		),
         .ifbr_     		( ifbr__0     		),
-        .brresult  		( brresult_0  		)
+        .brresult  		( brresult_0  		),
+        .dma            ( dma               )
     );
 
     wire [31:0]	pc_br0;
@@ -736,7 +742,8 @@ module core_top(
         .ifbr_    		( ifbr__exe0_exe1_0    		),
         .ifbr     		( ifbr0_     	    ),
         .pc_br    		( pc_br0    		),
-        .pc_br_pdc      ( pc_br_pdc0        )
+        .pc_br_pdc      ( pc_br_pdc0        ),
+        .dma            ( dma               )
     );
 
     wire 	ifbr__1;
@@ -753,7 +760,8 @@ module core_top(
         .pre       		( pre_reg_exe0_1       		),
         .flush_pre 		( flush_pre_1 		),
         .ifbr_     		( ifbr__1     		),
-        .brresult  		( brresult_1  		)
+        .brresult  		( brresult_1  		),
+        .dma            ( dma               )
     );
 
     wire [31:0]	pc_br1;
@@ -769,38 +777,9 @@ module core_top(
         .ifbr_    		( ifbr__exe0_exe1_1    		),
         .ifbr     		( ifbr1_    	),
         .pc_br    		( pc_br1    		),
-        .pc_br_pdc      ( pc_br_pdc1        )
+        .pc_br_pdc      ( pc_br_pdc1        ),
+        .dma            ( dma               )
     );
-`endif
-`ifndef predictor
-    wire [31:0]	pc_br0;
-
-    br u_br0(
-        //ports
-        .ctr      		( ctr_reg_exe0_0    ),
-        .pc       		( pc_reg_exe0_0     ),
-        .imm      		( imm_reg_exe0_0    ),
-        .alu1      		( alu1_0      		),
-        .alu2      		( alu2_0      		),
-        .ifbr     		( ifbr0    		    ),
-        .pc_br   		( pc_br0 	        ),
-        .rrj            ( rrj0_forward      )
-    );
-
-    wire [31:0]	pc_br1;
-
-    br u_br1(
-        //ports
-        .ctr      		( ctr_reg_exe0_1_excp),
-        .pc       		( pc_reg_exe0_1      ),
-        .imm      		( imm_reg_exe0_1     ),
-        .alu1      		( alu1_1      		 ),
-        .alu2      		( alu2_1      		 ),
-        .ifbr     		( ifbr1    		     ),
-        .pc_br  		( pc_br1		     ),
-        .rrj            ( rrj1_forward       )
-    );
-`endif
 
     wire [31:0]	newopresult;
     wire 	ifwritenewop;
@@ -1100,7 +1079,6 @@ module core_top(
     wire [bh_width-1:0]bh_pdc;
     wire [1:0]choice_pdc;
 
-`ifdef predictor
     //已经处理过的信号
     parameter   NOT_JUMP = 3'd0,
                 DIRECT_JUMP = 3'd1,
@@ -1227,16 +1205,8 @@ module core_top(
 
         .update_en     (update_en)
     );
-`endif
 
     //PC
-    wire dma;
-    `ifdef DMA
-        assign dma = 1'b1;
-    `endif
-    `ifndef DMA
-        assign dma = 1'b0;
-    `endif
     wire invalid_l2;
     `ifdef invalidl2
         assign invalid_l2 = 1'b1;
@@ -1255,21 +1225,14 @@ module core_top(
         else if(ifbr0) npc=pc_br0;
         else if(ifsuc) npc=pc_if0_if1+4;
         else if(dma) npc=pc+4;
-        
-        `ifdef predictor
-            `ifdef two_pre
-                else if(flush_mispre) begin npc=npc_pdc_32;ifnpc_pdc=1; end 
-                else if(pc[2]) begin npc=pc+4;ifguess=1;ifnpc_pdc=1; end
-                else begin npc=pc+8;ifguess=1;ifnpc_pdc=1; end
-            `endif
-            `ifndef two_pre
-                else begin npc=npc_pdc_32;ifnpc_pdc=1; end
-            `endif
-        `endif
 
-        `ifndef predictor
-        else if(pc[2]) npc=pc+4;
-        else npc=pc+8;//Icache ONLY
+        `ifdef two_pre
+            else if(flush_mispre) begin npc=npc_pdc_32;ifnpc_pdc=1; end 
+            else if(pc[2]) begin npc=pc+4;ifguess=1;ifnpc_pdc=1; end
+            else begin npc=pc+8;ifguess=1;ifnpc_pdc=1; end
+        `endif
+        `ifndef two_pre
+            else begin npc=npc_pdc_32;ifnpc_pdc=1; end
         `endif
     end
 

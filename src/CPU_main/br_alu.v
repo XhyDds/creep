@@ -1,6 +1,7 @@
 module br_alu (
     input [31:0]ctr,pc,imm,rrj,alu1,alu2,
     input [75:0]pre,
+    input dma,
     output reg flush_pre,ifbr_,
     output reg [31:0]brresult
 );
@@ -16,8 +17,6 @@ module br_alu (
         if(type_==1) begin
             case (subtype)//可以合并
                 0: ifbr_=1;
-                // 1: ifbr_=~|(alu1^alu2);
-                // 2: ifbr_=|(alu1^alu2);
                 1: ifbr_=alu1==alu2;
                 2: ifbr_=alu1!=alu2;
                 3: ifbr_=$signed(alu1)<$signed(alu2);
@@ -33,6 +32,7 @@ module br_alu (
     end
 
     always @(*) begin
-        flush_pre=iftwo&ifnpc_pdc&iftaken_pdc&ctr[30]&ctr[31];
+        if(dma)flush_pre=0;
+        else flush_pre=iftwo&ifnpc_pdc&iftaken_pdc&ctr[30]&ctr[31];
     end
 endmodule //br_alu
